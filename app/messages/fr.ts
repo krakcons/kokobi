@@ -1,0 +1,74 @@
+import { Messages } from "@/lib/locale";
+
+const fr: Messages = {
+	Home: {
+		title: { "1": "Apprentissage moderne", "2": "Moins cher" },
+		description:
+			"Découvrez une gestion de l'apprentissage moderne, abordable et facile pour une expérience éducative enrichissante.",
+		"get-started": "Démarrer",
+	},
+	Join: {
+		"0": { title: "S'inscrire" },
+		"1": { title: "Vos informations" },
+		continue: "Continuer",
+		join: "S’inscrire",
+		back: "Retour",
+		language: "Langue",
+		"language-description":
+			"Une fois inscrit, vous ne pourrez pas changer de langue et vous devrez vous réinscrire (ou demander une nouvelle invitation) pour le faire.",
+	},
+	Form: {
+		learner: {
+			firstName: "Prénom",
+			lastName: "Nom de famille",
+			email: "Courriel",
+		},
+		submit: "Soumettre",
+	},
+	Certificate: {
+		title: "Certificat de réussite",
+		message: "La présente atteste que vous avez suivi avec succès",
+		download: "Télécharger",
+		pdf: {
+			title: "Certificat de réussite",
+			message: "Nouse sommes fiers de remettre ce certificat à",
+			congratulations: {
+				"1": "Félicitations ! Vous avez terminé avec succès",
+				"2": "offert par",
+			},
+			date: "Date d'achèvement",
+		},
+		dialog: {
+			title: "Complété !",
+			description:
+				"Vous pouvez maintenant fermer cette fenêtre. Un courriel contenant votre certificat vous sera envoyé dans les plus brefs délais. Vous pouvez également le télécharger ci-dessous :",
+			"dont-show": "Ne le montrez plus",
+		},
+	},
+	Email: {
+		by: "offert par",
+		Completion: {
+			title: "Félicitations !",
+			completed: "Complété",
+			congratulations: "Félicitations ! Vous avez complété",
+			certificate: "Téléchargez votre certificat de réussite :",
+			get: "Télécharger",
+		},
+		CourseInvite: {
+			subject: "Invitation :",
+			title: "Invitation",
+			invite: "vous invite à vous joindre à :",
+			start: "Commencer",
+			below: "☕ Besoin de prendre une pause ? Nous avons une solution. Apprenez à votre propre rythme en cliquant sur le bouton ci-dessus pour reprendre là où vous vous êtes arrêté. \n\n Lorsque vous aurez terminé votre apprentissage, vous recevrez par courriel un certificat de réussite. \n\n Veuillez vous abstenir de répondre à ce courriel car il n'y a pas de boîte de réception prévue à cet effet. \n\n Bon apprentissage !",
+		},
+		CollectionInvite: {
+			subject: "Invitation :",
+			title: "Invitation",
+			invite: "vous invite à vous joindre à :",
+			start: "Commencer",
+			below: "☕ Besoin de prendre une pause ? Nous avons une solution. Apprenez à votre propre rythme en cliquant sur le bouton ci-dessus pour reprendre là où vous vous êtes arrêté. \n\n Pour chacun des cours ci-dessus que vous complétez, vous recevrez un certificat de réussite. \n\n Veuillez vous abstenir de répondre à ce courriel car il n'y a pas de boîte de réception prévue à cet effet. \n\n Bon apprentissage !",
+		},
+	},
+};
+
+export default fr;

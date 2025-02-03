@@ -1,0 +1,66 @@
+import { redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/start";
+import { and, eq } from "drizzle-orm";
+import { deleteCookie, getCookie } from "vinxi/http";
+import { z } from "zod";
+import { invalidateSession, validateSessionToken } from ".";
+import { db } from "../db/db";
+import { usersToTeams } from "../db/schema";
+
+export const getAuth = createServerFn().handler(async () => {
+	const sessionId = getCookie("auth_session");
+
+	if (!sessionId) {
+		return {
+			user: null,
+			session: null,
+		};
+	}
+
+	return await validateSessionToken(sessionId);
+});
+
+export const logout = createServerFn().handler(async () => {
+	const sessionId = getCookie("auth_session");
+	if (!sessionId) return;
+	deleteCookie("auth_session");
+	deleteCookie("teamId");
+	invalidateSession(sessionId);
+});
+
+export const getTeam = createServerFn()
+	.validator(
+		z.object({
+			id: z.string(),
+			userId: z.string(),
+		})
+	)
+	.handler(async ({ data: { id, userId } }) => {
+		const userToTeam = await db.query.usersToTeams.findFirst({
+			where: and(eq(usersToTeams.teamId, id), eq(usersToTeams.userId, userId)),
+			with: {
+				team: true,
+			},
+		});
+		return userToTeam?.team;
+	});
+
+export const getUserRole = createServerFn()
+	.validator(
+		z.object({
+			teamId: z.string(),
+		})
+	)
+	.handler(async ({ data: { teamId } }) => {
+		const user = await getAuth();
+
+		if (!user.user) {
+			throw redirect({ to: "/auth/google" });
+		}
+
+		const userToTeam = await db.query.usersToTeams.findFirst({
+			where: and(eq(usersToTeams.userId, user.user?.id), eq(usersToTeams.teamId, teamId)),
+		});
+
+		return userToTeam!.role;
+	});
