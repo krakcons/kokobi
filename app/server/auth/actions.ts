@@ -36,27 +36,24 @@ export const logout = createServerFn({
 	invalidateSession(sessionId);
 });
 
-export const getTeam = createServerFn({
-	method: "GET",
-})
-	.validator(
-		z.object({
-			id: z.string(),
-			userId: z.string(),
-		}),
-	)
-	.handler(async ({ data: { id, userId } }) => {
-		const userToTeam = await db.query.usersToTeams.findFirst({
-			where: and(
-				eq(usersToTeams.teamId, id),
-				eq(usersToTeams.userId, userId),
-			),
-			with: {
-				team: true,
-			},
-		});
-		return userToTeam?.team;
+export const getTeam = async ({
+	id,
+	userId,
+}: {
+	id: string;
+	userId: string;
+}) => {
+	const userToTeam = await db.query.usersToTeams.findFirst({
+		where: and(
+			eq(usersToTeams.teamId, id),
+			eq(usersToTeams.userId, userId),
+		),
+		with: {
+			team: true,
+		},
 	});
+	return userToTeam?.team;
+};
 
 export const getUserRole = createServerFn({
 	method: "GET",

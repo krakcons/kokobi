@@ -1,4 +1,19 @@
 const en = {
+	Nav: {
+		top: {
+			editing: "Editing",
+		},
+		sidebar: {
+			manage: "Manage",
+			dashboard: "Dashboard",
+			team: "Team",
+			edit: "Edit Team",
+			apiKeys: "API Keys",
+			certificate: "Certificate",
+			domains: "Domains",
+			members: "Members",
+		},
+	},
 	Home: {
 		title: { "1": "Modern Learning", "2": "For Less" },
 		description:

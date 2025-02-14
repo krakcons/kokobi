@@ -14,6 +14,13 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LocaleIndexImport } from './routes/$locale/index'
 import { Route as LocaleAdminImport } from './routes/$locale/admin'
 import { Route as LocaleAdminIndexImport } from './routes/$locale/admin/index'
+import { Route as LocaleAdminTeamImport } from './routes/$locale/admin/team'
+import { Route as LocaleAdminOnboardImport } from './routes/$locale/admin/onboard'
+import { Route as LocaleAdminMembersImport } from './routes/$locale/admin/members'
+import { Route as LocaleAdminDomainsImport } from './routes/$locale/admin/domains'
+import { Route as LocaleAdminCertificateImport } from './routes/$locale/admin/certificate'
+import { Route as LocaleAdminApiKeysImport } from './routes/$locale/admin/api-keys'
+import { Route as LocaleAdminCoursesIdImport } from './routes/$locale/admin/courses/$id'
 
 // Create/Update Routes
 
@@ -35,6 +42,48 @@ const LocaleAdminIndexRoute = LocaleAdminIndexImport.update({
   getParentRoute: () => LocaleAdminRoute,
 } as any)
 
+const LocaleAdminTeamRoute = LocaleAdminTeamImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
+const LocaleAdminOnboardRoute = LocaleAdminOnboardImport.update({
+  id: '/onboard',
+  path: '/onboard',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
+const LocaleAdminMembersRoute = LocaleAdminMembersImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
+const LocaleAdminDomainsRoute = LocaleAdminDomainsImport.update({
+  id: '/domains',
+  path: '/domains',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
+const LocaleAdminCertificateRoute = LocaleAdminCertificateImport.update({
+  id: '/certificate',
+  path: '/certificate',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
+const LocaleAdminApiKeysRoute = LocaleAdminApiKeysImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
+const LocaleAdminCoursesIdRoute = LocaleAdminCoursesIdImport.update({
+  id: '/courses/$id',
+  path: '/courses/$id',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -53,11 +102,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleIndexImport
       parentRoute: typeof rootRoute
     }
+    '/$locale/admin/api-keys': {
+      id: '/$locale/admin/api-keys'
+      path: '/api-keys'
+      fullPath: '/$locale/admin/api-keys'
+      preLoaderRoute: typeof LocaleAdminApiKeysImport
+      parentRoute: typeof LocaleAdminImport
+    }
+    '/$locale/admin/certificate': {
+      id: '/$locale/admin/certificate'
+      path: '/certificate'
+      fullPath: '/$locale/admin/certificate'
+      preLoaderRoute: typeof LocaleAdminCertificateImport
+      parentRoute: typeof LocaleAdminImport
+    }
+    '/$locale/admin/domains': {
+      id: '/$locale/admin/domains'
+      path: '/domains'
+      fullPath: '/$locale/admin/domains'
+      preLoaderRoute: typeof LocaleAdminDomainsImport
+      parentRoute: typeof LocaleAdminImport
+    }
+    '/$locale/admin/members': {
+      id: '/$locale/admin/members'
+      path: '/members'
+      fullPath: '/$locale/admin/members'
+      preLoaderRoute: typeof LocaleAdminMembersImport
+      parentRoute: typeof LocaleAdminImport
+    }
+    '/$locale/admin/onboard': {
+      id: '/$locale/admin/onboard'
+      path: '/onboard'
+      fullPath: '/$locale/admin/onboard'
+      preLoaderRoute: typeof LocaleAdminOnboardImport
+      parentRoute: typeof LocaleAdminImport
+    }
+    '/$locale/admin/team': {
+      id: '/$locale/admin/team'
+      path: '/team'
+      fullPath: '/$locale/admin/team'
+      preLoaderRoute: typeof LocaleAdminTeamImport
+      parentRoute: typeof LocaleAdminImport
+    }
     '/$locale/admin/': {
       id: '/$locale/admin/'
       path: '/'
       fullPath: '/$locale/admin/'
       preLoaderRoute: typeof LocaleAdminIndexImport
+      parentRoute: typeof LocaleAdminImport
+    }
+    '/$locale/admin/courses/$id': {
+      id: '/$locale/admin/courses/$id'
+      path: '/courses/$id'
+      fullPath: '/$locale/admin/courses/$id'
+      preLoaderRoute: typeof LocaleAdminCoursesIdImport
       parentRoute: typeof LocaleAdminImport
     }
   }
@@ -66,11 +164,25 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface LocaleAdminRouteChildren {
+  LocaleAdminApiKeysRoute: typeof LocaleAdminApiKeysRoute
+  LocaleAdminCertificateRoute: typeof LocaleAdminCertificateRoute
+  LocaleAdminDomainsRoute: typeof LocaleAdminDomainsRoute
+  LocaleAdminMembersRoute: typeof LocaleAdminMembersRoute
+  LocaleAdminOnboardRoute: typeof LocaleAdminOnboardRoute
+  LocaleAdminTeamRoute: typeof LocaleAdminTeamRoute
   LocaleAdminIndexRoute: typeof LocaleAdminIndexRoute
+  LocaleAdminCoursesIdRoute: typeof LocaleAdminCoursesIdRoute
 }
 
 const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
+  LocaleAdminApiKeysRoute: LocaleAdminApiKeysRoute,
+  LocaleAdminCertificateRoute: LocaleAdminCertificateRoute,
+  LocaleAdminDomainsRoute: LocaleAdminDomainsRoute,
+  LocaleAdminMembersRoute: LocaleAdminMembersRoute,
+  LocaleAdminOnboardRoute: LocaleAdminOnboardRoute,
+  LocaleAdminTeamRoute: LocaleAdminTeamRoute,
   LocaleAdminIndexRoute: LocaleAdminIndexRoute,
+  LocaleAdminCoursesIdRoute: LocaleAdminCoursesIdRoute,
 }
 
 const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
@@ -80,27 +192,78 @@ const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale': typeof LocaleIndexRoute
+  '/$locale/admin/api-keys': typeof LocaleAdminApiKeysRoute
+  '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
+  '/$locale/admin/domains': typeof LocaleAdminDomainsRoute
+  '/$locale/admin/members': typeof LocaleAdminMembersRoute
+  '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
+  '/$locale/admin/team': typeof LocaleAdminTeamRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
+  '/$locale/admin/courses/$id': typeof LocaleAdminCoursesIdRoute
 }
 
 export interface FileRoutesByTo {
   '/$locale': typeof LocaleIndexRoute
+  '/$locale/admin/api-keys': typeof LocaleAdminApiKeysRoute
+  '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
+  '/$locale/admin/domains': typeof LocaleAdminDomainsRoute
+  '/$locale/admin/members': typeof LocaleAdminMembersRoute
+  '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
+  '/$locale/admin/team': typeof LocaleAdminTeamRoute
   '/$locale/admin': typeof LocaleAdminIndexRoute
+  '/$locale/admin/courses/$id': typeof LocaleAdminCoursesIdRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/': typeof LocaleIndexRoute
+  '/$locale/admin/api-keys': typeof LocaleAdminApiKeysRoute
+  '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
+  '/$locale/admin/domains': typeof LocaleAdminDomainsRoute
+  '/$locale/admin/members': typeof LocaleAdminMembersRoute
+  '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
+  '/$locale/admin/team': typeof LocaleAdminTeamRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
+  '/$locale/admin/courses/$id': typeof LocaleAdminCoursesIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/$locale/admin' | '/$locale' | '/$locale/admin/'
+  fullPaths:
+    | '/$locale/admin'
+    | '/$locale'
+    | '/$locale/admin/api-keys'
+    | '/$locale/admin/certificate'
+    | '/$locale/admin/domains'
+    | '/$locale/admin/members'
+    | '/$locale/admin/onboard'
+    | '/$locale/admin/team'
+    | '/$locale/admin/'
+    | '/$locale/admin/courses/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$locale' | '/$locale/admin'
-  id: '__root__' | '/$locale/admin' | '/$locale/' | '/$locale/admin/'
+  to:
+    | '/$locale'
+    | '/$locale/admin/api-keys'
+    | '/$locale/admin/certificate'
+    | '/$locale/admin/domains'
+    | '/$locale/admin/members'
+    | '/$locale/admin/onboard'
+    | '/$locale/admin/team'
+    | '/$locale/admin'
+    | '/$locale/admin/courses/$id'
+  id:
+    | '__root__'
+    | '/$locale/admin'
+    | '/$locale/'
+    | '/$locale/admin/api-keys'
+    | '/$locale/admin/certificate'
+    | '/$locale/admin/domains'
+    | '/$locale/admin/members'
+    | '/$locale/admin/onboard'
+    | '/$locale/admin/team'
+    | '/$locale/admin/'
+    | '/$locale/admin/courses/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -131,14 +294,49 @@ export const routeTree = rootRoute
     "/$locale/admin": {
       "filePath": "$locale/admin.tsx",
       "children": [
-        "/$locale/admin/"
+        "/$locale/admin/api-keys",
+        "/$locale/admin/certificate",
+        "/$locale/admin/domains",
+        "/$locale/admin/members",
+        "/$locale/admin/onboard",
+        "/$locale/admin/team",
+        "/$locale/admin/",
+        "/$locale/admin/courses/$id"
       ]
     },
     "/$locale/": {
       "filePath": "$locale/index.tsx"
     },
+    "/$locale/admin/api-keys": {
+      "filePath": "$locale/admin/api-keys.tsx",
+      "parent": "/$locale/admin"
+    },
+    "/$locale/admin/certificate": {
+      "filePath": "$locale/admin/certificate.tsx",
+      "parent": "/$locale/admin"
+    },
+    "/$locale/admin/domains": {
+      "filePath": "$locale/admin/domains.tsx",
+      "parent": "/$locale/admin"
+    },
+    "/$locale/admin/members": {
+      "filePath": "$locale/admin/members.tsx",
+      "parent": "/$locale/admin"
+    },
+    "/$locale/admin/onboard": {
+      "filePath": "$locale/admin/onboard.tsx",
+      "parent": "/$locale/admin"
+    },
+    "/$locale/admin/team": {
+      "filePath": "$locale/admin/team.tsx",
+      "parent": "/$locale/admin"
+    },
     "/$locale/admin/": {
       "filePath": "$locale/admin/index.tsx",
+      "parent": "/$locale/admin"
+    },
+    "/$locale/admin/courses/$id": {
+      "filePath": "$locale/admin/courses/$id.tsx",
       "parent": "/$locale/admin"
     }
   }

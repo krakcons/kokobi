@@ -1,10 +1,11 @@
 import { validateSessionToken } from "@/server/auth";
 import { db } from "@/server/db/db";
-import { keys, usersToTeams } from "@/server/db/schema";
+import { keys, Session, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { MiddlewareHandler } from "hono";
 import { getCookie } from "hono/cookie";
 import { getTeam } from "../auth/actions";
+import { User } from "@/types/users";
 
 export const authedMiddleware: MiddlewareHandler<{
 	Variables: {
@@ -57,19 +58,21 @@ export const authedMiddleware: MiddlewareHandler<{
 
 export const userMiddleware: MiddlewareHandler<{
 	Variables: {
-		userId: string;
+		user: User;
+		session: Session;
 	};
 }> = async (c, next) => {
 	const sessionId = getCookie(c, "auth_session");
 
 	if (sessionId) {
-		const user = await validateSessionToken(sessionId);
+		const { user, session } = await validateSessionToken(sessionId);
 
-		if (!user.user) {
+		if (!user) {
 			return c.text("Invalid session", 401);
 		}
 
-		c.set("userId", user.user.id);
+		c.set("user", user);
+		c.set("session", session);
 
 		return await next();
 	} else {

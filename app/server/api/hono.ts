@@ -6,19 +6,21 @@ import { learnersHandler } from "./handlers/learners";
 import { modulesHandler } from "./handlers/modules";
 import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
+import { userHandler } from "./handlers/user";
 
 const app = new Hono()
-  .basePath("/api")
-  .get("/test", (c) => {
-    return c.json({ message: "Hello World" });
-  })
-  .route("/auth", authHandler)
-  .route("/learners", learnersHandler)
-  .route("/modules", modulesHandler)
-  .route("/courses", coursesHandler)
-  .route("/keys", keysHandler)
-  .route("/teams", teamsHandler)
-  .route("/collections", collectionsHandler);
+	.basePath("/api")
+	.get("/test", (c) => {
+		return c.json({ message: "Hello World" });
+	})
+	.route("/auth", authHandler)
+	.route("/learners", learnersHandler)
+	.route("/modules", modulesHandler)
+	.route("/courses", coursesHandler)
+	.route("/keys", keysHandler)
+	.route("/teams", teamsHandler)
+	.route("/collections", collectionsHandler)
+	.route("/user", userHandler);
 
 export default app;
 

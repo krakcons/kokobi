@@ -12,13 +12,11 @@ import {
 	Outlet,
 	createRootRouteWithContext,
 	redirect,
-	useParams,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { Meta, Scripts } from "@tanstack/start";
 import * as React from "react";
 import { Toaster } from "sonner";
-import { IntlProvider, useLocale } from "use-intl";
+import { IntlProvider } from "use-intl";
 
 export type Context = SessionValidationResult & { queryClient: QueryClient };
 export const Route = createRootRouteWithContext<Context>()({
@@ -61,7 +59,10 @@ export const Route = createRootRouteWithContext<Context>()({
 		}
 
 		// Handle auth
-		const auth = await getAuth();
+		const auth = {
+			user: null,
+			session: null,
+		};
 
 		// if (auth.user && auth.user.locale && auth.user.locale !== locale) {
 		// 	Promise.all([
@@ -106,7 +107,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body>
 				<IntlProvider {...i18n}>{children}</IntlProvider>
-				<TanStackRouterDevtools position="bottom-right" />
 				<Toaster />
 				<Scripts />
 			</body>

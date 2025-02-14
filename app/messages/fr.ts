@@ -1,6 +1,21 @@
 import { Messages } from "@/lib/locale";
 
 const fr: Messages = {
+	Nav: {
+		top: {
+			editing: "Editing",
+		},
+		sidebar: {
+			manage: "Manage",
+			dashboard: "Dashboard",
+			team: "Team",
+			edit: "Edit Team",
+			apiKeys: "API Keys",
+			certificate: "Certificate",
+			domains: "Domains",
+			members: "Members",
+		},
+	},
 	Home: {
 		title: { "1": "Apprentissage moderne", "2": "Moins cher" },
 		description:
