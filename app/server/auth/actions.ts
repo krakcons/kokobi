@@ -3,11 +3,17 @@ import { createServerFn } from "@tanstack/start";
 import { and, eq } from "drizzle-orm";
 import { deleteCookie, getCookie } from "vinxi/http";
 import { z } from "zod";
-import { invalidateSession, validateSessionToken } from ".";
+import {
+	invalidateSession,
+	SessionValidationResult,
+	validateSessionToken,
+} from ".";
 import { db } from "../db/db";
 import { usersToTeams } from "../db/schema";
 
-export const getAuth = createServerFn().handler(async () => {
+export const getAuth = createServerFn({
+	method: "GET",
+}).handler(async (): Promise<SessionValidationResult> => {
 	const sessionId = getCookie("auth_session");
 
 	if (!sessionId) {
@@ -20,7 +26,9 @@ export const getAuth = createServerFn().handler(async () => {
 	return await validateSessionToken(sessionId);
 });
 
-export const logout = createServerFn().handler(async () => {
+export const logout = createServerFn({
+	method: "POST",
+}).handler(async () => {
 	const sessionId = getCookie("auth_session");
 	if (!sessionId) return;
 	deleteCookie("auth_session");
@@ -28,16 +36,21 @@ export const logout = createServerFn().handler(async () => {
 	invalidateSession(sessionId);
 });
 
-export const getTeam = createServerFn()
+export const getTeam = createServerFn({
+	method: "GET",
+})
 	.validator(
 		z.object({
 			id: z.string(),
 			userId: z.string(),
-		})
+		}),
 	)
 	.handler(async ({ data: { id, userId } }) => {
 		const userToTeam = await db.query.usersToTeams.findFirst({
-			where: and(eq(usersToTeams.teamId, id), eq(usersToTeams.userId, userId)),
+			where: and(
+				eq(usersToTeams.teamId, id),
+				eq(usersToTeams.userId, userId),
+			),
 			with: {
 				team: true,
 			},
@@ -45,21 +58,26 @@ export const getTeam = createServerFn()
 		return userToTeam?.team;
 	});
 
-export const getUserRole = createServerFn()
+export const getUserRole = createServerFn({
+	method: "GET",
+})
 	.validator(
 		z.object({
 			teamId: z.string(),
-		})
+		}),
 	)
 	.handler(async ({ data: { teamId } }) => {
 		const user = await getAuth();
 
 		if (!user.user) {
-			throw redirect({ to: "/auth/google" });
+			throw redirect({ href: "/api/auth/google" });
 		}
 
 		const userToTeam = await db.query.usersToTeams.findFirst({
-			where: and(eq(usersToTeams.userId, user.user?.id), eq(usersToTeams.teamId, teamId)),
+			where: and(
+				eq(usersToTeams.userId, user.user?.id),
+				eq(usersToTeams.teamId, teamId),
+			),
 		});
 
 		return userToTeam!.role;

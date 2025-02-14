@@ -12,6 +12,8 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as LocaleIndexImport } from './routes/$locale/index'
+import { Route as LocaleAdminImport } from './routes/$locale/admin'
+import { Route as LocaleAdminIndexImport } from './routes/$locale/admin/index'
 
 // Create/Update Routes
 
@@ -21,10 +23,29 @@ const LocaleIndexRoute = LocaleIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const LocaleAdminRoute = LocaleAdminImport.update({
+  id: '/$locale/admin',
+  path: '/$locale/admin',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LocaleAdminIndexRoute = LocaleAdminIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/$locale/admin': {
+      id: '/$locale/admin'
+      path: '/$locale/admin'
+      fullPath: '/$locale/admin'
+      preLoaderRoute: typeof LocaleAdminImport
+      parentRoute: typeof rootRoute
+    }
     '/$locale/': {
       id: '/$locale/'
       path: '/$locale'
@@ -32,38 +53,64 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleIndexImport
       parentRoute: typeof rootRoute
     }
+    '/$locale/admin/': {
+      id: '/$locale/admin/'
+      path: '/'
+      fullPath: '/$locale/admin/'
+      preLoaderRoute: typeof LocaleAdminIndexImport
+      parentRoute: typeof LocaleAdminImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface LocaleAdminRouteChildren {
+  LocaleAdminIndexRoute: typeof LocaleAdminIndexRoute
+}
+
+const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
+  LocaleAdminIndexRoute: LocaleAdminIndexRoute,
+}
+
+const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
+  LocaleAdminRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
+  '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale': typeof LocaleIndexRoute
+  '/$locale/admin/': typeof LocaleAdminIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/$locale': typeof LocaleIndexRoute
+  '/$locale/admin': typeof LocaleAdminIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
+  '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/': typeof LocaleIndexRoute
+  '/$locale/admin/': typeof LocaleAdminIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/$locale'
+  fullPaths: '/$locale/admin' | '/$locale' | '/$locale/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/$locale'
-  id: '__root__' | '/$locale/'
+  to: '/$locale' | '/$locale/admin'
+  id: '__root__' | '/$locale/admin' | '/$locale/' | '/$locale/admin/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
+  LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
   LocaleIndexRoute: typeof LocaleIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  LocaleAdminRoute: LocaleAdminRouteWithChildren,
   LocaleIndexRoute: LocaleIndexRoute,
 }
 
@@ -77,11 +124,22 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
+        "/$locale/admin",
         "/$locale/"
+      ]
+    },
+    "/$locale/admin": {
+      "filePath": "$locale/admin.tsx",
+      "children": [
+        "/$locale/admin/"
       ]
     },
     "/$locale/": {
       "filePath": "$locale/index.tsx"
+    },
+    "/$locale/admin/": {
+      "filePath": "$locale/admin/index.tsx",
+      "parent": "/$locale/admin"
     }
   }
 }

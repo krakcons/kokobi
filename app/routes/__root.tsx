@@ -8,15 +8,20 @@ import { getAuth } from "@/server/auth/actions";
 import appCss from "@/styles/app.css?url";
 import { seo } from "@/utils/seo";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { Outlet, createRootRouteWithContext, redirect, useParams } from "@tanstack/react-router";
+import {
+	Outlet,
+	createRootRouteWithContext,
+	redirect,
+	useParams,
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { Meta, Scripts } from "@tanstack/start";
 import * as React from "react";
-import { IntlProvider } from "use-intl";
+import { Toaster } from "sonner";
+import { IntlProvider, useLocale } from "use-intl";
 
-export const Route = createRootRouteWithContext<
-	SessionValidationResult & { queryClient: QueryClient }
->()({
+export type Context = SessionValidationResult & { queryClient: QueryClient };
+export const Route = createRootRouteWithContext<Context>()({
 	head: () => ({
 		meta: [
 			{
@@ -27,30 +32,12 @@ export const Route = createRootRouteWithContext<
 				content: "width=device-width, initial-scale=1",
 			},
 			...seo({
-				title: "TanStack Start | Type-Safe, Client-First, Full-Stack React Framework",
+				title: "Kokobi | Learn, Teach, Connect, and Grow",
 				description: `TanStack Start is a type-safe, client-first, full-stack React framework. `,
 			}),
 		],
 		links: [
 			{ rel: "stylesheet", href: appCss },
-			{
-				rel: "apple-touch-icon",
-				sizes: "180x180",
-				href: "/apple-touch-icon.png",
-			},
-			{
-				rel: "icon",
-				type: "image/png",
-				sizes: "32x32",
-				href: "/favicon-32x32.png",
-			},
-			{
-				rel: "icon",
-				type: "image/png",
-				sizes: "16x16",
-				href: "/favicon-16x16.png",
-			},
-			{ rel: "manifest", href: "/site.webmanifest", color: "#fffff" },
 			{ rel: "icon", href: "/favicon.ico" },
 		],
 	}),
@@ -89,7 +76,8 @@ export const Route = createRootRouteWithContext<
 		return {
 			...context,
 			...auth,
-		};
+			locale: locale as Locale,
+		} satisfies Context & { locale: Locale };
 	},
 	notFoundComponent: () => <NotFound />,
 	component: RootComponent,
@@ -104,19 +92,22 @@ function RootComponent() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-	const { locale } = useParams({
-		from: "/$locale/",
-	});
+	const { locale } = Route.useRouteContext();
 	const { data: i18n } = useSuspenseQuery(i18nQueryOptions(locale as Locale));
 
 	return (
-		<html>
+		<html
+			lang={locale}
+			suppressHydrationWarning
+			className="overflow-x-hidden"
+		>
 			<head>
 				<Meta />
 			</head>
 			<body>
 				<IntlProvider {...i18n}>{children}</IntlProvider>
 				<TanStackRouterDevtools position="bottom-right" />
+				<Toaster />
 				<Scripts />
 			</body>
 		</html>

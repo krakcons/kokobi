@@ -8,14 +8,15 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getAuth } from "@/server/auth/actions";
-import { redirect } from "@tanstack/react-router";
+import { Link, useRouteContext } from "@tanstack/react-router";
 import { User as UserIcon } from "lucide-react";
+import { useLocale } from "use-intl";
 
-const UserButton = async () => {
-	const { user } = await getAuth();
-
-	if (user === null) return redirect({ to: "/auth/google" });
+const UserButton = () => {
+	const locale = useLocale();
+	const { user } = useRouteContext({
+		from: "__root__",
+	});
 
 	return (
 		<DropdownMenu>
@@ -27,18 +28,29 @@ const UserButton = async () => {
 			<DropdownMenuContent className="w-56" align="end" forceMount>
 				<DropdownMenuLabel className="font-normal">
 					<div className="flex flex-col space-y-1">
-						<p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+						<p className="text-xs leading-none text-muted-foreground">
+							{user?.email}
+						</p>
 					</div>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuGroup>
 					<DropdownMenuItem asChild>
-						<Link href="/dashboard">Dashboard</Link>
+						<Link
+							to="/$locale/admin"
+							params={{
+								locale,
+							}}
+						>
+							Dashboard
+						</Link>
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
-					<Link href="/auth/signout">Sign out</Link>
+					<Link to="/$locale/admin" params={{ locale }}>
+						Sign out
+					</Link>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

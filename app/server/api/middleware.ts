@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { MiddlewareHandler } from "hono";
 import { getCookie } from "hono/cookie";
 import { getTeam } from "../auth/actions";
+
 export const authedMiddleware: MiddlewareHandler<{
 	Variables: {
 		teamId: string;
@@ -86,7 +87,10 @@ export const ownerMiddleware: MiddlewareHandler<{
 	const teamId = c.get("teamId");
 
 	const userToTeam = await db.query.usersToTeams.findFirst({
-		where: and(eq(usersToTeams.userId, userId), eq(usersToTeams.teamId, teamId)),
+		where: and(
+			eq(usersToTeams.userId, userId),
+			eq(usersToTeams.teamId, teamId),
+		),
 	});
 
 	if (userToTeam?.role !== "owner") {

@@ -20,7 +20,13 @@ import { InferRequestType } from "hono";
 import { useForm } from "react-hook-form";
 import { Textarea } from "../ui/textarea";
 
-export const CreateCourseForm = ({ teamId, language }: { teamId: string; language: Language }) => {
+export const CreateCourseForm = ({
+	teamId,
+	language,
+}: {
+	teamId: string;
+	language: Language;
+}) => {
 	const router = useRouter();
 	const form = useForm<CreateCourse>({
 		resolver: zodResolver(CreateCourseSchema),
@@ -33,7 +39,9 @@ export const CreateCourseForm = ({ teamId, language }: { teamId: string; languag
 	});
 
 	const { mutate, isPending } = useMutation({
-		mutationFn: async (input: InferRequestType<typeof client.api.courses.$post>) => {
+		mutationFn: async (
+			input: InferRequestType<typeof client.api.courses.$post>,
+		) => {
 			const res = await client.api.courses.$post(input);
 			if (!res.ok) {
 				throw new Error(await res.text());
@@ -43,7 +51,7 @@ export const CreateCourseForm = ({ teamId, language }: { teamId: string; languag
 		onSuccess: async (res) => {
 			const data = await res.json();
 			router.invalidate();
-			router.navigate({ href: `/dashboard/${teamId}/courses/${data.id}` });
+			router.navigate({ href: `/admin/${teamId}/courses/${data.id}` });
 		},
 	});
 
