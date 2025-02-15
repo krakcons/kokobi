@@ -2,10 +2,17 @@ import { env } from "@/env";
 import { AppType } from "@/server/api/hono";
 import { hc } from "hono/client";
 
+const getHeaders = async () => {
+	if (typeof window === "undefined") {
+		const { getHeaders: getHeadersServer } = await import("vinxi/http");
+		return getHeadersServer();
+	}
+	return {};
+};
+
 export const client = hc<AppType>(env.VITE_SITE_URL, {
-	init: {
-		credentials: "include",
-	},
+	// @ts-ignore
+	headers: getHeaders,
 });
 
 export const queryOptions = {

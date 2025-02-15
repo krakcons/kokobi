@@ -3,7 +3,7 @@ import { createAPIFileRoute } from "@tanstack/start/api";
 
 export const APIRoute = createAPIFileRoute("/api/$")({
 	GET: ({ request }) => {
-		console.log("PROCESS", process.env);
+		console.log(request);
 		return app.fetch(request);
 	},
 	POST: ({ request }) => {

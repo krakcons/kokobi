@@ -51,7 +51,7 @@ import {
 import { useLocale, useTranslations } from "use-intl";
 import { z } from "zod";
 import { queryOptions } from "@/lib/api";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { translate } from "@/lib/translation";
 
 export const Route = createFileRoute("/$locale/admin")({
@@ -59,13 +59,9 @@ export const Route = createFileRoute("/$locale/admin")({
 	validateSearch: z.object({
 		editingLocale: LocaleSchema.optional(),
 	}),
-	beforeLoad: async ({
-		search,
-		params,
-		location,
-		//context: { queryClient },
-	}) => {
-		if (!search.editingLocale) {
+	loaderDeps: ({ search: { editingLocale } }) => ({ editingLocale }),
+	loader: async ({ deps, params, location, context: { queryClient } }) => {
+		if (!deps.editingLocale) {
 			throw redirect({
 				to: location.pathname,
 				search: (search) => ({
@@ -75,7 +71,17 @@ export const Route = createFileRoute("/$locale/admin")({
 				params,
 			});
 		}
-		//await queryClient.ensureQueryData(queryOptions.user.teams);
+
+		await queryClient.ensureQueryData(queryOptions.user.teams);
+		const { user } = await queryClient.ensureQueryData(
+			queryOptions.user.me,
+		);
+
+		if (!user) {
+			throw redirect({
+				href: "/api/auth/google",
+			});
+		}
 	},
 });
 
@@ -83,7 +89,7 @@ const AdminSidebar = () => {
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const locale = useLocale();
-	const { data } = useQuery(queryOptions.user.teams);
+	const { data } = useSuspenseQuery(queryOptions.user.teams);
 
 	if (!data) return null;
 

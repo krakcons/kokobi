@@ -10,9 +10,6 @@ import { userHandler } from "./handlers/user";
 
 const app = new Hono()
 	.basePath("/api")
-	.get("/test", (c) => {
-		return c.json({ message: "Hello World" });
-	})
 	.route("/auth", authHandler)
 	.route("/learners", learnersHandler)
 	.route("/modules", modulesHandler)
