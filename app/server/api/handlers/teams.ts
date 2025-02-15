@@ -25,11 +25,7 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import {
-	authedMiddleware,
-	ownerMiddleware,
-	userMiddleware,
-} from "../middleware";
+import { authMiddleware } from "../middleware";
 
 const removeDomain = async ({
 	customDomain,
@@ -63,10 +59,10 @@ export const teamsHandler = new Hono()
 			"json",
 			z.object({ name: z.string(), language: LanguageSchema }),
 		),
-		userMiddleware,
+		authMiddleware({ requireTeam: false }),
 		async (c) => {
 			const { name, language } = c.req.valid("json");
-			const userId = c.get("user").id;
+			const userId = c.get("user")?.id;
 
 			if (!userId) {
 				throw new HTTPException(401, {
@@ -97,8 +93,7 @@ export const teamsHandler = new Hono()
 	.post(
 		"/:id/invite",
 		zValidator("json", InviteMemberFormSchema),
-		authedMiddleware,
-		ownerMiddleware,
+		authMiddleware({ role: "owner" }),
 		async (c) => {
 			const { id } = c.req.param();
 			const { email, role } = c.req.valid("json");
@@ -148,8 +143,7 @@ export const teamsHandler = new Hono()
 	)
 	.delete(
 		"/:id/member/:userId",
-		authedMiddleware,
-		ownerMiddleware,
+		authMiddleware({ role: "owner" }),
 		async (c) => {
 			const { id, userId } = c.req.param();
 
@@ -168,7 +162,7 @@ export const teamsHandler = new Hono()
 	.put(
 		"/:id",
 		zValidator("json", UpdateTeamTranslationSchema),
-		authedMiddleware,
+		authMiddleware(),
 		async (c) => {
 			const id = c.req.param("id");
 			const teamId = c.get("teamId");
@@ -206,7 +200,7 @@ export const teamsHandler = new Hono()
 				customDomain: z.string(),
 			}),
 		),
-		authedMiddleware,
+		authMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
 			const { customDomain } = c.req.valid("json");
@@ -282,7 +276,7 @@ export const teamsHandler = new Hono()
 			return c.json(null);
 		},
 	)
-	.delete("/:id/domain", authedMiddleware, async (c) => {
+	.delete("/:id/domain", authMiddleware(), async (c) => {
 		const { id } = c.req.param();
 
 		const team = await db.query.teams.findFirst({
@@ -319,7 +313,7 @@ export const teamsHandler = new Hono()
 				language: LanguageSchema,
 			}),
 		),
-		authedMiddleware,
+		authMiddleware(),
 		async (c) => {
 			const language = c.req.valid("json").language;
 			const teamId = c.get("teamId");
@@ -338,7 +332,7 @@ export const teamsHandler = new Hono()
 				language: LanguageSchema,
 			}),
 		),
-		authedMiddleware,
+		authMiddleware(),
 		async (c) => {
 			const language = c.req.valid("json").language;
 			const teamId = c.get("teamId");
@@ -350,7 +344,7 @@ export const teamsHandler = new Hono()
 		},
 	)
 	// Private
-	.delete("/:id", authedMiddleware, ownerMiddleware, async (c) => {
+	.delete("/:id", authMiddleware({ role: "owner" }), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 

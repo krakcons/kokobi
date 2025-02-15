@@ -32,4 +32,13 @@ export const queryOptions = {
 			},
 		},
 	},
+	courses: {
+		all: {
+			queryKey: ["courses"],
+			queryFn: async () => {
+				const res = await client.api.courses.$get();
+				return await res.json();
+			},
+		},
+	},
 };

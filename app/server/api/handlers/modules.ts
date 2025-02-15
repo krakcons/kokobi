@@ -13,10 +13,10 @@ import { zValidator } from "@hono/zod-validator";
 import { and, eq, max } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { authedMiddleware } from "../middleware";
+import { authMiddleware } from "../middleware";
 
 export const modulesHandler = new Hono()
-	.get("/:id/learners", authedMiddleware, async (c) => {
+	.get("/:id/learners", authMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -41,7 +41,7 @@ export const modulesHandler = new Hono()
 		}
 
 		const learners = courseModule.learners.map((learner) =>
-			ExtendLearner(courseModule.type).parse(learner)
+			ExtendLearner(courseModule.type).parse(learner),
 		);
 
 		return c.json(learners);
@@ -53,7 +53,7 @@ export const modulesHandler = new Hono()
 			CreateLearnerSchema.omit({
 				moduleId: true,
 				courseId: true,
-			})
+			}),
 		),
 		async (c) => {
 			const { id } = c.req.param();
@@ -79,13 +79,13 @@ export const modulesHandler = new Hono()
 			const existingLearner = await db.query.learners.findFirst({
 				where: and(
 					eq(learners.email, learner.email),
-					eq(learners.courseId, courseModule.courseId)
+					eq(learners.courseId, courseModule.courseId),
 				),
 			});
 
 			if (existingLearner && existingLearner.moduleId) {
 				return c.json(
-					ExtendLearner(courseModule.type).parse(existingLearner)
+					ExtendLearner(courseModule.type).parse(existingLearner),
 				);
 			}
 
@@ -123,7 +123,7 @@ export const modulesHandler = new Hono()
 			}
 
 			const startedLearner = ExtendLearner(courseModule.type).parse(
-				createdLearner[0]
+				createdLearner[0],
 			);
 
 			try {
@@ -136,11 +136,11 @@ export const modulesHandler = new Hono()
 			}
 
 			return c.json(
-				ExtendLearner(courseModule.type).parse(createdLearner[0])
+				ExtendLearner(courseModule.type).parse(createdLearner[0]),
 			);
-		}
+		},
 	)
-	.delete("/:id", authedMiddleware, async (c) => {
+	.delete("/:id", authMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -153,7 +153,7 @@ export const modulesHandler = new Hono()
 		await db.delete(learners).where(eq(learners.moduleId, courseModule.id));
 
 		await deleteFolder(
-			`${teamId}/courses/${courseModule.courseId}/${courseModule.language}${courseModule.versionNumber === 1 ? "" : `_${courseModule.versionNumber}`}`
+			`${teamId}/courses/${courseModule.courseId}/${courseModule.language}${courseModule.versionNumber === 1 ? "" : `_${courseModule.versionNumber}`}`,
 		);
 
 		return c.json(null);
@@ -162,7 +162,7 @@ export const modulesHandler = new Hono()
 	.post(
 		"/",
 		zValidator("json", UploadModuleSchema),
-		authedMiddleware,
+		authMiddleware(),
 		async (c) => {
 			let { type, id, courseId, language } = c.req.valid("json");
 			const teamId = c.get("teamId");
@@ -181,8 +181,8 @@ export const modulesHandler = new Hono()
 				.where(
 					and(
 						eq(modules.courseId, courseId),
-						eq(modules.language, language)
-					)
+						eq(modules.language, language),
+					),
 				);
 
 			const insertId = id ?? generateId(15);
@@ -202,5 +202,5 @@ export const modulesHandler = new Hono()
 			});
 
 			return c.json({ id: insertId });
-		}
+		},
 	);

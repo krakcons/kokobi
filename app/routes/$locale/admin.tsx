@@ -11,6 +11,7 @@ import {
 	SidebarContent,
 	SidebarFooter,
 	SidebarGroup,
+	SidebarGroupAction,
 	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarHeader,
@@ -59,6 +60,17 @@ export const Route = createFileRoute("/$locale/admin")({
 	validateSearch: z.object({
 		editingLocale: LocaleSchema.optional(),
 	}),
+	beforeLoad: async ({ context: { queryClient } }) => {
+		const { user } = await queryClient.ensureQueryData(
+			queryOptions.user.me,
+		);
+
+		if (!user) {
+			throw redirect({
+				href: "/api/auth/google",
+			});
+		}
+	},
 	loaderDeps: ({ search: { editingLocale } }) => ({ editingLocale }),
 	loader: async ({ deps, params, location, context: { queryClient } }) => {
 		if (!deps.editingLocale) {
@@ -73,15 +85,7 @@ export const Route = createFileRoute("/$locale/admin")({
 		}
 
 		await queryClient.ensureQueryData(queryOptions.user.teams);
-		const { user } = await queryClient.ensureQueryData(
-			queryOptions.user.me,
-		);
-
-		if (!user) {
-			throw redirect({
-				href: "/api/auth/google",
-			});
-		}
+		await queryClient.ensureQueryData(queryOptions.courses.all);
 	},
 });
 
@@ -89,11 +93,16 @@ const AdminSidebar = () => {
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const locale = useLocale();
-	const { data } = useSuspenseQuery(queryOptions.user.teams);
+	const {
+		data: { teamId },
+	} = useSuspenseQuery(queryOptions.user.me);
+	const { data: teams } = useSuspenseQuery(queryOptions.user.teams);
+	const { data: courses } = useSuspenseQuery(queryOptions.courses.all);
 
-	if (!data) return null;
-
-	const activeTeam = translate(data.activeTeam.translations, locale);
+	const activeTeam = translate(
+		teams.find((t) => t.id === teamId)!.translations,
+		locale,
+	);
 
 	return (
 		<Sidebar className="list-none">
@@ -131,14 +140,9 @@ const AdminSidebar = () => {
 								<DropdownMenuLabel className="text-xs text-muted-foreground">
 									Teams
 								</DropdownMenuLabel>
-								{data.teams.map((team, index) => (
+								{teams.map((team, index) => (
 									<DropdownMenuItem
-										key={
-											translate(
-												team.team.translations,
-												locale,
-											).teamId
-										}
+										key={team.id}
 										onClick={() => {
 											console.log(team);
 										}}
@@ -148,10 +152,8 @@ const AdminSidebar = () => {
 											T
 										</div>
 										{
-											translate(
-												team.team.translations,
-												locale,
-											).name
+											translate(team.translations, locale)
+												.name
 										}
 										<DropdownMenuShortcut>
 											⌘{index + 1}
@@ -195,6 +197,39 @@ const AdminSidebar = () => {
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup>
+					<SidebarGroupContent>
+						<SidebarGroupLabel>Courses</SidebarGroupLabel>
+						<SidebarGroupAction title="Create Course">
+							<Plus />{" "}
+							<span className="sr-only">Create Course</span>
+						</SidebarGroupAction>
+						{courses.map((course) => (
+							<SidebarMenuItem key={course.id}>
+								<SidebarMenuButton asChild>
+									<Link
+										to={"/$locale/admin/courses/$id"}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{
+											translate(
+												course.translations,
+												locale,
+											).name
+										}
+									</Link>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						))}
 					</SidebarGroupContent>
 				</SidebarGroup>
 				<SidebarGroup>

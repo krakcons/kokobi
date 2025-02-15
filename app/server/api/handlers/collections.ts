@@ -12,12 +12,12 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { authedMiddleware } from "../middleware";
+import { authMiddleware } from "../middleware";
 
 export const collectionsHandler = new Hono()
 	.post(
 		"/",
-		authedMiddleware,
+		authMiddleware(),
 		zValidator("json", CreateCollectionTranslationSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
@@ -37,11 +37,11 @@ export const collectionsHandler = new Hono()
 			});
 
 			return c.json(null);
-		}
+		},
 	)
 	.put(
 		"/:id",
-		authedMiddleware,
+		authMiddleware(),
 		zValidator("json", CreateCollectionTranslationSchema),
 		async (c) => {
 			const { id } = c.req.param();
@@ -51,7 +51,7 @@ export const collectionsHandler = new Hono()
 			const collection = await db.query.collections.findFirst({
 				where: and(
 					eq(collections.id, id),
-					eq(collections.teamId, teamId)
+					eq(collections.teamId, teamId),
 				),
 			});
 
@@ -76,16 +76,16 @@ export const collectionsHandler = new Hono()
 				});
 
 			return c.json(null);
-		}
+		},
 	)
 	.post(
 		"/:id/courses",
-		authedMiddleware,
+		authMiddleware(),
 		zValidator(
 			"json",
 			z.object({
 				id: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { id } = c.req.param();
@@ -97,9 +97,9 @@ export const collectionsHandler = new Hono()
 			});
 
 			return c.json(null);
-		}
+		},
 	)
-	.delete("/:id/courses/:courseId", authedMiddleware, async (c) => {
+	.delete("/:id/courses/:courseId", authMiddleware(), async (c) => {
 		const { id, courseId } = c.req.param();
 
 		await db
@@ -107,8 +107,8 @@ export const collectionsHandler = new Hono()
 			.where(
 				and(
 					eq(collectionsToCourses.collectionId, id),
-					eq(collectionsToCourses.courseId, courseId)
-				)
+					eq(collectionsToCourses.courseId, courseId),
+				),
 			);
 
 		return c.json(null);
@@ -126,8 +126,8 @@ export const collectionsHandler = new Hono()
 					CreateLearnerSchema.omit({
 						moduleId: true,
 						courseId: true,
-					})
-				)
+					}),
+				),
 		),
 		async (c) => {
 			const { id } = c.req.param();
@@ -162,13 +162,13 @@ export const collectionsHandler = new Hono()
 			const learners = await learnersData.create(
 				input,
 				collection.collectionsToCourses.map((c) => c.course),
-				collection
+				collection,
 			);
 
 			return c.json(learners);
-		}
+		},
 	)
-	.delete("/:id", authedMiddleware, async (c) => {
+	.delete("/:id", authMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 

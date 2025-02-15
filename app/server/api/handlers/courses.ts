@@ -10,19 +10,22 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { authedMiddleware } from "../middleware";
+import { authMiddleware } from "../middleware";
 
 export const coursesHandler = new Hono()
-	.get("/", authedMiddleware, async (c) => {
+	.get("/", authMiddleware(), async (c) => {
 		const teamId = c.get("teamId");
 
 		const courseList = await db.query.courses.findMany({
 			where: eq(courses.teamId, teamId),
+			with: {
+				translations: true,
+			},
 		});
 
 		return c.json(courseList);
 	})
-	.get("/:id", authedMiddleware, async (c) => {
+	.get("/:id", authMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -32,7 +35,7 @@ export const coursesHandler = new Hono()
 	})
 	.post(
 		"/",
-		authedMiddleware,
+		authMiddleware(),
 		zValidator("json", CreateCourseSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
@@ -41,11 +44,11 @@ export const coursesHandler = new Hono()
 			const newCourse = await coursesData.create(input, teamId);
 
 			return c.json(newCourse);
-		}
+		},
 	)
 	.put(
 		"/:id",
-		authedMiddleware,
+		authMiddleware(),
 		zValidator("json", UpdateCourseSettingsSchema),
 		async (c) => {
 			const { id } = c.req.param();
@@ -65,11 +68,11 @@ export const coursesHandler = new Hono()
 			await db.update(courses).set(input).where(eq(courses.id, id));
 
 			return c.json(input);
-		}
+		},
 	)
 	.put(
 		"/:id/translations",
-		authedMiddleware,
+		authMiddleware(),
 		zValidator("json", CreateCourseSchema),
 		async (c) => {
 			const { id } = c.req.param();
@@ -101,9 +104,9 @@ export const coursesHandler = new Hono()
 				});
 
 			return c.json(input);
-		}
+		},
 	)
-	.delete("/:id", authedMiddleware, async (c) => {
+	.delete("/:id", authMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -124,10 +127,10 @@ export const coursesHandler = new Hono()
 					CreateLearnerSchema.omit({
 						moduleId: true,
 						courseId: true,
-					})
-				)
+					}),
+				),
 		),
-		authedMiddleware,
+		authMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
 			let input = c.req.valid("json");
@@ -153,7 +156,7 @@ export const coursesHandler = new Hono()
 			const learners = await learnersData.create(input, [course]);
 
 			return c.json(learners);
-		}
+		},
 	)
 	// Private
 	.post(
@@ -162,9 +165,9 @@ export const coursesHandler = new Hono()
 			"json",
 			z.object({
 				key: z.string(),
-			})
+			}),
 		),
-		authedMiddleware,
+		authMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
 			const { key } = c.req.valid("json");
@@ -172,7 +175,7 @@ export const coursesHandler = new Hono()
 
 			try {
 				const url = await getPresignedUrl(
-					`${teamId}/courses/${id}/${key}`
+					`${teamId}/courses/${id}/${key}`,
 				);
 
 				return c.json({ url });
@@ -181,5 +184,5 @@ export const coursesHandler = new Hono()
 					message: "Failed to get presigned URL.",
 				});
 			}
-		}
+		},
 	);

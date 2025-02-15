@@ -1,41 +1,24 @@
 import { Hono } from "hono";
-import { userMiddleware } from "../middleware";
+import { authMiddleware } from "../middleware";
 import { db, usersToTeams } from "@/server/db/db";
-import { and, eq } from "drizzle-orm";
-import { getCookie, setCookie } from "hono/cookie";
+import { eq } from "drizzle-orm";
 
 export const userHandler = new Hono()
-	.get("/me", userMiddleware, async (c) => {
-		const user = c.get("user");
-		const session = c.get("session");
+	.get("/me", authMiddleware({ requireTeam: false }), async (c) => {
 		return c.json({
-			user,
-			session,
+			user: c.get("user"),
+			session: c.get("session"),
+			teamId: c.get("teamId"),
 		});
 	})
-	.get("/teams", userMiddleware, async (c) => {
+	.get("/teams", authMiddleware(), async (c) => {
 		const user = c.get("user");
-		const teamId = getCookie(c, "teamId");
 
-		// If team cookie check for team and redirect
-		let activeTeam;
-		if (teamId) {
-			const userToTeam = await db.query.usersToTeams.findFirst({
-				where: and(
-					eq(usersToTeams.userId, user.id),
-					eq(usersToTeams.teamId, teamId),
-				),
-				with: {
-					team: true,
-				},
-			});
-
-			if (userToTeam?.team) {
-				activeTeam = userToTeam.team;
-			}
+		if (!user) {
+			return c.text("Invalid session", 401);
 		}
 
-		const teamsList = await db.query.usersToTeams.findMany({
+		const teams = await db.query.usersToTeams.findMany({
 			where: eq(usersToTeams.userId, user.id),
 			with: {
 				team: {
@@ -46,21 +29,5 @@ export const userHandler = new Hono()
 			},
 		});
 
-		if (teamsList.length === 0) {
-			throw c.redirect("/admin/teams/create");
-		} else {
-			const team = teamsList[0].team;
-			setCookie(c, "teamId", team.id, {
-				path: "/",
-				secure: true,
-				httpOnly: true,
-				sameSite: "lax",
-			});
-			activeTeam = team;
-		}
-
-		return c.json({
-			teams: teamsList,
-			activeTeam,
-		});
+		return c.json(teams.map((t) => t.team));
 	});
