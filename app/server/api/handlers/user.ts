@@ -4,7 +4,7 @@ import { db, usersToTeams } from "@/server/db/db";
 import { eq } from "drizzle-orm";
 
 export const userHandler = new Hono()
-	.get("/me", authMiddleware({ requireTeam: false }), async (c) => {
+	.get("/me", authMiddleware({ protect: false }), async (c) => {
 		return c.json({
 			user: c.get("user"),
 			session: c.get("session"),

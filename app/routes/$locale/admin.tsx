@@ -1,4 +1,4 @@
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -19,6 +19,9 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
 	SidebarProvider,
 	SidebarTrigger,
 	useSidebar,
@@ -31,14 +34,20 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import {
+	Book,
+	ChevronRight,
 	ChevronsUpDown,
-	ExternalLink,
+	Edit,
 	FileBadge,
+	Files,
 	Key,
 	LayoutDashboard,
 	Link2,
+	LogOut,
 	Plus,
+	Settings,
 	Users,
+	Webhook,
 } from "lucide-react";
 import {
 	DropdownMenu,
@@ -54,16 +63,11 @@ import { z } from "zod";
 import { queryOptions } from "@/lib/api";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { translate } from "@/lib/translation";
-import { setCookie } from "vinxi/http";
-import { createServerFn } from "@tanstack/start";
-
-const setTeam = createServerFn({
-	method: "POST",
-})
-	.validator(z.object({ teamId: z.string() }))
-	.handler(({ data: { teamId } }) => {
-		setCookie("teamId", teamId);
-	});
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -71,10 +75,9 @@ export const Route = createFileRoute("/$locale/admin")({
 		editingLocale: LocaleSchema.optional(),
 	}),
 	beforeLoad: async ({ context: { queryClient } }) => {
-		const { user, teamId } = await queryClient.ensureQueryData(
+		const { user } = await queryClient.ensureQueryData(
 			queryOptions.user.me,
 		);
-		await setTeam({ data: { teamId } });
 
 		if (!user) {
 			throw redirect({
@@ -94,9 +97,11 @@ export const Route = createFileRoute("/$locale/admin")({
 				params,
 			});
 		}
-
-		await queryClient.ensureQueryData(queryOptions.user.teams);
-		await queryClient.ensureQueryData(queryOptions.courses.all);
+		Promise.all([
+			queryClient.ensureQueryData(queryOptions.user.teams),
+			queryClient.ensureQueryData(queryOptions.courses.all),
+			queryClient.ensureQueryData(queryOptions.collections.all),
+		]);
 	},
 });
 
@@ -109,6 +114,9 @@ const AdminSidebar = () => {
 	} = useSuspenseQuery(queryOptions.user.me);
 	const { data: teams } = useSuspenseQuery(queryOptions.user.teams);
 	const { data: courses } = useSuspenseQuery(queryOptions.courses.all);
+	const { data: collections } = useSuspenseQuery(
+		queryOptions.collections.all,
+	);
 
 	const activeTeam = translate(
 		teams.find((t) => t.id === teamId)!.translations,
@@ -213,33 +221,290 @@ const AdminSidebar = () => {
 				<SidebarGroup>
 					<SidebarGroupContent>
 						<SidebarGroupLabel>Courses</SidebarGroupLabel>
-						<SidebarGroupAction title="Create Course">
-							<Plus />{" "}
-							<span className="sr-only">Create Course</span>
+						<SidebarGroupAction title="Create Course" asChild>
+							<Link
+								to="/$locale/admin/courses/create"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								<Plus />{" "}
+								<span className="sr-only">Create Course</span>
+							</Link>
 						</SidebarGroupAction>
 						{courses.map((course) => (
-							<SidebarMenuItem key={course.id}>
-								<SidebarMenuButton asChild>
-									<Link
-										to={"/$locale/admin/courses/$id"}
-										params={{
-											locale,
-											id: course.id,
-										}}
-										search={(p) => p}
-										onClick={() => {
-											setOpenMobile(false);
-										}}
-									>
-										{
-											translate(
-												course.translations,
-												locale,
-											).name
-										}
-									</Link>
-								</SidebarMenuButton>
-							</SidebarMenuItem>
+							<Collapsible
+								key={course.id}
+								asChild
+								className="group/collapsible"
+							>
+								<SidebarMenuItem>
+									<CollapsibleTrigger asChild>
+										<SidebarMenuButton>
+											{
+												translate(
+													course.translations,
+													locale,
+												).name
+											}
+											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+										</SidebarMenuButton>
+									</CollapsibleTrigger>
+									<CollapsibleContent>
+										<SidebarMenuSub>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/courses/$id/edit"
+														}
+														params={{
+															locale,
+															id: course.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Edit />
+														Edit
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/courses/$id/learners"
+														}
+														params={{
+															locale,
+															id: course.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Users />
+														Learners
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/courses/$id/modules"
+														}
+														params={{
+															locale,
+															id: course.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Files />
+														Modules
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/courses/$id/webhooks"
+														}
+														params={{
+															locale,
+															id: course.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Webhook />
+														Webhooks
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/courses/$id/settings"
+														}
+														params={{
+															locale,
+															id: course.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Settings />
+														Settings
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+										</SidebarMenuSub>
+									</CollapsibleContent>
+								</SidebarMenuItem>
+							</Collapsible>
+						))}
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup>
+					<SidebarGroupContent>
+						<SidebarGroupLabel>Collections</SidebarGroupLabel>
+						<SidebarGroupAction title="Create Collection" asChild>
+							<Link
+								to="/$locale/admin/collections/create"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								<Plus />{" "}
+								<span className="sr-only">
+									Create Collection
+								</span>
+							</Link>
+						</SidebarGroupAction>
+						{collections.map((collection) => (
+							<Collapsible
+								key={collection.id}
+								asChild
+								className="group/collapsible"
+							>
+								<SidebarMenuItem>
+									<CollapsibleTrigger asChild>
+										<SidebarMenuButton>
+											{
+												translate(
+													collection.translations,
+													locale,
+												).name
+											}
+											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+										</SidebarMenuButton>
+									</CollapsibleTrigger>
+									<CollapsibleContent>
+										<SidebarMenuSub>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/collections/$id/edit"
+														}
+														params={{
+															locale,
+															id: collection.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Edit />
+														Edit
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/collections/$id/courses"
+														}
+														params={{
+															locale,
+															id: collection.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Book />
+														Courses
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/collections/$id/learners"
+														}
+														params={{
+															locale,
+															id: collection.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Users />
+														Learners
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton asChild>
+													<Link
+														to={
+															"/$locale/admin/collections/$id/settings"
+														}
+														params={{
+															locale,
+															id: collection.id,
+														}}
+														search={(p) => p}
+														onClick={() => {
+															setOpenMobile(
+																false,
+															);
+														}}
+													>
+														<Settings />
+														Settings
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+										</SidebarMenuSub>
+									</CollapsibleContent>
+								</SidebarMenuItem>
+							</Collapsible>
 						))}
 					</SidebarGroupContent>
 				</SidebarGroup>
@@ -248,6 +513,23 @@ const AdminSidebar = () => {
 						<SidebarGroupLabel>
 							{t("sidebar.team")}
 						</SidebarGroupLabel>
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild>
+								<Link
+									to="/$locale/admin/team"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									<Edit />
+									{t("sidebar.edit")}
+								</Link>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
@@ -264,6 +546,8 @@ const AdminSidebar = () => {
 									{t("sidebar.apiKeys")}
 								</Link>
 							</SidebarMenuButton>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
 									to="/$locale/admin/certificate"
@@ -279,6 +563,8 @@ const AdminSidebar = () => {
 									{t("sidebar.certificate")}
 								</Link>
 							</SidebarMenuButton>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
 									to="/$locale/admin/domains"
@@ -294,6 +580,8 @@ const AdminSidebar = () => {
 									{t("sidebar.domains")}
 								</Link>
 							</SidebarMenuButton>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
 									to="/$locale/admin/members"
@@ -314,16 +602,14 @@ const AdminSidebar = () => {
 				</SidebarGroup>
 			</SidebarContent>
 			<SidebarFooter>
-				<Link
-					to="/$locale"
-					params={{
-						locale,
-					}}
-					className={buttonVariants()}
-				>
-					<ExternalLink />
-					Exit to home
-				</Link>
+				<SidebarMenuItem>
+					<SidebarMenuButton asChild>
+						<a href="/api/auth/signout">
+							<LogOut />
+							Sign out
+						</a>
+					</SidebarMenuButton>
+				</SidebarMenuItem>
 			</SidebarFooter>
 		</Sidebar>
 	);

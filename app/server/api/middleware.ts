@@ -3,16 +3,16 @@ import { db } from "@/server/db/db";
 import { keys, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { MiddlewareHandler } from "hono";
-import { setCookie, getCookie } from "hono/cookie";
+import { getCookie } from "hono/cookie";
 import { Role, roles } from "@/types/users";
 
 export const authMiddleware = (options?: {
 	role?: Role;
-	requireTeam?: boolean;
+	protect?: boolean;
 }) => {
-	const { role = "member", requireTeam = true } = options || {};
+	const { role = "member", protect = true } = options || {};
 	const middleware: MiddlewareHandler<{
-		Variables: SessionValidationResult & { teamId: string };
+		Variables: SessionValidationResult & { teamId: string | null };
 	}> = async (c, next) => {
 		const apiKey = c.req.header("x-api-key");
 		const sessionId = getCookie(c, "auth_session");
@@ -34,42 +34,31 @@ export const authMiddleware = (options?: {
 			const { user, session } = await validateSessionToken(sessionId);
 
 			if (!user) {
-				return c.text("Invalid session", 401);
+				if (protect) {
+					return c.text("Invalid session", 401);
+				}
+
+				c.set("teamId", null);
+				c.set("user", null);
+				c.set("session", null);
+				return await next();
 			}
 
 			c.set("user", user);
 			c.set("session", session);
 
-			const teamId = getCookie(c, "teamId");
+			const teamId = getCookie(c, "teamId") || c.req.header("teamId");
 
-			if (!teamId && requireTeam) {
+			if (!teamId) {
 				return c.text("Team ID required", 401);
 			}
 
-			let team;
-			if (teamId) {
-				team = await db.query.usersToTeams.findFirst({
-					where: and(
-						eq(usersToTeams.userId, user.id),
-						eq(usersToTeams.teamId, teamId),
-					),
-				});
-			} else {
-				team = await db.query.usersToTeams.findFirst({
-					where: eq(usersToTeams.userId, user.id),
-				});
-
-				if (!team) {
-					throw c.redirect("/admin/teams/create");
-				} else {
-					setCookie(c, "teamId", team.teamId, {
-						path: "/",
-						secure: true,
-						httpOnly: true,
-						sameSite: "lax",
-					});
-				}
-			}
+			const team = await db.query.usersToTeams.findFirst({
+				where: and(
+					eq(usersToTeams.userId, user.id),
+					eq(usersToTeams.teamId, teamId),
+				),
+			});
 
 			if (!team) {
 				return c.text("Invalid team", 401);

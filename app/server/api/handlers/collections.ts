@@ -15,6 +15,18 @@ import { z } from "zod";
 import { authMiddleware } from "../middleware";
 
 export const collectionsHandler = new Hono()
+	.get("/", authMiddleware(), async (c) => {
+		const teamId = c.get("teamId");
+
+		const collectionList = await db.query.collections.findMany({
+			where: eq(collections.teamId, teamId),
+			with: {
+				translations: true,
+			},
+		});
+
+		return c.json(collectionList);
+	})
 	.post(
 		"/",
 		authMiddleware(),

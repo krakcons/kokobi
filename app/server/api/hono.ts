@@ -6,9 +6,11 @@ import { learnersHandler } from "./handlers/learners";
 import { modulesHandler } from "./handlers/modules";
 import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
+import { logger } from "hono/logger";
 import { userHandler } from "./handlers/user";
 
 const app = new Hono()
+	.use(logger())
 	.basePath("/api")
 	.route("/auth", authHandler)
 	.route("/learners", learnersHandler)

@@ -1,16 +1,18 @@
-import { Hono } from "hono";
+import { Context, Hono } from "hono";
 import {
 	createSession,
 	generateSessionToken,
+	invalidateSession,
 	validateSessionToken,
 } from "@/server/auth";
 import { google } from "@/server/auth/providers";
-import { db, users } from "@/server/db/db";
+import { db, users, usersToTeams } from "@/server/db/db";
 import { generateId } from "@/server/helpers";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { setCookie, getCookie } from "hono/cookie";
+import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { generateCodeVerifier, generateState } from "arctic";
+import { env } from "@/env";
 
 const GoogleCallbackSchema = z
 	.object({
@@ -23,7 +25,68 @@ const GoogleCallbackSchema = z
 		message: "State mismatch",
 	});
 
+const handleUser = async (
+	c: Context,
+	options: {
+		googleId: string;
+		email: string;
+	},
+) => {
+	const { googleId, email } = options;
+	let userId: string;
+	const existingUser = await db.query.users.findFirst({
+		where: eq(users.googleId, googleId),
+	});
+
+	if (!existingUser) {
+		userId = generateId(15);
+		await db.insert(users).values({
+			id: userId,
+			email,
+			googleId,
+		});
+	} else {
+		userId = existingUser.id;
+	}
+
+	const token = generateSessionToken();
+	await createSession(token, userId);
+
+	setCookie(c, "auth_session", token, {
+		secure: process.env.NODE_ENV === "production",
+		httpOnly: true,
+		sameSite: "lax",
+		path: "/",
+	});
+
+	const team = await db.query.usersToTeams.findFirst({
+		where: eq(usersToTeams.userId, userId),
+	});
+
+	if (!team) {
+		return c.redirect("/admin/teams/create");
+	} else {
+		setCookie(c, "teamId", team.teamId, {
+			path: "/",
+			secure: true,
+			httpOnly: true,
+			sameSite: "lax",
+		});
+	}
+
+	return c.redirect("/admin");
+};
+
 export const authHandler = new Hono()
+	.get("/signout", async (c) => {
+		const sessionId = getCookie(c, "auth_session");
+		if (!sessionId) return;
+		deleteCookie(c, "auth_session");
+		deleteCookie(c, "teamId");
+		invalidateSession(sessionId);
+		console.log("signout");
+		return c.redirect(env.VITE_SITE_URL);
+	})
 	.get("/google", async (c) => {
 		const sessionId = getCookie(c, "auth_session");
 
@@ -91,30 +154,5 @@ export const authHandler = new Hono()
 			})
 			.parse(user);
 
-		let userId: string;
-		const existingUser = await db.query.users.findFirst({
-			where: eq(users.googleId, googleId),
-		});
-
-		if (!existingUser) {
-			userId = generateId(15);
-			await db.insert(users).values({
-				id: userId,
-				email,
-				googleId,
-			});
-		} else {
-			userId = existingUser.id;
-		}
-
-		const token = generateSessionToken();
-		await createSession(token, userId);
-		setCookie(c, "auth_session", token, {
-			secure: process.env.NODE_ENV === "production",
-			httpOnly: true,
-			sameSite: "lax",
-			path: "/",
-		});
-
-		return c.redirect("/admin");
+		return handleUser(c, { googleId, email });
 	});

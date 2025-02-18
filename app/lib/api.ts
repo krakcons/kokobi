@@ -44,4 +44,13 @@ export const queryOptions = {
 			},
 		},
 	},
+	collections: {
+		all: {
+			queryKey: ["collections"],
+			queryFn: async () => {
+				const res = await client.api.collections.$get();
+				return await res.json();
+			},
+		},
+	},
 };
