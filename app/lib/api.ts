@@ -13,6 +13,9 @@ const getHeaders = async () => {
 export const client = hc<AppType>(env.VITE_SITE_URL, {
 	// @ts-ignore
 	headers: getHeaders,
+	init: {
+		credentials: "include",
+	},
 });
 
 export const queryOptions = {

@@ -54,6 +54,16 @@ import { z } from "zod";
 import { queryOptions } from "@/lib/api";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { translate } from "@/lib/translation";
+import { setCookie } from "vinxi/http";
+import { createServerFn } from "@tanstack/start";
+
+const setTeam = createServerFn({
+	method: "POST",
+})
+	.validator(z.object({ teamId: z.string() }))
+	.handler(({ data: { teamId } }) => {
+		setCookie("teamId", teamId);
+	});
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -61,9 +71,10 @@ export const Route = createFileRoute("/$locale/admin")({
 		editingLocale: LocaleSchema.optional(),
 	}),
 	beforeLoad: async ({ context: { queryClient } }) => {
-		const { user } = await queryClient.ensureQueryData(
+		const { user, teamId } = await queryClient.ensureQueryData(
 			queryOptions.user.me,
 		);
+		await setTeam({ data: { teamId } });
 
 		if (!user) {
 			throw redirect({
