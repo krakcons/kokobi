@@ -6,13 +6,14 @@ import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { authMiddleware } from "../middleware";
+import { authMiddleware, protectedMiddleware } from "../middleware";
 
 export const keysHandler = new Hono()
 	.post(
 		"/",
 		zValidator("json", CreateKeySchema.omit({ teamId: true })),
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		async (c) => {
 			const teamId = c.get("teamId");
 			const { name } = c.req.valid("json");
@@ -27,7 +28,7 @@ export const keysHandler = new Hono()
 			return c.json(null);
 		},
 	)
-	.delete("/:id", authMiddleware(), async (c) => {
+	.delete("/:id", authMiddleware, protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 

@@ -1,6 +1,6 @@
 import { env } from "@/env";
 import { AppType } from "@/server/api/hono";
-import { hc } from "hono/client";
+import { hc, InferRequestType } from "hono/client";
 
 const getHeaders = async () => {
 	if (typeof window === "undefined") {
@@ -17,6 +17,8 @@ export const client = hc<AppType>(env.VITE_SITE_URL, {
 		credentials: "include",
 	},
 });
+
+const course = client.api.courses[":id"];
 
 export const queryOptions = {
 	user: {
@@ -43,6 +45,13 @@ export const queryOptions = {
 				return await res.json();
 			},
 		},
+		learners: (input: InferRequestType<typeof course.learners.$get>) => ({
+			queryKey: ["learners", input.param.id],
+			queryFn: async () => {
+				const res = await course.learners.$get(input);
+				return await res.json();
+			},
+		}),
 	},
 	collections: {
 		all: {

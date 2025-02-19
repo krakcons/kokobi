@@ -1,19 +1,20 @@
 import { coursesData } from "@/server/db/courses";
 import { db } from "@/server/db/db";
 import { learnersData } from "@/server/db/learners";
-import { courseTranslations, courses } from "@/server/db/schema";
+import { courseTranslations, courses, learners } from "@/server/db/schema";
 import { getPresignedUrl } from "@/server/r2";
 import { CreateCourseSchema, UpdateCourseSettingsSchema } from "@/types/course";
-import { CreateLearnerSchema } from "@/types/learner";
+import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { authMiddleware } from "../middleware";
+import { authMiddleware, protectedMiddleware } from "../middleware";
+import { env } from "@/env";
 
 export const coursesHandler = new Hono()
-	.get("/", authMiddleware(), async (c) => {
+	.get("/", authMiddleware, protectedMiddleware(), async (c) => {
 		const teamId = c.get("teamId");
 
 		const courseList = await db.query.courses.findMany({
@@ -25,7 +26,7 @@ export const coursesHandler = new Hono()
 
 		return c.json(courseList);
 	})
-	.get("/:id", authMiddleware(), async (c) => {
+	.get("/:id", authMiddleware, protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -35,7 +36,8 @@ export const coursesHandler = new Hono()
 	})
 	.post(
 		"/",
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		zValidator("json", CreateCourseSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
@@ -48,7 +50,8 @@ export const coursesHandler = new Hono()
 	)
 	.put(
 		"/:id",
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		zValidator("json", UpdateCourseSettingsSchema),
 		async (c) => {
 			const { id } = c.req.param();
@@ -72,7 +75,8 @@ export const coursesHandler = new Hono()
 	)
 	.put(
 		"/:id/translations",
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		zValidator("json", CreateCourseSchema),
 		async (c) => {
 			const { id } = c.req.param();
@@ -106,13 +110,55 @@ export const coursesHandler = new Hono()
 			return c.json(input);
 		},
 	)
-	.delete("/:id", authMiddleware(), async (c) => {
+	.delete("/:id", authMiddleware, protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
 		await coursesData.delete({ id }, teamId);
 
 		return c.json(null);
+	})
+	.get("/:id/learners", authMiddleware, protectedMiddleware(), async (c) => {
+		const { id } = c.req.param();
+		const teamId = c.get("teamId");
+		const teamRole = c.get("teamRole");
+
+		const course = await db.query.courses.findFirst({
+			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
+			with: {
+				translations: true,
+				team: true,
+			},
+		});
+
+		if (!course) {
+			throw new HTTPException(404, {
+				message: "Course not found.",
+			});
+		}
+
+		const learnerList = await db.query.learners.findMany({
+			where: eq(learners.courseId, course.id),
+			with: {
+				module: true,
+			},
+		});
+
+		const extendedLearnerList = learnerList.map((learner) => {
+			return {
+				...ExtendLearner(learner.module?.type).parse(learner),
+				module: learner.module,
+				joinLink:
+					teamRole === "owner"
+						? course.team?.customDomain &&
+							env.VITE_SITE_URL !== "http://localhost:3000"
+							? `https://${course.team.customDomain}/courses/${course.id}/join?learnerId=${learner.id}`
+							: `${env.VITE_SITE_URL}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
+						: undefined,
+			};
+		});
+
+		return c.json(extendedLearnerList);
 	})
 	.post(
 		"/:id/learners",
@@ -130,7 +176,8 @@ export const coursesHandler = new Hono()
 					}),
 				),
 		),
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
 			let input = c.req.valid("json");
@@ -167,7 +214,8 @@ export const coursesHandler = new Hono()
 				key: z.string(),
 			}),
 		),
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
 			const { key } = c.req.valid("json");

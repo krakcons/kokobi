@@ -84,6 +84,24 @@ const fr: Messages = {
 			below: "☕ Besoin de prendre une pause ? Nous avons une solution. Apprenez à votre propre rythme en cliquant sur le bouton ci-dessus pour reprendre là où vous vous êtes arrêté. \n\n Pour chacun des cours ci-dessus que vous complétez, vous recevrez un certificat de réussite. \n\n Veuillez vous abstenir de répondre à ce courriel car il n'y a pas de boîte de réception prévue à cet effet. \n\n Bon apprentissage !",
 		},
 	},
+	Table: {
+		name: "Nom",
+		status: "Statut",
+		empty: "Aucun résultat.",
+		filter: "Filtrer les résultats...",
+		sort: {
+			asc: "Croissant",
+			desc: "Décroissant",
+			hide: "Cacher",
+		},
+		rowsPerPage: "Lignes par page",
+		page: "Page",
+		of: "de",
+		goToFirstPage: "Aller à la première page",
+		goToPreviousPage: "Aller à la page précédente",
+		goToNextPage: "Aller à la page suivante",
+		goToLastPage: "Aller à la dernière page",
+	},
 };
 
 export default fr;

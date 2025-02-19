@@ -82,6 +82,24 @@ const en = {
 			below: "☕ Need to take a break? We got you covered. Learn at your own pace by clicking the button above to pick up where you left off at any time. \n\n For each of the above that you complete, you’ll receive an email with a Certificate of Completion. \n\n Please refrain from responding to this email as there is no corresponding inbox for replies. \n\n Happy Learning!",
 		},
 	},
+	Table: {
+		empty: "No results.",
+		filter: "Filter results...",
+		sort: {
+			asc: "Asc",
+			desc: "Desc",
+			hide: "Hide",
+		},
+		name: "Name",
+		status: "Status",
+		rowsPerPage: "Rows per page",
+		page: "Page",
+		of: "of",
+		goToFirstPage: "Go to first page",
+		goToPreviousPage: "Go to previous page",
+		goToNextPage: "Go to next page",
+		goToLastPage: "Go to last page",
+	},
 };
 
 export default en;

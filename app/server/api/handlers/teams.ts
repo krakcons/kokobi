@@ -25,7 +25,7 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { authMiddleware } from "../middleware";
+import { authMiddleware, protectedMiddleware } from "../middleware";
 
 const removeDomain = async ({
 	customDomain,
@@ -59,7 +59,7 @@ export const teamsHandler = new Hono()
 			"json",
 			z.object({ name: z.string(), language: LanguageSchema }),
 		),
-		authMiddleware({ requireTeam: false }),
+		authMiddleware,
 		async (c) => {
 			const { name, language } = c.req.valid("json");
 			const userId = c.get("user")?.id;
@@ -93,7 +93,8 @@ export const teamsHandler = new Hono()
 	.post(
 		"/:id/invite",
 		zValidator("json", InviteMemberFormSchema),
-		authMiddleware({ role: "owner" }),
+		authMiddleware,
+		protectedMiddleware({ role: "owner" }),
 		async (c) => {
 			const { id } = c.req.param();
 			const { email, role } = c.req.valid("json");
@@ -143,7 +144,8 @@ export const teamsHandler = new Hono()
 	)
 	.delete(
 		"/:id/member/:userId",
-		authMiddleware({ role: "owner" }),
+		authMiddleware,
+		protectedMiddleware({ role: "owner" }),
 		async (c) => {
 			const { id, userId } = c.req.param();
 
@@ -162,7 +164,8 @@ export const teamsHandler = new Hono()
 	.put(
 		"/:id",
 		zValidator("json", UpdateTeamTranslationSchema),
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		async (c) => {
 			const id = c.req.param("id");
 			const teamId = c.get("teamId");
@@ -200,7 +203,8 @@ export const teamsHandler = new Hono()
 				customDomain: z.string(),
 			}),
 		),
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
 			const { customDomain } = c.req.valid("json");
@@ -276,7 +280,7 @@ export const teamsHandler = new Hono()
 			return c.json(null);
 		},
 	)
-	.delete("/:id/domain", authMiddleware(), async (c) => {
+	.delete("/:id/domain", authMiddleware, protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 
 		const team = await db.query.teams.findFirst({
@@ -313,7 +317,8 @@ export const teamsHandler = new Hono()
 				language: LanguageSchema,
 			}),
 		),
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		async (c) => {
 			const language = c.req.valid("json").language;
 			const teamId = c.get("teamId");
@@ -332,7 +337,8 @@ export const teamsHandler = new Hono()
 				language: LanguageSchema,
 			}),
 		),
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		async (c) => {
 			const language = c.req.valid("json").language;
 			const teamId = c.get("teamId");
@@ -344,49 +350,57 @@ export const teamsHandler = new Hono()
 		},
 	)
 	// Private
-	.delete("/:id", authMiddleware({ role: "owner" }), async (c) => {
-		const { id } = c.req.param();
-		const teamId = c.get("teamId");
+	.delete(
+		"/:id",
+		authMiddleware,
+		protectedMiddleware({ role: "owner" }),
+		async (c) => {
+			const { id } = c.req.param();
+			const teamId = c.get("teamId");
 
-		await deleteFolder(`${teamId}`);
+			await deleteFolder(`${teamId}`);
 
-		// Delete all courses/modules/translations/collection relations
-		const courseList = await db.query.courses.findMany({
-			where: eq(courses.teamId, id),
-		});
-		await Promise.all(
-			courseList.map(async (course) => {
-				return coursesData.delete({ id: course.id }, teamId);
-			}),
-		);
-		await db
-			.delete(teamTranslations)
-			.where(eq(teamTranslations.teamId, id));
+			// Delete all courses/modules/translations/collection relations
+			const courseList = await db.query.courses.findMany({
+				where: eq(courses.teamId, id),
+			});
+			await Promise.all(
+				courseList.map(async (course) => {
+					return coursesData.delete({ id: course.id }, teamId);
+				}),
+			);
+			await db
+				.delete(teamTranslations)
+				.where(eq(teamTranslations.teamId, id));
 
-		// Delete all collections and translations
-		const collectionList = await db.query.collections.findMany({
-			where: eq(collections.teamId, id),
-		});
-		await Promise.all(
-			collectionList.map(async (collection) => {
-				return db
-					.delete(collectionTranslations)
-					.where(
-						eq(collectionTranslations.collectionId, collection.id),
-					);
-			}),
-		);
-		await db.delete(collections).where(eq(collections.teamId, id));
+			// Delete all collections and translations
+			const collectionList = await db.query.collections.findMany({
+				where: eq(collections.teamId, id),
+			});
+			await Promise.all(
+				collectionList.map(async (collection) => {
+					return db
+						.delete(collectionTranslations)
+						.where(
+							eq(
+								collectionTranslations.collectionId,
+								collection.id,
+							),
+						);
+				}),
+			);
+			await db.delete(collections).where(eq(collections.teamId, id));
 
-		// Delete all keys
-		await db.delete(keys).where(eq(keys.teamId, id));
+			// Delete all keys
+			await db.delete(keys).where(eq(keys.teamId, id));
 
-		// Delete team and translations
-		await db
-			.delete(teamTranslations)
-			.where(eq(teamTranslations.teamId, id));
-		await db.delete(usersToTeams).where(eq(usersToTeams.teamId, id));
-		await db.delete(teams).where(eq(teams.id, id));
+			// Delete team and translations
+			await db
+				.delete(teamTranslations)
+				.where(eq(teamTranslations.teamId, id));
+			await db.delete(usersToTeams).where(eq(usersToTeams.teamId, id));
+			await db.delete(teams).where(eq(teams.id, id));
 
-		return c.json(null);
-	});
+			return c.json(null);
+		},
+	);

@@ -461,28 +461,6 @@ const AdminSidebar = () => {
 												<SidebarMenuSubButton asChild>
 													<Link
 														to={
-															"/$locale/admin/collections/$id/learners"
-														}
-														params={{
-															locale,
-															id: collection.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Users />
-														Learners
-													</Link>
-												</SidebarMenuSubButton>
-											</SidebarMenuSubItem>
-											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
 															"/$locale/admin/collections/$id/settings"
 														}
 														params={{

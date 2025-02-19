@@ -5,5 +5,5 @@ export const Route = createFileRoute("/$locale/admin/")({
 });
 
 function RouteComponent() {
-	return <div>Hello "/$locale/admin/"!</div>;
+	return <div>Can put tutorial, notifications, etc here</div>;
 }

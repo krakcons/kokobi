@@ -12,10 +12,10 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { authMiddleware } from "../middleware";
+import { authMiddleware, protectedMiddleware } from "../middleware";
 
 export const collectionsHandler = new Hono()
-	.get("/", authMiddleware(), async (c) => {
+	.get("/", authMiddleware, protectedMiddleware(), async (c) => {
 		const teamId = c.get("teamId");
 
 		const collectionList = await db.query.collections.findMany({
@@ -29,7 +29,8 @@ export const collectionsHandler = new Hono()
 	})
 	.post(
 		"/",
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		zValidator("json", CreateCollectionTranslationSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
@@ -53,7 +54,8 @@ export const collectionsHandler = new Hono()
 	)
 	.put(
 		"/:id",
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		zValidator("json", CreateCollectionTranslationSchema),
 		async (c) => {
 			const { id } = c.req.param();
@@ -92,7 +94,8 @@ export const collectionsHandler = new Hono()
 	)
 	.post(
 		"/:id/courses",
-		authMiddleware(),
+		authMiddleware,
+		protectedMiddleware(),
 		zValidator(
 			"json",
 			z.object({
@@ -111,20 +114,25 @@ export const collectionsHandler = new Hono()
 			return c.json(null);
 		},
 	)
-	.delete("/:id/courses/:courseId", authMiddleware(), async (c) => {
-		const { id, courseId } = c.req.param();
+	.delete(
+		"/:id/courses/:courseId",
+		authMiddleware,
+		protectedMiddleware(),
+		async (c) => {
+			const { id, courseId } = c.req.param();
 
-		await db
-			.delete(collectionsToCourses)
-			.where(
-				and(
-					eq(collectionsToCourses.collectionId, id),
-					eq(collectionsToCourses.courseId, courseId),
-				),
-			);
+			await db
+				.delete(collectionsToCourses)
+				.where(
+					and(
+						eq(collectionsToCourses.collectionId, id),
+						eq(collectionsToCourses.courseId, courseId),
+					),
+				);
 
-		return c.json(null);
-	})
+			return c.json(null);
+		},
+	)
 	.post(
 		"/:id/learners",
 		zValidator(
@@ -180,7 +188,7 @@ export const collectionsHandler = new Hono()
 			return c.json(learners);
 		},
 	)
-	.delete("/:id", authMiddleware(), async (c) => {
+	.delete("/:id", authMiddleware, protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
