@@ -4,6 +4,7 @@ import {
 	ChevronRight,
 	ChevronsLeft,
 	ChevronsRight,
+	MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +41,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -379,3 +381,38 @@ export function DataTableColumnHeader<TData, TValue>({
 		</div>
 	);
 }
+
+export const createDataTableActionsColumn = <TData extends object>(
+	actions: {
+		name: string;
+		onClick: (data: TData) => void;
+	}[],
+) => {
+	return {
+		id: "actions",
+		header: ({ column }: any) => (
+			<DataTableColumnHeader title="Actions" column={column} />
+		),
+		cell: ({ cell }: any) => (
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="ghost" size="icon">
+						<MoreHorizontal />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuLabel>Actions</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					{actions.map((action) => (
+						<DropdownMenuItem
+							key={action.name}
+							onClick={() => action.onClick(cell.row.original)}
+						>
+							{action.name}
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuContent>
+			</DropdownMenu>
+		),
+	};
+};

@@ -511,7 +511,7 @@ const AdminSidebar = () => {
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
-									to="/$locale/admin/api-keys"
+									to="/$locale/admin/keys"
 									params={{
 										locale,
 									}}

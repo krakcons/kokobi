@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { AppType } from "@/server/api/hono";
+import { MutationOptions, useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 
 const getHeaders = async () => {
@@ -19,6 +20,7 @@ export const client = hc<AppType>(env.VITE_SITE_URL, {
 });
 
 const course = client.api.courses[":id"];
+const key = client.api.keys[":id"];
 
 export const queryOptions = {
 	user: {
@@ -62,4 +64,42 @@ export const queryOptions = {
 			},
 		},
 	},
+	keys: {
+		all: {
+			queryKey: ["keys"],
+			queryFn: async () => {
+				const res = await client.api.keys.$get();
+				return await res.json();
+			},
+		},
+	},
+};
+
+export const useMutationOptions = (): {
+	[key: string]: {
+		[key: string]: MutationOptions<any, any, any, any>;
+	};
+} => {
+	const queryClient = useQueryClient();
+
+	return {
+		keys: {
+			delete: {
+				mutationFn: async (
+					input: InferRequestType<typeof key.$delete>,
+				) => {
+					const res = await key.$delete(input);
+					if (!res.ok) {
+						const text = await res.text();
+						throw new Error(text);
+					}
+				},
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.keys.all.queryKey,
+					});
+				},
+			},
+		},
+	};
 };

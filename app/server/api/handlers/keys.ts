@@ -9,6 +9,15 @@ import { HTTPException } from "hono/http-exception";
 import { authMiddleware, protectedMiddleware } from "../middleware";
 
 export const keysHandler = new Hono()
+	.get("/", authMiddleware, protectedMiddleware(), async (c) => {
+		const teamId = c.get("teamId");
+
+		const keysList = await db.query.keys.findMany({
+			where: eq(keys.teamId, teamId),
+		});
+
+		return c.json(keysList);
+	})
 	.post(
 		"/",
 		zValidator("json", CreateKeySchema.omit({ teamId: true })),
