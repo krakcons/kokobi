@@ -4,9 +4,9 @@ import {
 	DataTableColumnHeader,
 	TableSearchSchema,
 } from "@/components/DataTable";
-import { PageHeader } from "@/components/Page";
+import { Page, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
-import { mutationOptions, queryOptions, useMutationOptions } from "@/lib/api";
+import { queryOptions, useMutationOptions } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Key } from "@/types/keys";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
@@ -100,7 +100,7 @@ function RouteComponent() {
 	];
 
 	return (
-		<div>
+		<Page>
 			<PageHeader title="Keys" description="Manage your API keys" />
 			<DataTable
 				data={keys}
@@ -115,6 +115,6 @@ function RouteComponent() {
 					});
 				}}
 			/>
-		</div>
+		</Page>
 	);
 }

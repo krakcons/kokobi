@@ -102,6 +102,15 @@ const fr: Messages = {
 		goToNextPage: "Aller à la page suivante",
 		goToLastPage: "Aller à la dernière page",
 	},
+	Learner: {
+		statuses: {
+			completed: "Terminé",
+			"not-started": "Non démarré",
+			"in-progress": "En cours",
+			passed: "Réussi",
+			failed: "Échec",
+		},
+	},
 };
 
 export default fr;

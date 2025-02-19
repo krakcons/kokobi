@@ -650,9 +650,7 @@ function RouteComponent() {
 						</Button>
 					</div>
 				</header>
-				<div className="p-4 flex-1">
-					<Outlet />
-				</div>
+				<Outlet />
 			</SidebarInset>
 		</SidebarProvider>
 	);

@@ -100,6 +100,15 @@ const en = {
 		goToNextPage: "Go to next page",
 		goToLastPage: "Go to last page",
 	},
+	Learner: {
+		statuses: {
+			completed: "Completed",
+			"not-started": "Not Started",
+			"in-progress": "In Progress",
+			passed: "Passed",
+			failed: "Failed",
+		},
+	},
 };
 
 export default en;
