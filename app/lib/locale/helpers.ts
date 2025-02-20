@@ -13,13 +13,13 @@ export const handleLocalization = <
 	TBase extends { translations: Array<{ language: string }> },
 	TTranslation = TBase["translations"][number],
 	TResult = Omit<TBase & TTranslation, "translations">,
+	TVariables extends LocalizedInputType = LocalizedInputType,
 >(
-	c: Context<{ Variables: any & LocalizedInputType }>,
-	obj?: TBase,
-): TResult | undefined => {
-	if (!obj) return undefined;
-
-	const locale = c.get("locale");
+	c: Context<{ Variables: TVariables }>,
+	obj: TBase,
+): TResult => {
+	const editingLocale = c.get("editingLocale");
+	const locale = editingLocale ?? c.get("locale");
 	const fallbackLocale = c.get("fallbackLocale");
 
 	// Find translation in requested locale or fallback to first

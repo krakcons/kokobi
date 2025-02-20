@@ -11,16 +11,16 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import {
-	authMiddleware,
-	localeMiddleware,
+	HonoVariables,
+	localeInputMiddleware,
 	protectedMiddleware,
 } from "../middleware";
 import { env } from "@/env";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { generateId } from "@/server/helpers";
 
-export const coursesHandler = new Hono()
-	.get("/", authMiddleware, protectedMiddleware(), async (c) => {
+export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
+	.get("/", protectedMiddleware(), async (c) => {
 		const teamId = c.get("teamId");
 
 		const courseList = await db.query.courses.findMany({
@@ -32,36 +32,29 @@ export const coursesHandler = new Hono()
 
 		return c.json(courseList);
 	})
-	.get(
-		"/:id",
-		authMiddleware,
-		protectedMiddleware(),
-		localeMiddleware,
-		async (c) => {
-			const { id } = c.req.param();
-			const teamId = c.get("teamId");
+	.get("/:id", localeInputMiddleware, protectedMiddleware(), async (c) => {
+		const { id } = c.req.param();
+		const teamId = c.get("teamId");
 
-			const course = await db.query.courses.findFirst({
-				where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
-				with: {
-					translations: true,
-				},
+		const course = await db.query.courses.findFirst({
+			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
+			with: {
+				translations: true,
+			},
+		});
+
+		if (!course) {
+			throw new HTTPException(404, {
+				message: "Course not found",
 			});
+		}
 
-			if (!course) {
-				throw new HTTPException(404, {
-					message: "Course not found",
-				});
-			}
-
-			return c.json(handleLocalization(c, course));
-		},
-	)
+		return c.json(handleLocalization(c, course));
+	})
 	.post(
 		"/",
-		authMiddleware,
+		localeInputMiddleware,
 		protectedMiddleware(),
-		localeMiddleware,
 		zValidator("json", CourseFormSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
@@ -90,9 +83,8 @@ export const coursesHandler = new Hono()
 	)
 	.put(
 		"/:id",
-		authMiddleware,
+		localeInputMiddleware,
 		protectedMiddleware(),
-		localeMiddleware,
 		zValidator("json", CourseFormSchema),
 		async (c) => {
 			const { id } = c.req.param();
@@ -138,7 +130,7 @@ export const coursesHandler = new Hono()
 			return c.json(input);
 		},
 	)
-	.delete("/:id", authMiddleware, protectedMiddleware(), async (c) => {
+	.delete("/:id", protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -146,7 +138,7 @@ export const coursesHandler = new Hono()
 
 		return c.json(null);
 	})
-	.get("/:id/learners", authMiddleware, protectedMiddleware(), async (c) => {
+	.get("/:id/learners", protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 		const teamRole = c.get("teamRole");
@@ -204,7 +196,6 @@ export const coursesHandler = new Hono()
 					}),
 				),
 		),
-		authMiddleware,
 		protectedMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
@@ -242,7 +233,6 @@ export const coursesHandler = new Hono()
 				key: z.string(),
 			}),
 		),
-		authMiddleware,
 		protectedMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();

@@ -41,7 +41,7 @@ export const usersToTeams = pgTable(
 			.notNull()
 			.default(sql`'member'`),
 	},
-	(t) => [primaryKey({ columns: [t.userId, t.teamId] })]
+	(t) => [primaryKey({ columns: [t.userId, t.teamId] })],
 );
 
 export const keys = pgTable("keys", {
@@ -76,7 +76,7 @@ export const collectionsToCourses = pgTable(
 		collectionId: text("collectionId").notNull(),
 		courseId: text("courseId").notNull(),
 	},
-	(t) => [primaryKey({ columns: [t.collectionId, t.courseId] })]
+	(t) => [primaryKey({ columns: [t.collectionId, t.courseId] })],
 );
 
 export const courses = pgTable("courses", {
@@ -85,9 +85,11 @@ export const courses = pgTable("courses", {
 		.notNull()
 		.$default(() => generateId(15)),
 	teamId: text("teamId").notNull(),
-	completionStatus: text("completionStatus")
+	completionStatus: text("completionStatus", {
+		enum: ["passed", "completed", "either"],
+	})
 		.notNull()
-		.default(sql`'passed'`),
+		.default("passed"),
 });
 
 export const modules = pgTable("modules", {
@@ -128,7 +130,7 @@ export const learners = pgTable(
 			.notNull()
 			.default({}),
 	},
-	(t) => [uniqueIndex("unq_learner").on(t.courseId, t.email)]
+	(t) => [uniqueIndex("unq_learner").on(t.courseId, t.email)],
 );
 
 export const courseTranslations = pgTable(
@@ -140,7 +142,7 @@ export const courseTranslations = pgTable(
 		name: text("name").notNull(),
 		description: text("description").notNull(),
 	},
-	(t) => [primaryKey({ columns: [t.courseId, t.language] })]
+	(t) => [primaryKey({ columns: [t.courseId, t.language] })],
 );
 
 export const teamTranslations = pgTable(
@@ -153,7 +155,7 @@ export const teamTranslations = pgTable(
 		logo: text("logo"),
 		favicon: text("favicon"),
 	},
-	(t) => [primaryKey({ columns: [t.teamId, t.language] })]
+	(t) => [primaryKey({ columns: [t.teamId, t.language] })],
 );
 
 export const collectionTranslations = pgTable(
@@ -165,7 +167,7 @@ export const collectionTranslations = pgTable(
 		name: text("name").notNull(),
 		description: text("description").notNull(),
 	},
-	(t) => [primaryKey({ columns: [t.collectionId, t.language] })]
+	(t) => [primaryKey({ columns: [t.collectionId, t.language] })],
 );
 
 // Relations
@@ -220,7 +222,7 @@ export const collectionsToCoursesRelations = relations(
 			fields: [collectionsToCourses.courseId],
 			references: [courses.id],
 		}),
-	})
+	}),
 );
 
 export const modulesRelations = relations(modules, ({ many, one }) => ({
@@ -245,7 +247,7 @@ export const collectionTranslationsRelations = relations(
 			fields: [collectionTranslations.collectionId],
 			references: [collections.id],
 		}),
-	})
+	}),
 );
 
 export const coursesRelations = relations(courses, ({ one, many }) => ({
@@ -276,7 +278,7 @@ export const teamTranslationsRelations = relations(
 			fields: [teamTranslations.teamId],
 			references: [teams.id],
 		}),
-	})
+	}),
 );
 
 export const courseTranslationsRelations = relations(
@@ -286,7 +288,7 @@ export const courseTranslationsRelations = relations(
 			fields: [courseTranslations.courseId],
 			references: [courses.id],
 		}),
-	})
+	}),
 );
 
 export const tableSchemas = {

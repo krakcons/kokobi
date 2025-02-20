@@ -1,10 +1,10 @@
 import { env } from "@/env";
 import { AppType } from "@/server/api/hono";
 import { MutationOptions, useQueryClient } from "@tanstack/react-query";
-import { ClientRequestOptions, hc, InferRequestType } from "hono/client";
+import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
 
-const getHeaders = async () => {
+export const getHeaders = async () => {
 	if (typeof window === "undefined") {
 		const { getHeaders: getHeadersServer } = await import("vinxi/http");
 		return getHeadersServer();
@@ -41,13 +41,13 @@ export const queryOptions = {
 		},
 	},
 	courses: {
-		id: (
-			input: InferRequestType<typeof course.$get>,
-			options?: ClientRequestOptions,
-		) => ({
-			queryKey: ["courses", input, options],
+		id: (input: InferRequestType<typeof course.$get>) => ({
+			queryKey: ["editing-locale", "courses", input],
 			queryFn: async () => {
-				const res = await course.$get(input, options);
+				const res = await course.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		}),
@@ -149,7 +149,23 @@ export const useMutationOptions = (): {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.courses.all.queryKey,
 					});
-					toast("Course updated successfully");
+					toast.success("Course updated successfully");
+				},
+			},
+			delete: {
+				mutationFn: async (
+					input: InferRequestType<typeof course.$delete>,
+				) => {
+					const res = await course.$delete(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+				},
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.courses.all.queryKey,
+					});
+					toast.success("Course deleted successfully");
 				},
 			},
 		},

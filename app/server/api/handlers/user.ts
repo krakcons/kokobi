@@ -1,17 +1,17 @@
 import { Hono } from "hono";
-import { authMiddleware, protectedMiddleware } from "../middleware";
+import { HonoVariables, protectedMiddleware } from "../middleware";
 import { db, usersToTeams } from "@/server/db/db";
 import { eq } from "drizzle-orm";
 
-export const userHandler = new Hono()
-	.get("/me", authMiddleware, async (c) => {
+export const userHandler = new Hono<{ Variables: HonoVariables }>()
+	.get("/me", async (c) => {
 		return c.json({
 			user: c.get("user"),
 			session: c.get("session"),
 			teamId: c.get("teamId"),
 		});
 	})
-	.get("/teams", authMiddleware, protectedMiddleware(), async (c) => {
+	.get("/teams", protectedMiddleware(), async (c) => {
 		const user = c.get("user");
 
 		if (!user) {

@@ -20,7 +20,7 @@ export type CourseTranslation = z.infer<typeof CourseTranslationSchema>;
 
 export const CourseFormSchema = z.object({
 	name: z.string().min(1),
-	description: z.string().optional(),
+	description: z.string(),
 	completionStatus: CourseSchema.shape.completionStatus,
 });
 export type CourseFormType = z.infer<typeof CourseFormSchema>;

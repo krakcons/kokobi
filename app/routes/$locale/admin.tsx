@@ -37,18 +37,17 @@ import {
 	Book,
 	ChevronRight,
 	ChevronsUpDown,
-	Edit,
 	FileBadge,
 	Files,
 	Key,
 	LayoutDashboard,
-	Link2,
 	LogOut,
 	Plus,
 	Settings,
 	Users,
 	Webhook,
 } from "lucide-react";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -59,21 +58,22 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLocale, useTranslations } from "use-intl";
-import { z } from "zod";
 import { queryOptions } from "@/lib/api";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { translate } from "@/lib/translation";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { getEditingLocale, setEditingLocale } from "@/lib/locale/actions";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
-	validateSearch: z.object({
-		editingLocale: LocaleSchema.optional(),
-	}),
 	beforeLoad: async ({ context: { queryClient } }) => {
 		const { user } = await queryClient.ensureQueryData(
 			queryOptions.user.me,
@@ -85,16 +85,22 @@ export const Route = createFileRoute("/$locale/admin")({
 			});
 		}
 	},
-	loaderDeps: ({ search: { editingLocale } }) => ({ editingLocale }),
-	loader: async ({ deps, params, location, context: { queryClient } }) => {
-		if (!deps.editingLocale) {
-			throw redirect({
-				to: location.pathname,
-				search: (search) => ({
-					...search,
-					editingLocale: params.locale as Locale,
-				}),
-				params,
+	loader: async ({ params, context: { queryClient } }) => {
+		const editingLocale = await queryClient.ensureQueryData({
+			queryKey: ["editing-locale"],
+			queryFn: getEditingLocale,
+		});
+		if (!editingLocale) {
+			setEditingLocale({
+				data: {
+					locale: params.locale as Locale,
+				},
+			});
+		} else {
+			setEditingLocale({
+				data: {
+					locale: editingLocale,
+				},
 			});
 		}
 		Promise.all([
@@ -534,9 +540,26 @@ const AdminSidebar = () => {
 
 function RouteComponent() {
 	const { locale } = Route.useParams();
-	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const t = useTranslations("Nav");
+	const queryClient = useQueryClient();
+
+	const { data: editingLocale } = useSuspenseQuery({
+		queryKey: ["editing-locale"],
+		queryFn: getEditingLocale,
+	});
+
+	const { mutate } = useMutation({
+		mutationFn: (locale: Locale) =>
+			setEditingLocale({
+				data: { locale },
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["editing-locale"],
+			});
+		},
+	});
 
 	return (
 		<SidebarProvider>
@@ -546,15 +569,9 @@ function RouteComponent() {
 					<SidebarTrigger />
 					<div className="flex flex-row items-center gap-2">
 						<Select
-							value={search.editingLocale}
+							value={editingLocale}
 							onValueChange={(value) => {
-								navigate({
-									replace: true,
-									search: (search) => ({
-										...search,
-										editingLocale: value as Locale,
-									}),
-								});
+								mutate(value as Locale);
 							}}
 						>
 							<SelectTrigger>
@@ -589,6 +606,7 @@ function RouteComponent() {
 						</Button>
 					</div>
 				</header>
+				<ReactQueryDevtools initialIsOpen={false} />
 				<Outlet />
 			</SidebarInset>
 		</SidebarProvider>

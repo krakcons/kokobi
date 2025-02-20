@@ -8,9 +8,14 @@ import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
 import { logger } from "hono/logger";
 import { userHandler } from "./handlers/user";
+import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
 
-const app = new Hono()
+const app = new Hono<{
+	Variables: HonoVariables;
+}>()
 	.use(logger())
+	.use(authMiddleware)
+	.use(localeMiddleware)
 	.basePath("/api")
 	.route("/auth", authHandler)
 	.route("/learners", learnersHandler)

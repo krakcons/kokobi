@@ -13,10 +13,10 @@ import { zValidator } from "@hono/zod-validator";
 import { and, eq, max } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { authMiddleware, protectedMiddleware } from "../middleware";
+import { protectedMiddleware } from "../middleware";
 
 export const modulesHandler = new Hono()
-	.get("/:id/learners", authMiddleware, protectedMiddleware(), async (c) => {
+	.get("/:id/learners", protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -140,7 +140,7 @@ export const modulesHandler = new Hono()
 			);
 		},
 	)
-	.delete("/:id", authMiddleware, protectedMiddleware(), async (c) => {
+	.delete("/:id", protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
@@ -162,7 +162,6 @@ export const modulesHandler = new Hono()
 	.post(
 		"/",
 		zValidator("json", UploadModuleSchema),
-		authMiddleware,
 		protectedMiddleware(),
 		async (c) => {
 			let { type, id, courseId, language } = c.req.valid("json");

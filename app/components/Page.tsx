@@ -8,7 +8,7 @@ export const Page = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<div
 			className={cn(
-				"p-4",
+				"p-4 gap-4 flex flex-col",
 				open && !isMobile
 					? "max-w-[calc(100vw-16rem)]"
 					: "max-w-screen",
@@ -29,6 +29,19 @@ export const PageHeader = ({
 	<div className="flex flex-col gap-2">
 		<h1>{title}</h1>
 		<p>{description}</p>
-		<Separator className="mb-8 mt-2" />
+		<Separator className="mt-2 mb-4" />
+	</div>
+);
+
+export const PageSubHeader = ({
+	title,
+	description,
+}: {
+	title: string;
+	description: string;
+}) => (
+	<div className="flex flex-col gap-2">
+		<h3>{title}</h3>
+		<p>{description}</p>
 	</div>
 );

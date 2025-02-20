@@ -6,14 +6,14 @@ import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { Role, roles, User } from "@/types/users";
 import { LocalizedInputSchema, LocalizedInputType } from "@/lib/locale/types";
+import { LocaleSchema } from "@/lib/locale";
 import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
-export const authMiddleware = createMiddleware<{
-	Variables: SessionValidationResult & {
-		teamId: string | null;
-		teamRole: Role;
-	};
-}>(async (c, next) => {
+export type HonoVariables = LocalizedInputType &
+	SessionValidationResult & { teamId: string | null };
+
+export const authMiddleware = createMiddleware(async (c, next) => {
 	const apiKey = c.req.header("x-api-key");
 	const sessionId = getCookie(c, "auth_session");
 
@@ -73,7 +73,7 @@ export const protectedMiddleware = ({
 	role = "member",
 }: { role?: Role } = {}) =>
 	createMiddleware<{
-		Variables: {
+		Variables: HonoVariables & {
 			user: User;
 			session: Session;
 			teamId: string;
@@ -91,21 +91,42 @@ export const protectedMiddleware = ({
 		return c.text("Unauthorized", 401);
 	});
 
-export const localeMiddleware = createMiddleware<{
-	Variables: LocalizedInputType;
-}>(async (c, next) => {
-	const locale = LocalizedInputSchema.shape.locale.parse(
-		c.req.query("locale") ??
-			c.req.header("locale") ??
-			getCookie(c, "locale"),
-	);
+export const localeInputMiddleware = zValidator(
+	"query",
+	z
+		.object({
+			locale: LocaleSchema.optional(),
+			"fallback-locale": LocaleSchema.or(z.literal("none")).optional(),
+			"editing-locale": LocaleSchema.optional(),
+		})
+		.optional(),
+);
 
-	const fallbackLocale = LocalizedInputSchema.shape.fallbackLocale.parse(
-		c.req.query("fallback-locale") ?? c.req.header("fallback-locale"),
-	);
+export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
+	async (c, next) => {
+		const locale = LocalizedInputSchema.shape.locale.parse(
+			c.req.query("locale") ??
+				c.req.header("locale") ??
+				getCookie(c, "locale"),
+		);
 
-	c.set("locale", locale);
-	c.set("fallbackLocale", fallbackLocale);
+		const fallbackLocale = LocalizedInputSchema.shape.fallbackLocale.parse(
+			c.req.query("fallback-locale") ??
+				c.req.header("fallback-locale") ??
+				"en",
+		);
 
-	return await next();
-});
+		const editingLocale =
+			LocaleSchema.optional().parse(
+				c.req.query("editing-locale") ??
+					c.req.header("editing-locale") ??
+					getCookie(c, "editing-locale"),
+			) ?? locale;
+
+		c.set("locale", locale);
+		c.set("fallbackLocale", fallbackLocale);
+		c.set("editingLocale", editingLocale);
+
+		return await next();
+	},
+);
