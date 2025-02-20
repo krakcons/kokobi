@@ -260,28 +260,6 @@ const AdminSidebar = () => {
 												<SidebarMenuSubButton asChild>
 													<Link
 														to={
-															"/$locale/admin/courses/$id/edit"
-														}
-														params={{
-															locale,
-															id: course.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Edit />
-														Edit
-													</Link>
-												</SidebarMenuSubButton>
-											</SidebarMenuSubItem>
-											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
 															"/$locale/admin/courses/$id/learners"
 														}
 														params={{
@@ -417,28 +395,6 @@ const AdminSidebar = () => {
 												<SidebarMenuSubButton asChild>
 													<Link
 														to={
-															"/$locale/admin/collections/$id/edit"
-														}
-														params={{
-															locale,
-															id: collection.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Edit />
-														Edit
-													</Link>
-												</SidebarMenuSubButton>
-											</SidebarMenuSubItem>
-											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
 															"/$locale/admin/collections/$id/courses"
 														}
 														params={{
@@ -494,23 +450,6 @@ const AdminSidebar = () => {
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
-									to="/$locale/admin/team"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									<Edit />
-									{t("sidebar.edit")}
-								</Link>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-						<SidebarMenuItem>
-							<SidebarMenuButton asChild>
-								<Link
 									to="/$locale/admin/keys"
 									params={{
 										locale,
@@ -545,23 +484,6 @@ const AdminSidebar = () => {
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
-									to="/$locale/admin/domains"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									<Link2 />
-									{t("sidebar.domains")}
-								</Link>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-						<SidebarMenuItem>
-							<SidebarMenuButton asChild>
-								<Link
 									to="/$locale/admin/members"
 									params={{
 										locale,
@@ -573,6 +495,23 @@ const AdminSidebar = () => {
 								>
 									<Users />
 									{t("sidebar.members")}
+								</Link>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+						<SidebarMenuItem>
+							<SidebarMenuButton asChild>
+								<Link
+									to="/$locale/admin/settings"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									<Settings />
+									Settings
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>

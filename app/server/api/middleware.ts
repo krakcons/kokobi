@@ -5,6 +5,8 @@ import { and, eq } from "drizzle-orm";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { Role, roles, User } from "@/types/users";
+import { LocalizedInputSchema, LocalizedInputType } from "@/lib/locale/types";
+import { zValidator } from "@hono/zod-validator";
 
 export const authMiddleware = createMiddleware<{
 	Variables: SessionValidationResult & {
@@ -88,3 +90,22 @@ export const protectedMiddleware = ({
 		}
 		return c.text("Unauthorized", 401);
 	});
+
+export const localeMiddleware = createMiddleware<{
+	Variables: LocalizedInputType;
+}>(async (c, next) => {
+	const locale = LocalizedInputSchema.shape.locale.parse(
+		c.req.query("locale") ??
+			c.req.header("locale") ??
+			getCookie(c, "locale"),
+	);
+
+	const fallbackLocale = LocalizedInputSchema.shape.fallbackLocale.parse(
+		c.req.query("fallback-locale") ?? c.req.header("fallback-locale"),
+	);
+
+	c.set("locale", locale);
+	c.set("fallbackLocale", fallbackLocale);
+
+	return await next();
+});

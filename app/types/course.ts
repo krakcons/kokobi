@@ -18,23 +18,9 @@ export type SelectCourse = z.infer<typeof SelectCourseSchema>;
 export const CourseTranslationSchema = createSelectSchema(courseTranslations);
 export type CourseTranslation = z.infer<typeof CourseTranslationSchema>;
 
-export const UpdateCourseSettingsSchema = CourseSchema.pick({
-	completionStatus: true,
-});
-export type UpdateCourseSettings = z.infer<typeof UpdateCourseSettingsSchema>;
-
-export const CreateCourseSchema = CourseTranslationSchema.pick({
-	language: true,
-	name: true,
-	description: true,
-	default: true,
-}).extend({
+export const CourseFormSchema = z.object({
 	name: z.string().min(1),
+	description: z.string().optional(),
+	completionStatus: CourseSchema.shape.completionStatus,
 });
-export type CreateCourse = z.infer<typeof CreateCourseSchema>;
-
-export const UpdateCourseTranslationSchema = CourseTranslationSchema.pick({
-	name: true,
-	description: true,
-	language: true,
-});
+export type CourseFormType = z.infer<typeof CourseFormSchema>;

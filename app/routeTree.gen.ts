@@ -14,11 +14,10 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LocaleIndexImport } from './routes/$locale/index'
 import { Route as LocaleAdminImport } from './routes/$locale/admin'
 import { Route as LocaleAdminIndexImport } from './routes/$locale/admin/index'
-import { Route as LocaleAdminTeamImport } from './routes/$locale/admin/team'
+import { Route as LocaleAdminSettingsImport } from './routes/$locale/admin/settings'
 import { Route as LocaleAdminOnboardImport } from './routes/$locale/admin/onboard'
 import { Route as LocaleAdminMembersImport } from './routes/$locale/admin/members'
 import { Route as LocaleAdminKeysImport } from './routes/$locale/admin/keys'
-import { Route as LocaleAdminDomainsImport } from './routes/$locale/admin/domains'
 import { Route as LocaleAdminCertificateImport } from './routes/$locale/admin/certificate'
 import { Route as LocaleAdminCoursesCreateImport } from './routes/$locale/admin/courses/create'
 import { Route as LocaleAdminCollectionsCreateImport } from './routes/$locale/admin/collections/create'
@@ -26,10 +25,8 @@ import { Route as LocaleAdminCoursesIdWebhooksImport } from './routes/$locale/ad
 import { Route as LocaleAdminCoursesIdSettingsImport } from './routes/$locale/admin/courses/$id/settings'
 import { Route as LocaleAdminCoursesIdModulesImport } from './routes/$locale/admin/courses/$id/modules'
 import { Route as LocaleAdminCoursesIdLearnersImport } from './routes/$locale/admin/courses/$id/learners'
-import { Route as LocaleAdminCoursesIdEditImport } from './routes/$locale/admin/courses/$id/edit'
 import { Route as LocaleAdminCollectionsIdSettingsImport } from './routes/$locale/admin/collections/$id/settings'
 import { Route as LocaleAdminCollectionsIdLearnersImport } from './routes/$locale/admin/collections/$id/learners'
-import { Route as LocaleAdminCollectionsIdEditImport } from './routes/$locale/admin/collections/$id/edit'
 import { Route as LocaleAdminCollectionsIdCoursesImport } from './routes/$locale/admin/collections/$id/courses'
 
 // Create/Update Routes
@@ -52,9 +49,9 @@ const LocaleAdminIndexRoute = LocaleAdminIndexImport.update({
   getParentRoute: () => LocaleAdminRoute,
 } as any)
 
-const LocaleAdminTeamRoute = LocaleAdminTeamImport.update({
-  id: '/team',
-  path: '/team',
+const LocaleAdminSettingsRoute = LocaleAdminSettingsImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => LocaleAdminRoute,
 } as any)
 
@@ -73,12 +70,6 @@ const LocaleAdminMembersRoute = LocaleAdminMembersImport.update({
 const LocaleAdminKeysRoute = LocaleAdminKeysImport.update({
   id: '/keys',
   path: '/keys',
-  getParentRoute: () => LocaleAdminRoute,
-} as any)
-
-const LocaleAdminDomainsRoute = LocaleAdminDomainsImport.update({
-  id: '/domains',
-  path: '/domains',
   getParentRoute: () => LocaleAdminRoute,
 } as any)
 
@@ -129,12 +120,6 @@ const LocaleAdminCoursesIdLearnersRoute =
     getParentRoute: () => LocaleAdminRoute,
   } as any)
 
-const LocaleAdminCoursesIdEditRoute = LocaleAdminCoursesIdEditImport.update({
-  id: '/courses/$id/edit',
-  path: '/courses/$id/edit',
-  getParentRoute: () => LocaleAdminRoute,
-} as any)
-
 const LocaleAdminCollectionsIdSettingsRoute =
   LocaleAdminCollectionsIdSettingsImport.update({
     id: '/collections/$id/settings',
@@ -146,13 +131,6 @@ const LocaleAdminCollectionsIdLearnersRoute =
   LocaleAdminCollectionsIdLearnersImport.update({
     id: '/collections/$id/learners',
     path: '/collections/$id/learners',
-    getParentRoute: () => LocaleAdminRoute,
-  } as any)
-
-const LocaleAdminCollectionsIdEditRoute =
-  LocaleAdminCollectionsIdEditImport.update({
-    id: '/collections/$id/edit',
-    path: '/collections/$id/edit',
     getParentRoute: () => LocaleAdminRoute,
   } as any)
 
@@ -188,13 +166,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminCertificateImport
       parentRoute: typeof LocaleAdminImport
     }
-    '/$locale/admin/domains': {
-      id: '/$locale/admin/domains'
-      path: '/domains'
-      fullPath: '/$locale/admin/domains'
-      preLoaderRoute: typeof LocaleAdminDomainsImport
-      parentRoute: typeof LocaleAdminImport
-    }
     '/$locale/admin/keys': {
       id: '/$locale/admin/keys'
       path: '/keys'
@@ -216,11 +187,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminOnboardImport
       parentRoute: typeof LocaleAdminImport
     }
-    '/$locale/admin/team': {
-      id: '/$locale/admin/team'
-      path: '/team'
-      fullPath: '/$locale/admin/team'
-      preLoaderRoute: typeof LocaleAdminTeamImport
+    '/$locale/admin/settings': {
+      id: '/$locale/admin/settings'
+      path: '/settings'
+      fullPath: '/$locale/admin/settings'
+      preLoaderRoute: typeof LocaleAdminSettingsImport
       parentRoute: typeof LocaleAdminImport
     }
     '/$locale/admin/': {
@@ -251,13 +222,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminCollectionsIdCoursesImport
       parentRoute: typeof LocaleAdminImport
     }
-    '/$locale/admin/collections/$id/edit': {
-      id: '/$locale/admin/collections/$id/edit'
-      path: '/collections/$id/edit'
-      fullPath: '/$locale/admin/collections/$id/edit'
-      preLoaderRoute: typeof LocaleAdminCollectionsIdEditImport
-      parentRoute: typeof LocaleAdminImport
-    }
     '/$locale/admin/collections/$id/learners': {
       id: '/$locale/admin/collections/$id/learners'
       path: '/collections/$id/learners'
@@ -270,13 +234,6 @@ declare module '@tanstack/react-router' {
       path: '/collections/$id/settings'
       fullPath: '/$locale/admin/collections/$id/settings'
       preLoaderRoute: typeof LocaleAdminCollectionsIdSettingsImport
-      parentRoute: typeof LocaleAdminImport
-    }
-    '/$locale/admin/courses/$id/edit': {
-      id: '/$locale/admin/courses/$id/edit'
-      path: '/courses/$id/edit'
-      fullPath: '/$locale/admin/courses/$id/edit'
-      preLoaderRoute: typeof LocaleAdminCoursesIdEditImport
       parentRoute: typeof LocaleAdminImport
     }
     '/$locale/admin/courses/$id/learners': {
@@ -314,19 +271,16 @@ declare module '@tanstack/react-router' {
 
 interface LocaleAdminRouteChildren {
   LocaleAdminCertificateRoute: typeof LocaleAdminCertificateRoute
-  LocaleAdminDomainsRoute: typeof LocaleAdminDomainsRoute
   LocaleAdminKeysRoute: typeof LocaleAdminKeysRoute
   LocaleAdminMembersRoute: typeof LocaleAdminMembersRoute
   LocaleAdminOnboardRoute: typeof LocaleAdminOnboardRoute
-  LocaleAdminTeamRoute: typeof LocaleAdminTeamRoute
+  LocaleAdminSettingsRoute: typeof LocaleAdminSettingsRoute
   LocaleAdminIndexRoute: typeof LocaleAdminIndexRoute
   LocaleAdminCollectionsCreateRoute: typeof LocaleAdminCollectionsCreateRoute
   LocaleAdminCoursesCreateRoute: typeof LocaleAdminCoursesCreateRoute
   LocaleAdminCollectionsIdCoursesRoute: typeof LocaleAdminCollectionsIdCoursesRoute
-  LocaleAdminCollectionsIdEditRoute: typeof LocaleAdminCollectionsIdEditRoute
   LocaleAdminCollectionsIdLearnersRoute: typeof LocaleAdminCollectionsIdLearnersRoute
   LocaleAdminCollectionsIdSettingsRoute: typeof LocaleAdminCollectionsIdSettingsRoute
-  LocaleAdminCoursesIdEditRoute: typeof LocaleAdminCoursesIdEditRoute
   LocaleAdminCoursesIdLearnersRoute: typeof LocaleAdminCoursesIdLearnersRoute
   LocaleAdminCoursesIdModulesRoute: typeof LocaleAdminCoursesIdModulesRoute
   LocaleAdminCoursesIdSettingsRoute: typeof LocaleAdminCoursesIdSettingsRoute
@@ -335,19 +289,16 @@ interface LocaleAdminRouteChildren {
 
 const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
   LocaleAdminCertificateRoute: LocaleAdminCertificateRoute,
-  LocaleAdminDomainsRoute: LocaleAdminDomainsRoute,
   LocaleAdminKeysRoute: LocaleAdminKeysRoute,
   LocaleAdminMembersRoute: LocaleAdminMembersRoute,
   LocaleAdminOnboardRoute: LocaleAdminOnboardRoute,
-  LocaleAdminTeamRoute: LocaleAdminTeamRoute,
+  LocaleAdminSettingsRoute: LocaleAdminSettingsRoute,
   LocaleAdminIndexRoute: LocaleAdminIndexRoute,
   LocaleAdminCollectionsCreateRoute: LocaleAdminCollectionsCreateRoute,
   LocaleAdminCoursesCreateRoute: LocaleAdminCoursesCreateRoute,
   LocaleAdminCollectionsIdCoursesRoute: LocaleAdminCollectionsIdCoursesRoute,
-  LocaleAdminCollectionsIdEditRoute: LocaleAdminCollectionsIdEditRoute,
   LocaleAdminCollectionsIdLearnersRoute: LocaleAdminCollectionsIdLearnersRoute,
   LocaleAdminCollectionsIdSettingsRoute: LocaleAdminCollectionsIdSettingsRoute,
-  LocaleAdminCoursesIdEditRoute: LocaleAdminCoursesIdEditRoute,
   LocaleAdminCoursesIdLearnersRoute: LocaleAdminCoursesIdLearnersRoute,
   LocaleAdminCoursesIdModulesRoute: LocaleAdminCoursesIdModulesRoute,
   LocaleAdminCoursesIdSettingsRoute: LocaleAdminCoursesIdSettingsRoute,
@@ -362,19 +313,16 @@ export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
-  '/$locale/admin/domains': typeof LocaleAdminDomainsRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
   '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
-  '/$locale/admin/team': typeof LocaleAdminTeamRoute
+  '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
   '/$locale/admin/collections/$id/courses': typeof LocaleAdminCollectionsIdCoursesRoute
-  '/$locale/admin/collections/$id/edit': typeof LocaleAdminCollectionsIdEditRoute
   '/$locale/admin/collections/$id/learners': typeof LocaleAdminCollectionsIdLearnersRoute
   '/$locale/admin/collections/$id/settings': typeof LocaleAdminCollectionsIdSettingsRoute
-  '/$locale/admin/courses/$id/edit': typeof LocaleAdminCoursesIdEditRoute
   '/$locale/admin/courses/$id/learners': typeof LocaleAdminCoursesIdLearnersRoute
   '/$locale/admin/courses/$id/modules': typeof LocaleAdminCoursesIdModulesRoute
   '/$locale/admin/courses/$id/settings': typeof LocaleAdminCoursesIdSettingsRoute
@@ -384,19 +332,16 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
-  '/$locale/admin/domains': typeof LocaleAdminDomainsRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
   '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
-  '/$locale/admin/team': typeof LocaleAdminTeamRoute
+  '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/admin': typeof LocaleAdminIndexRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
   '/$locale/admin/collections/$id/courses': typeof LocaleAdminCollectionsIdCoursesRoute
-  '/$locale/admin/collections/$id/edit': typeof LocaleAdminCollectionsIdEditRoute
   '/$locale/admin/collections/$id/learners': typeof LocaleAdminCollectionsIdLearnersRoute
   '/$locale/admin/collections/$id/settings': typeof LocaleAdminCollectionsIdSettingsRoute
-  '/$locale/admin/courses/$id/edit': typeof LocaleAdminCoursesIdEditRoute
   '/$locale/admin/courses/$id/learners': typeof LocaleAdminCoursesIdLearnersRoute
   '/$locale/admin/courses/$id/modules': typeof LocaleAdminCoursesIdModulesRoute
   '/$locale/admin/courses/$id/settings': typeof LocaleAdminCoursesIdSettingsRoute
@@ -408,19 +353,16 @@ export interface FileRoutesById {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
-  '/$locale/admin/domains': typeof LocaleAdminDomainsRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
   '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
-  '/$locale/admin/team': typeof LocaleAdminTeamRoute
+  '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
   '/$locale/admin/collections/$id/courses': typeof LocaleAdminCollectionsIdCoursesRoute
-  '/$locale/admin/collections/$id/edit': typeof LocaleAdminCollectionsIdEditRoute
   '/$locale/admin/collections/$id/learners': typeof LocaleAdminCollectionsIdLearnersRoute
   '/$locale/admin/collections/$id/settings': typeof LocaleAdminCollectionsIdSettingsRoute
-  '/$locale/admin/courses/$id/edit': typeof LocaleAdminCoursesIdEditRoute
   '/$locale/admin/courses/$id/learners': typeof LocaleAdminCoursesIdLearnersRoute
   '/$locale/admin/courses/$id/modules': typeof LocaleAdminCoursesIdModulesRoute
   '/$locale/admin/courses/$id/settings': typeof LocaleAdminCoursesIdSettingsRoute
@@ -433,19 +375,16 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale'
     | '/$locale/admin/certificate'
-    | '/$locale/admin/domains'
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
     | '/$locale/admin/onboard'
-    | '/$locale/admin/team'
+    | '/$locale/admin/settings'
     | '/$locale/admin/'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
     | '/$locale/admin/collections/$id/courses'
-    | '/$locale/admin/collections/$id/edit'
     | '/$locale/admin/collections/$id/learners'
     | '/$locale/admin/collections/$id/settings'
-    | '/$locale/admin/courses/$id/edit'
     | '/$locale/admin/courses/$id/learners'
     | '/$locale/admin/courses/$id/modules'
     | '/$locale/admin/courses/$id/settings'
@@ -454,19 +393,16 @@ export interface FileRouteTypes {
   to:
     | '/$locale'
     | '/$locale/admin/certificate'
-    | '/$locale/admin/domains'
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
     | '/$locale/admin/onboard'
-    | '/$locale/admin/team'
+    | '/$locale/admin/settings'
     | '/$locale/admin'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
     | '/$locale/admin/collections/$id/courses'
-    | '/$locale/admin/collections/$id/edit'
     | '/$locale/admin/collections/$id/learners'
     | '/$locale/admin/collections/$id/settings'
-    | '/$locale/admin/courses/$id/edit'
     | '/$locale/admin/courses/$id/learners'
     | '/$locale/admin/courses/$id/modules'
     | '/$locale/admin/courses/$id/settings'
@@ -476,19 +412,16 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale/'
     | '/$locale/admin/certificate'
-    | '/$locale/admin/domains'
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
     | '/$locale/admin/onboard'
-    | '/$locale/admin/team'
+    | '/$locale/admin/settings'
     | '/$locale/admin/'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
     | '/$locale/admin/collections/$id/courses'
-    | '/$locale/admin/collections/$id/edit'
     | '/$locale/admin/collections/$id/learners'
     | '/$locale/admin/collections/$id/settings'
-    | '/$locale/admin/courses/$id/edit'
     | '/$locale/admin/courses/$id/learners'
     | '/$locale/admin/courses/$id/modules'
     | '/$locale/admin/courses/$id/settings'
@@ -524,19 +457,16 @@ export const routeTree = rootRoute
       "filePath": "$locale/admin.tsx",
       "children": [
         "/$locale/admin/certificate",
-        "/$locale/admin/domains",
         "/$locale/admin/keys",
         "/$locale/admin/members",
         "/$locale/admin/onboard",
-        "/$locale/admin/team",
+        "/$locale/admin/settings",
         "/$locale/admin/",
         "/$locale/admin/collections/create",
         "/$locale/admin/courses/create",
         "/$locale/admin/collections/$id/courses",
-        "/$locale/admin/collections/$id/edit",
         "/$locale/admin/collections/$id/learners",
         "/$locale/admin/collections/$id/settings",
-        "/$locale/admin/courses/$id/edit",
         "/$locale/admin/courses/$id/learners",
         "/$locale/admin/courses/$id/modules",
         "/$locale/admin/courses/$id/settings",
@@ -548,10 +478,6 @@ export const routeTree = rootRoute
     },
     "/$locale/admin/certificate": {
       "filePath": "$locale/admin/certificate.tsx",
-      "parent": "/$locale/admin"
-    },
-    "/$locale/admin/domains": {
-      "filePath": "$locale/admin/domains.tsx",
       "parent": "/$locale/admin"
     },
     "/$locale/admin/keys": {
@@ -566,8 +492,8 @@ export const routeTree = rootRoute
       "filePath": "$locale/admin/onboard.tsx",
       "parent": "/$locale/admin"
     },
-    "/$locale/admin/team": {
-      "filePath": "$locale/admin/team.tsx",
+    "/$locale/admin/settings": {
+      "filePath": "$locale/admin/settings.tsx",
       "parent": "/$locale/admin"
     },
     "/$locale/admin/": {
@@ -586,20 +512,12 @@ export const routeTree = rootRoute
       "filePath": "$locale/admin/collections/$id/courses.tsx",
       "parent": "/$locale/admin"
     },
-    "/$locale/admin/collections/$id/edit": {
-      "filePath": "$locale/admin/collections/$id/edit.tsx",
-      "parent": "/$locale/admin"
-    },
     "/$locale/admin/collections/$id/learners": {
       "filePath": "$locale/admin/collections/$id/learners.tsx",
       "parent": "/$locale/admin"
     },
     "/$locale/admin/collections/$id/settings": {
       "filePath": "$locale/admin/collections/$id/settings.tsx",
-      "parent": "/$locale/admin"
-    },
-    "/$locale/admin/courses/$id/edit": {
-      "filePath": "$locale/admin/courses/$id/edit.tsx",
       "parent": "/$locale/admin"
     },
     "/$locale/admin/courses/$id/learners": {

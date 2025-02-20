@@ -1,30 +1,13 @@
-import { CreateCourse, SelectCourse } from "@/types/course";
+import { SelectCourse } from "@/types/course";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { cache } from "react";
 import { deleteFolder } from "../r2";
 import { svix } from "../svix";
 import { db } from "./db";
-import {
-	collectionsToCourses,
-	courseTranslations,
-	courses,
-	learners,
-	modules,
-} from "./schema";
+import { collectionsToCourses, courses, learners, modules } from "./schema";
 
 export const coursesData = {
-	create: async (course: CreateCourse, teamId: string) => {
-		const c = await db
-			.insert(courses)
-			.values({ ...course, teamId })
-			.returning();
-		await db.insert(courseTranslations).values({
-			courseId: c[0].id,
-			...course,
-		});
-		return c[0];
-	},
 	get: cache(async ({ id }: SelectCourse, teamId: string) => {
 		const course = await db.query.courses.findFirst({
 			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),

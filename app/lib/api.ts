@@ -1,7 +1,8 @@
 import { env } from "@/env";
 import { AppType } from "@/server/api/hono";
 import { MutationOptions, useQueryClient } from "@tanstack/react-query";
-import { hc, InferRequestType } from "hono/client";
+import { ClientRequestOptions, hc, InferRequestType } from "hono/client";
+import { toast } from "sonner";
 
 const getHeaders = async () => {
 	if (typeof window === "undefined") {
@@ -40,6 +41,16 @@ export const queryOptions = {
 		},
 	},
 	courses: {
+		id: (
+			input: InferRequestType<typeof course.$get>,
+			options?: ClientRequestOptions,
+		) => ({
+			queryKey: ["courses", input, options],
+			queryFn: async () => {
+				const res = await course.$get(input, options);
+				return await res.json();
+			},
+		}),
 		all: {
 			queryKey: ["courses"],
 			queryFn: async () => {
@@ -48,7 +59,7 @@ export const queryOptions = {
 			},
 		},
 		learners: (input: InferRequestType<typeof course.learners.$get>) => ({
-			queryKey: ["learners", input.param.id],
+			queryKey: ["learners", input],
 			queryFn: async () => {
 				const res = await course.learners.$get(input);
 				return await res.json();
@@ -98,6 +109,47 @@ export const useMutationOptions = (): {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.keys.all.queryKey,
 					});
+				},
+			},
+		},
+		course: {
+			create: {
+				mutationFn: async (
+					input: InferRequestType<typeof client.api.courses.$post>,
+				) => {
+					const res = await client.api.courses.$post(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+					return await res.json();
+				},
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.courses.all.queryKey,
+					});
+				},
+			},
+			update: {
+				mutationFn: async (
+					input: InferRequestType<typeof course.$put>,
+				) => {
+					const res = await course.$put(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+				},
+				onSuccess: async (_, variables) => {
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.courses.id({
+							param: {
+								id: variables.param.id,
+							},
+						}).queryKey,
+					});
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.courses.all.queryKey,
+					});
+					toast("Course updated successfully");
 				},
 			},
 		},

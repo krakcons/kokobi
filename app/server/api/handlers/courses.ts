@@ -3,15 +3,21 @@ import { db } from "@/server/db/db";
 import { learnersData } from "@/server/db/learners";
 import { courseTranslations, courses, learners } from "@/server/db/schema";
 import { getPresignedUrl } from "@/server/r2";
-import { CreateCourseSchema, UpdateCourseSettingsSchema } from "@/types/course";
+import { CourseFormSchema } from "@/types/course";
 import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { authMiddleware, protectedMiddleware } from "../middleware";
+import {
+	authMiddleware,
+	localeMiddleware,
+	protectedMiddleware,
+} from "../middleware";
 import { env } from "@/env";
+import { handleLocalization } from "@/lib/locale/helpers";
+import { generateId } from "@/server/helpers";
 
 export const coursesHandler = new Hono()
 	.get("/", authMiddleware, protectedMiddleware(), async (c) => {
@@ -26,62 +32,73 @@ export const coursesHandler = new Hono()
 
 		return c.json(courseList);
 	})
-	.get("/:id", authMiddleware, protectedMiddleware(), async (c) => {
-		const { id } = c.req.param();
-		const teamId = c.get("teamId");
+	.get(
+		"/:id",
+		authMiddleware,
+		protectedMiddleware(),
+		localeMiddleware,
+		async (c) => {
+			const { id } = c.req.param();
+			const teamId = c.get("teamId");
 
-		const course = await coursesData.get({ id }, teamId);
+			const course = await db.query.courses.findFirst({
+				where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
+				with: {
+					translations: true,
+				},
+			});
 
-		return c.json(course);
-	})
+			if (!course) {
+				throw new HTTPException(404, {
+					message: "Course not found",
+				});
+			}
+
+			return c.json(handleLocalization(c, course));
+		},
+	)
 	.post(
 		"/",
 		authMiddleware,
 		protectedMiddleware(),
-		zValidator("json", CreateCourseSchema),
+		localeMiddleware,
+		zValidator("json", CourseFormSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
 			const input = c.req.valid("json");
+			const language = c.get("locale");
 
-			const newCourse = await coursesData.create(input, teamId);
+			const courseId = generateId(15);
 
-			return c.json(newCourse);
+			await db.insert(courses).values({
+				id: courseId,
+				teamId,
+				completionStatus: input.completionStatus,
+			});
+
+			await db.insert(courseTranslations).values({
+				courseId,
+				name: input.name,
+				description: input.description,
+				language,
+				// TODO: Remove default
+				default: false,
+			});
+
+			return c.json({ id: courseId });
 		},
 	)
 	.put(
 		"/:id",
 		authMiddleware,
 		protectedMiddleware(),
-		zValidator("json", UpdateCourseSettingsSchema),
+		localeMiddleware,
+		zValidator("json", CourseFormSchema),
 		async (c) => {
 			const { id } = c.req.param();
 			const teamId = c.get("teamId");
 			const input = c.req.valid("json");
-
-			const course = await db.query.courses.findFirst({
-				where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
-			});
-
-			if (!course) {
-				throw new HTTPException(404, {
-					message: "Course not found.",
-				});
-			}
-
-			await db.update(courses).set(input).where(eq(courses.id, id));
-
-			return c.json(input);
-		},
-	)
-	.put(
-		"/:id/translations",
-		authMiddleware,
-		protectedMiddleware(),
-		zValidator("json", CreateCourseSchema),
-		async (c) => {
-			const { id } = c.req.param();
-			const teamId = c.get("teamId");
-			const input = c.req.valid("json");
+			const language = c.get("locale");
 
 			const course = await db.query.courses.findFirst({
 				where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
@@ -94,10 +111,21 @@ export const coursesHandler = new Hono()
 			}
 
 			await db
+				.update(courses)
+				.set({
+					completionStatus: input.completionStatus,
+				})
+				.where(eq(courses.id, id));
+
+			await db
 				.insert(courseTranslations)
 				.values({
 					courseId: id,
-					...input,
+					name: input.name,
+					description: input.description,
+					language,
+					// TODO: Remove default
+					default: false,
 				})
 				.onConflictDoUpdate({
 					set: input,
