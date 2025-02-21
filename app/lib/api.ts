@@ -3,17 +3,7 @@ import { MutationOptions, useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
 
-export const getHeaders = async () => {
-	if (typeof window === "undefined") {
-		const { getHeaders: getHeadersServer } = await import("vinxi/http");
-		return getHeadersServer();
-	}
-	return {};
-};
-
 export const client = hc<AppType>(window.location.origin, {
-	// @ts-ignore
-	headers: getHeaders,
 	init: {
 		credentials: "include",
 	},

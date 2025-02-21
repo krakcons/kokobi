@@ -2,11 +2,11 @@ import { SessionValidationResult, validateSessionToken } from "@/server/auth";
 import { db } from "@/server/db/db";
 import { keys, Session, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { getCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { Role, roles, User } from "@/types/users";
 import { LocalizedInputSchema, LocalizedInputType } from "@/lib/locale/types";
-import { LocaleSchema } from "@/lib/locale";
+import { Locale, locales, LocaleSchema } from "@/lib/locale";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
@@ -110,8 +110,21 @@ export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
 		const locale = LocalizedInputSchema.shape.locale.parse(
 			c.req.query("locale") ??
 				c.req.header("locale") ??
-				getCookie(c, "locale") ?? "en",
+				getCookie(c, "locale") ??
+				"en",
 		);
+
+		if (!c.req.path.startsWith("/api")) {
+			// Handle locale
+			let pathLocale = c.req.path.split("/")[1];
+			console.log(c.req.path, locale, pathLocale);
+			if (!locales.some(({ value }) => value === pathLocale)) {
+				return c.redirect(`/${locale}${c.req.path}`);
+			} else {
+				c.set("locale", pathLocale as Locale);
+				setCookie(c, "locale", pathLocale);
+			}
+		}
 
 		const fallbackLocale = LocalizedInputSchema.shape.fallbackLocale.parse(
 			c.req.query("fallback-locale") ??
