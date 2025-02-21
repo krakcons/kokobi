@@ -169,5 +169,20 @@ export const useMutationOptions = (): {
 				},
 			},
 		},
+		user: {
+			changeTeam: {
+				mutationFn: async (
+					input: InferRequestType<typeof client.api.user.team.$post>,
+				) => {
+					const res = await client.api.user.team.$post(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+				},
+				onSuccess: () => {
+					queryClient.invalidateQueries();
+				},
+			},
+		},
 	};
 };

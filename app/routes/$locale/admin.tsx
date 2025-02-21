@@ -58,7 +58,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLocale, useTranslations } from "use-intl";
-import { queryOptions } from "@/lib/api";
+import { queryOptions, useMutationOptions } from "@/lib/api";
 import {
 	useMutation,
 	useQueryClient,
@@ -124,6 +124,9 @@ const AdminSidebar = () => {
 		queryOptions.collections.all,
 	);
 
+	const mutationOptions = useMutationOptions();
+	const changeTeam = useMutation(mutationOptions.user.changeTeam);
+
 	const activeTeam = translate(
 		teams.find((t) => t.id === teamId)!.translations,
 		locale,
@@ -165,11 +168,15 @@ const AdminSidebar = () => {
 								<DropdownMenuLabel className="text-xs text-muted-foreground">
 									Teams
 								</DropdownMenuLabel>
-								{teams.map((team, index) => (
+								{teams.map((team) => (
 									<DropdownMenuItem
 										key={team.id}
 										onClick={() => {
-											console.log(team);
+											changeTeam.mutate({
+												json: {
+													teamId: team.id,
+												},
+											});
 										}}
 										className="gap-2 p-2"
 									>
@@ -180,9 +187,6 @@ const AdminSidebar = () => {
 											translate(team.translations, locale)
 												.name
 										}
-										<DropdownMenuShortcut>
-											⌘{index + 1}
-										</DropdownMenuShortcut>
 									</DropdownMenuItem>
 								))}
 								<DropdownMenuSeparator />
@@ -251,12 +255,14 @@ const AdminSidebar = () => {
 								<SidebarMenuItem>
 									<CollapsibleTrigger asChild>
 										<SidebarMenuButton>
-											{
-												translate(
-													course.translations,
-													locale,
-												).name
-											}
+											<p className="truncate">
+												{
+													translate(
+														course.translations,
+														locale,
+													).name
+												}
+											</p>
 											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 										</SidebarMenuButton>
 									</CollapsibleTrigger>
