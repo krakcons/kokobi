@@ -6,13 +6,12 @@ import {
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
 import { queryOptions } from "@/lib/api";
-import { locales } from "@/lib/locale";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useTranslations } from "use-intl";
+import { locales, useTranslations } from "@/lib/locale";
 import dayjs from "dayjs";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
@@ -77,7 +76,7 @@ function RouteComponent() {
 		},
 		{
 			accessorKey: "status",
-			accessorFn: ({ status }) => t(`statuses.${status}`),
+			accessorFn: ({ status }) => t.statuses[status],
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
 			),

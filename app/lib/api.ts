@@ -1,4 +1,3 @@
-import { env } from "@/env";
 import { AppType } from "@/server/api/hono";
 import { MutationOptions, useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
@@ -12,7 +11,7 @@ export const getHeaders = async () => {
 	return {};
 };
 
-export const client = hc<AppType>(env.VITE_SITE_URL, {
+export const client = hc<AppType>(window.location.origin, {
 	// @ts-ignore
 	headers: getHeaders,
 	init: {
@@ -36,6 +35,20 @@ export const queryOptions = {
 			queryKey: ["user", "teams"],
 			queryFn: async () => {
 				const res = await client.api.user.teams.$get();
+				return await res.json();
+			},
+		},
+		preferences: {
+			queryKey: ["user", "preferences"],
+			queryFn: async () => {
+				const res = await client.api.user.preferences.$get();
+				return await res.json();
+			},
+		},
+		i18n: {
+			queryKey: ["locale"],
+			queryFn: async () => {
+				const res = await client.api.user.i18n.$get();
 				return await res.json();
 			},
 		},
@@ -170,17 +183,26 @@ export const useMutationOptions = (): {
 			},
 		},
 		user: {
-			changeTeam: {
+			preferences: {
 				mutationFn: async (
-					input: InferRequestType<typeof client.api.user.team.$post>,
+					input: InferRequestType<
+						typeof client.api.user.preferences.$put
+					>,
 				) => {
-					const res = await client.api.user.team.$post(input);
+					const res = await client.api.user.preferences.$put(input);
 					if (!res.ok) {
 						throw new Error(await res.text());
 					}
 				},
-				onSuccess: () => {
-					queryClient.invalidateQueries();
+				onSuccess: (_, variables) => {
+					if (variables.json.editingLocale) {
+						queryClient.invalidateQueries({
+							queryKey: ["editing-locale"],
+						});
+					}
+					if (variables.json.teamId) {
+						queryClient.invalidateQueries();
+					}
 				},
 			},
 		},

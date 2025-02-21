@@ -4,7 +4,9 @@ import { db, usersToTeams } from "@/server/db/db";
 import { and, eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { setCookie } from "hono/cookie";
+import { getCookie, setCookie } from "hono/cookie";
+import { Locale, LocaleSchema } from "@/lib/locale";
+import { createI18n } from "@/lib/locale/actions";
 
 export const userHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/me", async (c) => {
@@ -34,36 +36,71 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 
 		return c.json(teams.map((t) => t.team));
 	})
-	.post(
-		"/team",
+	.get("/i18n", async (c) => {
+		const locale = c.get("locale");
+		const i18n = await createI18n({ locale });
+
+		return c.json(i18n);
+	})
+	.get("/preferences", protectedMiddleware(), async (c) => {
+		return c.json({
+			teamId: c.get("teamId"),
+			locale: c.get("locale"),
+			editingLocale: c.get("editingLocale"),
+		});
+	})
+	.put(
+		"/preferences",
 		protectedMiddleware(),
 		zValidator(
 			"json",
 			z.object({
-				teamId: z.string(),
+				teamId: z.string().optional(),
+				locale: LocaleSchema.optional(),
+				editingLocale: LocaleSchema.optional(),
 			}),
 		),
 		async (c) => {
-			const { teamId } = c.req.valid("json");
+			const { teamId, locale, editingLocale } = c.req.valid("json");
 			const user = c.get("user");
 
-			const team = await db.query.usersToTeams.findFirst({
-				where: and(
-					eq(usersToTeams.teamId, teamId),
-					eq(usersToTeams.userId, user.id),
-				),
-			});
+			if (teamId) {
+				const team = await db.query.usersToTeams.findFirst({
+					where: and(
+						eq(usersToTeams.teamId, teamId),
+						eq(usersToTeams.userId, user.id),
+					),
+				});
 
-			if (!team) {
-				return c.text("Invalid teamId", 400);
+				if (!team) {
+					return c.text("Invalid teamId", 400);
+				}
+
+				setCookie(c, "teamId", team.teamId, {
+					path: "/",
+					secure: true,
+					httpOnly: true,
+					sameSite: "lax",
+				});
 			}
 
-			setCookie(c, "teamId", team.teamId, {
-				path: "/",
-				secure: true,
-				httpOnly: true,
-				sameSite: "lax",
-			});
+			if (locale) {
+				setCookie(c, "locale", locale, {
+					path: "/",
+					httpOnly: true,
+					secure: true,
+					sameSite: "lax",
+				});
+			}
+
+			if (editingLocale) {
+				setCookie(c, "editing-locale", editingLocale, {
+					path: "/",
+					httpOnly: true,
+					secure: true,
+					sameSite: "lax",
+				});
+			}
 
 			return c.json({
 				success: true,

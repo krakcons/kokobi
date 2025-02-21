@@ -66,7 +66,10 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 		return await next();
 	}
 
-	return c.text("API key or session required.", 401);
+	c.set("teamId", null);
+	c.set("user", null);
+	c.set("session", null);
+	return await next();
 });
 
 export const protectedMiddleware = ({
@@ -107,7 +110,7 @@ export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
 		const locale = LocalizedInputSchema.shape.locale.parse(
 			c.req.query("locale") ??
 				c.req.header("locale") ??
-				getCookie(c, "locale"),
+				getCookie(c, "locale") ?? "en",
 		);
 
 		const fallbackLocale = LocalizedInputSchema.shape.fallbackLocale.parse(

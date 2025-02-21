@@ -1,28 +1,45 @@
-import { QueryClient } from "@tanstack/react-query";
-import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+	createRouter as createTanStackRouter,
+	RouterProvider,
+} from "@tanstack/react-router";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
-import { routerWithQueryClient } from "@tanstack/react-router-with-query";
+import ReactDOM from "react-dom/client";
+import { StrictMode } from "react";
 
-export function createRouter() {
-	const queryClient = new QueryClient();
+const queryClient = new QueryClient();
 
-	return routerWithQueryClient(
-		createTanStackRouter({
-			routeTree,
-			context: { queryClient },
-			defaultPreload: "intent",
-			defaultErrorComponent: DefaultCatchBoundary,
-			defaultNotFoundComponent: () => <NotFound />,
-			scrollRestoration: true,
-		}),
-		queryClient,
-	);
-}
+const router = createTanStackRouter({
+	routeTree,
+	context: { queryClient },
+	defaultPreload: "intent",
+	defaultErrorComponent: DefaultCatchBoundary,
+	defaultNotFoundComponent: () => <NotFound />,
+	scrollRestoration: true,
+	Wrap: ({ children }) => {
+		return (
+			<QueryClientProvider client={queryClient}>
+				{children}
+			</QueryClientProvider>
+		);
+	},
+});
 
 declare module "@tanstack/react-router" {
 	interface Register {
-		router: ReturnType<typeof createRouter>;
+		router: typeof router;
 	}
+}
+
+// Render the app
+const rootElement = document.getElementById("root")!;
+if (!rootElement.innerHTML) {
+	const root = ReactDOM.createRoot(rootElement);
+	root.render(
+		<StrictMode>
+			<RouterProvider router={router} />
+		</StrictMode>,
+	);
 }

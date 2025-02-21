@@ -26,7 +26,7 @@ import {
 	SidebarTrigger,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Locale, locales, LocaleSchema } from "@/lib/locale";
+import { Locale, locales } from "@/lib/locale";
 import {
 	createFileRoute,
 	Link,
@@ -54,23 +54,17 @@ import {
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useLocale, useTranslations } from "use-intl";
-import { queryOptions, useMutationOptions } from "@/lib/api";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { client, queryOptions, useMutationOptions } from "@/lib/api";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { translate } from "@/lib/translation";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { getEditingLocale, setEditingLocale } from "@/lib/locale/actions";
+import { useLocale, useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -86,19 +80,18 @@ export const Route = createFileRoute("/$locale/admin")({
 		}
 	},
 	loader: async ({ params, context: { queryClient } }) => {
-		const editingLocale = await queryClient.ensureQueryData({
-			queryKey: ["editing-locale"],
-			queryFn: getEditingLocale,
-		});
+		const { editingLocale } = await queryClient.ensureQueryData(
+			queryOptions.user.preferences,
+		);
 		if (!editingLocale) {
-			setEditingLocale({
-				data: {
+			await client.api.user.preferences.$put({
+				json: {
 					locale: params.locale as Locale,
 				},
 			});
 		} else {
-			setEditingLocale({
-				data: {
+			await client.api.user.preferences.$put({
+				json: {
 					locale: editingLocale,
 				},
 			});
@@ -212,7 +205,7 @@ const AdminSidebar = () => {
 				<SidebarGroup>
 					<SidebarGroupContent>
 						<SidebarGroupLabel>
-							{t("sidebar.manage")}
+							{t.sidebar.manage}
 						</SidebarGroupLabel>
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
@@ -227,7 +220,7 @@ const AdminSidebar = () => {
 									}}
 								>
 									<LayoutDashboard />
-									{t("sidebar.dashboard")}
+									{t.sidebar.dashboard}
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
@@ -461,9 +454,7 @@ const AdminSidebar = () => {
 				</SidebarGroup>
 				<SidebarGroup>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>
-							{t("sidebar.team")}
-						</SidebarGroupLabel>
+						<SidebarGroupLabel>{t.sidebar.team}</SidebarGroupLabel>
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
 								<Link
@@ -477,7 +468,7 @@ const AdminSidebar = () => {
 									}}
 								>
 									<Key />
-									{t("sidebar.apiKeys")}
+									{t.sidebar.apiKeys}
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
@@ -494,7 +485,7 @@ const AdminSidebar = () => {
 									}}
 								>
 									<FileBadge />
-									{t("sidebar.certificate")}
+									{t.sidebar.certificate}
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
@@ -511,7 +502,7 @@ const AdminSidebar = () => {
 									}}
 								>
 									<Users />
-									{t("sidebar.members")}
+									{t.sidebar.members}
 								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
@@ -553,24 +544,13 @@ function RouteComponent() {
 	const { locale } = Route.useParams();
 	const navigate = Route.useNavigate();
 	const t = useTranslations("Nav");
-	const queryClient = useQueryClient();
 
-	const { data: editingLocale } = useSuspenseQuery({
-		queryKey: ["editing-locale"],
-		queryFn: getEditingLocale,
-	});
+	const {
+		data: { editingLocale },
+	} = useSuspenseQuery(queryOptions.user.preferences);
 
-	const { mutate } = useMutation({
-		mutationFn: (locale: Locale) =>
-			setEditingLocale({
-				data: { locale },
-			}),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ["editing-locale"],
-			});
-		},
-	});
+	const mutationOptions = useMutationOptions();
+	const { mutate } = useMutation(mutationOptions.user.preferences);
 
 	return (
 		<SidebarProvider>
@@ -587,7 +567,7 @@ function RouteComponent() {
 						>
 							<SelectTrigger>
 								<p className="text-sm text-muted-foreground">
-									{t("top.editing")}
+									{t.top.editing}
 								</p>
 								<SelectValue />
 							</SelectTrigger>

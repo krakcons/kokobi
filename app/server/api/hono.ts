@@ -9,6 +9,7 @@ import { authHandler } from "./handlers/auth";
 import { logger } from "hono/logger";
 import { userHandler } from "./handlers/user";
 import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
+import { createI18n } from "@/lib/locale/actions";
 
 const app = new Hono<{
 	Variables: HonoVariables;
@@ -17,6 +18,11 @@ const app = new Hono<{
 	.use(authMiddleware)
 	.use(localeMiddleware)
 	.basePath("/api")
+	.get("/test", (c) => {
+		return c.json({
+			message: "Test",
+		});
+	})
 	.route("/auth", authHandler)
 	.route("/learners", learnersHandler)
 	.route("/modules", modulesHandler)

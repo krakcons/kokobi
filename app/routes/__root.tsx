@@ -1,10 +1,10 @@
 import { DefaultCatchBoundary } from "@/components/DefaultCatchBoundary";
 import { NotFound } from "@/components/NotFound";
-import { Locale, locales } from "@/lib/locale";
-import { getLocale, setLocale } from "@/lib/locale/actions";
+import { client, queryOptions } from "@/lib/api";
+import { type Locale, locales } from "@/lib/locale";
+import { IntlProvider } from "@/lib/locale";
 import { i18nQueryOptions } from "@/lib/locale/query";
-import appCss from "@/styles/app.css?url";
-import { seo } from "@/utils/seo";
+import { seo } from "@/lib/seo";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	Outlet,
@@ -16,7 +16,6 @@ import {
 } from "@tanstack/react-router";
 import * as React from "react";
 import { Toaster } from "sonner";
-import { IntlProvider } from "use-intl";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -34,10 +33,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					description: `TanStack Start is a type-safe, client-first, full-stack React framework. `,
 				}),
 			],
-			links: [
-				{ rel: "stylesheet", href: appCss },
-				{ rel: "icon", href: "/favicon.ico" },
-			],
+			links: [{ rel: "icon", href: "/favicon.ico" }],
 		}),
 		errorComponent: (props) => {
 			return (
@@ -46,16 +42,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				</RootDocument>
 			);
 		},
-		beforeLoad: async ({ location }) => {
+		beforeLoad: async ({ location, context: { queryClient } }) => {
+			const i18n = await queryClient.ensureQueryData(
+				queryOptions.user.i18n,
+			);
+
 			// Handle locale
 			let locale = location.pathname.split("/")[1];
 			if (!locales.some(({ value }) => value === locale)) {
-				locale = await getLocale();
+				locale = i18n.locale;
 				throw redirect({
 					href: `/${locale}${location.pathname}${location.searchStr}`,
 				});
 			} else {
-				await setLocale({ data: locale as Locale });
+				await client.api.user.preferences.$put({
+					json: { locale: locale as Locale },
+				});
 			}
 		},
 		notFoundComponent: () => <NotFound />,
@@ -73,12 +75,11 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	const { pathname } = useLocation();
-	const locale = pathname.split("/")[1];
-	const { data: i18n } = useSuspenseQuery(i18nQueryOptions(locale as Locale));
+	const { data: i18n } = useSuspenseQuery(queryOptions.user.i18n);
 
 	return (
 		<html
-			lang={locale}
+			lang={i18n.locale}
 			suppressHydrationWarning
 			className="overflow-x-hidden"
 		>
@@ -86,7 +87,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<IntlProvider {...i18n}>{children}</IntlProvider>
+				<IntlProvider i18n={i18n}>{children}</IntlProvider>
 				<Toaster />
 				<Scripts />
 			</body>
