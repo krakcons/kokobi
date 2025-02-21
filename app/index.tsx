@@ -1,7 +1,7 @@
-import app from "@/server/api/hono";
+import app from "./server/api/hono";
 import index from "./index.html";
 
-Bun.serve({
+const server = Bun.serve({
 	port: 3000,
 	static: {
 		"/en/*": index,
@@ -10,3 +10,5 @@ Bun.serve({
 	development: true,
 	fetch: app.fetch,
 });
+
+console.log(`Server running at ${server.url}`);

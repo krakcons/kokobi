@@ -33,20 +33,6 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
-import {
-	Book,
-	ChevronRight,
-	ChevronsUpDown,
-	FileBadge,
-	Files,
-	Key,
-	LayoutDashboard,
-	LogOut,
-	Plus,
-	Settings,
-	Users,
-	Webhook,
-} from "lucide-react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	DropdownMenu,
@@ -149,7 +135,7 @@ const AdminSidebar = () => {
 									<div className="grid flex-1 text-left text-sm leading-tight">
 										{activeTeam.name}
 									</div>
-									<ChevronsUpDown className="ml-auto" />
+									{/*<ChevronsUpDown className="ml-auto" />*/}
 								</SidebarMenuButton>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
@@ -189,7 +175,7 @@ const AdminSidebar = () => {
 										params={{ locale }}
 									>
 										<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-											<Plus className="size-4" />
+											{/*<Plus className="size-4" />*/}
 										</div>
 										<div className="font-medium text-muted-foreground">
 											Create team
@@ -219,7 +205,7 @@ const AdminSidebar = () => {
 										setOpenMobile(false);
 									}}
 								>
-									<LayoutDashboard />
+									{/*<LayoutDashboard />*/}
 									{t.sidebar.dashboard}
 								</Link>
 							</SidebarMenuButton>
@@ -240,7 +226,7 @@ const AdminSidebar = () => {
 									setOpenMobile(false);
 								}}
 							>
-								<Plus />{" "}
+								{/*<Plus />{" "}*/}
 								<span className="sr-only">Create Course</span>
 							</Link>
 						</SidebarGroupAction>
@@ -261,7 +247,7 @@ const AdminSidebar = () => {
 													).name
 												}
 											</p>
-											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+											{/*<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />*/}
 										</SidebarMenuButton>
 									</CollapsibleTrigger>
 									<CollapsibleContent>
@@ -283,7 +269,7 @@ const AdminSidebar = () => {
 															);
 														}}
 													>
-														<Users />
+														{/*<Users />*/}
 														Learners
 													</Link>
 												</SidebarMenuSubButton>
@@ -305,7 +291,7 @@ const AdminSidebar = () => {
 															);
 														}}
 													>
-														<Files />
+														{/*<Files />*/}
 														Modules
 													</Link>
 												</SidebarMenuSubButton>
@@ -327,7 +313,7 @@ const AdminSidebar = () => {
 															);
 														}}
 													>
-														<Webhook />
+														{/*<Webhook />*/}
 														Webhooks
 													</Link>
 												</SidebarMenuSubButton>
@@ -349,7 +335,7 @@ const AdminSidebar = () => {
 															);
 														}}
 													>
-														<Settings />
+														{/*<Settings />*/}
 														Settings
 													</Link>
 												</SidebarMenuSubButton>
@@ -375,7 +361,7 @@ const AdminSidebar = () => {
 									setOpenMobile(false);
 								}}
 							>
-								<Plus />{" "}
+								{/*<Plus />{" "}*/}
 								<span className="sr-only">
 									Create Collection
 								</span>
@@ -396,7 +382,7 @@ const AdminSidebar = () => {
 													locale,
 												).name
 											}
-											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+											{/*<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />*/}
 										</SidebarMenuButton>
 									</CollapsibleTrigger>
 									<CollapsibleContent>
@@ -418,7 +404,7 @@ const AdminSidebar = () => {
 															);
 														}}
 													>
-														<Book />
+														{/*<Book />*/}
 														Courses
 													</Link>
 												</SidebarMenuSubButton>
@@ -440,7 +426,7 @@ const AdminSidebar = () => {
 															);
 														}}
 													>
-														<Settings />
+														{/*<Settings />*/}
 														Settings
 													</Link>
 												</SidebarMenuSubButton>
@@ -467,7 +453,7 @@ const AdminSidebar = () => {
 										setOpenMobile(false);
 									}}
 								>
-									<Key />
+									{/*<Key />*/}
 									{t.sidebar.apiKeys}
 								</Link>
 							</SidebarMenuButton>
@@ -484,7 +470,7 @@ const AdminSidebar = () => {
 										setOpenMobile(false);
 									}}
 								>
-									<FileBadge />
+									{/*<FileBadge />*/}
 									{t.sidebar.certificate}
 								</Link>
 							</SidebarMenuButton>
@@ -501,7 +487,7 @@ const AdminSidebar = () => {
 										setOpenMobile(false);
 									}}
 								>
-									<Users />
+									{/*<Users />*/}
 									{t.sidebar.members}
 								</Link>
 							</SidebarMenuButton>
@@ -518,7 +504,7 @@ const AdminSidebar = () => {
 										setOpenMobile(false);
 									}}
 								>
-									<Settings />
+									{/*<Settings />*/}
 									Settings
 								</Link>
 							</SidebarMenuButton>
@@ -530,7 +516,7 @@ const AdminSidebar = () => {
 				<SidebarMenuItem>
 					<SidebarMenuButton asChild>
 						<a href="/api/auth/signout">
-							<LogOut />
+							{/*<LogOut />*/}
 							Sign out
 						</a>
 					</SidebarMenuButton>

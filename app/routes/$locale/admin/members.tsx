@@ -1,9 +1,21 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { TableSearchSchema } from "@/components/DataTable";
+import { Page, PageHeader } from "@/components/Page";
+import { queryOptions } from "@/lib/api";
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/$locale/admin/members')({
-  component: RouteComponent,
-})
+export const Route = createFileRoute("/$locale/admin/members")({
+	component: RouteComponent,
+	validateSearch: TableSearchSchema,
+	loader: async ({ context: { queryClient } }) => {
+		await queryClient.ensureQueryData(queryOptions.keys.all);
+	},
+});
 
 function RouteComponent() {
-  return <div>Hello "/$locale/admin/members"!</div>
+	return (
+		<Page>
+			<PageHeader title="Members" description="Manage your members" />
+			Hello "/$locale/admin/members"!
+		</Page>
+	);
 }

@@ -1,14 +1,16 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormMessage,
+} from "@/components/ui/form";
 import { FormError } from "@/components/ui/form-error";
 import { Input } from "@/components/ui/input";
-import { labelVariants } from "@/components/ui/label";
 import { locales } from "@/lib/locale";
 import { CreateLearnerSchema } from "@/types/learner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Trash2 } from "lucide-react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -60,34 +62,10 @@ export const LearnersInviteForm = ({
 					<FormError message={form.formState.errors.root.message} />
 				)}
 				<div className="flex w-full gap-2">
-					<p
-						className={labelVariants({
-							className: "flex-1",
-						})}
-					>
-						First Name
-					</p>
-					<p
-						className={labelVariants({
-							className: "flex-1",
-						})}
-					>
-						Last Name
-					</p>
-					<p
-						className={labelVariants({
-							className: "flex-[2]",
-						})}
-					>
-						Email
-					</p>
-					<p
-						className={labelVariants({
-							className: "w-[80px]",
-						})}
-					>
-						Language
-					</p>
+					<p>First Name</p>
+					<p>Last Name</p>
+					<p>Email</p>
+					<p>Language</p>
 					<div className="w-10"></div>
 				</div>
 				<hr />
@@ -167,7 +145,7 @@ export const LearnersInviteForm = ({
 							size="icon"
 							className="min-w-10"
 						>
-							<Trash2 size={18} />
+							{/* <Trash size={18} /> */}
 						</Button>
 					</div>
 				))}
@@ -175,19 +153,19 @@ export const LearnersInviteForm = ({
 					<Button
 						type="button"
 						onClick={() =>
-							append({
-								email: "",
-								firstName: "",
-								lastName: "",
-								sendEmail: true,
-								id: undefined,
-							})
+							//append({
+							//	email: "",
+							//	firstName: "",
+							//	lastName: "",
+							//	sendEmail: true,
+							//	id: undefined,
+							//})
 						}
 						variant="outline"
 					>
 						Add Learner
 					</Button>
-					<Button type="submit" isPending={isPending}>
+					<Button type="submit">
 						Invite
 					</Button>
 				</div>
