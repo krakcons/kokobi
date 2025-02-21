@@ -6,14 +6,13 @@ import { learnersHandler } from "./handlers/learners";
 import { modulesHandler } from "./handlers/modules";
 import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
-import { logger } from "hono/logger";
 import { userHandler } from "./handlers/user";
 import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
 
 const app = new Hono<{
 	Variables: HonoVariables;
 }>()
-	.use(logger())
+	//.use(logger())
 	.use(authMiddleware)
 	.use(localeMiddleware)
 	.basePath("/api")

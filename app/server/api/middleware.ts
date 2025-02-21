@@ -114,10 +114,11 @@ export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
 				"en",
 		);
 
+		console.log(c.req.path);
+
 		if (!c.req.path.startsWith("/api")) {
 			// Handle locale
 			let pathLocale = c.req.path.split("/")[1];
-			console.log(c.req.path, locale, pathLocale);
 			if (!locales.some(({ value }) => value === pathLocale)) {
 				return c.redirect(`/${locale}${c.req.path}`);
 			} else {

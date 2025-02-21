@@ -69,19 +69,21 @@ export const Route = createFileRoute("/$locale/admin")({
 		const { editingLocale } = await queryClient.ensureQueryData(
 			queryOptions.user.preferences,
 		);
+
 		if (!editingLocale) {
 			await client.api.user.preferences.$put({
 				json: {
-					locale: params.locale as Locale,
+					editingLocale: params.locale as Locale,
 				},
 			});
 		} else {
 			await client.api.user.preferences.$put({
 				json: {
-					locale: editingLocale,
+					editingLocale,
 				},
 			});
 		}
+
 		Promise.all([
 			queryClient.ensureQueryData(queryOptions.user.teams),
 			queryClient.ensureQueryData(queryOptions.courses.all),
@@ -104,7 +106,7 @@ const AdminSidebar = () => {
 	);
 
 	const mutationOptions = useMutationOptions();
-	const changeTeam = useMutation(mutationOptions.user.changeTeam);
+	const updatePreferences = useMutation(mutationOptions.user.preferences);
 
 	const activeTeam = translate(
 		teams.find((t) => t.id === teamId)!.translations,
@@ -151,7 +153,7 @@ const AdminSidebar = () => {
 									<DropdownMenuItem
 										key={team.id}
 										onClick={() => {
-											changeTeam.mutate({
+											updatePreferences.mutate({
 												json: {
 													teamId: team.id,
 												},
@@ -527,7 +529,7 @@ const AdminSidebar = () => {
 };
 
 function RouteComponent() {
-	const { locale } = Route.useParams();
+	const locale = useLocale();
 	const navigate = Route.useNavigate();
 	const t = useTranslations("Nav");
 
@@ -536,7 +538,7 @@ function RouteComponent() {
 	} = useSuspenseQuery(queryOptions.user.preferences);
 
 	const mutationOptions = useMutationOptions();
-	const { mutate } = useMutation(mutationOptions.user.preferences);
+	const updatePreferences = useMutation(mutationOptions.user.preferences);
 
 	return (
 		<SidebarProvider>
@@ -548,7 +550,9 @@ function RouteComponent() {
 						<Select
 							value={editingLocale}
 							onValueChange={(value) => {
-								mutate(value as Locale);
+								updatePreferences.mutate({
+									json: { editingLocale: value as Locale },
+								});
 							}}
 						>
 							<SelectTrigger>
@@ -567,14 +571,29 @@ function RouteComponent() {
 						</Select>
 						<Button
 							onClick={() => {
-								navigate({
-									replace: true,
-									params: (prev) => ({
-										...prev,
-										locale: locale === "en" ? "fr" : "en",
-									}),
-									search: (prev) => ({ ...prev }),
-								});
+								updatePreferences.mutate(
+									{
+										json: {
+											locale:
+												locale === "en" ? "fr" : "en",
+										},
+									},
+									{
+										onSuccess: () => {
+											navigate({
+												replace: true,
+												params: (prev) => ({
+													...prev,
+													locale:
+														locale === "en"
+															? "fr"
+															: "en",
+												}),
+												search: (p) => p,
+											});
+										},
+									},
+								);
 							}}
 							size="icon"
 							className="w-12"

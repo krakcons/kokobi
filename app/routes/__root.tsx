@@ -9,6 +9,7 @@ import {
 	HeadContent,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "../styles/app.css";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
@@ -32,14 +33,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootComponent() {
 	const { data: i18n } = useSuspenseQuery(queryOptions.user.i18n);
 
-	console.log(i18n);
-
 	return (
 		<>
 			<HeadContent />
 			<IntlProvider i18n={i18n}>
 				<Outlet />
 			</IntlProvider>
+			<ReactQueryDevtools initialIsOpen={false} />
 			<Toaster />
 		</>
 	);

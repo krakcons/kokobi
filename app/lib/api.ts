@@ -1,5 +1,5 @@
 import { AppType } from "@/server/api/hono";
-import { MutationOptions, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
 
@@ -36,7 +36,7 @@ export const queryOptions = {
 			},
 		},
 		i18n: {
-			queryKey: ["locale"],
+			queryKey: ["i18n"],
 			queryFn: async () => {
 				const res = await client.api.user.i18n.$get();
 				return await res.json();
@@ -89,11 +89,7 @@ export const queryOptions = {
 	},
 };
 
-export const useMutationOptions = (): {
-	[key: string]: {
-		[key: string]: MutationOptions<any, any, any, any>;
-	};
-} => {
+export const useMutationOptions = () => {
 	const queryClient = useQueryClient();
 
 	return {
@@ -141,7 +137,7 @@ export const useMutationOptions = (): {
 						throw new Error(await res.text());
 					}
 				},
-				onSuccess: async (_, variables) => {
+				onSuccess: async (_: any, variables: any) => {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.courses.id({
 							param: {
@@ -181,13 +177,17 @@ export const useMutationOptions = (): {
 				) => {
 					const res = await client.api.user.preferences.$put(input);
 					if (!res.ok) {
+						console.log("error from here");
 						throw new Error(await res.text());
 					}
 				},
-				onSuccess: (_, variables) => {
-					if (variables.json.editingLocale) {
+				onSuccess: (_: any, variables: any) => {
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.user.preferences.queryKey,
+					});
+					if (variables.json.locale) {
 						queryClient.invalidateQueries({
-							queryKey: ["editing-locale"],
+							queryKey: queryOptions.user.i18n.queryKey,
 						});
 					}
 					if (variables.json.teamId) {

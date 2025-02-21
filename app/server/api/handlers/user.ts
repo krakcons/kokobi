@@ -38,6 +38,7 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 	})
 	.get("/i18n", async (c) => {
 		const locale = c.get("locale");
+
 		const i18n = await createI18n({ locale });
 
 		return c.json(i18n);
