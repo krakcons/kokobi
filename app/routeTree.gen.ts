@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as LocaleIndexImport } from './routes/$locale/index'
+import { Route as LocaleCreateTeamImport } from './routes/$locale/create-team'
 import { Route as LocaleAdminImport } from './routes/$locale/admin'
 import { Route as LocaleAdminIndexImport } from './routes/$locale/admin/index'
 import { Route as LocaleAdminSettingsImport } from './routes/$locale/admin/settings'
@@ -34,6 +35,12 @@ import { Route as LocaleAdminCollectionsIdCoursesImport } from './routes/$locale
 const LocaleIndexRoute = LocaleIndexImport.update({
   id: '/$locale/',
   path: '/$locale/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LocaleCreateTeamRoute = LocaleCreateTeamImport.update({
+  id: '/$locale/create-team',
+  path: '/$locale/create-team',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -150,6 +157,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/admin'
       fullPath: '/$locale/admin'
       preLoaderRoute: typeof LocaleAdminImport
+      parentRoute: typeof rootRoute
+    }
+    '/$locale/create-team': {
+      id: '/$locale/create-team'
+      path: '/$locale/create-team'
+      fullPath: '/$locale/create-team'
+      preLoaderRoute: typeof LocaleCreateTeamImport
       parentRoute: typeof rootRoute
     }
     '/$locale/': {
@@ -311,6 +325,7 @@ const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
+  '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -330,6 +345,7 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
+  '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -351,6 +367,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
+  '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -373,6 +390,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/$locale/admin'
+    | '/$locale/create-team'
     | '/$locale'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -391,6 +409,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/webhooks'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/$locale/create-team'
     | '/$locale'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -410,6 +429,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/$locale/admin'
+    | '/$locale/create-team'
     | '/$locale/'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -431,11 +451,13 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
+  LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   LocaleAdminRoute: LocaleAdminRouteWithChildren,
+  LocaleCreateTeamRoute: LocaleCreateTeamRoute,
   LocaleIndexRoute: LocaleIndexRoute,
 }
 
@@ -450,6 +472,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/$locale/admin",
+        "/$locale/create-team",
         "/$locale/"
       ]
     },
@@ -472,6 +495,9 @@ export const routeTree = rootRoute
         "/$locale/admin/courses/$id/settings",
         "/$locale/admin/courses/$id/webhooks"
       ]
+    },
+    "/$locale/create-team": {
+      "filePath": "$locale/create-team.tsx"
     },
     "/$locale/": {
       "filePath": "$locale/index.tsx"

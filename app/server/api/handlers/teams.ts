@@ -14,11 +14,7 @@ import {
 import { generateId } from "@/server/helpers";
 import { deleteFolder, getPresignedUrl } from "@/server/r2";
 import { resend } from "@/server/resend";
-import {
-	InviteMemberFormSchema,
-	Team,
-	UpdateTeamTranslationSchema,
-} from "@/types/team";
+import { InviteMemberFormSchema, Team, TeamFormSchema } from "@/types/team";
 import { LanguageSchema } from "@/types/translations";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
@@ -26,6 +22,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { protectedMiddleware } from "../middleware";
+import { LocaleSchema } from "@/lib/locale";
 
 const removeDomain = async ({
 	customDomain,
@@ -53,42 +50,35 @@ const removeDomain = async ({
 };
 
 export const teamsHandler = new Hono()
-	.post(
-		"/",
-		zValidator(
-			"json",
-			z.object({ name: z.string(), language: LanguageSchema }),
-		),
-		async (c) => {
-			const { name, language } = c.req.valid("json");
-			const userId = c.get("user")?.id;
+	.post("/", zValidator("json", TeamFormSchema), async (c) => {
+		const { name, language } = c.req.valid("json");
+		const userId = c.get("user")?.id;
 
-			if (!userId) {
-				throw new HTTPException(401, {
-					message: "Must be logged into dashboard",
-				});
-			}
-
-			const id = generateId(15);
-
-			await db.insert(teams).values({ id });
-			await db.insert(teamTranslations).values({
-				teamId: id,
-				name,
-				language,
-				default: true,
+		if (!userId) {
+			throw new HTTPException(401, {
+				message: "Must be logged into dashboard",
 			});
-			await db.insert(usersToTeams).values({
-				userId,
-				teamId: id,
-				role: "owner",
-			});
+		}
 
-			return c.json({
-				id,
-			});
-		},
-	)
+		const id = generateId(15);
+
+		await db.insert(teams).values({ id });
+		await db.insert(teamTranslations).values({
+			teamId: id,
+			name,
+			language,
+			default: true,
+		});
+		await db.insert(usersToTeams).values({
+			userId,
+			teamId: id,
+			role: "owner",
+		});
+
+		return c.json({
+			id,
+		});
+	})
 	.post(
 		"/:id/invite",
 		zValidator("json", InviteMemberFormSchema),
@@ -160,7 +150,7 @@ export const teamsHandler = new Hono()
 	)
 	.put(
 		"/:id",
-		zValidator("json", UpdateTeamTranslationSchema),
+		zValidator("json", TeamFormSchema),
 		protectedMiddleware(),
 		async (c) => {
 			const id = c.req.param("id");

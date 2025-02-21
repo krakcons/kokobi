@@ -22,7 +22,7 @@ export const validateModule = async (file: File, ctx: z.RefinementCtx) => {
 		ctx.addIssue({
 			code: z.ZodIssueCode.custom,
 			message: `Module is too large. Maximum file size is ${formatBytes(
-				MAX_FILE_SIZE
+				MAX_FILE_SIZE,
 			)}.`,
 			fatal: true,
 		});
