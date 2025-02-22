@@ -64,7 +64,8 @@ const handleUser = async (
 	});
 
 	if (!team) {
-		return c.redirect("/admin/teams/create");
+		const locale = c.get("locale");
+		return c.redirect(`/${locale}/create-team`);
 	} else {
 		setCookie(c, "teamId", team.teamId, {
 			path: "/",
@@ -85,7 +86,7 @@ export const authHandler = new Hono()
 		deleteCookie(c, "teamId");
 		invalidateSession(sessionId);
 		console.log("signout");
-		return c.redirect(env.VITE_SITE_URL);
+		return c.redirect(env.PUBLIC_SITE_URL);
 	})
 	.get("/google", async (c) => {
 		const sessionId = getCookie(c, "auth_session");

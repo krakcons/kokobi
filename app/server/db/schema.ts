@@ -18,28 +18,48 @@ export const moduleTypeEnum = pgEnum("module_type", ["1.2", "2004"]);
 export const languageEnum = pgEnum("language_enum", ["en", "fr"]);
 export const roleEnum = pgEnum("role_enum", ["owner", "member"]);
 
+const dates = {
+	createdAt: timestamp("created_at", {
+		withTimezone: true,
+	})
+		.notNull()
+		.default(sql`now()`),
+	updatedAt: timestamp("updated_at", {
+		withTimezone: true,
+	})
+		.notNull()
+		.default(sql`now()`),
+};
+
 // Tables
 
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
 	email: text("email").unique().notNull(),
 	googleId: text("googleId").unique(),
+	...dates,
 });
 
 export const teams = pgTable("teams", {
 	id: text("id").primaryKey(),
 	customDomain: text("customDomain").unique(),
 	resendDomainId: text("resendDomainId"),
+	...dates,
 });
 
 export const usersToTeams = pgTable(
 	"users_to_teams",
 	{
 		userId: text("userId").notNull(),
-		teamId: text("teamId").notNull(),
+		teamId: text("teamId")
+			.notNull()
+			.references(() => teams.id, {
+				onDelete: "cascade",
+			}),
 		role: roleEnum("role")
 			.notNull()
 			.default(sql`'member'`),
+		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.userId, t.teamId] })],
 );
@@ -48,14 +68,23 @@ export const keys = pgTable("keys", {
 	id: text("id")
 		.primaryKey()
 		.$default(() => generateId(15)),
-	teamId: text("teamId").notNull(),
+	teamId: text("teamId")
+		.notNull()
+		.references(() => teams.id, {
+			onDelete: "cascade",
+		}),
 	name: text("name").notNull(),
 	key: text("key").notNull(),
+	...dates,
 });
 
 export const sessions = pgTable("sessions", {
 	id: text("id").primaryKey(),
-	userId: text("userId").notNull(),
+	userId: text("userId")
+		.notNull()
+		.references(() => users.id, {
+			onDelete: "cascade",
+		}),
 	expiresAt: timestamp("expiresAt", {
 		withTimezone: true,
 		mode: "date",
@@ -67,14 +96,28 @@ export const collections = pgTable("collections", {
 		.primaryKey()
 		.notNull()
 		.$default(() => generateId(15)),
-	teamId: text("teamId").notNull(),
+	teamId: text("teamId")
+		.notNull()
+		.references(() => teams.id, {
+			onDelete: "cascade",
+		}),
+	...dates,
 });
 
 export const collectionsToCourses = pgTable(
 	"collections_to_courses",
 	{
-		collectionId: text("collectionId").notNull(),
-		courseId: text("courseId").notNull(),
+		collectionId: text("collectionId")
+			.notNull()
+			.references(() => collections.id, {
+				onDelete: "cascade",
+			}),
+		courseId: text("courseId")
+			.notNull()
+			.references(() => courses.id, {
+				onDelete: "cascade",
+			}),
+		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.collectionId, t.courseId] })],
 );
@@ -84,12 +127,17 @@ export const courses = pgTable("courses", {
 		.primaryKey()
 		.notNull()
 		.$default(() => generateId(15)),
-	teamId: text("teamId").notNull(),
+	teamId: text("teamId")
+		.notNull()
+		.references(() => teams.id, {
+			onDelete: "cascade",
+		}),
 	completionStatus: text("completionStatus", {
 		enum: ["passed", "completed", "either"],
 	})
 		.notNull()
 		.default("passed"),
+	...dates,
 });
 
 export const modules = pgTable("modules", {
@@ -97,10 +145,15 @@ export const modules = pgTable("modules", {
 		.primaryKey()
 		.notNull()
 		.$default(() => generateId(15)),
-	courseId: text("courseId").notNull(),
+	courseId: text("courseId")
+		.notNull()
+		.references(() => courses.id, {
+			onDelete: "cascade",
+		}),
 	language: languageEnum("language").notNull(),
 	type: moduleTypeEnum("type").notNull(),
 	versionNumber: integer("versionNumber").notNull().default(1),
+	...dates,
 });
 
 export const learners = pgTable(
@@ -111,7 +164,9 @@ export const learners = pgTable(
 			.notNull()
 			.$default(() => generateId(32)),
 		courseId: text("courseId").notNull(),
-		moduleId: text("moduleId"),
+		moduleId: text("moduleId").references(() => modules.id, {
+			onDelete: "cascade",
+		}),
 		email: text("email").notNull(),
 		firstName: text("firstName").notNull(),
 		lastName: text("lastName").notNull(),
@@ -129,6 +184,7 @@ export const learners = pgTable(
 			.$type<Record<string, string>>()
 			.notNull()
 			.default({}),
+		...dates,
 	},
 	(t) => [uniqueIndex("unq_learner").on(t.courseId, t.email)],
 );
@@ -136,11 +192,16 @@ export const learners = pgTable(
 export const courseTranslations = pgTable(
 	"course_translations",
 	{
-		courseId: text("courseId").notNull(),
+		courseId: text("courseId")
+			.notNull()
+			.references(() => courses.id, {
+				onDelete: "cascade",
+			}),
 		language: languageEnum("language").notNull(),
 		default: boolean("default").notNull(),
 		name: text("name").notNull(),
 		description: text("description").notNull(),
+		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.courseId, t.language] })],
 );
@@ -148,12 +209,17 @@ export const courseTranslations = pgTable(
 export const teamTranslations = pgTable(
 	"team_translations",
 	{
-		teamId: text("teamId").notNull(),
+		teamId: text("teamId")
+			.notNull()
+			.references(() => teams.id, {
+				onDelete: "cascade",
+			}),
 		language: languageEnum("language").notNull(),
 		default: boolean("default").notNull(),
 		name: text("name").notNull(),
 		logo: text("logo"),
 		favicon: text("favicon"),
+		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.teamId, t.language] })],
 );
@@ -161,11 +227,16 @@ export const teamTranslations = pgTable(
 export const collectionTranslations = pgTable(
 	"collection_translations",
 	{
-		collectionId: text("collectionId").notNull(),
+		collectionId: text("collectionId")
+			.notNull()
+			.references(() => collections.id, {
+				onDelete: "cascade",
+			}),
 		language: languageEnum("language").notNull(),
 		default: boolean("default").notNull(),
 		name: text("name").notNull(),
 		description: text("description").notNull(),
+		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.collectionId, t.language] })],
 );

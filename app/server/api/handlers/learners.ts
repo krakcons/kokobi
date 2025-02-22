@@ -113,9 +113,9 @@ export const learnersHandler = new Hono()
 
 		const href =
 			learner.course.team?.customDomain &&
-			env.VITE_SITE_URL !== "http://localhost:3000"
+			env.PUBLIC_SITE_URL !== "http://localhost:3000"
 				? `${learner.course.team.customDomain}${learner.module ? `/${learner.module.language}` : ""}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`
-				: `${env.VITE_SITE_URL}${learner.module ? `/${learner.module.language}` : ""}/play/${learner.course.team?.id}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`;
+				: `${env.PUBLIC_SITE_URL}${learner.module ? `/${learner.module.language}` : ""}/play/${learner.course.team?.id}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`;
 
 		const t = await createTranslator({
 			locale: learner.module.language,
@@ -136,7 +136,7 @@ export const learnersHandler = new Hono()
 				organization: teamTranslation.name,
 				href,
 				logo: teamTranslation.logo
-					? `${env.VITE_SITE_URL}/cdn/${teamTranslation.logo}`
+					? `${env.PUBLIC_SITE_URL}/cdn/${teamTranslation.logo}`
 					: null,
 				text: {
 					title: t.Email.Completion.title,

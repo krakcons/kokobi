@@ -348,49 +348,13 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 		return c.json(null);
 	})
 	// Private
-	.delete("/:id", protectedMiddleware({ role: "owner" }), async (c) => {
-		const { id } = c.req.param();
+	.delete("/", protectedMiddleware({ role: "owner" }), async (c) => {
 		const teamId = c.get("teamId");
 
 		await deleteFolder(`${teamId}`);
+		await db.delete(teams).where(eq(teams.id, teamId));
 
-		// Delete all courses/modules/translations/collection relations
-		const courseList = await db.query.courses.findMany({
-			where: eq(courses.teamId, id),
+		return c.json({
+			success: true,
 		});
-		await Promise.all(
-			courseList.map(async (course) => {
-				return coursesData.delete({ id: course.id }, teamId);
-			}),
-		);
-		await db
-			.delete(teamTranslations)
-			.where(eq(teamTranslations.teamId, id));
-
-		// Delete all collections and translations
-		const collectionList = await db.query.collections.findMany({
-			where: eq(collections.teamId, id),
-		});
-		await Promise.all(
-			collectionList.map(async (collection) => {
-				return db
-					.delete(collectionTranslations)
-					.where(
-						eq(collectionTranslations.collectionId, collection.id),
-					);
-			}),
-		);
-		await db.delete(collections).where(eq(collections.teamId, id));
-
-		// Delete all keys
-		await db.delete(keys).where(eq(keys.teamId, id));
-
-		// Delete team and translations
-		await db
-			.delete(teamTranslations)
-			.where(eq(teamTranslations.teamId, id));
-		await db.delete(usersToTeams).where(eq(usersToTeams.teamId, id));
-		await db.delete(teams).where(eq(teams.id, id));
-
-		return c.json(null);
 	});

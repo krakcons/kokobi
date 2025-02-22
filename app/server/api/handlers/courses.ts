@@ -169,9 +169,9 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				joinLink:
 					teamRole === "owner"
 						? course.team?.customDomain &&
-							env.VITE_SITE_URL !== "http://localhost:3000"
+							env.PUBLIC_SITE_URL !== "http://localhost:3000"
 							? `https://${course.team.customDomain}/courses/${course.id}/join?learnerId=${learner.id}`
-							: `${env.VITE_SITE_URL}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
+							: `${env.PUBLIC_SITE_URL}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
 						: undefined,
 			};
 		});

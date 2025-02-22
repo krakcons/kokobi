@@ -1,11 +1,11 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
 import { relationSchemas, tableSchemas } from "./schema";
+import { Resource } from "sst";
+import { drizzle } from "drizzle-orm/bun-sql";
 
 export * from "./schema";
 
-if (!process.env.DATABASE_URL) {
-	throw new Error("DATABASE_URL not set");
+if (!process.env.TENANT_STAGE_NAME) {
+	throw new Error("TENANT_STAGE_NAME is not set");
 }
 
 const schema = {
@@ -13,6 +13,7 @@ const schema = {
 	...relationSchemas,
 };
 
-const sql = neon(process.env.DATABASE_URL);
-
-export const db = drizzle(sql, { schema });
+export const db = drizzle({
+	connection: `postgres://${Resource.Aurora.username}:${Resource.Aurora.password}@${Resource.Aurora.host}:${Resource.Aurora.port}/${process.env.TENANT_STAGE_NAME}`,
+	schema,
+});

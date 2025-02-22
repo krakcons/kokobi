@@ -123,9 +123,9 @@ export const learnersData = {
 
 			const href =
 				learner.course.team?.customDomain &&
-				env.VITE_SITE_URL !== "http://localhost:3000"
+				env.PUBLIC_SITE_URL !== "http://localhost:3000"
 					? `${learner.course.team.customDomain}${courseModule ? `/${courseModule.language}` : ""}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`
-					: `${env.VITE_SITE_URL}${courseModule ? `/${courseModule.language}` : ""}/play/${learner.course.team?.id}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`;
+					: `${env.PUBLIC_SITE_URL}${courseModule ? `/${courseModule.language}` : ""}/play/${learner.course.team?.id}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`;
 
 			const t = await createTranslator({
 				locale: courseModule?.language!,
@@ -146,15 +146,15 @@ export const learnersData = {
 					organization: teamTranslation.name,
 					href,
 					logo: teamTranslation.logo
-						? `${env.VITE_SITE_URL}/cdn/${teamTranslation.logo}`
+						? `${env.PUBLIC_SITE_URL}/cdn/${teamTranslation.logo}`
 						: null,
 					text: {
-						title: t("Completion.title"),
-						congratulations: t("Completion.congratulations"),
-						completed: t("Completion.completed"),
-						by: t("by"),
-						certificate: t("Completion.certificate"),
-						get: t("Completion.get"),
+						title: t.Email.Completion.title,
+						congratulations: t.Email.Completion.congratulations,
+						completed: t.Email.Completion.completed,
+						by: t.Email.by,
+						certificate: t.Email.Completion.certificate,
+						get: t.Email.Completion.get,
 					},
 				}),
 			);
@@ -351,17 +351,16 @@ export const learnersData = {
 			});
 		}
 
-		const i18n = await createI18n({ locale: inviteLanguage ?? "en" });
-		const t = createTranslator({ ...i18n, namespace: "Email" });
+		const t = await createTranslator({ locale: inviteLanguage ?? "en" });
 
 		const teamTranslation = translate(team.translations, inviteLanguage);
 
 		const courseInvites = courses.map((course) => {
 			const href =
 				team?.customDomain &&
-				env.VITE_SITE_URL !== "http://localhost:3000"
+				env.PUBLIC_SITE_URL !== "http://localhost:3000"
 					? `https://${team.customDomain}${inviteLanguage ? `/${inviteLanguage}` : ""}/courses/${course.id}/join?learnerId=${course.learnerId}`
-					: `${env.VITE_SITE_URL}${inviteLanguage ? `/${inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${course.learnerId}`;
+					: `${env.PUBLIC_SITE_URL}${inviteLanguage ? `/${inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${course.learnerId}`;
 
 			const courseTranslation = translate(
 				course.translations,
@@ -385,14 +384,14 @@ export const learnersData = {
 				organization: teamTranslation.name,
 				courses: courseInvites,
 				logo: teamTranslation.logo
-					? `${env.VITE_SITE_URL}/cdn/${teamTranslation.logo}`
+					? `${env.PUBLIC_SITE_URL}/cdn/${teamTranslation.logo}`
 					: null,
 				text: {
-					title: t("CollectionInvite.title"),
-					invite: t("CollectionInvite.invite"),
-					by: t("by"),
-					start: t("CollectionInvite.start"),
-					below: t("CollectionInvite.below"),
+					title: t.Email.CollectionInvite.title,
+					invite: t.Email.CollectionInvite.invite,
+					by: t.Email.by,
+					start: t.Email.CollectionInvite.start,
+					below: t.Email.CollectionInvite.below,
 				},
 			}),
 		);
@@ -401,7 +400,7 @@ export const learnersData = {
 		const { error } = await resend.emails.send({
 			html,
 			to: email,
-			subject: `${t("CollectionInvite.subject")} ${collectionTranslation.name}`,
+			subject: `${t.Email.CollectionInvite.subject} ${collectionTranslation.name}`,
 			from: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
 			replyTo: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
 		});
@@ -438,12 +437,12 @@ export const learnersData = {
 		}
 
 		const href =
-			team?.customDomain && env.VITE_SITE_URL !== "http://localhost:3000"
+			team?.customDomain &&
+			env.PUBLIC_SITE_URL !== "http://localhost:3000"
 				? `https://${team.customDomain}${inviteLanguage ? `/${inviteLanguage}` : ""}/courses/${course.id}/join?learnerId=${learnerId}`
-				: `${env.VITE_SITE_URL}${inviteLanguage ? `/${inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${learnerId}`;
+				: `${env.PUBLIC_SITE_URL}${inviteLanguage ? `/${inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${learnerId}`;
 
-		const i18n = await createI18n({ locale: inviteLanguage ?? "en" });
-		const t = createTranslator({ ...i18n, namespace: "Email" });
+		const t = await createTranslator({ locale: inviteLanguage ?? "en" });
 
 		const courseTranslation = translate(
 			course.translations,
@@ -457,13 +456,13 @@ export const learnersData = {
 				organization: teamTranslation.name,
 				href,
 				logo: teamTranslation.logo
-					? `${env.VITE_SITE_URL}/cdn/${teamTranslation.logo}`
+					? `${env.PUBLIC_SITE_URL}/cdn/${teamTranslation.logo}`
 					: null,
 				text: {
-					title: t("CourseInvite.title"),
-					invite: t("CourseInvite.invite"),
-					start: t("CourseInvite.start"),
-					below: t("CourseInvite.below"),
+					title: t.Email.CourseInvite.title,
+					invite: t.Email.CourseInvite.invite,
+					start: t.Email.CourseInvite.start,
+					below: t.Email.CourseInvite.below,
 				},
 			}),
 		);
@@ -472,7 +471,7 @@ export const learnersData = {
 		const { error } = await resend.emails.send({
 			html,
 			to: email,
-			subject: `${t("CourseInvite.subject")} ${courseTranslation.name}`,
+			subject: `${t.Email.CourseInvite.subject} ${courseTranslation.name}`,
 			from: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
 			replyTo: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
 		});
