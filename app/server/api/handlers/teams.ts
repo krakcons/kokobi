@@ -12,17 +12,21 @@ import {
 	usersToTeams,
 } from "@/server/db/schema";
 import { generateId } from "@/server/helpers";
-import { deleteFolder, getPresignedUrl } from "@/server/r2";
+import { deleteFolder, r2 } from "@/server/r2";
 import { resend } from "@/server/resend";
 import { InviteMemberFormSchema, Team, TeamFormSchema } from "@/types/team";
-import { LanguageSchema } from "@/types/translations";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { protectedMiddleware } from "../middleware";
-import { LocaleSchema } from "@/lib/locale";
+import {
+	HonoVariables,
+	localeInputMiddleware,
+	protectedMiddleware,
+} from "../middleware";
+import { handleLocalization } from "@/lib/locale/helpers";
+import { setCookie } from "hono/cookie";
 
 const removeDomain = async ({
 	customDomain,
@@ -49,10 +53,30 @@ const removeDomain = async ({
 	}
 };
 
-export const teamsHandler = new Hono()
-	.post("/", zValidator("json", TeamFormSchema), async (c) => {
-		const { name, language } = c.req.valid("json");
+export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
+	.get("/", protectedMiddleware(), localeInputMiddleware, async (c) => {
+		const teamId = c.get("teamId");
+
+		const team = await db.query.teams.findFirst({
+			where: eq(teams.id, teamId),
+			with: {
+				translations: true,
+			},
+		});
+
+		if (!team) {
+			throw new HTTPException(404, {
+				message: "Team not found.",
+			});
+		}
+
+		return c.json(handleLocalization(c, team));
+	})
+	.post("/", zValidator("form", TeamFormSchema), async (c) => {
+		const locale = c.get("locale");
 		const userId = c.get("user")?.id;
+		const teamId = c.get("teamId");
+		const input = c.req.valid("form");
 
 		if (!userId) {
 			throw new HTTPException(401, {
@@ -60,13 +84,23 @@ export const teamsHandler = new Hono()
 			});
 		}
 
-		const id = generateId(15);
+		if (input.logo) {
+			await r2.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
+		}
 
+		if (input.favicon) {
+			await r2.write(
+				`${teamId}/${c.get("locale")}/favicon`,
+				input.favicon,
+			);
+		}
+
+		const id = generateId(15);
 		await db.insert(teams).values({ id });
 		await db.insert(teamTranslations).values({
+			name: input.name,
 			teamId: id,
-			name,
-			language,
+			language: locale,
 			default: true,
 		});
 		await db.insert(usersToTeams).values({
@@ -75,16 +109,66 @@ export const teamsHandler = new Hono()
 			role: "owner",
 		});
 
+		setCookie(c, "teamId", id, {
+			path: "/",
+			secure: true,
+			httpOnly: true,
+			sameSite: "lax",
+		});
+
 		return c.json({
 			id,
 		});
 	})
+	.put(
+		"/",
+		zValidator("form", TeamFormSchema),
+		protectedMiddleware(),
+		async (c) => {
+			const locale = c.get("locale");
+			const teamId = c.get("teamId");
+			const input = c.req.valid("form");
+
+			if (input.logo) {
+				await r2.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
+			}
+
+			if (input.favicon) {
+				await r2.write(
+					`${teamId}/${c.get("locale")}/favicon`,
+					input.favicon,
+				);
+			}
+
+			await db
+				.insert(teamTranslations)
+				.values({
+					name: input.name,
+					language: locale,
+					default: false,
+					teamId,
+				})
+				.onConflictDoUpdate({
+					set: {
+						name: input.name,
+					},
+					target: [
+						teamTranslations.teamId,
+						teamTranslations.language,
+					],
+				});
+
+			return c.json({
+				success: true,
+			});
+		},
+	)
 	.post(
-		"/:id/invite",
+		"/invite",
 		zValidator("json", InviteMemberFormSchema),
 		protectedMiddleware({ role: "owner" }),
 		async (c) => {
-			const { id } = c.req.param();
+			const id = c.get("teamId");
 			const { email, role } = c.req.valid("json");
 
 			const team = await db.query.teams.findFirst({
@@ -131,10 +215,11 @@ export const teamsHandler = new Hono()
 		},
 	)
 	.delete(
-		"/:id/member/:userId",
+		"/member/:userId",
 		protectedMiddleware({ role: "owner" }),
 		async (c) => {
-			const { id, userId } = c.req.param();
+			const id = c.get("teamId");
+			const { userId } = c.req.param();
 
 			await db
 				.delete(usersToTeams)
@@ -148,39 +233,7 @@ export const teamsHandler = new Hono()
 			return c.json(null);
 		},
 	)
-	.put(
-		"/:id",
-		zValidator("json", TeamFormSchema),
-		protectedMiddleware(),
-		async (c) => {
-			const id = c.req.param("id");
-			const teamId = c.get("teamId");
 
-			if (id !== teamId) {
-				throw new HTTPException(401, {
-					message: "Unauthorized",
-				});
-			}
-
-			const input = c.req.valid("json");
-
-			await db
-				.insert(teamTranslations)
-				.values({
-					...input,
-					teamId,
-				})
-				.onConflictDoUpdate({
-					set: input,
-					target: [
-						teamTranslations.teamId,
-						teamTranslations.language,
-					],
-				});
-
-			return c.json(null);
-		},
-	)
 	.put(
 		"/:id/domain",
 		zValidator(
@@ -294,44 +347,6 @@ export const teamsHandler = new Hono()
 
 		return c.json(null);
 	})
-	.post(
-		"/logo",
-		zValidator(
-			"json",
-			z.object({
-				language: LanguageSchema,
-			}),
-		),
-		protectedMiddleware(),
-		async (c) => {
-			const language = c.req.valid("json").language;
-			const teamId = c.get("teamId");
-
-			const imageUrl = `${teamId}/${language}/logo`;
-			const url = await getPresignedUrl(imageUrl);
-
-			return c.json({ url, imageUrl });
-		},
-	)
-	.post(
-		"/favicon",
-		zValidator(
-			"json",
-			z.object({
-				language: LanguageSchema,
-			}),
-		),
-		protectedMiddleware(),
-		async (c) => {
-			const language = c.req.valid("json").language;
-			const teamId = c.get("teamId");
-
-			const imageUrl = `${teamId}/${language}/favicon`;
-			const url = await getPresignedUrl(imageUrl);
-
-			return c.json({ url, imageUrl });
-		},
-	)
 	// Private
 	.delete("/:id", protectedMiddleware({ role: "owner" }), async (c) => {
 		const { id } = c.req.param();

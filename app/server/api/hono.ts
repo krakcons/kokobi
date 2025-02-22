@@ -16,13 +16,13 @@ const app = new Hono<{
 	.use(localeMiddleware)
 	.basePath("/api")
 	.route("/auth", authHandler)
+	.route("/team", teamsHandler)
+	.route("/user", userHandler)
 	.route("/learners", learnersHandler)
 	.route("/modules", modulesHandler)
 	.route("/courses", coursesHandler)
 	.route("/keys", keysHandler)
-	.route("/teams", teamsHandler)
-	.route("/collections", collectionsHandler)
-	.route("/user", userHandler);
+	.route("/collections", collectionsHandler);
 
 export default app;
 

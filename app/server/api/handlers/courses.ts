@@ -2,14 +2,12 @@ import { coursesData } from "@/server/db/courses";
 import { db } from "@/server/db/db";
 import { learnersData } from "@/server/db/learners";
 import { courseTranslations, courses, learners } from "@/server/db/schema";
-import { getPresignedUrl } from "@/server/r2";
 import { CourseFormSchema } from "@/types/course";
 import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { z } from "zod";
 import {
 	HonoVariables,
 	localeInputMiddleware,
@@ -222,33 +220,5 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			const learners = await learnersData.create(input, [course]);
 
 			return c.json(learners);
-		},
-	)
-	// Private
-	.post(
-		"/:id/presigned-url",
-		zValidator(
-			"json",
-			z.object({
-				key: z.string(),
-			}),
-		),
-		protectedMiddleware(),
-		async (c) => {
-			const { id } = c.req.param();
-			const { key } = c.req.valid("json");
-			const teamId = c.get("teamId");
-
-			try {
-				const url = await getPresignedUrl(
-					`${teamId}/courses/${id}/${key}`,
-				);
-
-				return c.json({ url });
-			} catch (e) {
-				throw new HTTPException(500, {
-					message: "Failed to get presigned URL.",
-				});
-			}
 		},
 	);

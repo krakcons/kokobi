@@ -40,60 +40,53 @@ export const CourseForm = ({
 	});
 
 	return (
-		<main>
-			<Form {...form}>
-				<form
-					onSubmit={form.handleSubmit(onSubmit)}
-					className="space-y-8"
-				>
-					<FormField
-						control={form.control}
-						name="name"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Name</FormLabel>
+		<Form {...form}>
+			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+				<FormField
+					control={form.control}
+					name="name"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Name</FormLabel>
+							<FormControl>
+								<Input {...field} />
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+				<FormField
+					control={form.control}
+					name="description"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Description</FormLabel>
+							<FormControl>
+								<Textarea {...field} />
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+				<FormField
+					control={form.control}
+					name={"completionStatus"}
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Completion Status</FormLabel>
+							<Select
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+							>
 								<FormControl>
-									<Input {...field} />
+									<SelectTrigger className="w-[150px]">
+										<SelectValue placeholder="Select status" />
+									</SelectTrigger>
 								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="description"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Description</FormLabel>
-								<FormControl>
-									<Textarea {...field} />
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name={"completionStatus"}
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Completion Status</FormLabel>
-								<Select
-									onValueChange={field.onChange}
-									defaultValue={field.value}
-								>
-									<FormControl>
-										<SelectTrigger className="w-[150px]">
-											<SelectValue placeholder="Select status" />
-										</SelectTrigger>
-									</FormControl>
-									<SelectContent>
-										<SelectGroup>
-											{[
-												"passed",
-												"completed",
-												"either",
-											].map((status) => (
+								<SelectContent>
+									<SelectGroup>
+										{["passed", "completed", "either"].map(
+											(status) => (
 												<SelectItem
 													key={status}
 													value={status}
@@ -101,21 +94,21 @@ export const CourseForm = ({
 													{status[0].toUpperCase() +
 														status.slice(1)}
 												</SelectItem>
-											))}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-								<FormDescription>
-									When the course is considered completed.
-									Certificate is issued and course is locked.
-								</FormDescription>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<Button type="submit">Submit</Button>
-				</form>
-			</Form>
-		</main>
+											),
+										)}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+							<FormDescription>
+								When the course is considered completed.
+								Certificate is issued and course is locked.
+							</FormDescription>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+				<Button type="submit">Submit</Button>
+			</form>
+		</Form>
 	);
 };

@@ -43,6 +43,15 @@ export const queryOptions = {
 			},
 		},
 	},
+	team: {
+		me: (input: InferRequestType<typeof client.api.team.$get>) => ({
+			queryKey: ["editing-locale", "team", input],
+			queryFn: async () => {
+				const res = await client.api.team.$get(input);
+				return await res.json();
+			},
+		}),
+	},
 	courses: {
 		id: (input: InferRequestType<typeof course.$get>) => ({
 			queryKey: ["editing-locale", "courses", input],
@@ -185,6 +194,11 @@ export const useMutationOptions = () => {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.user.preferences.queryKey,
 					});
+					if (variables.json.editingLocale) {
+						queryClient.invalidateQueries({
+							queryKey: ["editing-locale"],
+						});
+					}
 					if (variables.json.locale) {
 						queryClient.invalidateQueries({
 							queryKey: queryOptions.user.i18n.queryKey,
@@ -193,6 +207,46 @@ export const useMutationOptions = () => {
 					if (variables.json.teamId) {
 						queryClient.invalidateQueries();
 					}
+				},
+			},
+		},
+		team: {
+			create: {
+				mutationFn: async (
+					input: InferRequestType<typeof client.api.team.$post>,
+				) => {
+					const res = await client.api.team.$post(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+					return await res.json();
+				},
+				onSuccess: () => {
+					queryClient.invalidateQueries();
+					toast.success("Team created successfully");
+				},
+			},
+			update: {
+				mutationFn: async (
+					input: InferRequestType<typeof client.api.team.$put>,
+				) => {
+					const res = await client.api.team.$put(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+				},
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.team.me({
+							query: {
+								"fallback-locale": "none",
+							},
+						}).queryKey,
+					});
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.user.teams.queryKey,
+					});
+					toast.success("Team updated successfully");
 				},
 			},
 		},

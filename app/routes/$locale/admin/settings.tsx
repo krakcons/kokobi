@@ -1,81 +1,95 @@
-import { client, queryOptions } from "@/lib/api";
-import { TeamFormType } from "@/types/team";
+import { TeamForm } from "@/components/forms/TeamForm";
+import { Page, PageHeader } from "@/components/Page";
+import { queryOptions, useMutationOptions } from "@/lib/api";
+import { useLocale } from "@/lib/locale";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(queryOptions.user.me);
+		await queryClient.ensureQueryData(
+			queryOptions.team.me({
+				query: {
+					"fallback-locale": "none",
+				},
+			}),
+		);
 	},
 });
 
-function RouteComponent() {
-	//const editTeam = useMutation({
-	//	mutationFn: async (values: TeamFormType) => {
-	//		let logoUrl: string | null = null;
-	//		if (values.logo) {
-	//			const presignedRes = await client.api.teams.logo.$post({
-	//				json: {
-	//					language: values.language,
-	//				},
-	//			});
-	//			const { url, imageUrl } = await presignedRes.json();
-	//			const contentType = values.logo.type;
-	//
-	//			await fetch(url, {
-	//				method: "PUT",
-	//				headers: contentType
-	//					? new Headers({
-	//							"Content-Type": contentType,
-	//						})
-	//					: undefined,
-	//				body: values.logo,
-	//			});
-	//			logoUrl = imageUrl + "?" + Date.now();
-	//		}
-	//
-	//		let faviconUrl: string | null = null;
-	//		if (values.favicon) {
-	//			const presignedRes = await client.api.teams.favicon.$post({
-	//				json: {
-	//					language: values.language,
-	//				},
-	//			});
-	//			const { url, imageUrl } = await presignedRes.json();
-	//			const contentType = values.favicon.type;
-	//
-	//			await fetch(url, {
-	//				method: "PUT",
-	//				headers: contentType
-	//					? new Headers({
-	//							"Content-Type": contentType,
-	//						})
-	//					: undefined,
-	//				body: values.favicon,
-	//			});
-	//			faviconUrl = imageUrl + "?" + Date.now();
-	//		}
-	//
-	//		const currentLogo = translate(translations, values.language).logo;
-	//		const currentFavicon = translate(
-	//			translations,
-	//			values.language,
-	//		).favicon;
-	//		return client.api.teams[":id"].$put({
-	//			param: { id: teamId },
-	//			json: {
-	//				...values,
-	//				logo: logoUrl ?? currentLogo,
-	//				favicon: faviconUrl ?? currentFavicon,
-	//			},
-	//		});
-	//	},
-	//	onSuccess: () => {
-	//		router.invalidate();
-	//		toast("Team updated successfully");
-	//	},
-	//});
+const fetchFile = async (fileUrl: string) => {
+	try {
+		const response = await fetch(fileUrl);
+		if (!response.ok) {
+			return undefined;
+		}
+		const blob = await response.blob();
+		const filename = fileUrl.split("/").pop(); // Extract filename from URL
+		return new File([blob], filename!, { type: blob.type });
+	} catch (error) {
+		console.error("Error fetching file:", error);
+	}
+};
 
-	return <div>Hello "/$locale/admin/settings"!</div>;
+function RouteComponent() {
+	const locale = useLocale();
+	const { data: team } = useSuspenseQuery(
+		queryOptions.team.me({
+			query: {
+				"fallback-locale": "none",
+			},
+		}),
+	);
+
+	const { data: images } = useSuspenseQuery({
+		queryKey: ["images", team.id],
+		queryFn: async () => {
+			const logo = await fetchFile(
+				`https://cdn.revivios.com/${team.id}/${locale}/logo`,
+			);
+			const favicon = await fetchFile(
+				`https://cdn.revivios.com/${team.id}/${locale}/favicon`,
+			);
+			return { logo, favicon };
+		},
+	});
+
+	const mutationOptions = useMutationOptions();
+	const updateTeam = useMutation(mutationOptions.team.update);
+
+	return (
+		<Page>
+			<PageHeader
+				title="Settings"
+				description="Edit your team settings"
+			/>
+			<TeamForm
+				key={team.language}
+				defaultValues={{
+					name: team.name,
+					...images,
+				}}
+				onSubmit={(values) => {
+					const formData = new FormData();
+
+					formData.append("name", values.name);
+					if (values.logo) {
+						formData.append("logo", values.logo);
+					}
+					if (values.favicon) {
+						formData.append("favicon", values.favicon);
+					}
+
+					updateTeam.mutate({
+						form: {
+							name: values.name,
+							logo: values.logo,
+							favicon: values.favicon,
+						},
+					});
+				}}
+			/>
+		</Page>
+	);
 }
