@@ -33,7 +33,6 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -602,7 +601,6 @@ function RouteComponent() {
 						</Button>
 					</div>
 				</header>
-				<ReactQueryDevtools initialIsOpen={false} />
 				<Outlet />
 			</SidebarInset>
 		</SidebarProvider>

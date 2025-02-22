@@ -9,7 +9,6 @@ import {
 	HeadContent,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "../styles/app.css";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
@@ -39,7 +38,6 @@ function RootComponent() {
 			<IntlProvider i18n={i18n}>
 				<Outlet />
 			</IntlProvider>
-			<ReactQueryDevtools initialIsOpen={false} />
 			<Toaster />
 		</>
 	);

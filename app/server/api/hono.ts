@@ -12,7 +12,6 @@ import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
 const app = new Hono<{
 	Variables: HonoVariables;
 }>()
-	//.use(logger())
 	.use(authMiddleware)
 	.use(localeMiddleware)
 	.basePath("/api")
