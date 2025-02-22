@@ -63,8 +63,8 @@ import {
 	Webhook,
 	Book,
 	FileBadge,
-	Menu,
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -122,10 +122,7 @@ const AdminSidebar = () => {
 	const mutationOptions = useMutationOptions();
 	const updatePreferences = useMutation(mutationOptions.user.preferences);
 
-	const activeTeam = translate(
-		teams.find((t) => t.id === teamId)!.translations,
-		locale,
-	);
+	const activeTeam = teams.find((t) => t.id === teamId);
 
 	return (
 		<Sidebar className="list-none">
@@ -138,18 +135,17 @@ const AdminSidebar = () => {
 									size="lg"
 									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 								>
-									{activeTeam.logo ? (
-										<img
-											src={activeTeam.logo!}
-											className="size-4"
+									<Avatar className="rounded-lg size-8">
+										<AvatarImage
+											src={`${window.location.origin}/cdn/${activeTeam?.id}/${activeTeam?.language}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+											className="rounded-lg"
 										/>
-									) : (
-										<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-											{activeTeam.name.toUpperCase()[0]}
-										</div>
-									)}
+										<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
+											{activeTeam?.name.toUpperCase()[0]}
+										</AvatarFallback>
+									</Avatar>
 									<div className="grid flex-1 text-left text-sm leading-tight">
-										{activeTeam.name}
+										{activeTeam?.name}
 									</div>
 									<ChevronsUpDown className="ml-auto" />
 								</SidebarMenuButton>
@@ -175,13 +171,18 @@ const AdminSidebar = () => {
 										}}
 										className="gap-2 p-2"
 									>
-										<div className="flex size-6 items-center justify-center rounded-sm border">
-											T
-										</div>
-										{
-											translate(team.translations, locale)
-												.name
-										}
+										<Avatar className="rounded-md size-6">
+											<AvatarImage
+												src={`${window.location.origin}/cdn/${team.id}/${team.language}/favicon?updatedAt=${team.updatedAt.toString()}`}
+												className="rounded-md"
+											/>
+											<AvatarFallback className="rounded-md">
+												{
+													activeTeam?.name.toUpperCase()[0]
+												}
+											</AvatarFallback>
+										</Avatar>
+										{team.name}
 									</DropdownMenuItem>
 								))}
 								<DropdownMenuSeparator />

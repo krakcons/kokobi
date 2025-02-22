@@ -80,7 +80,10 @@ export const collectionsHandler = new Hono()
 					collectionId: id,
 				})
 				.onConflictDoUpdate({
-					set: input,
+					set: {
+						...input,
+						updatedAt: new Date(),
+					},
 					target: [
 						collectionTranslations.collectionId,
 						collectionTranslations.language,

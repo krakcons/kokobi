@@ -1,5 +1,5 @@
 import { TeamForm } from "@/components/forms/TeamForm";
-import { FloatingPage, Page, PageHeader } from "@/components/Page";
+import { FloatingPage, PageHeader } from "@/components/Page";
 import { useMutationOptions } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -25,9 +25,7 @@ function RouteComponent() {
 					onSubmit={(values) => {
 						createTeam.mutate(
 							{
-								form: {
-									name: values.name,
-								},
+								form: values,
 							},
 							{
 								onSuccess: () => {

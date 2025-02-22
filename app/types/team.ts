@@ -28,7 +28,7 @@ export type InviteMemberForm = z.infer<typeof InviteMemberFormSchema>;
 
 export const TeamFormSchema = z.object({
 	name: z.string(),
-	logo: FileSchema.optional(),
-	favicon: FileSchema.optional(),
+	logo: FileSchema.or(z.literal("")),
+	favicon: FileSchema.or(z.literal("")),
 });
 export type TeamFormType = z.infer<typeof TeamFormSchema>;

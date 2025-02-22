@@ -5,7 +5,6 @@ import { learnersData } from "@/server/db/learners";
 import { modulesData } from "@/server/db/modules";
 import { learners, modules } from "@/server/db/schema";
 import { generateId } from "@/server/helpers";
-import { deleteFolder } from "@/server/s3";
 import { svix } from "@/server/svix";
 import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
 import { UploadModuleSchema } from "@/types/module";
@@ -108,6 +107,7 @@ export const modulesHandler = new Hono()
 						moduleId: newLearner.moduleId,
 						data: newLearner.data,
 						startedAt: newLearner.startedAt,
+						updatedAt: new Date(),
 					},
 				})
 				.returning();
@@ -151,9 +151,10 @@ export const modulesHandler = new Hono()
 
 		await db.delete(learners).where(eq(learners.moduleId, courseModule.id));
 
-		await deleteFolder(
-			`${teamId}/courses/${courseModule.courseId}/${courseModule.language}${courseModule.versionNumber === 1 ? "" : `_${courseModule.versionNumber}`}`,
-		);
+		// TODO: DELETE full module (waiting on bun s3 list function)
+		//await deleteFolder(
+		//	`${teamId}/courses/${courseModule.courseId}/${courseModule.language}${courseModule.versionNumber === 1 ? "" : `_${courseModule.versionNumber}`}`,
+		//);
 
 		return c.json(null);
 	})

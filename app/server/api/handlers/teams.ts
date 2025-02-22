@@ -8,7 +8,6 @@ import {
 } from "@/server/db/schema";
 import { generateId } from "@/server/helpers";
 import { s3 } from "bun";
-import { deleteFolder } from "@/server/s3";
 import { resend } from "@/server/resend";
 import { InviteMemberFormSchema, Team, TeamFormSchema } from "@/types/team";
 import { zValidator } from "@hono/zod-validator";
@@ -22,7 +21,8 @@ import {
 	protectedMiddleware,
 } from "../middleware";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { setCookie } from "hono/cookie";
+import { deleteCookie, setCookie } from "hono/cookie";
+import { locales } from "@/lib/locale";
 
 const removeDomain = async ({
 	customDomain,
@@ -81,14 +81,10 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 		}
 
 		if (input.logo) {
-			await s3.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
+			await s3.write(`${teamId}/${locale}/logo`, input.logo);
 		}
-
 		if (input.favicon) {
-			await s3.write(
-				`${teamId}/${c.get("locale")}/favicon`,
-				input.favicon,
-			);
+			await s3.write(`${teamId}/${locale}/favicon`, input.favicon);
 		}
 
 		const id = generateId(15);
@@ -126,14 +122,15 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			const input = c.req.valid("form");
 
 			if (input.logo) {
-				await s3.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
+				await s3.write(`${teamId}/${locale}/logo`, input.logo);
+			} else {
+				await s3.delete(`${teamId}/${locale}/logo`);
 			}
 
 			if (input.favicon) {
-				await s3.write(
-					`${teamId}/${c.get("locale")}/favicon`,
-					input.favicon,
-				);
+				await s3.write(`${teamId}/${locale}/favicon`, input.favicon);
+			} else {
+				await s3.delete(`${teamId}/${locale}/favicon`);
 			}
 
 			await db
@@ -147,6 +144,7 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 				.onConflictDoUpdate({
 					set: {
 						name: input.name,
+						updatedAt: new Date(),
 					},
 					target: [
 						teamTranslations.teamId,
@@ -344,12 +342,35 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 	//	return c.json(null);
 	//})
 	.delete("/", protectedMiddleware({ role: "owner" }), async (c) => {
+		const userId = c.get("user").id;
 		const teamId = c.get("teamId");
 
-		await deleteFolder(`${teamId}`);
+		// TODO: DELETE full team data w/courses (waiting on bun s3 list function)
+		locales.forEach(async (locale) => {
+			await s3.delete(`/${teamId}/${locale.value}/logo`);
+			await s3.delete(`/${teamId}/${locale.value}/favicon`);
+		});
 		await db.delete(teams).where(eq(teams.id, teamId));
 
-		return c.json({
-			success: true,
+		// Find next best team or redirect to create team
+		const team = await db.query.usersToTeams.findFirst({
+			where: eq(usersToTeams.userId, userId),
 		});
+
+		if (!team) {
+			deleteCookie(c, "teamId");
+			return c.json({
+				teamId: null,
+			});
+		} else {
+			setCookie(c, "teamId", team.teamId, {
+				path: "/",
+				secure: true,
+				httpOnly: true,
+				sameSite: "lax",
+			});
+			return c.json({
+				teamId: team.teamId,
+			});
+		}
 	});

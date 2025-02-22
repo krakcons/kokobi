@@ -2,7 +2,6 @@ import { SelectCourse } from "@/types/course";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { cache } from "react";
-import { deleteFolder } from "../s3";
 import { svix } from "../svix";
 import { db } from "./db";
 import { collectionsToCourses, courses, learners, modules } from "./schema";
@@ -52,7 +51,7 @@ export const coursesData = {
 			console.error(e);
 		}
 
-		await deleteFolder(`${teamId}/courses/${course.id}`);
+		// TODO: DELETE full course (waiting on bun s3 list function)
 	},
 	getAll: cache(async (_: undefined, teamId: string) => {
 		return await db.query.courses.findMany({

@@ -1,5 +1,5 @@
 import { AppType } from "@/server/api/hono";
-import { useQueryClient } from "@tanstack/react-query";
+import { MutationOptions, useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
 
@@ -11,6 +11,16 @@ export const client = hc<AppType>(window.location.origin, {
 
 const course = client.api.courses[":id"];
 const key = client.api.keys[":id"];
+
+const fetchFile = async (fileUrl: string): Promise<File | ""> => {
+	const response = await fetch(fileUrl);
+	if (!response.ok) {
+		return "";
+	}
+	const blob = await response.blob();
+	const filename = fileUrl.split("/").pop(); // Extract filename from URL
+	return new File([blob], filename!, { type: blob.type });
+};
 
 export const queryOptions = {
 	user: {
@@ -49,6 +59,18 @@ export const queryOptions = {
 			queryFn: async () => {
 				const res = await client.api.team.$get(input);
 				return await res.json();
+			},
+		}),
+		images: ({ locale, teamId }: { locale: string; teamId: string }) => ({
+			queryKey: ["editing-locale", "team", "images", teamId],
+			queryFn: async () => {
+				const logo = await fetchFile(
+					`${window.location.origin}/cdn/${teamId}/${locale}/logo`,
+				);
+				const favicon = await fetchFile(
+					`${window.location.origin}/cdn/${teamId}/${locale}/favicon`,
+				);
+				return { logo, favicon };
 			},
 		}),
 	},
@@ -247,6 +269,18 @@ export const useMutationOptions = () => {
 						queryKey: queryOptions.user.teams.queryKey,
 					});
 					toast.success("Team updated successfully");
+				},
+			},
+			delete: {
+				mutationFn: async () => {
+					const res = await client.api.team.$delete();
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+					return await res.json();
+				},
+				onSuccess: () => {
+					toast.success("Team deleted successfully");
 				},
 			},
 		},

@@ -1,39 +1,43 @@
 import { TeamForm } from "@/components/forms/TeamForm";
-import { Page, PageHeader } from "@/components/Page";
+import { Page, PageHeader, PageSubHeader } from "@/components/Page";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { queryOptions, useMutationOptions } from "@/lib/api";
 import { useLocale } from "@/lib/locale";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Trash } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(
+		const preferences = await queryClient.ensureQueryData(
+			queryOptions.user.preferences,
+		);
+		const team = await queryClient.ensureQueryData(
 			queryOptions.team.me({
 				query: {
 					"fallback-locale": "none",
 				},
 			}),
 		);
+		await queryClient.ensureQueryData(
+			queryOptions.team.images({
+				locale: preferences.locale,
+				teamId: team.id,
+			}),
+		);
 	},
 });
 
-const fetchFile = async (fileUrl: string) => {
-	try {
-		const response = await fetch(fileUrl);
-		if (!response.ok) {
-			return undefined;
-		}
-		const blob = await response.blob();
-		const filename = fileUrl.split("/").pop(); // Extract filename from URL
-		return new File([blob], filename!, { type: blob.type });
-	} catch (error) {
-		console.error("Error fetching file:", error);
-	}
-};
-
 function RouteComponent() {
 	const locale = useLocale();
+	const queryClient = useQueryClient();
+	const navigate = Route.useNavigate();
 	const { data: team } = useSuspenseQuery(
 		queryOptions.team.me({
 			query: {
@@ -42,21 +46,16 @@ function RouteComponent() {
 		}),
 	);
 
-	const { data: images } = useSuspenseQuery({
-		queryKey: ["images", team.id],
-		queryFn: async () => {
-			const logo = await fetchFile(
-				`${window.location.origin}/cdn/${team.id}/${locale}/logo`,
-			);
-			const favicon = await fetchFile(
-				`${window.location.origin}/cdn/${team.id}/${locale}/favicon`,
-			);
-			return { logo, favicon };
-		},
-	});
+	const { data: images } = useSuspenseQuery(
+		queryOptions.team.images({
+			locale,
+			teamId: team.id,
+		}),
+	);
 
 	const mutationOptions = useMutationOptions();
 	const updateTeam = useMutation(mutationOptions.team.update);
+	const deleteTeam = useMutation(mutationOptions.team.delete);
 
 	return (
 		<Page>
@@ -71,25 +70,37 @@ function RouteComponent() {
 					...images,
 				}}
 				onSubmit={(values) => {
-					const formData = new FormData();
-
-					formData.append("name", values.name);
-					if (values.logo) {
-						formData.append("logo", values.logo);
-					}
-					if (values.favicon) {
-						formData.append("favicon", values.favicon);
-					}
-
 					updateTeam.mutate({
-						form: {
-							name: values.name,
-							logo: values.logo,
-							favicon: values.favicon,
-						},
+						form: values,
 					});
 				}}
 			/>
+			<Separator className="my-4" />
+			<PageSubHeader title="Domains" description="WIP" />
+			<Separator className="my-4" />
+			<PageSubHeader
+				title="Delete Team"
+				description="This will delete the team and all associated data. This action cannot be undone."
+			/>
+			<Button
+				variant="destructive"
+				onClick={() => {
+					deleteTeam.mutate(undefined, {
+						onSuccess: (data) => {
+							if (data.teamId) {
+								queryClient.invalidateQueries();
+								navigate({ to: "/$locale/admin" });
+							} else {
+								navigate({ to: "/$locale/create-team" });
+							}
+						},
+					});
+				}}
+				className="self-start"
+			>
+				<Trash />
+				Delete
+			</Button>
 		</Page>
 	);
 }

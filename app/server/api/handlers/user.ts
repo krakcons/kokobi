@@ -1,12 +1,17 @@
 import { Hono } from "hono";
-import { HonoVariables, protectedMiddleware } from "../middleware";
+import {
+	HonoVariables,
+	localeInputMiddleware,
+	protectedMiddleware,
+} from "../middleware";
 import { db, usersToTeams } from "@/server/db/db";
 import { and, eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { getCookie, setCookie } from "hono/cookie";
-import { Locale, LocaleSchema } from "@/lib/locale";
+import { setCookie } from "hono/cookie";
+import { LocaleSchema } from "@/lib/locale";
 import { createI18n } from "@/lib/locale/actions";
+import { handleLocalization } from "@/lib/locale/helpers";
 
 export const userHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/me", async (c) => {
@@ -16,7 +21,7 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 			teamId: c.get("teamId"),
 		});
 	})
-	.get("/teams", protectedMiddleware(), async (c) => {
+	.get("/teams", protectedMiddleware(), localeInputMiddleware, async (c) => {
 		const user = c.get("user");
 
 		if (!user) {
@@ -34,7 +39,7 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 			},
 		});
 
-		return c.json(teams.map((t) => t.team));
+		return c.json(teams.map(({ team }) => handleLocalization(c, team)));
 	})
 	.get("/i18n", async (c) => {
 		const locale = c.get("locale");

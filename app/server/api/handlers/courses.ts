@@ -118,7 +118,10 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 					default: false,
 				})
 				.onConflictDoUpdate({
-					set: input,
+					set: {
+						...input,
+						updatedAt: new Date(),
+					},
 					target: [
 						courseTranslations.courseId,
 						courseTranslations.language,

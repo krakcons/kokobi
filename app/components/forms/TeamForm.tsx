@@ -2,6 +2,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Form,
 	FormControl,
+	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -56,7 +57,12 @@ export const TeamForm = ({
 }) => {
 	const form = useForm<TeamFormType>({
 		resolver: zodResolver(TeamFormSchema),
-		defaultValues,
+		defaultValues: {
+			name: "",
+			favicon: "",
+			logo: "",
+			...defaultValues,
+		},
 	});
 
 	const logo = form.watch("logo");
@@ -90,32 +96,41 @@ export const TeamForm = ({
 						render={({
 							field: { value, onChange, ...fieldProps },
 						}) => (
-							<FormItem className="flex justify-start">
-								<FormLabel className="flex flex-col items-start">
-									<Label className="mb-4">Logo</Label>
-									{logoUrl ? (
-										<img
-											src={logoUrl}
-											width={350}
-											height={100}
-											alt="Team Logo"
-											className="rounded"
-										/>
-									) : (
-										<div className="h-[100px] w-[350px] rounded bg-muted" />
-									)}
-									<div
+							<FormItem className="flex flex-col items-start">
+								<Label className="mb-4">Logo</Label>
+								{logoUrl ? (
+									<img
+										src={logoUrl}
+										width={350}
+										height={100}
+										alt="Team Logo"
+										className="rounded"
+									/>
+								) : (
+									<div className="h-[100px] w-[350px] rounded bg-muted" />
+								)}
+								<div className="flex gap-2 items-center mt-2">
+									<FormLabel
 										className={buttonVariants({
+											size: "sm",
 											variant: "secondary",
-											className: "mt-4 cursor-pointer",
+											className: "cursor-pointer",
 										})}
 									>
 										Change Logo
-									</div>
-									<p className="mt-2 text-xs text-muted-foreground">
-										Suggested image size: 350px x 100px
-									</p>
-								</FormLabel>
+									</FormLabel>
+									{value && (
+										<Button
+											size="sm"
+											variant="secondary"
+											onClick={() => {
+												onChange("");
+											}}
+										>
+											Remove
+										</Button>
+									)}
+								</div>
 								<FormControl>
 									<Input
 										{...fieldProps}
@@ -132,6 +147,9 @@ export const TeamForm = ({
 									/>
 								</FormControl>
 								<FormMessage />
+								<FormDescription>
+									Suggested image size: 350px x 100px
+								</FormDescription>
 							</FormItem>
 						)}
 					/>
@@ -141,32 +159,41 @@ export const TeamForm = ({
 						render={({
 							field: { value, onChange, ...fieldProps },
 						}) => (
-							<FormItem className="flex justify-start">
-								<FormLabel className="flex flex-col items-start">
-									<Label className="mb-4">Favicon</Label>
-									{faviconUrl ? (
-										<img
-											src={faviconUrl}
-											width={100}
-											height={100}
-											alt="Team Favicon"
-											className="rounded"
-										/>
-									) : (
-										<div className="h-[100px] w-[100px] rounded bg-muted" />
-									)}
-									<div
+							<FormItem>
+								<Label className="mb-4">Favicon</Label>
+								{faviconUrl ? (
+									<img
+										src={faviconUrl}
+										width={100}
+										height={100}
+										alt="Team Favicon"
+										className="rounded"
+									/>
+								) : (
+									<div className="h-[100px] w-[100px] rounded bg-muted" />
+								)}
+								<div className="flex gap-2 items-center mt-2">
+									<FormLabel
 										className={buttonVariants({
+											size: "sm",
 											variant: "secondary",
-											className: "mt-4 cursor-pointer",
+											className: "cursor-pointer",
 										})}
 									>
 										Change Favicon
-									</div>
-									<p className="mt-2 text-xs text-muted-foreground">
-										Suggested image size: 512px x 512px
-									</p>
-								</FormLabel>
+									</FormLabel>
+									{value && (
+										<Button
+											size="sm"
+											variant="secondary"
+											onClick={() => {
+												onChange("");
+											}}
+										>
+											Remove
+										</Button>
+									)}
+								</div>
 								<FormControl>
 									<Input
 										{...fieldProps}
@@ -182,6 +209,9 @@ export const TeamForm = ({
 										}}
 									/>
 								</FormControl>
+								<FormDescription>
+									Suggested image size: 512px x 512px
+								</FormDescription>
 								<FormMessage />
 							</FormItem>
 						)}
