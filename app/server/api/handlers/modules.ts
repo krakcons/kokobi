@@ -5,7 +5,7 @@ import { learnersData } from "@/server/db/learners";
 import { modulesData } from "@/server/db/modules";
 import { learners, modules } from "@/server/db/schema";
 import { generateId } from "@/server/helpers";
-import { deleteFolder } from "@/server/r2";
+import { deleteFolder } from "@/server/s3";
 import { svix } from "@/server/svix";
 import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
 import { UploadModuleSchema } from "@/types/module";
@@ -27,7 +27,6 @@ export const modulesHandler = new Hono()
 				learners: true,
 			},
 		});
-
 		if (!courseModule) {
 			throw new HTTPException(404, {
 				message: "Module not found",

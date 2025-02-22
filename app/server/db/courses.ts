@@ -2,7 +2,7 @@ import { SelectCourse } from "@/types/course";
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { cache } from "react";
-import { deleteFolder } from "../r2";
+import { deleteFolder } from "../s3";
 import { svix } from "../svix";
 import { db } from "./db";
 import { collectionsToCourses, courses, learners, modules } from "./schema";

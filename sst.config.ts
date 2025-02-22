@@ -28,19 +28,27 @@ export default $config({
 		const tenantStage = `${$app.name}-${$app.stage}`;
 
 		const domain = `${$app.stage}.${ROOT_DOMAIN}`;
-		const environment = {
-			TENANT_STAGE_NAME: tenantStage,
-			SITE_URL: LOCAL_STAGES.includes($app.stage)
-				? "http://localhost:3000"
-				: `https://${domain}`,
-		};
 
 		const vpc = sst.aws.Vpc.get("Vpc", "vpc-08c28b23ee20f3975");
 		const aurora = sst.aws.Aurora.get("Aurora", "krak-prod-auroracluster");
 		const dns = sst.cloudflare.dns({
 			proxy: true,
 		});
-		const bucket = new sst.aws.Bucket("Bucket");
+		const bucket = new sst.aws.Bucket("Bucket", {
+			access: "public",
+		});
+
+		const environment = {
+			TENANT_STAGE_NAME: tenantStage,
+			AWS_BUCKET: bucket.name,
+			PUBLIC_SITE_URL: LOCAL_STAGES.includes($app.stage)
+				? "http://localhost:3000"
+				: `https://${domain}`,
+			PUBLIC_ROOT_DOMAIN: LOCAL_STAGES.includes($app.stage)
+				? "localhost:3000"
+				: domain,
+			PUBLIC_CDN_URL: $interpolate`https://${bucket.domain}`,
+		};
 
 		const cluster = new sst.aws.Cluster("Cluster", { vpc });
 		new sst.aws.Service("Bun", {

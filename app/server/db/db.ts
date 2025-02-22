@@ -1,12 +1,9 @@
 import { relationSchemas, tableSchemas } from "./schema";
 import { Resource } from "sst";
 import { drizzle } from "drizzle-orm/bun-sql";
+import { env } from "@/env";
 
 export * from "./schema";
-
-if (!process.env.TENANT_STAGE_NAME) {
-	throw new Error("TENANT_STAGE_NAME is not set");
-}
 
 const schema = {
 	...tableSchemas,
@@ -14,6 +11,6 @@ const schema = {
 };
 
 export const db = drizzle({
-	connection: `postgres://${Resource.Aurora.username}:${Resource.Aurora.password}@${Resource.Aurora.host}:${Resource.Aurora.port}/${process.env.TENANT_STAGE_NAME}`,
+	connection: `postgres://${Resource.Aurora.username}:${Resource.Aurora.password}@${Resource.Aurora.host}:${Resource.Aurora.port}/${env.TENANT_STAGE_NAME}`,
 	schema,
 });

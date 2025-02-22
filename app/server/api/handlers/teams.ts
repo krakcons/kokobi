@@ -1,18 +1,14 @@
 import { env } from "@/env";
-import { coursesData } from "@/server/db/courses";
 import { db } from "@/server/db/db";
 import {
-	collectionTranslations,
-	collections,
-	courses,
-	keys,
 	teamTranslations,
 	teams,
 	users,
 	usersToTeams,
 } from "@/server/db/schema";
 import { generateId } from "@/server/helpers";
-import { deleteFolder, r2 } from "@/server/r2";
+import { s3 } from "bun";
+import { deleteFolder } from "@/server/s3";
 import { resend } from "@/server/resend";
 import { InviteMemberFormSchema, Team, TeamFormSchema } from "@/types/team";
 import { zValidator } from "@hono/zod-validator";
@@ -85,11 +81,11 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 		}
 
 		if (input.logo) {
-			await r2.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
+			await s3.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
 		}
 
 		if (input.favicon) {
-			await r2.write(
+			await s3.write(
 				`${teamId}/${c.get("locale")}/favicon`,
 				input.favicon,
 			);
@@ -130,11 +126,11 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			const input = c.req.valid("form");
 
 			if (input.logo) {
-				await r2.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
+				await s3.write(`${teamId}/${c.get("locale")}/logo`, input.logo);
 			}
 
 			if (input.favicon) {
-				await r2.write(
+				await s3.write(
 					`${teamId}/${c.get("locale")}/favicon`,
 					input.favicon,
 				);
@@ -233,7 +229,6 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			return c.json(null);
 		},
 	)
-
 	.put(
 		"/:id/domain",
 		zValidator(
@@ -318,36 +313,36 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			return c.json(null);
 		},
 	)
-	.delete("/:id/domain", protectedMiddleware(), async (c) => {
-		const { id } = c.req.param();
-
-		const team = await db.query.teams.findFirst({
-			where: eq(teams.id, id),
-		});
-
-		if (!team) {
-			throw new HTTPException(404, {
-				message: "Team not found.",
-			});
-		}
-
-		if (team.customDomain)
-			await removeDomain({
-				customDomain: team.customDomain,
-				resendDomainId: team.resendDomainId,
-			});
-
-		await db
-			.update(teams)
-			.set({
-				customDomain: null,
-				resendDomainId: null,
-			})
-			.where(eq(teams.id, id));
-
-		return c.json(null);
-	})
-	// Private
+	// TODO: Fix this breaking cdn catchall
+	//.delete("/:id/domain", protectedMiddleware(), async (c) => {
+	//	const { id } = c.req.param();
+	//
+	//	const team = await db.query.teams.findFirst({
+	//		where: eq(teams.id, id),
+	//	});
+	//
+	//	if (!team) {
+	//		throw new HTTPException(404, {
+	//			message: "Team not found.",
+	//		});
+	//	}
+	//
+	//	if (team.customDomain)
+	//		await removeDomain({
+	//			customDomain: team.customDomain,
+	//			resendDomainId: team.resendDomainId,
+	//		});
+	//
+	//	await db
+	//		.update(teams)
+	//		.set({
+	//			customDomain: null,
+	//			resendDomainId: null,
+	//		})
+	//		.where(eq(teams.id, id));
+	//
+	//	return c.json(null);
+	//})
 	.delete("/", protectedMiddleware({ role: "owner" }), async (c) => {
 		const teamId = c.get("teamId");
 

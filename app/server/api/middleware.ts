@@ -114,7 +114,8 @@ export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
 				"en",
 		);
 
-		if (!c.req.path.startsWith("/api")) {
+		const ignorePaths = ["/api", "/cdn"];
+		if (!ignorePaths.some((path) => c.req.path.startsWith(path))) {
 			// Handle locale
 			let pathLocale = c.req.path.split("/")[1];
 			if (!locales.some(({ value }) => value === pathLocale)) {

@@ -46,10 +46,10 @@ function RouteComponent() {
 		queryKey: ["images", team.id],
 		queryFn: async () => {
 			const logo = await fetchFile(
-				`https://cdn.revivios.com/${team.id}/${locale}/logo`,
+				`${window.location.origin}/cdn/${team.id}/${locale}/logo`,
 			);
 			const favicon = await fetchFile(
-				`https://cdn.revivios.com/${team.id}/${locale}/favicon`,
+				`${window.location.origin}/cdn/${team.id}/${locale}/favicon`,
 			);
 			return { logo, favicon };
 		},

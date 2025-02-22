@@ -1,13 +1,3 @@
-import { env } from "@/env";
-import { S3Client } from "bun";
-
-export const r2 = new S3Client({
-	accessKeyId: env.R2_KEY_ID,
-	secretAccessKey: env.R2_SECRET,
-	endpoint: env.R2_ENDPOINT,
-	region: "auto",
-});
-
 export const deleteFolder = async (prefix: string) => {
 	throw new Error("Not implemented");
 	//let nextContinuationToken = null;

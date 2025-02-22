@@ -11,12 +11,13 @@ export const env = createEnv({
 		TEAM_ID_VERCEL: z.string().min(1),
 		PROJECT_ID_VERCEL: z.string().min(1),
 		AUTH_BEARER_TOKEN_VERCEL: z.string().min(1),
+		TENANT_STAGE_NAME: z.string().min(1),
 	},
 	clientPrefix: "PUBLIC_",
 	client: {
 		PUBLIC_SITE_URL: z.string().url(),
 		PUBLIC_ROOT_DOMAIN: z.string().min(1),
-		PUBLIC_R2_URL: z.string().url(),
+		PUBLIC_CDN_URL: z.string().url(),
 	},
-	runtimeEnv: { ...Bun.env },
+	runtimeEnv: { ...import.meta.env },
 });
