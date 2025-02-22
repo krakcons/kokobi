@@ -38,6 +38,17 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { z } from "zod";
+import {
+	MoreHorizontal,
+	ChevronLeft,
+	ChevronRight,
+	ChevronsLeft,
+	ChevronsRight,
+	ChevronsUpDown,
+	ArrowDown,
+	ArrowUp,
+	EyeOff,
+} from "lucide-react";
 
 export const TableSearchSchema = z.object({
 	globalFilter: z.string().optional(),
@@ -274,7 +285,7 @@ export function DataTablePagination<TData>({
 							disabled={!table.getCanPreviousPage()}
 						>
 							<span className="sr-only">{t.goToFirstPage}</span>
-							{/* <ChevronsLeft /> */}
+							<ChevronsLeft />
 						</Button>
 						<Button
 							className="h-8 w-8 p-0"
@@ -284,7 +295,7 @@ export function DataTablePagination<TData>({
 							<span className="sr-only">
 								{t.goToPreviousPage}
 							</span>
-							{/* <ChevronLeft /> */}
+							<ChevronLeft />
 						</Button>
 						<Button
 							className="h-8 w-8 p-0"
@@ -292,7 +303,7 @@ export function DataTablePagination<TData>({
 							disabled={!table.getCanNextPage()}
 						>
 							<span className="sr-only">{t.goToNextPage}</span>
-							{/* <ChevronRight /> */}
+							<ChevronRight />
 						</Button>
 						<Button
 							className="hidden h-8 w-8 p-0 lg:flex"
@@ -302,7 +313,7 @@ export function DataTablePagination<TData>({
 							disabled={!table.getCanNextPage()}
 						>
 							<span className="sr-only">{t.goToLastPage}</span>
-							{/* <ChevronsRight /> */}
+							<ChevronsRight />
 						</Button>
 					</div>
 				</div>
@@ -338,14 +349,11 @@ export function DataTableColumnHeader<TData, TValue>({
 					>
 						<span className="text-sm">{title}</span>
 						{column.getIsSorted() === "desc" ? (
-							// <ArrowDown />
-							<></>
+							<ArrowDown />
 						) : column.getIsSorted() === "asc" ? (
-							<></>
+							<ArrowUp />
 						) : (
-							<></>
-							//<ArrowUp />
-							//<ChevronsUpDown />
+							<ChevronsUpDown />
 						)}
 					</Button>
 				</DropdownMenuTrigger>
@@ -353,20 +361,20 @@ export function DataTableColumnHeader<TData, TValue>({
 					<DropdownMenuItem
 						onClick={() => column.toggleSorting(false)}
 					>
-						{/* <ArrowUp className="h-3.5 w-3.5 text-muted-foreground/70" /> */}
+						<ArrowUp className="h-3.5 w-3.5 text-muted-foreground/70" />
 						{t.sort.asc}
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={() => column.toggleSorting(true)}
 					>
-						{/* <ArrowDown className="h-3.5 w-3.5 text-muted-foreground/70" /> */}
+						<ArrowDown className="h-3.5 w-3.5 text-muted-foreground/70" />
 						{t.sort.desc}
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						onClick={() => column.toggleVisibility(false)}
 					>
-						{/* <EyeOff className="h-3.5 w-3.5 text-muted-foreground/70" /> */}
+						<EyeOff className="h-3.5 w-3.5 text-muted-foreground/70" />
 						{t.sort.hide}
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -390,7 +398,7 @@ export const createDataTableActionsColumn = <TData extends object>(
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="ghost" size="icon">
-						...
+						<MoreHorizontal />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">

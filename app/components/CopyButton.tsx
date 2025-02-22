@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { Copy } from "lucide-react";
 
 const CopyButton = ({ text }: { text: string }) => {
 	const [copied, setCopied] = useState(false);
@@ -14,7 +15,7 @@ const CopyButton = ({ text }: { text: string }) => {
 
 	return (
 		<Button variant="outline" size="sm" onClick={copy}>
-			{/*<Copy size={16} />*/}
+			<Copy size={16} />
 			{copied ? "Copied!" : "Copy"}
 		</Button>
 	);

@@ -12,6 +12,7 @@ import { Key } from "@/types/keys";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/$locale/admin/keys")({
@@ -36,11 +37,9 @@ const APIKeyCell = ({ secret }: { secret: string }) => {
 				onClick={() => setHidden(!hidden)}
 			>
 				{hidden ? (
-					<></>
+						<Eye className="size-5" />
 				) : (
-					//	<Eye className="size-5" />
-					<></>
-					//	<EyeOff className="size-5" />
+						<EyeOff className="size-5" />
 				)}
 			</Button>
 			<Button

@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { queryOptions, useMutationOptions } from "@/lib/api";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Trash } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
 	component: RouteComponent,
@@ -71,7 +72,7 @@ function RouteComponent() {
 				}}
 				className="self-start"
 			>
-				{/* <Trash /> */}
+				 <Trash />
 				Delete
 			</Button>
 		</Page>

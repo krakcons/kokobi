@@ -21,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
+import { Trash } from "lucide-react";
 
 export const InviteFormSchema = z.object({
 	learners: z.array(CreateLearnerSchema.omit({ courseId: true })),
@@ -145,7 +146,7 @@ export const LearnersInviteForm = ({
 							size="icon"
 							className="min-w-10"
 						>
-							{/* <Trash size={18} /> */}
+							 <Trash size={18} /> 
 						</Button>
 					</div>
 				))}
