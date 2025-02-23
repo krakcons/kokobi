@@ -22,13 +22,20 @@ export const Page = ({ children }: { children: React.ReactNode }) => {
 export const PageHeader = ({
 	title,
 	description,
+	children,
 }: {
 	title: string;
 	description: string;
+	children?: React.ReactNode;
 }) => (
 	<div className="flex flex-col gap-2">
-		<h1>{title}</h1>
-		<p>{description}</p>
+		<div className="flex items-center justify-between">
+			<div className="flex flex-col gap-2">
+				<h1>{title}</h1>
+				<p>{description}</p>
+			</div>
+			{children}
+		</div>
 		<Separator className="mt-2 mb-4" />
 	</div>
 );

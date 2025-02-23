@@ -110,6 +110,7 @@ const AdminSidebar = () => {
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const locale = useLocale();
+	const navigate = Route.useNavigate();
 	const {
 		data: { teamId },
 	} = useSuspenseQuery(queryOptions.user.me);
@@ -163,11 +164,20 @@ const AdminSidebar = () => {
 									<DropdownMenuItem
 										key={team.id}
 										onClick={() => {
-											updatePreferences.mutate({
-												json: {
-													teamId: team.id,
+											updatePreferences.mutate(
+												{
+													json: {
+														teamId: team.id,
+													},
 												},
-											});
+												{
+													onSuccess: () => {
+														navigate({
+															to: "/$locale/admin",
+														});
+													},
+												},
+											);
 										}}
 										className="gap-2 p-2"
 									>

@@ -1,6 +1,7 @@
 import { modules } from "@/server/db/schema";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { FileSchema } from "./file";
 
 export const ModuleSchema = createSelectSchema(modules);
 export type Module = z.infer<typeof ModuleSchema>;
@@ -15,7 +16,7 @@ export const SelectModuleSchema = ModuleSchema.pick({
 });
 export type SelectModule = z.infer<typeof SelectModuleSchema>;
 
-export const UploadModuleSchema = createInsertSchema(modules).omit({
-	versionNumber: true,
+export const ModuleFormSchema = z.object({
+	file: FileSchema,
 });
-export type UploadModule = z.infer<typeof UploadModuleSchema>;
+export type ModuleForm = z.infer<typeof ModuleFormSchema>;

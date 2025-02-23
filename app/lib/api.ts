@@ -1,5 +1,5 @@
 import { AppType } from "@/server/api/hono";
-import { MutationOptions, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
 
@@ -11,6 +11,7 @@ export const client = hc<AppType>(window.location.origin, {
 
 const course = client.api.courses[":id"];
 const key = client.api.keys[":id"];
+const module = client.api.courses[":id"].modules[":moduleId"];
 
 const fetchFile = async (fileUrl: string): Promise<File | ""> => {
 	const response = await fetch(fileUrl);
@@ -28,6 +29,9 @@ export const queryOptions = {
 			queryKey: ["user", "me"],
 			queryFn: async () => {
 				const res = await client.api.user.me.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		},
@@ -35,6 +39,9 @@ export const queryOptions = {
 			queryKey: ["user", "teams"],
 			queryFn: async () => {
 				const res = await client.api.user.teams.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		},
@@ -42,6 +49,9 @@ export const queryOptions = {
 			queryKey: ["user", "preferences"],
 			queryFn: async () => {
 				const res = await client.api.user.preferences.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		},
@@ -49,6 +59,9 @@ export const queryOptions = {
 			queryKey: ["i18n"],
 			queryFn: async () => {
 				const res = await client.api.user.i18n.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		},
@@ -61,14 +74,28 @@ export const queryOptions = {
 				return await res.json();
 			},
 		}),
-		images: ({ locale, teamId }: { locale: string; teamId: string }) => ({
-			queryKey: ["editing-locale", "team", "images", teamId],
+		images: ({
+			locale,
+			teamId,
+			updatedAt,
+		}: {
+			locale: string;
+			teamId: string;
+			updatedAt: string;
+		}) => ({
+			queryKey: [
+				"editing-locale",
+				"team-images",
+				locale,
+				teamId,
+				updatedAt,
+			],
 			queryFn: async () => {
 				const logo = await fetchFile(
-					`${window.location.origin}/cdn/${teamId}/${locale}/logo`,
+					`${window.location.origin}/cdn/${teamId}/${locale}/logo?updatedAt=${updatedAt}`,
 				);
 				const favicon = await fetchFile(
-					`${window.location.origin}/cdn/${teamId}/${locale}/favicon`,
+					`${window.location.origin}/cdn/${teamId}/${locale}/favicon?updatedAt=${updatedAt}`,
 				);
 				return { logo, favicon };
 			},
@@ -89,6 +116,9 @@ export const queryOptions = {
 			queryKey: ["courses"],
 			queryFn: async () => {
 				const res = await client.api.courses.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		},
@@ -96,6 +126,9 @@ export const queryOptions = {
 			queryKey: ["learners", input],
 			queryFn: async () => {
 				const res = await course.learners.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		}),
@@ -105,15 +138,33 @@ export const queryOptions = {
 			queryKey: ["collections"],
 			queryFn: async () => {
 				const res = await client.api.collections.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		},
+	},
+	modules: {
+		all: (input: InferRequestType<typeof course.modules.$get>) => ({
+			queryKey: ["editing-locale", "modules", input],
+			queryFn: async () => {
+				const res = await course.modules.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		}),
 	},
 	keys: {
 		all: {
 			queryKey: ["keys"],
 			queryFn: async () => {
 				const res = await client.api.keys.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
 				return await res.json();
 			},
 		},
@@ -198,6 +249,50 @@ export const useMutationOptions = () => {
 					toast.success("Course deleted successfully");
 				},
 			},
+			modules: {
+				create: {
+					mutationFn: async (
+						input: InferRequestType<typeof course.modules.$post>,
+					) => {
+						const res = await course.modules.$post(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
+					},
+					onSuccess: (_: any, input: any) => {
+						queryClient.invalidateQueries({
+							queryKey: queryOptions.modules.all({
+								param: {
+									id: input.param.id,
+								},
+							}).queryKey,
+						});
+						toast.success("Module created successfully");
+					},
+				},
+				delete: {
+					mutationFn: async (
+						input: InferRequestType<typeof module.$delete>,
+					) => {
+						const res = await module.$delete(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
+					},
+					onSuccess: (_: any, input: any) => {
+						queryClient.invalidateQueries({
+							queryKey: queryOptions.modules.all({
+								param: {
+									id: input.param.id,
+								},
+							}).queryKey,
+						});
+						toast.success("Module deleted successfully");
+					},
+				},
+			},
 		},
 		user: {
 			preferences: {
@@ -208,7 +303,6 @@ export const useMutationOptions = () => {
 				) => {
 					const res = await client.api.user.preferences.$put(input);
 					if (!res.ok) {
-						console.log("error from here");
 						throw new Error(await res.text());
 					}
 				},
@@ -258,13 +352,9 @@ export const useMutationOptions = () => {
 					}
 				},
 				onSuccess: () => {
-					queryClient.invalidateQueries({
-						queryKey: queryOptions.team.me({
-							query: {
-								"fallback-locale": "none",
-							},
-						}).queryKey,
-					});
+					//queryClient.invalidateQueries({
+					//	queryKey: ["team"],
+					//});
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.user.teams.queryKey,
 					});

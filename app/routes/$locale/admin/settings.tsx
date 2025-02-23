@@ -3,7 +3,6 @@ import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { queryOptions, useMutationOptions } from "@/lib/api";
-import { useLocale } from "@/lib/locale";
 import {
 	useMutation,
 	useQueryClient,
@@ -29,15 +28,18 @@ export const Route = createFileRoute("/$locale/admin/settings")({
 			queryOptions.team.images({
 				locale: preferences.locale,
 				teamId: team.id,
+				updatedAt: team.updatedAt,
 			}),
 		);
 	},
 });
 
 function RouteComponent() {
-	const locale = useLocale();
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
+	const { data: preferences } = useSuspenseQuery(
+		queryOptions.user.preferences,
+	);
 	const { data: team } = useSuspenseQuery(
 		queryOptions.team.me({
 			query: {
@@ -45,11 +47,11 @@ function RouteComponent() {
 			},
 		}),
 	);
-
 	const { data: images } = useSuspenseQuery(
 		queryOptions.team.images({
-			locale,
+			locale: preferences.locale,
 			teamId: team.id,
+			updatedAt: team.updatedAt,
 		}),
 	);
 

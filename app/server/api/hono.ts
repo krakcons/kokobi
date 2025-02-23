@@ -3,7 +3,6 @@ import { collectionsHandler } from "./handlers/collections";
 import { coursesHandler } from "./handlers/courses";
 import { keysHandler } from "./handlers/keys";
 import { learnersHandler } from "./handlers/learners";
-import { modulesHandler } from "./handlers/modules";
 import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
 import { userHandler } from "./handlers/user";
@@ -30,7 +29,6 @@ const routes = app
 	.route("/api/team", teamsHandler)
 	.route("/api/user", userHandler)
 	.route("/api/learners", learnersHandler)
-	.route("/api/modules", modulesHandler)
 	.route("/api/courses", coursesHandler)
 	.route("/api/keys", keysHandler)
 	.route("/api/collections", collectionsHandler);

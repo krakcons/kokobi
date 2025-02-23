@@ -1,11 +1,16 @@
 import { coursesData } from "@/server/db/courses";
 import { db } from "@/server/db/db";
 import { learnersData } from "@/server/db/learners";
-import { courseTranslations, courses, learners } from "@/server/db/schema";
+import {
+	courseTranslations,
+	courses,
+	learners,
+	modules,
+} from "@/server/db/schema";
 import { CourseFormSchema } from "@/types/course";
 import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
 import { zValidator } from "@hono/zod-validator";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, max } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import {
@@ -16,6 +21,10 @@ import {
 import { env } from "@/env";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { generateId } from "@/server/helpers";
+import { ModuleFormSchema } from "@/types/module";
+import { shouldIgnoreFile, validateModule } from "@/lib/module";
+import { FileSchema } from "@/types/file";
+import { s3 } from "bun";
 
 export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/", protectedMiddleware(), async (c) => {
@@ -224,4 +233,91 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 
 			return c.json(learners);
 		},
-	);
+	)
+	.get("/:id/modules", protectedMiddleware(), async (c) => {
+		const { id } = c.req.param();
+		const locale = c.get("editingLocale");
+
+		const moduleList = await db.query.modules.findMany({
+			where: and(eq(modules.courseId, id), eq(modules.language, locale)),
+			orderBy: desc(modules.versionNumber),
+		});
+
+		return c.json(moduleList);
+	})
+	.post(
+		"/:id/modules",
+		zValidator("form", ModuleFormSchema),
+		protectedMiddleware(),
+		async (c) => {
+			const { id } = c.req.param();
+			const teamId = c.get("teamId");
+			const locale = c.get("editingLocale");
+
+			const course = await db.query.courses.findFirst({
+				where: and(
+					eq(courses.id, id),
+					eq(courses.teamId, c.get("teamId")),
+				),
+			});
+
+			if (!course) {
+				throw new HTTPException(404, {
+					message: "Course not found.",
+				});
+			}
+
+			const moduleFile = c.req.valid("form").file;
+			const { entries, type } = await validateModule(moduleFile);
+
+			const newestModule = await db
+				.select({
+					versionNumber: max(modules.versionNumber),
+				})
+				.from(modules)
+				.where(
+					and(eq(modules.courseId, id), eq(modules.language, locale)),
+				);
+
+			const insertId = generateId(15);
+			const versionNumber =
+				newestModule.length > 0 && newestModule[0].versionNumber
+					? newestModule[0].versionNumber + 1
+					: 1;
+			await db.insert(modules).values({
+				id: insertId,
+				courseId: id,
+				type,
+				language: locale,
+				versionNumber,
+			});
+
+			Promise.all(
+				Object.entries(entries).map(async ([key, file]) => {
+					console.log("File", key);
+					if (shouldIgnoreFile(key)) {
+						return;
+					}
+					const blob = await file.blob();
+					s3.write(
+						`/${teamId}/courses/${id}/${locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
+						blob,
+					);
+				}),
+			);
+
+			return c.json({ id: insertId });
+		},
+	)
+	.delete("/:id/modules/:moduleId", protectedMiddleware(), async (c) => {
+		const { id, moduleId } = c.req.param();
+		const teamId = c.get("teamId");
+
+		await coursesData.get({ id }, teamId);
+
+		await db
+			.delete(modules)
+			.where(and(eq(modules.id, moduleId), eq(modules.courseId, id)));
+
+		return c.json(null);
+	});
