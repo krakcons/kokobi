@@ -39,8 +39,6 @@ export default $config({
 		});
 
 		const environment = {
-			TENANT_STAGE_NAME: tenantStage,
-			AWS_BUCKET: bucket.name,
 			PUBLIC_SITE_URL: LOCAL_STAGES.includes($app.stage)
 				? "http://localhost:3000"
 				: `https://${domain}`,

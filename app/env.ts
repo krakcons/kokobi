@@ -11,7 +11,6 @@ export const env = createEnv({
 		TEAM_ID_VERCEL: z.string().min(1),
 		PROJECT_ID_VERCEL: z.string().min(1),
 		AUTH_BEARER_TOKEN_VERCEL: z.string().min(1),
-		TENANT_STAGE_NAME: z.string().min(1),
 	},
 	clientPrefix: "PUBLIC_",
 	client: {

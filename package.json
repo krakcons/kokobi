@@ -3,6 +3,8 @@
 	"private": true,
 	"sideEffects": false,
 	"type": "module",
+	"module": "app/index.tsx",
+	"main": "app/index.tsx",
 	"scripts": {
 		"dev": "bun --hot app/index.tsx",
 		"generate-routes": "tsr generate",
@@ -39,16 +41,14 @@
 		"@tanstack/react-router-with-query": "^1.108.0",
 		"@tanstack/react-table": "^8.21.2",
 		"arctic": "^3.3.0",
-		"bun": "^1.2.3-canary.20250224.1",
+		"bun": "^1.2.3",
 		"bun-plugin-tailwind": "^0.0.14",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
-		"cmdk": "1.0.4",
 		"drizzle-orm": "^0.39.3",
 		"drizzle-zod": "^0.7.0",
 		"fast-xml-parser": "^5.0.6",
 		"hono": "^4.7.2",
-		"lucide": "^0.475.0",
 		"lucide-react": "^0.475.0",
 		"next-themes": "^0.4.4",
 		"pg": "^8.13.3",
@@ -84,7 +84,6 @@
 	"resolutions": {
 		"**/queue": "7.0.0"
 	},
-	"module": "index.ts",
 	"patchedDependencies": {
 		"@react-pdf/renderer@4.2.2": "patches/@react-pdf%2Frenderer@4.2.2.patch"
 	}
