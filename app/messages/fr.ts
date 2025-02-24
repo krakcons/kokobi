@@ -111,6 +111,11 @@ const fr: Messages = {
 			failed: "Échec",
 		},
 	},
+	Role: {
+		owner: "Propriétaire",
+		admin: "Administrateur",
+		member: "Membre",
+	},
 };
 
 export default fr;

@@ -109,6 +109,11 @@ const en = {
 			failed: "Failed",
 		},
 	},
+	Role: {
+		owner: "Owner",
+		admin: "Admin",
+		member: "Member",
+	},
 };
 
 export default en;

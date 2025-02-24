@@ -11,8 +11,8 @@ import { Module } from "@/types/module";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { locales, useTranslations } from "@/lib/locale";
-import dayjs from "dayjs";
+import { locales, useLocale, useTranslations } from "@/lib/locale";
+import { formatDate } from "@/lib/date";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -36,6 +36,7 @@ function RouteComponent() {
 		}),
 	);
 	const t = useTranslations("Learner");
+	const locale = useLocale();
 
 	const columns: ColumnDef<
 		Learner & { module: Module | null; joinLink?: string }
@@ -61,7 +62,7 @@ function RouteComponent() {
 		{
 			accessorKey: "startedAt",
 			accessorFn: ({ startedAt }) =>
-				dayjs(startedAt).format("DD-MMM-YYYY HH:mm:ss"),
+				formatDate({ date: startedAt, locale, type: "detailed" }),
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Started At" column={column} />
 			),
@@ -69,7 +70,7 @@ function RouteComponent() {
 		{
 			accessorKey: "completedAt",
 			accessorFn: ({ completedAt }) =>
-				dayjs(completedAt).format("DD-MMM-YYYY HH:mm:ss"),
+				formatDate({ date: completedAt, locale, type: "detailed" }),
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Completed At" column={column} />
 			),

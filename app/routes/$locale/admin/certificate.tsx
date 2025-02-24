@@ -31,7 +31,10 @@ function RouteComponent() {
 						teamLogo: `${window.location.origin}/cdn/${team.id}/${locale}/logo`,
 						name: "John Doe",
 						course: "Volunteer Training",
-						completedAt: formatDate(new Date(), locale),
+						completedAt: formatDate({
+							date: new Date(),
+							locale,
+						}),
 						text: {
 							title: t.pdf.title,
 							message: t.pdf.message,

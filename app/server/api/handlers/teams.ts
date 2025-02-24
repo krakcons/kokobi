@@ -50,6 +50,24 @@ const removeDomain = async ({
 };
 
 export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
+	.get("/members", protectedMiddleware(), async (c) => {
+		const teamId = c.get("teamId");
+
+		const members = await db.query.usersToTeams.findMany({
+			where: eq(usersToTeams.teamId, teamId),
+			with: {
+				user: true,
+			},
+		});
+
+		return c.json(
+			members.map(({ user, role, createdAt }) => ({
+				...user,
+				joinedAt: createdAt,
+				role,
+			})),
+		);
+	})
 	.get("/", protectedMiddleware(), localeInputMiddleware, async (c) => {
 		const teamId = c.get("teamId");
 

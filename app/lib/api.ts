@@ -101,6 +101,16 @@ export const queryOptions = {
 				return { logo, favicon };
 			},
 		}),
+		members: {
+			queryKey: ["members"],
+			queryFn: async () => {
+				const res = await client.api.team.members.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		},
 	},
 	courses: {
 		id: (input: InferRequestType<typeof course.$get>) => ({
