@@ -7,32 +7,23 @@ import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
 import { userHandler } from "./handlers/user";
 import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
-import { env } from "@/env";
 import { logger } from "hono/logger";
 
 const app = new Hono<{
 	Variables: HonoVariables;
-}>();
-
-app.use(logger());
-
-app.get("/cdn/**", async (c) => {
-	const url = env.PUBLIC_CDN_URL + c.req.path.split("/cdn")[1];
-	console.log("CDN", url);
-	return fetch(url, { ...c.req.raw });
-});
-
-const routes = app
+}>()
+	.use(logger())
+	.basePath("/api")
 	.use(authMiddleware)
 	.use(localeMiddleware)
-	.route("/api/auth", authHandler)
-	.route("/api/team", teamsHandler)
-	.route("/api/user", userHandler)
-	.route("/api/learners", learnersHandler)
-	.route("/api/courses", coursesHandler)
-	.route("/api/keys", keysHandler)
-	.route("/api/collections", collectionsHandler);
+	.route("/auth", authHandler)
+	.route("/team", teamsHandler)
+	.route("/user", userHandler)
+	.route("/learners", learnersHandler)
+	.route("/courses", coursesHandler)
+	.route("/keys", keysHandler)
+	.route("/collections", collectionsHandler);
 
 export default app;
 
-export type AppType = typeof routes;
+export type AppType = typeof app;

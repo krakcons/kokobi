@@ -48,7 +48,7 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 
 		return c.json(i18n);
 	})
-	.get("/preferences", protectedMiddleware(), async (c) => {
+	.get("/preferences", async (c) => {
 		return c.json({
 			teamId: c.get("teamId"),
 			locale: c.get("locale"),
@@ -57,7 +57,6 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 	})
 	.put(
 		"/preferences",
-		protectedMiddleware(),
 		zValidator(
 			"json",
 			z.object({
@@ -68,9 +67,14 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 		),
 		async (c) => {
 			const { teamId, locale, editingLocale } = c.req.valid("json");
-			const user = c.get("user");
 
 			if (teamId) {
+				const user = c.get("user");
+
+				if (!user) {
+					return c.text("Invalid session", 401);
+				}
+
 				const team = await db.query.usersToTeams.findFirst({
 					where: and(
 						eq(usersToTeams.teamId, teamId),

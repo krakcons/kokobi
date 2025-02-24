@@ -8,6 +8,8 @@ import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
 import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";
+import { FloatingPage } from "./components/Page";
+import { LoaderCircle } from "lucide-react";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +19,11 @@ const router = createTanStackRouter({
 	defaultPreload: "intent",
 	defaultErrorComponent: DefaultCatchBoundary,
 	defaultNotFoundComponent: () => <NotFound />,
+	defaultPendingComponent: () => (
+		<FloatingPage>
+			<LoaderCircle className="animate-spin size-12" />
+		</FloatingPage>
+	),
 	scrollRestoration: true,
 	Wrap: ({ children }) => {
 		return (

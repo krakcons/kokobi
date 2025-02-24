@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	Document,
 	Font,
@@ -34,7 +32,7 @@ Font.register({
 	],
 });
 
-Font.registerHyphenationCallback((word) => ["", word, ""]);
+Font.registerHyphenationCallback((word: any) => ["", word, ""]);
 
 // Create styles
 const styles = StyleSheet.create({
@@ -102,9 +100,7 @@ export const Certificate = ({
 						},
 					]}
 				>
-					{" " +
-						name +
-						" "}
+					{" " + name + " "}
 				</Text>
 				<View
 					style={{

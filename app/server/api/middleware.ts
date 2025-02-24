@@ -114,18 +114,6 @@ export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
 				"en",
 		);
 
-		const ignorePaths = ["/api", "/cdn"];
-		if (!ignorePaths.some((path) => c.req.path.startsWith(path))) {
-			// Handle locale
-			let pathLocale = c.req.path.split("/")[1];
-			if (!locales.some(({ value }) => value === pathLocale)) {
-				return c.redirect(`/${locale}${c.req.path}`);
-			} else {
-				c.set("locale", pathLocale as Locale);
-				setCookie(c, "locale", pathLocale);
-			}
-		}
-
 		const fallbackLocale = LocalizedInputSchema.shape.fallbackLocale.parse(
 			c.req.query("fallback-locale") ??
 				c.req.header("fallback-locale") ??

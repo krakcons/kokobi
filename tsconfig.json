@@ -1,5 +1,8 @@
 {
 	"compilerOptions": {
+		"include": [
+			"app/**/*"
+		],
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleResolution": "bundler",
