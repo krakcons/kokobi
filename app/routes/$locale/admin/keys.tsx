@@ -12,8 +12,17 @@ import { Key } from "@/types/keys";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, EyeOff } from "lucide-react";
+import { Clipboard, ClipboardCheck, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { APIKeyForm } from "@/components/forms/APIKeyForm";
 
 export const Route = createFileRoute("/$locale/admin/keys")({
 	component: RouteComponent,
@@ -37,9 +46,9 @@ const APIKeyCell = ({ secret }: { secret: string }) => {
 				onClick={() => setHidden(!hidden)}
 			>
 				{hidden ? (
-						<Eye className="size-5" />
+					<Eye className="size-5" />
 				) : (
-						<EyeOff className="size-5" />
+					<EyeOff className="size-5" />
 				)}
 			</Button>
 			<Button
@@ -53,11 +62,9 @@ const APIKeyCell = ({ secret }: { secret: string }) => {
 				}}
 			>
 				{copied ? (
-					<></>
+					<ClipboardCheck className="size-5" />
 				) : (
-					//<ClipboardCheck className="size-5" />
-					<></>
-					//<Clipboard className="size-5" />
+					<Clipboard className="size-5" />
 				)}
 			</Button>
 		</div>
@@ -67,10 +74,12 @@ const APIKeyCell = ({ secret }: { secret: string }) => {
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
+	const [open, setOpen] = useState(false);
 
 	const { data: keys } = useSuspenseQuery(queryOptions.keys.all);
 
 	const mutationOptions = useMutationOptions();
+	const createKey = useMutation(mutationOptions.keys.create);
 	const deleteKey = useMutation(mutationOptions.keys.delete);
 
 	const columns: ColumnDef<Key>[] = [
@@ -103,9 +112,39 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title="Keys" description="Manage your API keys" />
+			<PageHeader title="Keys" description="Manage your API keys">
+				<Dialog onOpenChange={setOpen} open={open}>
+					<DialogTrigger asChild>
+						<Button variant="outline">Create Key</Button>
+					</DialogTrigger>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Create API Key</DialogTitle>
+							<DialogDescription>
+								Enter the key name below.
+							</DialogDescription>
+						</DialogHeader>
+						<APIKeyForm
+							onSubmit={(values) => {
+								createKey.mutate(
+									{ json: values },
+									{
+										onSuccess: () => {
+											setOpen(false);
+										},
+									},
+								);
+							}}
+						/>
+					</DialogContent>
+				</Dialog>
+			</PageHeader>
 			<DataTable
-				data={keys}
+				data={keys.map((key) => ({
+					...key,
+					createdAt: new Date(key.createdAt),
+					updatedAt: new Date(key.updatedAt),
+				}))}
 				columns={columns}
 				search={search}
 				onSearchChange={(search) => {

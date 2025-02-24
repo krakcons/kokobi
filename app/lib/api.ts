@@ -1,4 +1,5 @@
 import { AppType } from "@/server/api/hono";
+import { APIKeyForm } from "@/types/keys";
 import { useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
@@ -176,6 +177,21 @@ export const useMutationOptions = () => {
 
 	return {
 		keys: {
+			create: {
+				mutationFn: async (
+					input: InferRequestType<typeof client.api.keys.$post>,
+				) => {
+					const res = await client.api.keys.$post(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+				},
+				onSuccess: () => {
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.keys.all.queryKey,
+					});
+				},
+			},
 			delete: {
 				mutationFn: async (
 					input: InferRequestType<typeof key.$delete>,

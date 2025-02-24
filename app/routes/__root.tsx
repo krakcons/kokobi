@@ -1,4 +1,3 @@
-import { NotFound } from "@/components/NotFound";
 import { client, queryOptions } from "@/lib/api";
 import { IntlProvider, Locale, locales } from "@/lib/locale";
 import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
@@ -10,8 +9,6 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import "../styles/app.css";
-import { FloatingPage } from "@/components/Page";
-import { Loader2 } from "lucide-react";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -38,12 +35,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				});
 			}
 		},
-		pendingComponent: () => (
-			<FloatingPage>
-				<Loader2 className="animate-spin" />
-			</FloatingPage>
-		),
-		notFoundComponent: () => <NotFound />,
 		component: RootComponent,
 	},
 );

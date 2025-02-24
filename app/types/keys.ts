@@ -9,3 +9,8 @@ export const CreateKeySchema = createInsertSchema(keys).omit({
 	key: true,
 });
 export type CreateKey = z.infer<typeof CreateKeySchema>;
+
+export const APIKeyFormSchema = z.object({
+	name: z.string().min(1),
+});
+export type APIKeyFormType = z.infer<typeof APIKeyFormSchema>;
