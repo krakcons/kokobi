@@ -14,28 +14,26 @@ import { LoaderCircle } from "lucide-react";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
-		beforeLoad: async ({ context: { queryClient } }) => {
-			const i18n = await queryClient.ensureQueryData(
+		beforeLoad: async ({ context: { queryClient }, location }) => {
+			const { locale } = await queryClient.ensureQueryData(
 				queryOptions.user.i18n,
 			);
 
 			// Handle locale
-			let locale = location.pathname.split("/")[1];
-			if (!locales.some(({ value }) => value === locale)) {
-				locale = i18n.locale;
+			let pathLocale = location.pathname.split("/")[1];
+			if (!locales.some(({ value }) => value === pathLocale)) {
 				throw redirect({
 					replace: true,
-					to: "/$locale/admin",
-					params: { locale },
-					search: (p) => p,
-				});
-			} else {
-				await client.api.user.preferences.$put({
-					json: {
-						locale: locale as Locale,
-					},
+					reloadDocument: true,
+					href: `/${locale}${location.href}`,
 				});
 			}
+
+			await client.api.user.preferences.$put({
+				json: {
+					locale: pathLocale as Locale,
+				},
+			});
 		},
 		pendingComponent: () => (
 			<FloatingPage>
