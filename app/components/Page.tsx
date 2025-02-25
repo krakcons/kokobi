@@ -29,7 +29,7 @@ export const PageHeader = ({
 	children?: React.ReactNode;
 }) => (
 	<div className="flex flex-col gap-2">
-		<div className="flex items-center justify-between">
+		<div className="flex items-end justify-between">
 			<div className="flex flex-col gap-2">
 				<h1>{title}</h1>
 				<p>{description}</p>

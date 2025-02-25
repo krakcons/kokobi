@@ -21,6 +21,7 @@ import { Module } from "@/types/module";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/modules")({
@@ -90,8 +91,9 @@ function RouteComponent() {
 			>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
-						<Button variant="outline" className="mr-4">
-							Create Module
+						<Button>
+							<Plus />
+							Create
 						</Button>
 					</DialogTrigger>
 					<DialogContent>

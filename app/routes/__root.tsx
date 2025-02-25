@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import "../styles/app.css";
+import { FloatingPage } from "@/components/Page";
+import { LoaderCircle } from "lucide-react";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -35,6 +37,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				});
 			}
 		},
+		pendingComponent: () => (
+			<FloatingPage>
+				<LoaderCircle className="animate-spin size-12" />
+			</FloatingPage>
+		),
 		component: RootComponent,
 	},
 );
@@ -44,11 +51,11 @@ function RootComponent() {
 
 	return (
 		<>
-			<HeadContent />
 			<IntlProvider i18n={i18n}>
+				<HeadContent />
 				<Outlet />
+				<Toaster />
 			</IntlProvider>
-			<Toaster />
 		</>
 	);
 }

@@ -4,12 +4,11 @@ import {
 	RouterProvider,
 } from "@tanstack/react-router";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
-import { NotFound } from "./components/NotFound";
 import { routeTree } from "./routeTree.gen";
 import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";
-import { FloatingPage } from "./components/Page";
-import { LoaderCircle } from "lucide-react";
+import { ThemeProvider } from "./lib/theme";
+import { PendingComponent } from "./components/PendingComponent";
 
 const queryClient = new QueryClient();
 
@@ -18,17 +17,12 @@ const router = createTanStackRouter({
 	context: { queryClient },
 	defaultPreload: "intent",
 	defaultErrorComponent: DefaultCatchBoundary,
-	defaultNotFoundComponent: () => <NotFound />,
-	defaultPendingComponent: () => (
-		<FloatingPage>
-			<LoaderCircle className="animate-spin size-12" />
-		</FloatingPage>
-	),
 	scrollRestoration: true,
+	defaultPendingComponent: PendingComponent,
 	Wrap: ({ children }) => {
 		return (
 			<QueryClientProvider client={queryClient}>
-				{children}
+				<ThemeProvider defaultTheme="system">{children}</ThemeProvider>
 			</QueryClientProvider>
 		);
 	},

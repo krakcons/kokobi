@@ -63,8 +63,12 @@ import {
 	Webhook,
 	Book,
 	FileBadge,
+	Moon,
+	Sun,
+	SunMoon,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Theme, useTheme } from "@/lib/theme";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -107,6 +111,7 @@ export const Route = createFileRoute("/$locale/admin")({
 });
 
 const AdminSidebar = () => {
+	const { theme, setTheme } = useTheme();
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const locale = useLocale();
@@ -540,6 +545,35 @@ const AdminSidebar = () => {
 				</SidebarGroup>
 			</SidebarContent>
 			<SidebarFooter>
+				<SidebarMenuItem>
+					<SidebarMenuButton asChild>
+						<Select
+							value={theme}
+							onValueChange={(value: Theme) => {
+								setTheme(value);
+							}}
+						>
+							<SelectTrigger>
+								<p className="font-medium">Theme</p>
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="light">
+									<Sun />
+									Light
+								</SelectItem>
+								<SelectItem value="dark">
+									<Moon />
+									Dark
+								</SelectItem>
+								<SelectItem value="system">
+									<SunMoon />
+									System
+								</SelectItem>
+							</SelectContent>
+						</Select>
+					</SidebarMenuButton>
+				</SidebarMenuItem>
 				<SidebarMenuItem>
 					<SidebarMenuButton asChild>
 						<a href="/api/auth/signout">

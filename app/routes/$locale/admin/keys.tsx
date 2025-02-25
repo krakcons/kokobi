@@ -12,7 +12,7 @@ import { Key } from "@/types/keys";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Clipboard, ClipboardCheck, Eye, EyeOff } from "lucide-react";
+import { Clipboard, ClipboardCheck, Eye, EyeOff, Plus } from "lucide-react";
 import { useState } from "react";
 import {
 	Dialog,
@@ -115,7 +115,10 @@ function RouteComponent() {
 			<PageHeader title="Keys" description="Manage your API keys">
 				<Dialog onOpenChange={setOpen} open={open}>
 					<DialogTrigger asChild>
-						<Button variant="outline">Create Key</Button>
+						<Button>
+							<Plus />
+							Create
+						</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
