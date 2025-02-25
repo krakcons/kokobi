@@ -10,7 +10,6 @@ import {
 	timestamp,
 	uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { generateId } from "../helpers";
 
 // Enums
 
@@ -65,9 +64,7 @@ export const usersToTeams = pgTable(
 );
 
 export const keys = pgTable("keys", {
-	id: text("id")
-		.primaryKey()
-		.$default(() => generateId(15)),
+	id: text("id").primaryKey().notNull(),
 	teamId: text("teamId")
 		.notNull()
 		.references(() => teams.id, {
@@ -92,10 +89,7 @@ export const sessions = pgTable("sessions", {
 });
 
 export const collections = pgTable("collections", {
-	id: text("id")
-		.primaryKey()
-		.notNull()
-		.$default(() => generateId(15)),
+	id: text("id").primaryKey().notNull(),
 	teamId: text("teamId")
 		.notNull()
 		.references(() => teams.id, {
@@ -123,10 +117,7 @@ export const collectionsToCourses = pgTable(
 );
 
 export const courses = pgTable("courses", {
-	id: text("id")
-		.primaryKey()
-		.notNull()
-		.$default(() => generateId(15)),
+	id: text("id").primaryKey().notNull(),
 	teamId: text("teamId")
 		.notNull()
 		.references(() => teams.id, {
@@ -141,10 +132,7 @@ export const courses = pgTable("courses", {
 });
 
 export const modules = pgTable("modules", {
-	id: text("id")
-		.primaryKey()
-		.notNull()
-		.$default(() => generateId(15)),
+	id: text("id").primaryKey().notNull(),
 	courseId: text("courseId")
 		.notNull()
 		.references(() => courses.id, {
@@ -159,10 +147,7 @@ export const modules = pgTable("modules", {
 export const learners = pgTable(
 	"learners",
 	{
-		id: text("id")
-			.primaryKey()
-			.notNull()
-			.$default(() => generateId(32)),
+		id: text("id").primaryKey().notNull(),
 		courseId: text("courseId").notNull(),
 		moduleId: text("moduleId").references(() => modules.id, {
 			onDelete: "cascade",

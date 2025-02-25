@@ -1,8 +1,4 @@
-import { sha256 } from "@oslojs/crypto/sha2";
-import {
-	encodeBase32LowerCaseNoPadding,
-	encodeHexLowerCase,
-} from "@oslojs/encoding";
+// Based on: https://thecopenhagenbook.com
 import { eq } from "drizzle-orm";
 import { db } from "../db/db";
 import { Session, sessions, User, users } from "../db/schema";
@@ -11,20 +7,17 @@ export type SessionValidationResult =
 	| { session: Session; user: User }
 	| { session: null; user: null };
 
-export function generateSessionToken(): string {
-	const bytes = new Uint8Array(20);
-	crypto.getRandomValues(bytes);
-	const token = encodeBase32LowerCaseNoPadding(bytes);
-	return token;
-}
+const hash = (text: string): string => {
+	const hash = new Bun.CryptoHasher("sha256");
+	hash.update(text);
+	return hash.digest("hex");
+};
 
 export async function createSession(
 	token: string,
 	userId: string,
 ): Promise<Session> {
-	const sessionId = encodeHexLowerCase(
-		sha256(new TextEncoder().encode(token)),
-	);
+	const sessionId = hash(token);
 	const session: Session = {
 		id: sessionId,
 		userId,
@@ -37,9 +30,7 @@ export async function createSession(
 export async function validateSessionToken(
 	token: string,
 ): Promise<SessionValidationResult> {
-	const sessionId = encodeHexLowerCase(
-		sha256(new TextEncoder().encode(token)),
-	);
+	const sessionId = hash(token);
 	const result = await db
 		.select({ user: users, session: sessions })
 		.from(sessions)
@@ -66,8 +57,6 @@ export async function validateSessionToken(
 }
 
 export async function invalidateSession(token: string): Promise<void> {
-	const sessionId = encodeHexLowerCase(
-		sha256(new TextEncoder().encode(token)),
-	);
+	const sessionId = hash(token);
 	await db.delete(sessions).where(eq(sessions.id, sessionId));
 }

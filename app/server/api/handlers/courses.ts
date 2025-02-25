@@ -20,10 +20,8 @@ import {
 } from "../middleware";
 import { env } from "@/env";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { generateId } from "@/server/helpers";
 import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
-import { FileSchema } from "@/types/file";
 import { s3 } from "bun";
 
 export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
@@ -68,7 +66,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			const input = c.req.valid("json");
 			const language = c.get("locale");
 
-			const courseId = generateId(15);
+			const courseId = Bun.randomUUIDv7();
 
 			await db.insert(courses).values({
 				id: courseId,
@@ -279,7 +277,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 					and(eq(modules.courseId, id), eq(modules.language, locale)),
 				);
 
-			const insertId = generateId(15);
+			const insertId = Bun.randomUUIDv7();
 			const versionNumber =
 				newestModule.length > 0 && newestModule[0].versionNumber
 					? newestModule[0].versionNumber + 1

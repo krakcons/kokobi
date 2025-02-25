@@ -5,7 +5,6 @@ import { env } from "@/env";
 import { translate } from "@/lib/translation";
 import { db } from "@/server/db/db";
 import { learners, teams } from "@/server/db/schema";
-import { generateId } from "@/server/helpers";
 import { Collection, CollectionTranslation } from "@/types/collections";
 import { Course, CourseTranslation } from "@/types/course";
 import {
@@ -199,7 +198,7 @@ export const learnersData = {
 				// Create a new learner
 				return {
 					...learner,
-					id: generateId(32),
+					id: Bun.randomUUIDv7(),
 					moduleId: null,
 					courseId: id,
 					data: {},

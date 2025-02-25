@@ -1,13 +1,11 @@
 import { Context, Hono } from "hono";
 import {
 	createSession,
-	generateSessionToken,
 	invalidateSession,
 	validateSessionToken,
 } from "@/server/auth";
 import { google } from "@/server/auth/providers";
 import { db, users, usersToTeams } from "@/server/db/db";
-import { generateId } from "@/server/helpers";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
@@ -39,7 +37,7 @@ const handleUser = async (
 	});
 
 	if (!existingUser) {
-		userId = generateId(15);
+		userId = Bun.randomUUIDv7();
 		await db.insert(users).values({
 			id: userId,
 			email,
@@ -49,7 +47,7 @@ const handleUser = async (
 		userId = existingUser.id;
 	}
 
-	const token = generateSessionToken();
+	const token = Bun.randomUUIDv7();
 	await createSession(token, userId);
 
 	setCookie(c, "auth_session", token, {

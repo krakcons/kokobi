@@ -1,12 +1,12 @@
 import { db } from "@/server/db/db";
 import { keys } from "@/server/db/schema";
-import { generateId } from "@/server/helpers";
-import { CreateKeySchema } from "@/types/keys";
+import { APIKeyFormSchema } from "@/types/keys";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { protectedMiddleware } from "../middleware";
+import { generateRandomString } from "@/server/random";
 
 export const keysHandler = new Hono()
 	.get("/", protectedMiddleware(), async (c) => {
@@ -20,17 +20,19 @@ export const keysHandler = new Hono()
 	})
 	.post(
 		"/",
-		zValidator("json", CreateKeySchema.omit({ teamId: true })),
+		zValidator("json", APIKeyFormSchema),
 		protectedMiddleware(),
 		async (c) => {
 			const teamId = c.get("teamId");
 			const { name } = c.req.valid("json");
 
+			const key = generateRandomString(32);
+
 			await db.insert(keys).values({
-				id: generateId(15),
+				id: Bun.randomUUIDv7(),
 				name,
 				teamId,
-				key: generateId(32),
+				key,
 			});
 
 			return c.json(null);

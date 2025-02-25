@@ -39,6 +39,7 @@ export const collectionsHandler = new Hono()
 				.insert(collections)
 				.values({
 					...input,
+					id: Bun.randomUUIDv7(),
 					teamId,
 				})
 				.returning();

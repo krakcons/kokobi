@@ -6,7 +6,6 @@ import {
 	users,
 	usersToTeams,
 } from "@/server/db/schema";
-import { generateId } from "@/server/helpers";
 import { s3 } from "bun";
 import { resend } from "@/server/resend";
 import { InviteMemberFormSchema, Team, TeamFormSchema } from "@/types/team";
@@ -105,7 +104,7 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			await s3.write(`${teamId}/${locale}/favicon`, input.favicon);
 		}
 
-		const id = generateId(15);
+		const id = Bun.randomUUIDv7();
 		await db.insert(teams).values({ id });
 		await db.insert(teamTranslations).values({
 			name: input.name,
