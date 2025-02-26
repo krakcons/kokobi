@@ -1,12 +1,12 @@
-import { db } from "@/server/db/db";
-import { keys } from "@/server/db/schema";
+import { db } from "@/api/db";
+import { keys } from "@/api/db/schema";
 import { APIKeyFormSchema } from "@/types/keys";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { protectedMiddleware } from "../middleware";
-import { generateRandomString } from "@/server/random";
+import { generateRandomString } from "@/api/random";
 
 export const keysHandler = new Hono()
 	.get("/", protectedMiddleware(), async (c) => {

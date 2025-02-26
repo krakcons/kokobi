@@ -1,4 +1,4 @@
-import app from "./server/api/hono";
+import app from "./api";
 import index from "./index.html";
 import { env } from "./env";
 

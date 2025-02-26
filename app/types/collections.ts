@@ -1,4 +1,4 @@
-import { collectionTranslations, collections } from "@/server/db/schema";
+import { collectionTranslations, collections } from "@/api/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,7 +12,7 @@ export const CreateCollectionSchema = CollectionSchema.omit({
 export type CreateCollection = z.infer<typeof CreateCollectionSchema>;
 
 export const CollectionTranslationSchema = createSelectSchema(
-	collectionTranslations
+	collectionTranslations,
 );
 export type CollectionTranslation = z.infer<typeof CollectionTranslationSchema>;
 

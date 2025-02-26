@@ -1,11 +1,11 @@
-import { db } from "@/server/db/db";
-import { learnersData } from "@/server/db/learners";
+import { db } from "@/api/db";
+import { learnersData } from "@/api/learners";
 import {
 	courseTranslations,
 	courses,
 	learners,
 	modules,
-} from "@/server/db/schema";
+} from "@/api/db/schema";
 import { CourseFormSchema } from "@/types/course";
 import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
 import { zValidator } from "@hono/zod-validator";

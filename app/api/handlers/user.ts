@@ -4,7 +4,8 @@ import {
 	localeInputMiddleware,
 	protectedMiddleware,
 } from "../middleware";
-import { db, usersToTeams } from "@/server/db/db";
+import { db } from "@/api/db";
+import { usersToTeams } from "@/api/db/schema";
 import { and, eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";

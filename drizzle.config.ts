@@ -3,7 +3,7 @@ import { Resource } from "sst";
 
 export default defineConfig({
 	dialect: "postgresql",
-	schema: ["./app/server/db/schema.ts"],
+	schema: ["./app/api/db/schema.ts"],
 	out: "./migrations",
 	dbCredentials: {
 		database: `${Resource.App.name}-${Resource.App.stage}`,

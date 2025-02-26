@@ -1,4 +1,4 @@
-import { keys } from "@/server/db/schema";
+import { keys } from "@/api/db/schema";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 

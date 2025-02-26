@@ -2,7 +2,7 @@
 
 const PROFILE = "krak";
 const LOCAL_STAGES = ["billyhawkes"];
-const ROOT_DOMAIN = "nuonn.com";
+const ROOT_DOMAIN = "kokobi.org";
 const STAGES = ["prod", "dev", ...LOCAL_STAGES];
 
 export default $config({
@@ -27,7 +27,10 @@ export default $config({
 		}
 		const tenantStage = `${$app.name}-${$app.stage}`;
 
-		const domain = `${$app.stage}.${ROOT_DOMAIN}`;
+		const domain =
+			$app.stage === "prod"
+				? ROOT_DOMAIN
+				: `${$app.stage}.${ROOT_DOMAIN}`;
 
 		const vpc = sst.aws.Vpc.get("Vpc", "vpc-08c28b23ee20f3975");
 		const aurora = sst.aws.Aurora.get("Aurora", "krak-prod-auroracluster");
@@ -61,14 +64,16 @@ export default $config({
 			},
 			environment,
 		});
-		const api = new sst.aws.ApiGatewayV2("Api", {
-			vpc,
-			domain: {
-				name: domain,
-				dns,
-			},
-		});
-		api.routePrivate("$default", service.nodes.cloudmapService.arn);
+		if (!LOCAL_STAGES.includes($app.stage)) {
+			const api = new sst.aws.ApiGatewayV2("Api", {
+				vpc,
+				domain: {
+					name: domain,
+					dns,
+				},
+			});
+			api.routePrivate("$default", service.nodes.cloudmapService.arn);
+		}
 
 		new sst.x.DevCommand("Studio", {
 			link: [aurora],

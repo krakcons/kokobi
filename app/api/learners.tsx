@@ -3,8 +3,8 @@ import CourseCompletion from "@/emails/CourseCompletion";
 import { CourseInvite } from "@/emails/CourseInvite";
 import { env } from "@/env";
 import { translate } from "@/lib/translation";
-import { db } from "@/server/db/db";
-import { learners, modules, teams } from "@/server/db/schema";
+import { db } from "@/api/db";
+import { learners, modules, teams } from "@/api/db/schema";
 import { Collection, CollectionTranslation } from "@/types/collections";
 import { Course, CourseTranslation } from "@/types/course";
 import {
@@ -18,7 +18,6 @@ import { render } from "@react-email/components";
 import { and, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import React, { cache } from "react";
-import { isResendVerified, resend } from "../resend";
 import { createTranslator } from "@/lib/locale/actions";
 
 export const learnersData = {
@@ -157,23 +156,7 @@ export const learnersData = {
 				}),
 			);
 
-			const domainVerified = await isResendVerified(
-				learner.course.team.resendDomainId,
-			);
-			const { error } = await resend.emails.send({
-				html,
-				to: learner.email,
-				subject: courseTranslation.name,
-				from: `${teamTranslation.name} <noreply@${learner.course.team.customDomain && domainVerified ? learner.course.team.customDomain : "lcds.krakconsultants.com"}>`,
-				replyTo: `${teamTranslation.name} <noreply@${learner.course.team.customDomain && domainVerified ? learner.course.team.customDomain : "lcds.krakconsultants.com"}>`,
-			});
-
-			if (error) {
-				throw new HTTPException(500, {
-					message: "Failed to send email",
-					cause: error,
-				});
-			}
+			// TODO: Send email
 		}
 
 		return { ...newLearner, completedAt };
@@ -365,21 +348,7 @@ export const learnersData = {
 			}),
 		);
 
-		const domainVerified = await isResendVerified(team.resendDomainId);
-		const { error } = await resend.emails.send({
-			html,
-			to: email,
-			subject: `${t.Email.CollectionInvite.subject} ${collectionTranslation.name}`,
-			from: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
-			replyTo: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
-		});
-
-		if (error) {
-			throw new HTTPException(500, {
-				message: "Failed to send email",
-				cause: error,
-			});
-		}
+		// TODO: Send email
 	},
 	courseInvite: async ({
 		email,
@@ -436,20 +405,6 @@ export const learnersData = {
 			}),
 		);
 
-		const domainVerified = await isResendVerified(team.resendDomainId);
-		const { error } = await resend.emails.send({
-			html,
-			to: email,
-			subject: `${t.Email.CourseInvite.subject} ${courseTranslation.name}`,
-			from: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
-			replyTo: `${teamTranslation.name} <noreply@${team.customDomain && domainVerified ? team.customDomain : "lcds.krakconsultants.com"}>`,
-		});
-
-		if (error) {
-			throw new HTTPException(500, {
-				message: "Failed to send email",
-				cause: error,
-			});
-		}
+		// TODO: Send email
 	},
 };

@@ -1,5 +1,4 @@
-import { AppType } from "@/server/api/hono";
-import { APIKeyForm } from "@/types/keys";
+import { AppType } from "@/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";

@@ -3,14 +3,22 @@ import {
 	createSession,
 	invalidateSession,
 	validateSessionToken,
-} from "@/server/auth";
-import { google } from "@/server/auth/providers";
-import { db, users, usersToTeams } from "@/server/db/db";
+} from "@/api/auth";
+import { db } from "@/api/db";
+import { users, usersToTeams } from "@/api/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { generateCodeVerifier, generateState } from "arctic";
 import { env } from "@/env";
+
+import { Google } from "arctic";
+
+export const google = new Google(
+	env.GOOGLE_CLIENT_ID,
+	env.GOOGLE_CLIENT_SECRET,
+	`${env.PUBLIC_SITE_URL}/api/auth/google/callback`,
+);
 
 const GoogleCallbackSchema = z
 	.object({

@@ -2,8 +2,6 @@ import { relationSchemas, tableSchemas } from "./schema";
 import { Resource } from "sst";
 import { drizzle } from "drizzle-orm/bun-sql";
 
-export * from "./schema";
-
 const schema = {
 	...tableSchemas,
 	...relationSchemas,

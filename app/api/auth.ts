@@ -1,7 +1,7 @@
 // Based on: https://thecopenhagenbook.com
 import { eq } from "drizzle-orm";
-import { db } from "../db/db";
-import { Session, sessions, User, users } from "../db/schema";
+import { db } from "./db";
+import { Session, sessions, User, users } from "./db/schema";
 
 export type SessionValidationResult =
 	| { session: Session; user: User }
