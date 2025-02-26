@@ -1,4 +1,3 @@
-import { coursesData } from "@/server/db/courses";
 import { db } from "@/server/db/db";
 import { learnersData } from "@/server/db/learners";
 import {
@@ -142,7 +141,11 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");
 
-		await coursesData.delete({ id }, teamId);
+		await db
+			.delete(courses)
+			.where(and(eq(courses.id, id), eq(courses.teamId, teamId)));
+
+		// TODO: DELETE full course (waiting on bun s3 list function)
 
 		return c.json(null);
 	})
@@ -310,8 +313,6 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	.delete("/:id/modules/:moduleId", protectedMiddleware(), async (c) => {
 		const { id, moduleId } = c.req.param();
 		const teamId = c.get("teamId");
-
-		await coursesData.get({ id }, teamId);
 
 		await db
 			.delete(modules)

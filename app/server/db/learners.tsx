@@ -4,7 +4,7 @@ import { CourseInvite } from "@/emails/CourseInvite";
 import { env } from "@/env";
 import { translate } from "@/lib/translation";
 import { db } from "@/server/db/db";
-import { learners, teams } from "@/server/db/schema";
+import { learners, modules, teams } from "@/server/db/schema";
 import { Collection, CollectionTranslation } from "@/types/collections";
 import { Course, CourseTranslation } from "@/types/course";
 import {
@@ -19,8 +19,6 @@ import { and, eq, inArray } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import React, { cache } from "react";
 import { isResendVerified, resend } from "../resend";
-import { svix } from "../svix";
-import { modulesData } from "./modules";
 import { createTranslator } from "@/lib/locale/actions";
 
 export const learnersData = {
@@ -43,7 +41,17 @@ export const learnersData = {
 	update: async ({ id, moduleId, data }: UpdateLearner) => {
 		let courseModule;
 		if (moduleId) {
-			courseModule = await modulesData.get({ id: moduleId });
+			const module = await db.query.modules.findFirst({
+				where: and(eq(modules.id, moduleId)),
+			});
+
+			if (!module) {
+				throw new HTTPException(404, {
+					message: "Module not found.",
+				});
+			}
+
+			courseModule = module;
 		}
 		const learner = await db.query.learners.findFirst({
 			where: and(eq(learners.id, id)),
@@ -111,15 +119,6 @@ export const learnersData = {
 				});
 			}
 
-			try {
-				await svix.message.create(`app_${learner.courseId}`, {
-					eventType: "learner.complete",
-					payload: newLearner,
-				});
-			} catch (e) {
-				console.error(e);
-			}
-
 			const href =
 				learner.course.team?.customDomain &&
 				env.PUBLIC_SITE_URL !== "http://localhost:3000"
@@ -175,15 +174,6 @@ export const learnersData = {
 					cause: error,
 				});
 			}
-		}
-
-		try {
-			await svix.message.create(`app_${learner.courseId}`, {
-				eventType: "learner.update",
-				payload: newLearner,
-			});
-		} catch (e) {
-			console.error(e);
 		}
 
 		return { ...newLearner, completedAt };
@@ -297,29 +287,9 @@ export const learnersData = {
 		if (learnerList.length === 1) {
 			const newLearner = ExtendLearner().parse(learnerList[0]);
 
-			try {
-				await svix.message.create(`app_${newLearner.courseId}`, {
-					eventType: "learner.created",
-					payload: newLearner,
-				});
-			} catch (e) {
-				console.error(e);
-			}
 			return newLearner;
 		} else {
 			const newLearners = ExtendLearner().array().parse(learnerList);
-			try {
-				await Promise.allSettled(
-					newLearners.map((learner) => {
-						return svix.message.create(`app_${learner.courseId}`, {
-							eventType: "learner.created",
-							payload: learner,
-						});
-					}),
-				);
-			} catch (e) {
-				console.error(e);
-			}
 			return newLearners;
 		}
 	},

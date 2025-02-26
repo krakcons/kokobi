@@ -39,6 +39,7 @@ export default $config({
 		});
 
 		const environment = {
+			AWS_BUCKET: bucket.name,
 			PUBLIC_SITE_URL: LOCAL_STAGES.includes($app.stage)
 				? "http://localhost:3000"
 				: `https://${domain}`,
@@ -49,21 +50,25 @@ export default $config({
 		};
 
 		const cluster = new sst.aws.Cluster("Cluster", { vpc });
-		new sst.aws.Service("Bun", {
+		const service = new sst.aws.Service("Bun", {
 			link: [bucket, aurora],
 			cluster,
-			loadBalancer: {
-				domain: {
-					name: domain,
-					dns,
-				},
-				ports: [{ listen: "80/http", forward: "3000/http" }],
+			serviceRegistry: {
+				port: 3000,
 			},
 			dev: {
 				command: "bun dev",
 			},
 			environment,
 		});
+		const api = new sst.aws.ApiGatewayV2("Api", {
+			vpc,
+			domain: {
+				name: domain,
+				dns,
+			},
+		});
+		api.routePrivate("$default", service.nodes.cloudmapService.arn);
 
 		new sst.x.DevCommand("Studio", {
 			link: [aurora],

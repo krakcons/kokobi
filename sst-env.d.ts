@@ -5,6 +5,10 @@
 
 declare module "sst" {
   export interface Resource {
+    "Api": {
+      "type": "sst.aws.ApiGatewayV2"
+      "url": string
+    }
     "Aurora": {
       "clusterArn": string
       "database": string
@@ -23,7 +27,6 @@ declare module "sst" {
     "Bun": {
       "service": string
       "type": "sst.aws.Service"
-      "url": string
     }
     "Vpc": {
       "bastion": string
