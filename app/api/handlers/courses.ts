@@ -21,7 +21,7 @@ import { env } from "@/env";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
-import { s3 } from "bun";
+import { s3 } from "@/api/s3";
 
 export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/", protectedMiddleware(), async (c) => {

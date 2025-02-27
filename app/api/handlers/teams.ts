@@ -1,6 +1,6 @@
 import { db } from "@/api/db";
 import { teamTranslations, teams, users, usersToTeams } from "@/api/db/schema";
-import { s3 } from "bun";
+import { s3 } from "@/api/s3";
 import { InviteMemberFormSchema, TeamFormSchema } from "@/types/team";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";

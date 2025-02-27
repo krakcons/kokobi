@@ -25,7 +25,6 @@ export default $config({
 		if (!STAGES.includes($app.stage)) {
 			throw new Error(`Stage ${$app.stage} not found`);
 		}
-		const tenantStage = `${$app.name}-${$app.stage}`;
 
 		const domain =
 			$app.stage === "prod"
@@ -42,7 +41,12 @@ export default $config({
 		});
 
 		const environment = {
-			AWS_BUCKET: bucket.name,
+			GOOGLE_CLIENT_SECRET: new sst.Secret("GOOGLE_CLIENT_SECRET").value,
+			GOOGLE_CLIENT_ID: new sst.Secret("GOOGLE_CLIENT_ID").value,
+			// Bun adapters
+			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-${$app.stage}`,
+			S3_BUCKET: bucket.name,
+			// URLS
 			PUBLIC_SITE_URL: LOCAL_STAGES.includes($app.stage)
 				? "http://localhost:3000"
 				: `https://${domain}`,
@@ -84,7 +88,7 @@ export default $config({
 		});
 
 		return {
-			Database: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${tenantStage}`,
+			BUCKET: bucket.arn,
 		};
 	},
 });

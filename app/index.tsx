@@ -1,10 +1,11 @@
+import { serve } from "bun";
 import app from "./api";
 import index from "./index.html";
 import { env } from "./env";
 
-const server = Bun.serve({
-	port: 3000,
+const server = serve({
 	routes: {
+		"/*": index,
 		"/favicon.ico": new Response(
 			await Bun.file("./app/assets/favicon.ico").bytes(),
 			{
@@ -62,9 +63,8 @@ const server = Bun.serve({
 		"/cdn/*": (req) => {
 			return fetch(env.PUBLIC_CDN_URL + req.url.split("/cdn")[1]);
 		},
-		"/*": index,
 	},
-	development: true,
+	development: process.env.NODE_ENV !== "production",
 	maxRequestBodySize: 1024 * 1024 * 1024, // 1GB
 });
 

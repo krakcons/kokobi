@@ -1,6 +1,6 @@
 import { relationSchemas, tableSchemas } from "./schema";
-import { Resource } from "sst";
 import { drizzle } from "drizzle-orm/bun-sql";
+import { sql } from "bun";
 
 const schema = {
 	...tableSchemas,
@@ -8,6 +8,6 @@ const schema = {
 };
 
 export const db = drizzle({
-	connection: `postgres://${Resource.Aurora.username}:${Resource.Aurora.password}@${Resource.Aurora.host}:${Resource.Aurora.port}/${Resource.App.name}-${Resource.App.stage}`,
+	client: sql,
 	schema,
 });
