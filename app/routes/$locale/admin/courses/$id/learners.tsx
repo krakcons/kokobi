@@ -1,4 +1,12 @@
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import {
 	createDataTableActionsColumn,
 	DataTable,
 	DataTableColumnHeader,
@@ -13,6 +21,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { locales, useLocale, useTranslations } from "@/lib/locale";
 import { formatDate } from "@/lib/date";
+import { useState } from "react";
+import { LearnersForm } from "@/components/forms/LearnersForm";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -27,6 +39,7 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 });
 
 function RouteComponent() {
+	const [open, setOpen] = useState(false);
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
@@ -115,7 +128,30 @@ function RouteComponent() {
 			<PageHeader
 				title="Learners"
 				description="Manage learners for this course."
-			/>
+			>
+				<Dialog open={open} onOpenChange={setOpen}>
+					<DialogTrigger asChild>
+						<Button>
+							<Plus />
+							Create
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="sm:max-w-3xl w-full">
+						<DialogHeader>
+							<DialogTitle>Invite Learners</DialogTitle>
+							<DialogDescription>
+								Enter learners below to invite them to the
+								course.
+							</DialogDescription>
+						</DialogHeader>
+						<LearnersForm
+							onSubmit={(value) => {
+								console.log(value);
+							}}
+						/>
+					</DialogContent>
+				</Dialog>
+			</PageHeader>
 			<DataTable
 				data={learners}
 				columns={columns}

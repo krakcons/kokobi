@@ -1,3 +1,5 @@
+import { completionStatuses } from "@/types/course";
+
 const en = {
 	Nav: {
 		top: {
@@ -113,6 +115,11 @@ const en = {
 		owner: "Owner",
 		admin: "Admin",
 		member: "Member",
+	},
+	CompletionStatuses: {
+		passed: "Passed",
+		completed: "Completed",
+		either: "Either",
 	},
 };
 

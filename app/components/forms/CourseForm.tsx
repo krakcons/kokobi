@@ -1,26 +1,11 @@
 import { Button } from "@/components/ui/button";
 import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-	FormDescription,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Textarea } from "@/components/ui/textarea";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { CourseFormType, CourseFormSchema } from "@/types/course";
+	CourseFormType,
+	CourseFormSchema,
+	completionStatuses,
+} from "@/types/course";
+import { useAppForm } from "../ui/form";
+import { useTranslations } from "@/lib/locale";
 
 export const CourseForm = ({
 	defaultValues,
@@ -29,86 +14,50 @@ export const CourseForm = ({
 	defaultValues?: CourseFormType;
 	onSubmit: (values: CourseFormType) => void;
 }) => {
-	const form = useForm<CourseFormType>({
-		resolver: zodResolver(CourseFormSchema),
+	const t = useTranslations("CompletionStatuses");
+	const form = useAppForm({
+		validators: {
+			onSubmit: CourseFormSchema,
+		},
 		defaultValues: {
 			name: "",
 			description: "",
 			completionStatus: "passed",
 			...defaultValues,
-		},
+		} as CourseFormType,
+		onSubmit: ({ value }) => onSubmit(value),
 	});
 
 	return (
-		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-				<FormField
-					control={form.control}
-					name="name"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Name</FormLabel>
-							<FormControl>
-								<Input {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name="description"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Description</FormLabel>
-							<FormControl>
-								<Textarea {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
-					name={"completionStatus"}
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Completion Status</FormLabel>
-							<Select
-								onValueChange={field.onChange}
-								defaultValue={field.value}
-							>
-								<FormControl>
-									<SelectTrigger className="w-[150px]">
-										<SelectValue placeholder="Select status" />
-									</SelectTrigger>
-								</FormControl>
-								<SelectContent>
-									<SelectGroup>
-										{["passed", "completed", "either"].map(
-											(status) => (
-												<SelectItem
-													key={status}
-													value={status}
-												>
-													{status[0].toUpperCase() +
-														status.slice(1)}
-												</SelectItem>
-											),
-										)}
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-							<FormDescription>
-								When the course is considered completed.
-								Certificate is issued and course is locked.
-							</FormDescription>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<Button type="submit">Submit</Button>
-			</form>
-		</Form>
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				form.handleSubmit();
+			}}
+			className="space-y-8"
+		>
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Name" />}
+			</form.AppField>
+			<form.AppField name="description">
+				{(field) => <field.TextAreaField label="Description" />}
+			</form.AppField>
+			<form.AppField name="completionStatus">
+				{(field) => (
+					<field.SelectField
+						label="Completion Status"
+						description="When the course is considered completed. Certificate is issued and
+			course is locked."
+						options={completionStatuses.map((s) => ({
+							value: s,
+							// @ts-ignore
+							label: t[s],
+						}))}
+					/>
+				)}
+			</form.AppField>
+			<Button type="submit">Submit</Button>
+		</form>
 	);
 };

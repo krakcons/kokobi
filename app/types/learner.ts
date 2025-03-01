@@ -64,15 +64,13 @@ export const InsertLearnerSchema = createInsertSchema(learners, {
 });
 export type InsertLearner = z.infer<typeof InsertLearnerSchema>;
 
-export const CreateLearnerSchema = InsertLearnerSchema.extend({
+export const CreateLearnerSchema = z.object({
+	id: z.string().optional(),
 	email: z.string().email(),
 	sendEmail: z.boolean().optional(),
 	firstName: z.string().min(1),
 	lastName: z.string().min(1),
 	inviteLanguage: LanguageSchema.optional(),
-}).omit({
-	completedAt: true,
-	startedAt: true,
 });
 export type CreateLearner = z.infer<typeof CreateLearnerSchema>;
 

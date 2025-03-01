@@ -17,6 +17,6 @@ export const SelectModuleSchema = ModuleSchema.pick({
 export type SelectModule = z.infer<typeof SelectModuleSchema>;
 
 export const ModuleFormSchema = z.object({
-	file: FileSchema,
+	file: FileSchema.or(z.literal("")),
 });
-export type ModuleForm = z.infer<typeof ModuleFormSchema>;
+export type ModuleFormType = z.infer<typeof ModuleFormSchema>;

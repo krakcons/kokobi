@@ -1,18 +1,5 @@
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-	Form,
-	FormControl,
-	FormDescription,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { TeamFormType, TeamFormSchema } from "@/types/team";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Label } from "../ui/label";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -20,6 +7,7 @@ import {
 } from "../ui/collapsible";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { useAppForm } from "../ui/form";
 
 const CollapsibleWrapper = ({ children }: { children: React.ReactNode }) => {
 	const [open, setOpen] = useState(false);
@@ -53,172 +41,62 @@ export const TeamForm = ({
 }: {
 	defaultValues?: TeamFormType;
 	collapsible?: boolean;
-	onSubmit: (values: TeamFormType) => void;
+	onSubmit: (value: TeamFormType) => void;
 }) => {
-	const form = useForm<TeamFormType>({
-		resolver: zodResolver(TeamFormSchema),
+	const form = useAppForm({
+		validators: {
+			onSubmit: TeamFormSchema,
+		},
 		defaultValues: {
 			name: "",
 			favicon: "",
 			logo: "",
 			...defaultValues,
-		},
+		} as TeamFormType,
+		onSubmit: ({ value }) => onSubmit(value),
 	});
-
-	const logo = form.watch("logo");
-	const favicon = form.watch("favicon");
-
-	const faviconUrl = favicon ? URL.createObjectURL(favicon).toString() : null;
-	const logoUrl = logo ? URL.createObjectURL(logo).toString() : null;
 
 	const Wrapper = collapsible ? CollapsibleWrapper : BlankWrapper;
 
 	return (
-		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-				<FormField
-					control={form.control}
-					name="name"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Name</FormLabel>
-							<FormControl>
-								<Input {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
+		<form
+			onSubmit={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				form.handleSubmit();
+			}}
+			className="flex flex-col gap-8 items-start"
+		>
+			<form.AppField name="name">
+				{(field) => <field.TextField label="Name" />}
+			</form.AppField>
+			<Wrapper>
+				<form.AppField name="logo">
+					{(field) => (
+						<field.ImageField
+							label="Logo"
+							size={{
+								width: 350,
+								height: 100,
+							}}
+						/>
 					)}
-				/>
-				<Wrapper>
-					<FormField
-						control={form.control}
-						name="logo"
-						render={({
-							field: { value, onChange, ...fieldProps },
-						}) => (
-							<FormItem className="flex flex-col items-start">
-								<Label className="mb-4">Logo</Label>
-								{logoUrl ? (
-									<img
-										src={logoUrl}
-										width={350}
-										height={100}
-										alt="Team Logo"
-										className="rounded"
-									/>
-								) : (
-									<div className="h-[100px] w-[350px] rounded bg-muted" />
-								)}
-								<div className="flex gap-2 items-center mt-2">
-									<FormLabel
-										className={buttonVariants({
-											size: "sm",
-											variant: "secondary",
-											className: "cursor-pointer",
-										})}
-									>
-										Change Logo
-									</FormLabel>
-									{value && (
-										<Button
-											size="sm"
-											variant="secondary"
-											onClick={() => {
-												onChange("");
-											}}
-										>
-											Remove
-										</Button>
-									)}
-								</div>
-								<FormControl>
-									<Input
-										{...fieldProps}
-										placeholder="Logo"
-										type="file"
-										className="hidden"
-										accept="image/*"
-										onChange={(event) => {
-											onChange(
-												event.target.files &&
-													event.target.files[0],
-											);
-										}}
-									/>
-								</FormControl>
-								<FormMessage />
-								<FormDescription>
-									Suggested image size: 350px x 100px
-								</FormDescription>
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="favicon"
-						render={({
-							field: { value, onChange, ...fieldProps },
-						}) => (
-							<FormItem>
-								<Label className="mb-4">Favicon</Label>
-								{faviconUrl ? (
-									<img
-										src={faviconUrl}
-										width={100}
-										height={100}
-										alt="Team Favicon"
-										className="rounded"
-									/>
-								) : (
-									<div className="h-[100px] w-[100px] rounded bg-muted" />
-								)}
-								<div className="flex gap-2 items-center mt-2">
-									<FormLabel
-										className={buttonVariants({
-											size: "sm",
-											variant: "secondary",
-											className: "cursor-pointer",
-										})}
-									>
-										Change Favicon
-									</FormLabel>
-									{value && (
-										<Button
-											size="sm"
-											variant="secondary"
-											onClick={() => {
-												onChange("");
-											}}
-										>
-											Remove
-										</Button>
-									)}
-								</div>
-								<FormControl>
-									<Input
-										{...fieldProps}
-										placeholder="Favicon"
-										type="file"
-										className="hidden"
-										accept="image/*"
-										onChange={(event) => {
-											onChange(
-												event.target.files &&
-													event.target.files[0],
-											);
-										}}
-									/>
-								</FormControl>
-								<FormDescription>
-									Suggested image size: 512px x 512px
-								</FormDescription>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-				</Wrapper>
-				<Button type="submit">Submit</Button>
-			</form>
-		</Form>
+				</form.AppField>
+				<form.AppField name="favicon">
+					{(field) => (
+						<field.ImageField
+							label="Favicon"
+							size={{
+								width: 512 / 4,
+								height: 512 / 4,
+								suggestedWidth: 512,
+								suggestedHeight: 512,
+							}}
+						/>
+					)}
+				</form.AppField>
+			</Wrapper>
+			<Button type="submit">Submit</Button>
+		</form>
 	);
 };

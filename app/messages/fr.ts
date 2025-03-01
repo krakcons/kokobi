@@ -116,6 +116,11 @@ const fr: Messages = {
 		admin: "Administrateur",
 		member: "Membre",
 	},
+	CompletionStatuses: {
+		passed: "Passed",
+		completed: "Completed",
+		either: "Either",
+	},
 };
 
 export default fr;
