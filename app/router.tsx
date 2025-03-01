@@ -43,10 +43,9 @@ const app = (
 	</StrictMode>
 );
 
-console.log("TEST");
-
+// @ts-ignore
 if (import.meta.hot) {
-	// With hot module reloading, `import.meta.hot.data` is persisted.
+	// @ts-ignore - With hot module reloading, `import.meta.hot.data` is persisted.
 	const root = (import.meta.hot.data.root ??= createRoot(elem));
 	root.render(app);
 } else {

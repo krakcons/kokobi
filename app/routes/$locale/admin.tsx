@@ -94,12 +94,6 @@ export const Route = createFileRoute("/$locale/admin")({
 					editingLocale: params.locale as Locale,
 				},
 			});
-		} else {
-			await client.api.user.preferences.$put({
-				json: {
-					editingLocale,
-				},
-			});
 		}
 
 		Promise.all([

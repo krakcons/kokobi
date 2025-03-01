@@ -29,11 +29,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				});
 			}
 
-			await client.api.user.preferences.$put({
-				json: {
-					locale: pathLocale as Locale,
-				},
-			});
+			if (pathLocale !== locale) {
+				await client.api.user.preferences.$put({
+					json: {
+						locale: pathLocale as Locale,
+					},
+				});
+			}
 		},
 		pendingComponent: () => (
 			<FloatingPage>
@@ -48,12 +50,10 @@ function RootComponent() {
 	const { data: i18n } = useSuspenseQuery(queryOptions.user.i18n);
 
 	return (
-		<>
-			<IntlProvider i18n={i18n}>
-				<HeadContent />
-				<Outlet />
-				<Toaster />
-			</IntlProvider>
-		</>
+		<IntlProvider i18n={i18n}>
+			<HeadContent />
+			<Outlet />
+			<Toaster />
+		</IntlProvider>
 	);
 }
