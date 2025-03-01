@@ -15,7 +15,6 @@
 	},
 	"dependencies": {
 		"@aws-sdk/client-sesv2": "^3.758.0",
-		"@aws-sdk/credential-provider-node": "^3.750.0",
 		"@aws-sdk/credential-providers": "^3.750.0",
 		"@hono/zod-validator": "^0.4.3",
 		"@radix-ui/react-alert-dialog": "^1.1.6",
