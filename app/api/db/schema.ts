@@ -202,8 +202,6 @@ export const teamTranslations = pgTable(
 		language: languageEnum("language").notNull(),
 		default: boolean("default").notNull(),
 		name: text("name").notNull(),
-		logo: text("logo"),
-		favicon: text("favicon"),
 		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.teamId, t.language] })],

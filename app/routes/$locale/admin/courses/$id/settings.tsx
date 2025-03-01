@@ -72,7 +72,7 @@ function RouteComponent() {
 				}}
 				className="self-start"
 			>
-				 <Trash />
+				<Trash />
 				Delete
 			</Button>
 		</Page>

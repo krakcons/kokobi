@@ -13,7 +13,7 @@ const course = client.api.courses[":id"];
 const key = client.api.keys[":id"];
 const module = client.api.courses[":id"].modules[":moduleId"];
 
-const fetchFile = async (fileUrl: string): Promise<File | ""> => {
+export const fetchFile = async (fileUrl: string): Promise<File | ""> => {
 	const response = await fetch(fileUrl);
 	if (!response.ok) {
 		return "";
@@ -68,36 +68,10 @@ export const queryOptions = {
 	},
 	team: {
 		me: (input: InferRequestType<typeof client.api.team.$get>) => ({
-			queryKey: ["editing-locale", "team", input],
+			queryKey: ["editing-locale", "team.me", input],
 			queryFn: async () => {
 				const res = await client.api.team.$get(input);
 				return await res.json();
-			},
-		}),
-		images: ({
-			locale,
-			teamId,
-			updatedAt,
-		}: {
-			locale: string;
-			teamId: string;
-			updatedAt: string;
-		}) => ({
-			queryKey: [
-				"editing-locale",
-				"team-images",
-				locale,
-				teamId,
-				updatedAt,
-			],
-			queryFn: async () => {
-				const logo = await fetchFile(
-					`${window.location.origin}/cdn/${teamId}/${locale}/logo?updatedAt=${updatedAt}`,
-				);
-				const favicon = await fetchFile(
-					`${window.location.origin}/cdn/${teamId}/${locale}/favicon?updatedAt=${updatedAt}`,
-				);
-				return { logo, favicon };
 			},
 		}),
 		members: {
@@ -377,9 +351,9 @@ export const useMutationOptions = () => {
 					}
 				},
 				onSuccess: () => {
-					//queryClient.invalidateQueries({
-					//	queryKey: ["team"],
-					//});
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.team.me({}).queryKey,
+					});
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.user.teams.queryKey,
 					});

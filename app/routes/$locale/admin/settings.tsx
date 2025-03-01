@@ -5,55 +5,44 @@ import { Separator } from "@/components/ui/separator";
 import { queryOptions, useMutationOptions } from "@/lib/api";
 import {
 	useMutation,
+	useQuery,
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
+import { fetchFile } from "@/lib/api";
+
+const teamOptions = queryOptions.team.me({
+	query: {
+		"fallback-locale": "none",
+	},
+});
+const options = {
+	queryKey: teamOptions.queryKey,
+	queryFn: async () => {
+		const data = await teamOptions.queryFn();
+		const logo = await fetchFile(
+			`${window.location.origin}/cdn/${data.teamId}/${data.language}/logo?updatedAt=${data.updatedAt}`,
+		);
+		const favicon = await fetchFile(
+			`${window.location.origin}/cdn/${data.teamId}/${data.language}/favicon?updatedAt=${data.updatedAt}`,
+		);
+		return { logo, favicon, ...data };
+	},
+};
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loader: async ({ context: { queryClient } }) => {
-		const preferences = await queryClient.ensureQueryData(
-			queryOptions.user.preferences,
-		);
-		const team = await queryClient.ensureQueryData(
-			queryOptions.team.me({
-				query: {
-					"fallback-locale": "none",
-				},
-			}),
-		);
-		await queryClient.ensureQueryData(
-			queryOptions.team.images({
-				locale: preferences.locale,
-				teamId: team.id,
-				updatedAt: team.updatedAt,
-			}),
-		);
+		await queryClient.ensureQueryData(options);
 	},
 });
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
-	const { data: preferences } = useSuspenseQuery(
-		queryOptions.user.preferences,
-	);
-	const { data: team } = useSuspenseQuery(
-		queryOptions.team.me({
-			query: {
-				"fallback-locale": "none",
-			},
-		}),
-	);
-	const { data: images } = useSuspenseQuery(
-		queryOptions.team.images({
-			locale: preferences.locale,
-			teamId: team.id,
-			updatedAt: team.updatedAt,
-		}),
-	);
+	const { data: team } = useSuspenseQuery(options);
 
 	const mutationOptions = useMutationOptions();
 	const updateTeam = useMutation(mutationOptions.team.update);
@@ -68,8 +57,7 @@ function RouteComponent() {
 			<TeamForm
 				key={team.language}
 				defaultValues={{
-					name: team.name,
-					...images,
+					...team,
 				}}
 				onSubmit={(values) => {
 					updateTeam.mutate({
