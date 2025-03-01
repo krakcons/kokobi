@@ -335,7 +335,7 @@ const AdminSidebar = () => {
 													</Link>
 												</SidebarMenuSubButton>
 											</SidebarMenuSubItem>
-											<SidebarMenuSubItem>
+											{/* <SidebarMenuSubItem>
 												<SidebarMenuSubButton asChild>
 													<Link
 														to={
@@ -356,7 +356,7 @@ const AdminSidebar = () => {
 														Webhooks
 													</Link>
 												</SidebarMenuSubButton>
-											</SidebarMenuSubItem>
+											</SidebarMenuSubItem> */}
 											<SidebarMenuSubItem>
 												<SidebarMenuSubButton asChild>
 													<Link
