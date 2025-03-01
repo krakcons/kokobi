@@ -69,10 +69,7 @@ const handleUser = async (
 		where: eq(usersToTeams.userId, userId),
 	});
 
-	if (!team) {
-		const locale = c.get("locale");
-		return c.redirect(`/${locale}/create-team`);
-	} else {
+	if (team) {
 		setCookie(c, "teamId", team.teamId, {
 			path: "/",
 			secure: true,

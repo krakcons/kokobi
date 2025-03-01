@@ -82,6 +82,19 @@ export const Route = createFileRoute("/$locale/admin")({
 				href: "/api/auth/google",
 			});
 		}
+
+		const { locale, teamId } = await queryClient.ensureQueryData(
+			queryOptions.user.preferences,
+		);
+
+		if (!teamId) {
+			throw redirect({
+				to: "/$locale/create-team",
+				params: {
+					locale,
+				},
+			});
+		}
 	},
 	loader: async ({ params, context: { queryClient } }) => {
 		const { editingLocale } = await queryClient.ensureQueryData(

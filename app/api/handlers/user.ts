@@ -50,6 +50,26 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 		return c.json(i18n);
 	})
 	.get("/preferences", async (c) => {
+		let teamId = c.get("teamId");
+		const user = c.get("user");
+
+		if (user && !teamId) {
+			console.log("getting team");
+			const team = await db.query.usersToTeams.findFirst({
+				where: and(eq(usersToTeams.userId, user.id)),
+			});
+
+			if (team) {
+				setCookie(c, "teamId", team.teamId, {
+					path: "/",
+					secure: true,
+					httpOnly: true,
+					sameSite: "lax",
+				});
+				teamId = team.teamId;
+			}
+		}
+
 		return c.json({
 			teamId: c.get("teamId"),
 			locale: c.get("locale"),

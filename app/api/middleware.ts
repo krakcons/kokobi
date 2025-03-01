@@ -2,7 +2,7 @@ import { SessionValidationResult, validateSessionToken } from "@/api/auth";
 import { db } from "@/api/db";
 import { keys, Session, usersToTeams } from "@/api/db/schema";
 import { and, eq } from "drizzle-orm";
-import { getCookie } from "hono/cookie";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { Role, roles, User } from "@/types/users";
 import { LocalizedInputSchema, LocalizedInputType } from "@/lib/locale/types";
@@ -58,7 +58,9 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 		});
 
 		if (!team) {
-			return c.text("Invalid team", 401);
+			deleteCookie(c, "teamId");
+			c.set("teamId", null);
+			return await next();
 		}
 
 		c.set("teamId", team.teamId);

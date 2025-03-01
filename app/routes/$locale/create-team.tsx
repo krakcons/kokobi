@@ -1,6 +1,7 @@
 import { TeamForm } from "@/components/forms/TeamForm";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useMutationOptions } from "@/lib/api";
+import { useLocale } from "@/lib/locale";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -9,6 +10,7 @@ export const Route = createFileRoute("/$locale/create-team")({
 });
 
 function RouteComponent() {
+	const locale = useLocale();
 	const mutationOptions = useMutationOptions();
 	const createTeam = useMutation(mutationOptions.team.create);
 	const navigate = Route.useNavigate();
@@ -29,7 +31,13 @@ function RouteComponent() {
 							},
 							{
 								onSuccess: () => {
-									navigate({ to: "/$locale/admin" });
+									console.log("redirecting");
+									navigate({
+										to: "/$locale/admin",
+										params: {
+											locale,
+										},
+									});
 								},
 							},
 						);
