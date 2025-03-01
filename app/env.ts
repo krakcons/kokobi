@@ -8,4 +8,4 @@ const envSchema = z.object({
 	PUBLIC_CDN_URL: z.string().url(),
 });
 
-export const env = envSchema.parse(Bun.env);
+export const env = envSchema.parse(process.env);

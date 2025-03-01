@@ -13,10 +13,10 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { queryOptions } from "@/lib/api";
+import { queryOptions, useMutationOptions } from "@/lib/api";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { locales, useLocale, useTranslations } from "@/lib/locale";
@@ -50,6 +50,10 @@ function RouteComponent() {
 	);
 	const t = useTranslations("Learner");
 	const locale = useLocale();
+
+	const mutationOptions = useMutationOptions();
+	const createLearners = useMutation(mutationOptions.course.learners.create);
+	const deleteLearner = useMutation(mutationOptions.course.learners.delete);
 
 	const columns: ColumnDef<
 		Learner & { module: Module | null; joinLink?: string }
@@ -120,7 +124,27 @@ function RouteComponent() {
 				<DataTableColumnHeader title="Score" column={column} />
 			),
 		},
-		createDataTableActionsColumn([]),
+		createDataTableActionsColumn<
+			Learner & { module: Module | null; joinLink?: string }
+		>([
+			{
+				name: "Delete",
+				onClick: ({ id }) =>
+					deleteLearner.mutate(
+						{
+							param: {
+								id: params.id,
+								learnerId: id,
+							},
+						},
+						{
+							onSuccess: () => {
+								setOpen(false);
+							},
+						},
+					),
+			},
+		]),
 	];
 
 	return (
@@ -146,7 +170,12 @@ function RouteComponent() {
 						</DialogHeader>
 						<LearnersForm
 							onSubmit={(value) => {
-								console.log(value);
+								createLearners.mutate({
+									param: {
+										id: params.id,
+									},
+									json: value.learners,
+								});
 							}}
 						/>
 					</DialogContent>

@@ -1,5 +1,4 @@
 import { db } from "@/api/db";
-import { learnersData } from "@/api/learners";
 import {
 	collectionTranslations,
 	collections,
@@ -131,20 +130,7 @@ export const collectionsHandler = new Hono()
 	})
 	.post(
 		"/:id/learners",
-		zValidator(
-			"json",
-			CreateLearnerSchema.omit({
-				moduleId: true,
-				courseId: true,
-			})
-				.array()
-				.or(
-					CreateLearnerSchema.omit({
-						moduleId: true,
-						courseId: true,
-					}),
-				),
-		),
+		zValidator("json", CreateLearnerSchema.array().or(CreateLearnerSchema)),
 		async (c) => {
 			const { id } = c.req.param();
 			let input = c.req.valid("json");
@@ -175,13 +161,7 @@ export const collectionsHandler = new Hono()
 				});
 			}
 
-			const learners = await learnersData.create(
-				input,
-				collection.collectionsToCourses.map((c) => c.course),
-				collection,
-			);
-
-			return c.json(learners);
+			return c.json({ message: "Not implemented" });
 		},
 	)
 	.delete("/:id", protectedMiddleware(), async (c) => {

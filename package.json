@@ -9,10 +9,12 @@
 		"start": "bun app/index.tsx",
 		"generate-routes": "tsr generate",
 		"watch-routes": "tsr watch",
+		"email": "email dev --dir app/emails --port 3001",
 		"db": "sst shell drizzle-kit --target=Studio",
 		"sso": "aws sso login --sso-session=krak"
 	},
 	"dependencies": {
+		"@aws-sdk/client-sesv2": "^3.758.0",
 		"@aws-sdk/credential-provider-node": "^3.750.0",
 		"@aws-sdk/credential-providers": "^3.750.0",
 		"@hono/zod-validator": "^0.4.3",
@@ -50,7 +52,7 @@
 		"pg": "^8.13.3",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"resend": "^4.1.2",
+		"react-email": "^3.0.7",
 		"sonner": "^2.0.1",
 		"sst": "3.9.15",
 		"tailwind": "^4.0.0",

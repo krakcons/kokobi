@@ -1,5 +1,4 @@
 import { db } from "@/api/db";
-import { learnersData } from "@/api/learners";
 import {
 	courseTranslations,
 	courses,
@@ -22,6 +21,9 @@ import { handleLocalization } from "@/lib/locale/helpers";
 import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { s3 } from "@/api/s3";
+import { sendEmail } from "../email";
+import CourseInvite from "@/emails/CourseInvite";
+import { createTranslator } from "@/lib/locale/actions";
 
 export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/", protectedMiddleware(), async (c) => {
@@ -193,20 +195,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	})
 	.post(
 		"/:id/learners",
-		zValidator(
-			"json",
-			CreateLearnerSchema.omit({
-				moduleId: true,
-				courseId: true,
-			})
-				.array()
-				.or(
-					CreateLearnerSchema.omit({
-						moduleId: true,
-						courseId: true,
-					}),
-				),
-		),
+		zValidator("json", CreateLearnerSchema.array().or(CreateLearnerSchema)),
 		protectedMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
@@ -221,6 +210,11 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
 				with: {
 					translations: true,
+					team: {
+						with: {
+							translations: true,
+						},
+					},
 				},
 			});
 
@@ -230,11 +224,71 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				});
 			}
 
-			const learners = await learnersData.create(input, [course]);
+			const learnersList = input.map((l) => ({
+				...l,
+				id: Bun.randomUUIDv7(),
+				courseId: id,
+			}));
 
-			return c.json(learners);
+			const finalLearnersList = await db
+				.insert(learners)
+				.values(learnersList)
+				.onConflictDoNothing()
+				.returning();
+
+			learnersList
+				.filter((l) => l.sendEmail)
+				.forEach(async (l) => {
+					const id = finalLearnersList.find(
+						(fl) => fl.email === l.email,
+					)!;
+					const t = await createTranslator({
+						locale: l.inviteLanguage ?? "en",
+					});
+					const name = handleLocalization(
+						c,
+						course,
+						l.inviteLanguage,
+					).name;
+					const team = handleLocalization(
+						c,
+						course.team,
+						l.inviteLanguage,
+					);
+
+					const href =
+						team?.customDomain &&
+						env.PUBLIC_SITE_URL !== "http://localhost:3000"
+							? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/courses/${course.id}/join?learnerId=${id}`
+							: `${env.PUBLIC_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${id}`;
+
+					sendEmail({
+						to: [l.email],
+						subject: "Course Invite",
+						content: (
+							<CourseInvite
+								href={href}
+								name={name}
+								teamName={team.name}
+								logo={`${env.PUBLIC_SITE_URL}/cdn/${team.id}/${team.language}/logo?updatedAt=${team?.updatedAt.toString()}`}
+								t={t.Email.CourseInvite}
+							/>
+						),
+					});
+				});
+
+			return c.json(null);
 		},
 	)
+	.delete("/:id/learners/:learnerId", protectedMiddleware(), async (c) => {
+		const { id, learnerId } = c.req.param();
+
+		await db
+			.delete(learners)
+			.where(and(eq(learners.id, learnerId), eq(learners.courseId, id)));
+
+		return c.json(null);
+	})
 	.get("/:id/modules", protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const locale = c.get("editingLocale");

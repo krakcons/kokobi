@@ -1,5 +1,6 @@
 import { Context } from "hono";
 import type { LocalizationObject, LocalizedInputType } from "./types";
+import { Locale } from ".";
 
 export const getLocalizedField = <T>(
 	obj: LocalizationObject<T>,
@@ -17,9 +18,10 @@ export const handleLocalization = <
 >(
 	c: Context<{ Variables: TVariables }>,
 	obj: TBase,
+	customLocale?: Locale,
 ): TResult => {
 	const editingLocale = c.get("editingLocale");
-	const locale = editingLocale ?? c.get("locale");
+	const locale = customLocale ?? editingLocale ?? c.get("locale");
 	const fallbackLocale = c.get("fallbackLocale");
 
 	// Find translation in requested locale or fallback to first

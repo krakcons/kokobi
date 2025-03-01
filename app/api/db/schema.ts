@@ -42,7 +42,6 @@ export const users = pgTable("users", {
 export const teams = pgTable("teams", {
 	id: text("id").primaryKey(),
 	customDomain: text("customDomain").unique(),
-	resendDomainId: text("resendDomainId"),
 	...dates,
 });
 

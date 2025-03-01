@@ -30,11 +30,15 @@ export default $config({
 			$app.stage === "prod"
 				? ROOT_DOMAIN
 				: `${$app.stage}.${ROOT_DOMAIN}`;
+		const emailDomain = `email.${domain}`;
 
 		const vpc = sst.aws.Vpc.get("Vpc", "vpc-08c28b23ee20f3975");
 		const aurora = sst.aws.Aurora.get("Aurora", "krak-prod-auroracluster");
 		const dns = sst.cloudflare.dns({
 			proxy: true,
+		});
+		const cloudflareZone = cloudflare.getZoneOutput({
+			name: ROOT_DOMAIN,
 		});
 		const bucket = new sst.aws.Bucket("Bucket", {
 			access: "public",
@@ -56,9 +60,34 @@ export default $config({
 			PUBLIC_CDN_URL: $interpolate`https://${bucket.domain}`,
 		};
 
+		// EMAIL //
+		const email = new sst.aws.Email("Email", {
+			sender: emailDomain,
+			dns,
+		});
+		//if (email) {
+		//	new aws.ses.MailFrom("MailFrom", {
+		//		mailFromDomain: emailDomain,
+		//		domain,
+		//	});
+		//	new cloudflare.Record("MX", {
+		//		zoneId: cloudflareZone.id,
+		//		name: emailDomain,
+		//		type: "MX",
+		//		priority: 10,
+		//		value: "feedback-smtp.ca-central-1.amazonses.com",
+		//	});
+		//	new cloudflare.Record("TXT", {
+		//		zoneId: cloudflareZone.id,
+		//		name: emailDomain,
+		//		type: "TXT",
+		//		value: '"v=spf1 include:amazonses.com ~all"',
+		//	});
+		//}
+
 		const cluster = new sst.aws.Cluster("Cluster", { vpc });
 		const service = new sst.aws.Service("Bun", {
-			link: [bucket, aurora],
+			link: [bucket, aurora, email],
 			cluster,
 			serviceRegistry: {
 				port: 3000,
@@ -90,6 +119,11 @@ export default $config({
 		new sst.x.DevCommand("WatchRoutes", {
 			dev: {
 				command: "bun watch-routes",
+			},
+		});
+		new sst.x.DevCommand("WatchEmail", {
+			dev: {
+				command: "bun email",
 			},
 		});
 

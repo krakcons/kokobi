@@ -1,6 +1,6 @@
 import { Tailwind } from "@/components/email/Tailwind";
 import { buttonVariants } from "@/components/ui/button";
-import { env } from "@/env";
+import { Messages } from "@/lib/locale";
 import {
 	Body,
 	Button,
@@ -16,10 +16,11 @@ import {
 
 export const CourseInvite = ({
 	href = "https://google.com",
-	course = "Golfing Tutorial",
-	organization = "CompanionLink",
-	logo = `${env.NEXT_PUBLIC_SITE_URL}/cdn/ycod8h4c322hjry/en/logo`,
-	text = {
+	name = "Golfing Tutorial",
+	teamName = "CompanionLink",
+	logo = "/favicon.ico",
+	t = {
+		subject: "",
 		title: "Invitation",
 		invite: "invites you to join the following:",
 		start: "Join",
@@ -27,37 +28,30 @@ export const CourseInvite = ({
 	},
 }: {
 	href: string;
-	course?: string;
-	organization?: string;
+	name?: string;
+	teamName?: string;
 	logo?: string | null;
-	text: {
-		title: string;
-		invite: string;
-		start: string;
-		below: string;
-	};
+	t: Messages["Email"]["CourseInvite"];
 }) => (
 	<Html lang="en">
 		<Head />
-		<Preview>{`${text.invite} ${course} by ${organization}.`}</Preview>
+		<Preview>{`${t.invite} ${name} by ${teamName}.`}</Preview>
 		<Tailwind>
 			<Body className="mx-auto my-auto bg-white font-sans">
 				<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
 					{logo && <Img src={logo} alt="logo" width={175} />}
-					<Heading className={!logo ? "mt-0" : ""}>
-						{text.title}
-					</Heading>
+					<Heading className={!logo ? "mt-0" : ""}>{t.title}</Heading>
 					<Text>
-						<strong>{organization}</strong> {text.invite}{" "}
-						<strong>{course}</strong>
+						<strong>{teamName}</strong> {t.invite}{" "}
+						<strong>{name}</strong>
 					</Text>
 					<Button
 						className={buttonVariants({
-							class: "h-auto py-3",
+							className: "h-5 px-3",
 						})}
 						href={href}
 					>
-						{text.start}
+						{t.start}
 					</Button>
 					<Hr className="my-6" />
 					<Text
@@ -66,9 +60,9 @@ export const CourseInvite = ({
 							margin: 0,
 						}}
 					>
-						{text.below}
+						{t.below}
 					</Text>
-					<Text className="mb-0">{organization}</Text>
+					<Text className="mb-0">{teamName}</Text>
 				</Container>
 			</Body>
 		</Tailwind>

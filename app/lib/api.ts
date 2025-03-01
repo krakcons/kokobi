@@ -10,6 +10,7 @@ export const client = hc<AppType>(window.location.origin, {
 });
 
 const course = client.api.courses[":id"];
+const courseLearner = course.learners[":learnerId"];
 const key = client.api.keys[":id"];
 const module = client.api.courses[":id"].modules[":moduleId"];
 
@@ -246,6 +247,49 @@ export const useMutationOptions = () => {
 						queryKey: queryOptions.courses.all.queryKey,
 					});
 					toast.success("Course deleted successfully");
+				},
+			},
+			learners: {
+				create: {
+					mutationFn: async (
+						input: InferRequestType<typeof course.learners.$post>,
+					) => {
+						const res = await course.learners.$post(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
+					},
+					onSuccess: (_: any, input: any) => {
+						queryClient.invalidateQueries({
+							queryKey: queryOptions.courses.learners({
+								param: {
+									id: input.param.id,
+								},
+							}).queryKey,
+						});
+						toast.success("Learner created successfully");
+					},
+				},
+				delete: {
+					mutationFn: async (
+						input: InferRequestType<typeof courseLearner.$delete>,
+					) => {
+						const res = await courseLearner.$delete(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
+					},
+					onSuccess: (_: any, input: any) => {
+						queryClient.invalidateQueries({
+							queryKey: queryOptions.courses.learners({
+								param: {
+									id: input.param.id,
+								},
+							}).queryKey,
+						});
+					},
 				},
 			},
 			modules: {

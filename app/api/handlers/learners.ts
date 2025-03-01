@@ -1,27 +1,16 @@
-import CourseCompletion from "@/emails/CourseCompletion";
-import { env } from "@/env";
-import { createTranslator } from "@/lib/locale/actions";
-import { translate } from "@/lib/translation";
 import { db } from "@/api/db";
-import { learnersData } from "@/api/learners";
 import { learners } from "@/api/db/schema";
 import { UpdateLearnerSchema } from "@/types/learner";
 import { LanguageSchema } from "@/types/translations";
 import { zValidator } from "@hono/zod-validator";
-import { render } from "@react-email/components";
-import { and, eq, inArray } from "drizzle-orm";
+import { inArray } from "drizzle-orm";
 import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
-import React from "react";
 import { z } from "zod";
 
 export const learnersHandler = new Hono()
 	.get("/:id", async (c) => {
-		const { id } = c.req.param();
-
-		const learner = await learnersData.get({ id });
-
-		return c.json(learner);
+		// TODO: Recreate
+		return c.json({ message: "Not implemented" });
 	})
 	.put(
 		"/:id",
@@ -32,12 +21,8 @@ export const learnersHandler = new Hono()
 			}),
 		),
 		async (c) => {
-			const { id } = c.req.param();
-			const input = c.req.valid("json");
-
-			const newLearner = await learnersData.update({ ...input, id });
-
-			return c.json(newLearner);
+			// TODO: Recreate
+			return c.json({ message: "Not implemented" });
 		},
 	)
 	.post(
@@ -49,120 +34,20 @@ export const learnersHandler = new Hono()
 			}),
 		),
 		async (c) => {
-			const { id } = c.req.param();
-			const input = c.req.valid("json");
-
-			const learner = await db.query.learners.findFirst({
-				where: eq(learners.id, id),
-				with: {
-					course: {
-						with: {
-							translations: true,
-						},
-					},
-				},
-			});
-
-			if (!learner) {
-				throw new HTTPException(404, {
-					message: "Learner not found.",
-				});
-			}
-
-			await learnersData.courseInvite({
-				...learner,
-				inviteLanguage: input.inviteLanguage,
-				learnerId: id,
-			});
-
-			return c.json(null);
+			// TODO: Recreate
+			return c.json({ message: "Not implemented" });
 		},
 	)
 	.post("/:id/recertify", async (c) => {
-		const { id } = c.req.param();
-
-		const learner = await db.query.learners.findFirst({
-			where: eq(learners.id, id),
-			with: {
-				module: true,
-				course: {
-					with: {
-						team: {
-							with: {
-								translations: true,
-							},
-						},
-						translations: true,
-					},
-				},
-			},
-		});
-
-		if (!learner) {
-			throw new HTTPException(404, {
-				message: "Learner not found.",
-			});
-		}
-
-		if (!learner.completedAt || !learner.module) {
-			throw new HTTPException(400, {
-				message: "Learner has not completed the course.",
-			});
-		}
-
-		const href =
-			learner.course.team?.customDomain &&
-			env.PUBLIC_SITE_URL !== "http://localhost:3000"
-				? `${learner.course.team.customDomain}${learner.module ? `/${learner.module.language}` : ""}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`
-				: `${env.PUBLIC_SITE_URL}${learner.module ? `/${learner.module.language}` : ""}/play/${learner.course.team?.id}/courses/${learner.course.id}/certificate?learnerId=${learner.id}`;
-
-		const t = await createTranslator({
-			locale: learner.module.language,
-		});
-
-		const teamTranslation = translate(
-			learner.course.team.translations,
-			learner.module?.language,
-		);
-		const courseTranslation = translate(
-			learner.course.translations,
-			learner.module?.language,
-		);
-
-		const html = await render(
-			React.createElement(CourseCompletion, {
-				course: courseTranslation.name,
-				organization: teamTranslation.name,
-				href,
-				logo: teamTranslation.logo
-					? `${env.PUBLIC_SITE_URL}/cdn/${teamTranslation.logo}`
-					: null,
-				text: {
-					title: t.Email.Completion.title,
-					congratulations: t.Email.Completion.congratulations,
-					completed: t.Email.Completion.completed,
-					by: t.Email.by,
-					certificate: t.Email.Completion.certificate,
-					get: t.Email.Completion.get,
-				},
-			}),
-		);
-
-		// TODO: Send email
-
-		return c.json(null);
+		// TODO: Recreate
+		return c.json({ message: "Not implemented" });
 	})
 	.delete("/:id", async (c) => {
-		const { id } = c.req.param();
-
-		await learnersData.get({ id });
-
-		await db.delete(learners).where(and(eq(learners.id, id)));
-
-		return c.json(null);
+		// TODO: Recreate
+		return c.json({ message: "Not implemented" });
 	})
 	.delete(
-		"",
+		"/",
 		zValidator(
 			"json",
 			z.object({
