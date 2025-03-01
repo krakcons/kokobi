@@ -79,12 +79,18 @@ export default $config({
 			api.routePrivate("$default", service.nodes.cloudmapService.arn);
 		}
 
+		// Dev
 		new sst.x.DevCommand("Studio", {
 			link: [aurora],
 			dev: {
 				command: "drizzle-kit studio",
 			},
 			environment,
+		});
+		new sst.x.DevCommand("WatchRoutes", {
+			dev: {
+				command: "bun watch-routes",
+			},
 		});
 
 		return {
