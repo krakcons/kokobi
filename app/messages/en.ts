@@ -1,3 +1,4 @@
+import { BlockNavigation } from "@/components/ui/form";
 import { completionStatuses } from "@/types/course";
 
 const en = {
@@ -38,7 +39,15 @@ const en = {
 			lastName: "Last Name",
 			email: "Email",
 		},
+		optional: "Optional",
 		submit: "Submit",
+		blockNavigation: {
+			title: "Leave without saving?",
+			description:
+				"Your changes have not been saved. If you leave, you will lose your changes.",
+			confirm: "Confirm",
+			cancel: "Cancel",
+		},
 	},
 	Certificate: {
 		title: "Certificate of Completion",

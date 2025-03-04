@@ -59,11 +59,11 @@ function RouteComponent() {
 				defaultValues={{
 					...team,
 				}}
-				onSubmit={(values) => {
-					updateTeam.mutate({
+				onSubmit={(values) =>
+					updateTeam.mutateAsync({
 						form: values,
-					});
-				}}
+					})
+				}
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader title="Domains" description="WIP" />

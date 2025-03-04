@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
 	CourseFormType,
 	CourseFormSchema,
@@ -12,7 +11,7 @@ export const CourseForm = ({
 	onSubmit,
 }: {
 	defaultValues?: CourseFormType;
-	onSubmit: (values: CourseFormType) => void;
+	onSubmit: (values: CourseFormType) => Promise<void>;
 }) => {
 	const t = useTranslations("CompletionStatuses");
 	const form = useAppForm({
@@ -29,35 +28,30 @@ export const CourseForm = ({
 	});
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				form.handleSubmit();
-			}}
-			className="space-y-8"
-		>
-			<form.AppField name="name">
-				{(field) => <field.TextField label="Name" />}
-			</form.AppField>
-			<form.AppField name="description">
-				{(field) => <field.TextAreaField label="Description" />}
-			</form.AppField>
-			<form.AppField name="completionStatus">
-				{(field) => (
-					<field.SelectField
-						label="Completion Status"
-						description="When the course is considered completed. Certificate is issued and
+		<form.AppForm>
+			<div className="space-y-8">
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Name" />}
+				</form.AppField>
+				<form.AppField name="description">
+					{(field) => <field.TextAreaField label="Description" />}
+				</form.AppField>
+				<form.AppField name="completionStatus">
+					{(field) => (
+						<field.SelectField
+							label="Completion Status"
+							description="When the course is considered completed. Certificate is issued and
 			course is locked."
-						options={completionStatuses.map((s) => ({
-							value: s,
-							// @ts-ignore
-							label: t[s],
-						}))}
-					/>
-				)}
-			</form.AppField>
-			<Button type="submit">Submit</Button>
-		</form>
+							options={completionStatuses.map((s) => ({
+								value: s,
+								// @ts-ignore
+								label: t[s],
+							}))}
+						/>
+					)}
+				</form.AppField>
+				<form.SubmitButton />
+			</div>
+		</form.AppForm>
 	);
 };

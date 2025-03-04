@@ -128,16 +128,16 @@ function RouteComponent() {
 							</DialogDescription>
 						</DialogHeader>
 						<APIKeyForm
-							onSubmit={(values) => {
-								createKey.mutate(
+							onSubmit={(values) =>
+								createKey.mutateAsync(
 									{ json: values },
 									{
 										onSuccess: () => {
 											setOpen(false);
 										},
 									},
-								);
-							}}
+								)
+							}
 						/>
 					</DialogContent>
 				</Dialog>

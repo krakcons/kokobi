@@ -50,12 +50,12 @@ function RouteComponent() {
 			<CourseForm
 				key={course.language}
 				defaultValues={course}
-				onSubmit={(values) => {
-					updateCourse.mutate({
+				onSubmit={(values) =>
+					updateCourse.mutateAsync({
 						param: { id: params.id },
 						json: values,
-					});
-				}}
+					})
+				}
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader

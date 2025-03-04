@@ -106,7 +106,7 @@ function RouteComponent() {
 						<ModuleForm
 							key={modules.length}
 							onSubmit={(values) =>
-								createModule.mutate(
+								createModule.mutateAsync(
 									{
 										form: values,
 										param,

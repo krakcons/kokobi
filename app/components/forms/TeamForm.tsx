@@ -41,7 +41,7 @@ export const TeamForm = ({
 }: {
 	defaultValues?: TeamFormType;
 	collapsible?: boolean;
-	onSubmit: (value: TeamFormType) => void;
+	onSubmit: (value: TeamFormType) => Promise<any>;
 }) => {
 	const form = useAppForm({
 		validators: {
@@ -59,44 +59,39 @@ export const TeamForm = ({
 	const Wrapper = collapsible ? CollapsibleWrapper : BlankWrapper;
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				form.handleSubmit();
-			}}
-			className="flex flex-col gap-8 items-start"
-		>
-			<form.AppField name="name">
-				{(field) => <field.TextField label="Name" />}
-			</form.AppField>
-			<Wrapper>
-				<form.AppField name="logo">
-					{(field) => (
-						<field.ImageField
-							label="Logo"
-							size={{
-								width: 350,
-								height: 100,
-							}}
-						/>
-					)}
+		<form.AppForm>
+			<div className="flex flex-col gap-8 items-start">
+				<form.AppField name="name">
+					{(field) => <field.TextField label="Name" />}
 				</form.AppField>
-				<form.AppField name="favicon">
-					{(field) => (
-						<field.ImageField
-							label="Favicon"
-							size={{
-								width: 512 / 4,
-								height: 512 / 4,
-								suggestedWidth: 512,
-								suggestedHeight: 512,
-							}}
-						/>
-					)}
-				</form.AppField>
-			</Wrapper>
-			<Button type="submit">Submit</Button>
-		</form>
+				<Wrapper>
+					<form.AppField name="logo">
+						{(field) => (
+							<field.ImageField
+								label="Logo"
+								size={{
+									width: 350,
+									height: 100,
+								}}
+							/>
+						)}
+					</form.AppField>
+					<form.AppField name="favicon">
+						{(field) => (
+							<field.ImageField
+								label="Favicon"
+								size={{
+									width: 512 / 4,
+									height: 512 / 4,
+									suggestedWidth: 512,
+									suggestedHeight: 512,
+								}}
+							/>
+						)}
+					</form.AppField>
+				</Wrapper>
+				<form.SubmitButton />
+			</div>
+		</form.AppForm>
 	);
 };

@@ -9,10 +9,10 @@ export const client = hc<AppType>(window.location.origin, {
 	},
 });
 
-const course = client.api.courses[":id"];
-const courseLearner = course.learners[":learnerId"];
-const key = client.api.keys[":id"];
-const module = client.api.courses[":id"].modules[":moduleId"];
+export const course = client.api.courses[":id"];
+export const courseLearner = course.learners[":learnerId"];
+export const key = client.api.keys[":id"];
+export const courseModule = client.api.courses[":id"].modules[":moduleId"];
 
 export const fetchFile = async (fileUrl: string): Promise<File | ""> => {
 	const response = await fetch(fileUrl);
@@ -316,9 +316,9 @@ export const useMutationOptions = () => {
 				},
 				delete: {
 					mutationFn: async (
-						input: InferRequestType<typeof module.$delete>,
+						input: InferRequestType<typeof courseModule.$delete>,
 					) => {
-						const res = await module.$delete(input);
+						const res = await courseModule.$delete(input);
 						if (!res.ok) {
 							throw new Error(await res.text());
 						}

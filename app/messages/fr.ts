@@ -38,7 +38,15 @@ const fr: Messages = {
 			lastName: "Nom de famille",
 			email: "Courriel",
 		},
+		optional: "En option",
 		submit: "Soumettre",
+		blockNavigation: {
+			title: "Quitter sans sauvegarder?",
+			description:
+				"Vos modifications n'ont pas été sauvegardés. Si vous quittez, vous perdrez vos modifications.",
+			confirm: "Confirmer",
+			cancel: "Annuler",
+		},
 	},
 	Certificate: {
 		title: "Certificat de réussite",

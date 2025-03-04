@@ -1,4 +1,19 @@
-import { createFormHookContexts, createFormHook } from "@tanstack/react-form";
+import {
+	createFormHookContexts,
+	createFormHook,
+	useStore,
+} from "@tanstack/react-form";
+import { Block } from "@tanstack/react-router";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "./alert-dialog";
 import { Label } from "./label";
 import { Input } from "./input";
 import { Button, buttonVariants } from "./button";
@@ -12,49 +27,124 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { InputHTMLAttributes } from "react";
-const { fieldContext, useFieldContext, formContext } = createFormHookContexts();
+import { Checkbox } from "./checkbox";
+import { Loader2 } from "lucide-react";
+import { useTranslations } from "@/lib/locale";
+const { fieldContext, useFieldContext, formContext, useFormContext } =
+	createFormHookContexts();
 
 type DefaultOptions = {
 	label: string;
+	optional?: boolean;
 	description?: string;
 };
 
-export const Description = ({ children }: { children: React.ReactNode }) => {
-	return <p className="text-xs text-muted-foreground">{children}</p>;
+export const Description = ({
+	description,
+}: {
+	description?: DefaultOptions["description"];
+}) => {
+	if (!description) return null;
+	return (
+		<p className="text-muted-foreground text-xs whitespace-pre-line">
+			{description}
+		</p>
+	);
 };
 
-const TextField = ({ label, description }: DefaultOptions) => {
+export const Optional = ({
+	optional,
+}: {
+	optional?: DefaultOptions["optional"];
+}) => {
+	const t = useTranslations("Form");
+	if (!optional) return null;
+	return <p className="text-muted-foreground text-xs">({t.optional})</p>;
+};
+
+export const Title = (props: DefaultOptions) => {
+	if (!props.label) return null;
+	return (
+		<div className="flex items-center gap-1">
+			{props.label}
+			<Optional {...props} />
+		</div>
+	);
+};
+
+export const Error = ({ errors = [] }: { errors?: any[] }) => {
+	return errors.map((e) => (
+		<em role="alert" className="text-destructive text-sm">
+			{e.message
+				?.toString()
+				.split(" ")
+				.map((word: string) => {
+					if (word.startsWith("t:")) {
+						// @ts-ignore
+						return t[word.slice(2)];
+					}
+					return word;
+				})
+				.join(" ")}
+		</em>
+	));
+};
+
+const TextField = (props: DefaultOptions) => {
 	const field = useFieldContext<string>();
 	return (
 		<Label>
-			<div>{label}</div>
+			<Title {...props} />
 			<Input
 				value={field.state.value}
 				onChange={(e) => field.handleChange(e.target.value)}
 			/>
-			{description && <Description>{description}</Description>}
+			<Description {...props} />
+			<Error errors={field.getMeta().errors} />
 		</Label>
 	);
 };
 
-const TextAreaField = ({ label, description }: DefaultOptions) => {
+const TextAreaField = (props: DefaultOptions) => {
 	const field = useFieldContext<string>();
 	return (
 		<Label>
-			{label}
+			<Title {...props} />
 			<Textarea
 				value={field.state.value}
 				onChange={(e) => field.handleChange(e.target.value)}
 			/>
-			{description && <Description>{description}</Description>}
+			<Description {...props} />
+			<Error errors={field.getMeta().errors} />
+		</Label>
+	);
+};
+
+const CheckboxField = (props: DefaultOptions) => {
+	const field = useFieldContext<boolean>();
+
+	return (
+		<Label>
+			<div className="flex flex-row items-center gap-2">
+				<Checkbox
+					name={field.name}
+					checked={field.state.value ?? false}
+					onBlur={field.handleBlur}
+					onCheckedChange={(checked: boolean) =>
+						field.handleChange(checked)
+					}
+				/>
+				<Title {...props} />
+			</div>
+			<Description {...props} />
+			<Error errors={field.getMeta().errors} />
 		</Label>
 	);
 };
 
 const SelectField = ({
-	label,
-	description,
 	options,
+	...props
 }: DefaultOptions & {
 	options: {
 		label: string;
@@ -64,7 +154,7 @@ const SelectField = ({
 	const field = useFieldContext<string>();
 	return (
 		<Label>
-			{label}
+			<Title {...props} />
 			<Select
 				onValueChange={(value) => field.handleChange(value)}
 				defaultValue={field.state.value}
@@ -82,7 +172,8 @@ const SelectField = ({
 					</SelectGroup>
 				</SelectContent>
 			</Select>
-			{description && <Description>{description}</Description>}
+			<Description {...props} />
+			<Error errors={field.getMeta().errors} />
 		</Label>
 	);
 };
@@ -99,7 +190,7 @@ const FileField = ({
 			<Label>
 				File {field.state.value ? `(${field.state.value.name})` : ""}
 			</Label>
-			<div className="flex gap-2 items-center">
+			<div className="flex items-center gap-2">
 				<Label
 					htmlFor={field.name}
 					className={buttonVariants({
@@ -134,7 +225,8 @@ const FileField = ({
 					);
 				}}
 			/>
-			<Description>Accepts: {accept}</Description>
+			<Description description={`Accepts: ${accept}`} />
+			<Error errors={field.getMeta().errors} />
 		</div>
 	);
 };
@@ -174,14 +266,14 @@ const ImageField = ({
 				/>
 			) : (
 				<div
-					className="rounded bg-muted"
+					className="bg-muted rounded"
 					style={{
 						width,
 						height,
 					}}
 				/>
 			)}
-			<div className="flex gap-2 items-center">
+			<div className="flex items-center gap-2">
 				<Label
 					htmlFor={field.name}
 					className={buttonVariants({
@@ -217,10 +309,78 @@ const ImageField = ({
 					);
 				}}
 			/>
-			<Description>
-				Suggested image size: {suggestedWidth}px x {suggestedHeight}px
-			</Description>
+			<Description
+				description={`Suggested image size: ${suggestedWidth}px x ${suggestedHeight}px`}
+			/>
+			<Error errors={field.getMeta().errors} />
 		</div>
+	);
+};
+
+export const BlockNavigation = () => {
+	const form = useFormContext();
+	const t = useTranslations("Form");
+	const isDirty = useStore(form.store, (formState) => formState.isDirty);
+	const isSubmitting = useStore(
+		form.store,
+		(formState) => formState.isSubmitting,
+	);
+	const isSubmitted = useStore(
+		form.store,
+		(formState) => formState.isSubmitted,
+	);
+
+	return (
+		<Block
+			shouldBlockFn={() => isDirty && !(isSubmitting || isSubmitted)}
+			withResolver
+		>
+			{({ status, proceed, reset }) => (
+				<AlertDialog open={status === "blocked"}>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>
+								{t.blockNavigation.title}
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								{t.blockNavigation.description}
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel onClick={reset}>
+								{t.blockNavigation.cancel}
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={proceed}>
+								{t.blockNavigation.confirm}
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+			)}
+		</Block>
+	);
+};
+
+const SubmitButton = () => {
+	const form = useFormContext();
+	const t = useTranslations("Form");
+
+	return (
+		<form.Subscribe selector={(formState) => [formState.isSubmitting]}>
+			{([isSubmitting]) => (
+				<Button
+					type="submit"
+					onClick={() => {
+						form.handleSubmit();
+					}}
+					disabled={isSubmitting}
+					className="self-start"
+				>
+					{isSubmitting && <Loader2 className="animate-spin" />}
+					{t.submit}
+				</Button>
+			)}
+		</form.Subscribe>
 	);
 };
 
@@ -231,10 +391,14 @@ const { useAppForm } = createFormHook({
 		TextField,
 		TextAreaField,
 		SelectField,
+		CheckboxField,
 		FileField,
 		ImageField,
 	},
-	formComponents: {},
+	formComponents: {
+		SubmitButton,
+		BlockNavigation,
+	},
 });
 
 export { useAppForm };

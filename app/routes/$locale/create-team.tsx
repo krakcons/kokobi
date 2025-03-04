@@ -24,8 +24,8 @@ function RouteComponent() {
 				/>
 				<TeamForm
 					collapsible
-					onSubmit={(values) => {
-						createTeam.mutate(
+					onSubmit={(values) =>
+						createTeam.mutateAsync(
 							{
 								form: values,
 							},
@@ -40,8 +40,8 @@ function RouteComponent() {
 									});
 								},
 							},
-						);
-					}}
+						)
+					}
 				/>
 			</div>
 		</FloatingPage>

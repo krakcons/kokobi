@@ -13,7 +13,7 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { queryOptions, useMutationOptions } from "@/lib/api";
+import { course, queryOptions, useMutationOptions } from "@/lib/api";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
@@ -25,6 +25,7 @@ import { useState } from "react";
 import { LearnersForm } from "@/components/forms/LearnersForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { InferResponseType } from "hono";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -56,7 +57,7 @@ function RouteComponent() {
 	const deleteLearner = useMutation(mutationOptions.course.learners.delete);
 
 	const columns: ColumnDef<
-		Learner & { module: Module | null; joinLink?: string }
+		InferResponseType<typeof course.learners.$get>[0]
 	>[] = [
 		{
 			accessorKey: "firstName",
@@ -130,19 +131,12 @@ function RouteComponent() {
 			{
 				name: "Delete",
 				onClick: ({ id }) =>
-					deleteLearner.mutate(
-						{
-							param: {
-								id: params.id,
-								learnerId: id,
-							},
+					deleteLearner.mutate({
+						param: {
+							id: params.id,
+							learnerId: id,
 						},
-						{
-							onSuccess: () => {
-								setOpen(false);
-							},
-						},
-					),
+					}),
 			},
 		]),
 	];
@@ -169,14 +163,19 @@ function RouteComponent() {
 							</DialogDescription>
 						</DialogHeader>
 						<LearnersForm
-							onSubmit={(value) => {
-								createLearners.mutate({
-									param: {
-										id: params.id,
+							onSubmit={(value) =>
+								createLearners.mutateAsync(
+									{
+										param: {
+											id: params.id,
+										},
+										json: value.learners,
 									},
-									json: value.learners,
-								});
-							}}
+									{
+										onSuccess: () => setOpen(false),
+									},
+								)
+							}
 						/>
 					</DialogContent>
 				</Dialog>

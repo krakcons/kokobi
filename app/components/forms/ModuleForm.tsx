@@ -1,11 +1,10 @@
-import { Button } from "@/components/ui/button";
 import { ModuleFormType, ModuleFormSchema } from "@/types/module";
 import { useAppForm } from "../ui/form";
 
 const ModuleForm = ({
 	onSubmit,
 }: {
-	onSubmit: (module: ModuleFormType) => void;
+	onSubmit: (module: ModuleFormType) => Promise<any>;
 }) => {
 	const form = useAppForm({
 		validators: {
@@ -18,21 +17,19 @@ const ModuleForm = ({
 	});
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				form.handleSubmit();
-			}}
-			className="space-y-8"
-		>
-			<form.AppField name="file">
-				{(field) => (
-					<field.FileField label="File" accept="application/zip" />
-				)}
-			</form.AppField>
-			<Button type="submit">Submit</Button>
-		</form>
+		<form.AppForm>
+			<div className="space-y-8">
+				<form.AppField name="file">
+					{(field) => (
+						<field.FileField
+							label="File"
+							accept="application/zip"
+						/>
+					)}
+				</form.AppField>
+				<form.SubmitButton />
+			</div>
+		</form.AppForm>
 	);
 };
 
