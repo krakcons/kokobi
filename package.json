@@ -6,7 +6,7 @@
 	"main": "app/index.tsx",
 	"scripts": {
 		"dev": "bun --hot app/index.tsx",
-		"start": "bun app/index.tsx",
+		"start": "NODE_ENV=production bun app/index.tsx",
 		"generate-routes": "tsr generate",
 		"watch-routes": "tsr watch",
 		"email": "email dev --dir app/emails --port 3001",

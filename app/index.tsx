@@ -64,7 +64,7 @@ const server = serve({
 			return fetch(env.PUBLIC_CDN_URL + req.url.split("/cdn")[1]);
 		},
 	},
-	development: true,
+	development: env.NODE_ENV !== "production",
 	maxRequestBodySize: 1024 * 1024 * 1024, // 1GB
 });
 

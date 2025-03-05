@@ -8,7 +8,6 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import "../styles/app.css";
 import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
 

@@ -6,6 +6,7 @@ const envSchema = z.object({
 	PUBLIC_SITE_URL: z.string().url(),
 	PUBLIC_ROOT_DOMAIN: z.string().min(1),
 	PUBLIC_CDN_URL: z.string().url(),
+	NODE_ENV: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
