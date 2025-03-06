@@ -29,6 +29,8 @@ import { Route as LocaleAdminCoursesIdLearnersImport } from "./routes/$locale/ad
 import { Route as LocaleAdminCollectionsIdSettingsImport } from "./routes/$locale/admin/collections/$id/settings"
 import { Route as LocaleAdminCollectionsIdLearnersImport } from "./routes/$locale/admin/collections/$id/learners"
 import { Route as LocaleAdminCollectionsIdCoursesImport } from "./routes/$locale/admin/collections/$id/courses"
+import { Route as LocalePlayTeamIdCoursesCourseIdIndexImport } from "./routes/$locale/play/$teamId/courses/$courseId/index"
+import { Route as LocalePlayTeamIdCoursesCourseIdJoinImport } from "./routes/$locale/play/$teamId/courses/$courseId/join"
 
 // Create/Update Routes
 
@@ -146,6 +148,20 @@ const LocaleAdminCollectionsIdCoursesRoute =
     id: "/collections/$id/courses",
     path: "/collections/$id/courses",
     getParentRoute: () => LocaleAdminRoute,
+  } as any)
+
+const LocalePlayTeamIdCoursesCourseIdIndexRoute =
+  LocalePlayTeamIdCoursesCourseIdIndexImport.update({
+    id: "/$locale/play/$teamId/courses/$courseId/",
+    path: "/$locale/play/$teamId/courses/$courseId/",
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const LocalePlayTeamIdCoursesCourseIdJoinRoute =
+  LocalePlayTeamIdCoursesCourseIdJoinImport.update({
+    id: "/$locale/play/$teamId/courses/$courseId/join",
+    path: "/$locale/play/$teamId/courses/$courseId/join",
+    getParentRoute: () => rootRoute,
   } as any)
 
 // Populate the FileRoutesByPath interface
@@ -278,6 +294,20 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LocaleAdminCoursesIdWebhooksImport
       parentRoute: typeof LocaleAdminImport
     }
+    "/$locale/play/$teamId/courses/$courseId/join": {
+      id: "/$locale/play/$teamId/courses/$courseId/join"
+      path: "/$locale/play/$teamId/courses/$courseId/join"
+      fullPath: "/$locale/play/$teamId/courses/$courseId/join"
+      preLoaderRoute: typeof LocalePlayTeamIdCoursesCourseIdJoinImport
+      parentRoute: typeof rootRoute
+    }
+    "/$locale/play/$teamId/courses/$courseId/": {
+      id: "/$locale/play/$teamId/courses/$courseId/"
+      path: "/$locale/play/$teamId/courses/$courseId"
+      fullPath: "/$locale/play/$teamId/courses/$courseId"
+      preLoaderRoute: typeof LocalePlayTeamIdCoursesCourseIdIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -342,6 +372,8 @@ export interface FileRoutesByFullPath {
   "/$locale/admin/courses/$id/modules": typeof LocaleAdminCoursesIdModulesRoute
   "/$locale/admin/courses/$id/settings": typeof LocaleAdminCoursesIdSettingsRoute
   "/$locale/admin/courses/$id/webhooks": typeof LocaleAdminCoursesIdWebhooksRoute
+  "/$locale/play/$teamId/courses/$courseId/join": typeof LocalePlayTeamIdCoursesCourseIdJoinRoute
+  "/$locale/play/$teamId/courses/$courseId": typeof LocalePlayTeamIdCoursesCourseIdIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -362,6 +394,8 @@ export interface FileRoutesByTo {
   "/$locale/admin/courses/$id/modules": typeof LocaleAdminCoursesIdModulesRoute
   "/$locale/admin/courses/$id/settings": typeof LocaleAdminCoursesIdSettingsRoute
   "/$locale/admin/courses/$id/webhooks": typeof LocaleAdminCoursesIdWebhooksRoute
+  "/$locale/play/$teamId/courses/$courseId/join": typeof LocalePlayTeamIdCoursesCourseIdJoinRoute
+  "/$locale/play/$teamId/courses/$courseId": typeof LocalePlayTeamIdCoursesCourseIdIndexRoute
 }
 
 export interface FileRoutesById {
@@ -384,6 +418,8 @@ export interface FileRoutesById {
   "/$locale/admin/courses/$id/modules": typeof LocaleAdminCoursesIdModulesRoute
   "/$locale/admin/courses/$id/settings": typeof LocaleAdminCoursesIdSettingsRoute
   "/$locale/admin/courses/$id/webhooks": typeof LocaleAdminCoursesIdWebhooksRoute
+  "/$locale/play/$teamId/courses/$courseId/join": typeof LocalePlayTeamIdCoursesCourseIdJoinRoute
+  "/$locale/play/$teamId/courses/$courseId/": typeof LocalePlayTeamIdCoursesCourseIdIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -407,6 +443,8 @@ export interface FileRouteTypes {
     | "/$locale/admin/courses/$id/modules"
     | "/$locale/admin/courses/$id/settings"
     | "/$locale/admin/courses/$id/webhooks"
+    | "/$locale/play/$teamId/courses/$courseId/join"
+    | "/$locale/play/$teamId/courses/$courseId"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/$locale/create-team"
@@ -426,6 +464,8 @@ export interface FileRouteTypes {
     | "/$locale/admin/courses/$id/modules"
     | "/$locale/admin/courses/$id/settings"
     | "/$locale/admin/courses/$id/webhooks"
+    | "/$locale/play/$teamId/courses/$courseId/join"
+    | "/$locale/play/$teamId/courses/$courseId"
   id:
     | "__root__"
     | "/$locale/admin"
@@ -446,6 +486,8 @@ export interface FileRouteTypes {
     | "/$locale/admin/courses/$id/modules"
     | "/$locale/admin/courses/$id/settings"
     | "/$locale/admin/courses/$id/webhooks"
+    | "/$locale/play/$teamId/courses/$courseId/join"
+    | "/$locale/play/$teamId/courses/$courseId/"
   fileRoutesById: FileRoutesById
 }
 
@@ -453,12 +495,18 @@ export interface RootRouteChildren {
   LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
   LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
+  LocalePlayTeamIdCoursesCourseIdJoinRoute: typeof LocalePlayTeamIdCoursesCourseIdJoinRoute
+  LocalePlayTeamIdCoursesCourseIdIndexRoute: typeof LocalePlayTeamIdCoursesCourseIdIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   LocaleAdminRoute: LocaleAdminRouteWithChildren,
   LocaleCreateTeamRoute: LocaleCreateTeamRoute,
   LocaleIndexRoute: LocaleIndexRoute,
+  LocalePlayTeamIdCoursesCourseIdJoinRoute:
+    LocalePlayTeamIdCoursesCourseIdJoinRoute,
+  LocalePlayTeamIdCoursesCourseIdIndexRoute:
+    LocalePlayTeamIdCoursesCourseIdIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -473,7 +521,9 @@ export const routeTree = rootRoute
       "children": [
         "/$locale/admin",
         "/$locale/create-team",
-        "/$locale/"
+        "/$locale/",
+        "/$locale/play/$teamId/courses/$courseId/join",
+        "/$locale/play/$teamId/courses/$courseId/"
       ]
     },
     "/$locale/admin": {
@@ -561,6 +611,12 @@ export const routeTree = rootRoute
     "/$locale/admin/courses/$id/webhooks": {
       "filePath": "$locale/admin/courses/$id/webhooks.tsx",
       "parent": "/$locale/admin"
+    },
+    "/$locale/play/$teamId/courses/$courseId/join": {
+      "filePath": "$locale/play/$teamId/courses/$courseId/join.tsx"
+    },
+    "/$locale/play/$teamId/courses/$courseId/": {
+      "filePath": "$locale/play/$teamId/courses/$courseId/index.tsx"
     }
   }
 }

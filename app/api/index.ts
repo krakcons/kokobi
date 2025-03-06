@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import { collectionsHandler } from "./handlers/collections";
 import { coursesHandler } from "./handlers/courses";
 import { keysHandler } from "./handlers/keys";
-import { learnersHandler } from "./handlers/learners";
 import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
 import { userHandler } from "./handlers/user";
@@ -19,7 +18,6 @@ const app = new Hono<{
 	.route("/auth", authHandler)
 	.route("/team", teamsHandler)
 	.route("/user", userHandler)
-	.route("/learners", learnersHandler)
 	.route("/courses", coursesHandler)
 	.route("/keys", keysHandler)
 	.route("/collections", collectionsHandler);

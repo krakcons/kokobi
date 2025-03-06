@@ -10,7 +10,7 @@ export const client = hc<AppType>(window.location.origin, {
 });
 
 export const course = client.api.courses[":id"];
-export const courseLearner = course.learners[":learnerId"];
+export const courseLearner = client.api.courses[":id"].learners[":learnerId"];
 export const key = client.api.keys[":id"];
 export const courseModule = client.api.courses[":id"].modules[":moduleId"];
 
@@ -154,6 +154,28 @@ export const queryOptions = {
 			},
 		},
 	},
+	learners: {
+		id: (input: InferRequestType<typeof courseLearner.$get>) => ({
+			queryKey: ["learners", input],
+			queryFn: async () => {
+				const res = await courseLearner.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		}),
+		play: (input: InferRequestType<typeof courseLearner.play.$get>) => ({
+			queryKey: ["learners", input],
+			queryFn: async () => {
+				const res = await courseLearner.play.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		}),
+	},
 };
 
 export const useMutationOptions = () => {
@@ -269,6 +291,17 @@ export const useMutationOptions = () => {
 							}).queryKey,
 						});
 						toast.success("Learner created successfully");
+					},
+				},
+				update: {
+					mutationFn: async (
+						input: InferRequestType<typeof courseLearner.$put>,
+					) => {
+						const res = await courseLearner.$put(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
 					},
 				},
 				delete: {

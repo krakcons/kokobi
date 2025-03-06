@@ -1,19 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { locales, useLocale } from "@/lib/locale";
-import { CreateLearnerSchema } from "@/types/learner";
-import { z } from "zod";
 import { Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
-
-export const LearnersFormSchema = z.object({
-	learners: z.array(CreateLearnerSchema).min(1),
-});
-export type LearnersForm = z.infer<typeof LearnersFormSchema>;
+import { LearnersFormType, LearnersFormSchema } from "@/types/learner";
 
 export const LearnersForm = ({
 	onSubmit,
 }: {
-	onSubmit: (values: LearnersForm) => Promise<any>;
+	onSubmit: (values: LearnersFormType) => Promise<any>;
 }) => {
 	const locale = useLocale();
 	const form = useAppForm({
@@ -31,7 +25,7 @@ export const LearnersForm = ({
 					inviteLanguage: "en",
 				},
 			],
-		} as LearnersForm,
+		} as LearnersFormType,
 		onSubmit: ({ value }) => onSubmit(value),
 	});
 

@@ -5,7 +5,6 @@ import {
 	collectionsToCourses,
 } from "@/api/db/schema";
 import { CreateCollectionTranslationSchema } from "@/types/collections";
-import { CreateLearnerSchema } from "@/types/learner";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -128,42 +127,42 @@ export const collectionsHandler = new Hono()
 
 		return c.json(null);
 	})
-	.post(
-		"/:id/learners",
-		zValidator("json", CreateLearnerSchema.array().or(CreateLearnerSchema)),
-		async (c) => {
-			const { id } = c.req.param();
-			let input = c.req.valid("json");
-
-			if (!Array.isArray(input)) {
-				input = [input];
-			}
-
-			const collection = await db.query.collections.findFirst({
-				where: and(eq(collections.id, id)),
-				with: {
-					translations: true,
-					collectionsToCourses: {
-						with: {
-							course: {
-								with: {
-									translations: true,
-								},
-							},
-						},
-					},
-				},
-			});
-
-			if (!collection) {
-				throw new HTTPException(404, {
-					message: "Collection not found.",
-				});
-			}
-
-			return c.json({ message: "Not implemented" });
-		},
-	)
+	//.post(
+	//	"/:id/learners",
+	//	zValidator("json", CreateLearnerSchema.array().or(CreateLearnerSchema)),
+	//	async (c) => {
+	//		const { id } = c.req.param();
+	//		let input = c.req.valid("json");
+	//
+	//		if (!Array.isArray(input)) {
+	//			input = [input];
+	//		}
+	//
+	//		const collection = await db.query.collections.findFirst({
+	//			where: and(eq(collections.id, id)),
+	//			with: {
+	//				translations: true,
+	//				collectionsToCourses: {
+	//					with: {
+	//						course: {
+	//							with: {
+	//								translations: true,
+	//							},
+	//						},
+	//					},
+	//				},
+	//			},
+	//		});
+	//
+	//		if (!collection) {
+	//			throw new HTTPException(404, {
+	//				message: "Collection not found.",
+	//			});
+	//		}
+	//
+	//		return c.json({ message: "Not implemented" });
+	//	},
+	//)
 	.delete("/:id", protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
 		const teamId = c.get("teamId");

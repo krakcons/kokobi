@@ -6,7 +6,11 @@ import {
 	modules,
 } from "@/api/db/schema";
 import { CourseFormSchema } from "@/types/course";
-import { CreateLearnerSchema, ExtendLearner } from "@/types/learner";
+import {
+	ExtendLearner,
+	LearnersFormSchema,
+	LearnerUpdateSchema,
+} from "@/types/learner";
 import { zValidator } from "@hono/zod-validator";
 import { and, desc, eq, max } from "drizzle-orm";
 import { Hono } from "hono";
@@ -24,6 +28,54 @@ import { s3 } from "@/api/s3";
 import { sendEmail } from "../email";
 import CourseInvite from "@/emails/CourseInvite";
 import { createTranslator } from "@/lib/locale/actions";
+import { XMLParser } from "fast-xml-parser";
+import { IMSManifestSchema, Resource } from "@/types/scorm/content";
+import { S3File } from "bun";
+
+const parser = new XMLParser({
+	ignoreAttributes: false,
+	attributeNamePrefix: "",
+});
+
+const getAllResources = (resource: Resource | Resource[]): Resource[] => {
+	const resources: Resource[] = [];
+
+	const traverseResource = (res: Resource | Resource[]): void => {
+		if (Array.isArray(res)) {
+			res.forEach((subRes) => {
+				resources.push(subRes);
+				traverseResource(subRes);
+			});
+		} else if (res) {
+			resources.push(res);
+		}
+	};
+
+	traverseResource(resource);
+	return resources;
+};
+
+const parseIMSManifest = async (file: S3File) => {
+	const text = await file.text();
+
+	if (!text) throw new Error("404");
+
+	const parsedIMSManifest = parser.parse(text);
+
+	const scorm = IMSManifestSchema.parse(parsedIMSManifest).manifest;
+
+	const firstOrganization = Array.isArray(scorm.organizations.organization)
+		? scorm.organizations.organization[0]
+		: scorm.organizations.organization;
+
+	const resources = getAllResources(scorm.resources.resource);
+
+	return {
+		scorm,
+		firstOrganization,
+		resources,
+	};
+};
 
 export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/", protectedMiddleware(), async (c) => {
@@ -195,16 +247,12 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	})
 	.post(
 		"/:id/learners",
-		zValidator("json", CreateLearnerSchema.array().or(CreateLearnerSchema)),
+		zValidator("json", LearnersFormSchema.shape.learners),
 		protectedMiddleware(),
 		async (c) => {
 			const { id } = c.req.param();
 			let input = c.req.valid("json");
 			const teamId = c.get("teamId");
-
-			if (!Array.isArray(input)) {
-				input = [input];
-			}
 
 			const course = await db.query.courses.findFirst({
 				where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
@@ -241,7 +289,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				.forEach(async (l) => {
 					const id = finalLearnersList.find(
 						(fl) => fl.email === l.email,
-					)!;
+					)!.id;
 					const t = await createTranslator({
 						locale: l.inviteLanguage ?? "en",
 					});
@@ -278,6 +326,144 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				});
 
 			return c.json(null);
+		},
+	)
+	.get("/:id/learners/:learnerId", async (c) => {
+		const { id, learnerId } = c.req.param();
+
+		const learner = await db.query.learners.findFirst({
+			where: and(eq(learners.courseId, id), eq(learners.id, learnerId)),
+			with: {
+				module: true,
+			},
+		});
+
+		if (!learner) {
+			throw new HTTPException(404, {
+				message: "Learner not found",
+			});
+		}
+
+		return c.json({
+			...ExtendLearner(learner.module?.type).parse(learner),
+			module: learner.module,
+		});
+	})
+	.get("/:id/learners/:learnerId/play", async (c) => {
+		const { id, learnerId } = c.req.param();
+
+		const learner = await db.query.learners.findFirst({
+			where: and(eq(learners.courseId, id), eq(learners.id, learnerId)),
+			with: {
+				module: true,
+				course: true,
+			},
+		});
+
+		if (learner && learner.module) {
+			const courseFileUrl = `/${learner.course.teamId}/courses/${learner.courseId}/${learner.module.language}${learner.module.versionNumber === 1 ? "" : "_" + learner.module.versionNumber}`;
+
+			const imsManifest = s3.file(courseFileUrl + "/imsmanifest.xml");
+
+			const { scorm, resources } = await parseIMSManifest(imsManifest);
+			return c.json({
+				learner: ExtendLearner(learner.module.type).parse(learner),
+				url: `/cdn/${courseFileUrl}/${resources[0].href}`,
+				type: scorm.metadata.schemaversion,
+			});
+		} else {
+			throw new HTTPException(404, {
+				message: "Learner not found",
+			});
+		}
+	})
+	.put(
+		"/:id/learners/:learnerId",
+		zValidator("json", LearnerUpdateSchema),
+		async (c) => {
+			const { id, learnerId } = c.req.param();
+			const input = c.req.valid("json");
+
+			const learner = await db.query.learners.findFirst({
+				where: and(
+					eq(learners.id, learnerId),
+					eq(learners.courseId, id),
+				),
+				with: {
+					module: true,
+					course: true,
+				},
+			});
+
+			if (!learner) {
+				throw new HTTPException(404, {
+					message: "Learner not found.",
+				});
+			}
+			if (learner.completedAt) {
+				throw new HTTPException(400, {
+					message: "Learner has already completed the course.",
+				});
+			}
+
+			// JOIN COURSE
+			let courseModule = learner.module;
+			if (input.moduleId) {
+				if (courseModule) {
+					throw new HTTPException(400, {
+						message: "Learner already belongs to module",
+					});
+				}
+
+				courseModule =
+					(await db.query.modules.findFirst({
+						where: and(
+							eq(modules.id, input.moduleId),
+							eq(modules.courseId, learner.courseId),
+						),
+					})) ?? null;
+
+				if (!courseModule) {
+					throw new HTTPException(400, {
+						message: "Module id does not belong to course",
+					});
+				}
+			}
+
+			// UPDATE LEARNER
+			let completedAt = undefined;
+			if (input.data) {
+				const newLearner = ExtendLearner(courseModule!.type).parse({
+					...learner,
+					data: input.data,
+				});
+
+				const isEitherStatus =
+					learner.course.completionStatus === "either" &&
+					["completed", "passed"].includes(newLearner.status);
+				const justCompleted =
+					!learner.completedAt &&
+					(learner.course.completionStatus === newLearner.status ||
+						isEitherStatus);
+
+				completedAt =
+					learner.module && justCompleted
+						? new Date()
+						: learner.completedAt;
+			}
+
+			await db
+				.update(learners)
+				.set({
+					moduleId: courseModule!.id,
+					...(input.data ? { data: input.data } : {}),
+					...(completedAt ? { completedAt } : {}),
+				})
+				.where(
+					and(eq(learners.courseId, id), eq(learners.id, learnerId)),
+				);
+
+			return c.json({ completedAt });
 		},
 	)
 	.delete("/:id/learners/:learnerId", protectedMiddleware(), async (c) => {
@@ -323,6 +509,11 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			}
 
 			const moduleFile = c.req.valid("form").file;
+			if (moduleFile === "") {
+				throw new HTTPException(400, {
+					message: "Module empty",
+				});
+			}
 			const { entries, type } = await validateModule(moduleFile);
 
 			const newestModule = await db
