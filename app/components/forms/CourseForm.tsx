@@ -29,7 +29,7 @@ export const CourseForm = ({
 
 	return (
 		<form.AppForm>
-			<div className="space-y-8">
+			<form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 				<form.AppField name="name">
 					{(field) => <field.TextField label="Name" />}
 				</form.AppField>
@@ -51,7 +51,7 @@ export const CourseForm = ({
 					)}
 				</form.AppField>
 				<form.SubmitButton />
-			</div>
+			</form>
 		</form.AppForm>
 	);
 };

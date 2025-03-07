@@ -60,7 +60,10 @@ export const TeamForm = ({
 
 	return (
 		<form.AppForm>
-			<div className="flex flex-col gap-8 items-start">
+			<form
+				onSubmit={(e) => e.preventDefault()}
+				className="flex flex-col gap-8 items-start"
+			>
 				<form.AppField name="name">
 					{(field) => <field.TextField label="Name" />}
 				</form.AppField>
@@ -91,7 +94,7 @@ export const TeamForm = ({
 					</form.AppField>
 				</Wrapper>
 				<form.SubmitButton />
-			</div>
+			</form>
 		</form.AppForm>
 	);
 };

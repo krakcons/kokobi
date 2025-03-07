@@ -18,12 +18,15 @@ export const APIKeyForm = ({
 
 	return (
 		<form.AppForm>
-			<div className="flex flex-col gap-6">
+			<form
+				onSubmit={(e) => e.preventDefault()}
+				className="flex flex-col gap-6"
+			>
 				<form.AppField name="name">
 					{(field) => <field.TextField label="Name" />}
 				</form.AppField>
 				<form.SubmitButton />
-			</div>
+			</form>
 		</form.AppForm>
 	);
 };

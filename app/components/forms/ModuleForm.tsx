@@ -18,7 +18,7 @@ const ModuleForm = ({
 
 	return (
 		<form.AppForm>
-			<div className="space-y-8">
+			<form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 				<form.AppField name="file">
 					{(field) => (
 						<field.FileField
@@ -28,7 +28,7 @@ const ModuleForm = ({
 					)}
 				</form.AppField>
 				<form.SubmitButton />
-			</div>
+			</form>
 		</form.AppForm>
 	);
 };

@@ -31,7 +31,7 @@ export const LearnersForm = ({
 
 	return (
 		<form.AppForm>
-			<div className="space-y-4">
+			<form onSubmit={(e) => e.preventDefault()} className="space-y-4">
 				<div className="flex w-full gap-2">
 					<p className="flex-1 text-sm leading-none font-medium">
 						First Name
@@ -129,7 +129,7 @@ export const LearnersForm = ({
 						</>
 					)}
 				</form.Field>
-			</div>
+			</form>
 		</form.AppForm>
 	);
 };
