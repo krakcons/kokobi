@@ -9,13 +9,15 @@ import { Trash } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
 	component: RouteComponent,
-	loader: async ({ params, context: { queryClient } }) => {
+	loaderDeps: ({ search: { locale } }) => ({ locale }),
+	loader: async ({ params, context: { queryClient }, deps }) => {
 		await queryClient.ensureQueryData(
 			queryOptions.courses.id({
 				param: {
 					id: params.id,
 				},
 				query: {
+					locale: deps.locale,
 					"fallback-locale": "none",
 				},
 			}),
@@ -26,12 +28,14 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
+	const search = Route.useSearch();
 	const { data: course } = useSuspenseQuery(
 		queryOptions.courses.id({
 			param: {
 				id: params.id,
 			},
 			query: {
+				locale: search.locale,
 				"fallback-locale": "none",
 			},
 		}),

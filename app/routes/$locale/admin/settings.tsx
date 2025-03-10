@@ -5,44 +5,53 @@ import { Separator } from "@/components/ui/separator";
 import { queryOptions, useMutationOptions } from "@/lib/api";
 import {
 	useMutation,
-	useQuery,
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { fetchFile } from "@/lib/api";
+import { Locale } from "@/lib/locale";
 
-const teamOptions = queryOptions.team.me({
-	query: {
-		"fallback-locale": "none",
-	},
-});
-const options = {
-	queryKey: teamOptions.queryKey,
+const teamOptions = (locale?: Locale) =>
+	queryOptions.team.me({
+		query: {
+			locale,
+			"fallback-locale": "none",
+		},
+	});
+const options = (locale?: Locale) => ({
+	queryKey: teamOptions(locale).queryKey,
 	queryFn: async () => {
-		const data = await teamOptions.queryFn();
-		const logo = await fetchFile(
-			`${window.location.origin}/cdn/${data.teamId}/${data.language}/logo?updatedAt=${data.updatedAt}`,
-		);
-		const favicon = await fetchFile(
-			`${window.location.origin}/cdn/${data.teamId}/${data.language}/favicon?updatedAt=${data.updatedAt}`,
-		);
+		const data = await teamOptions(locale).queryFn();
+		let logo: File | "" = "";
+		let favicon: File | "" = "";
+		// Only fetch if that team translation exists
+		if (data.language) {
+			logo = await fetchFile(
+				`${window.location.origin}/cdn/${data.id}/${data.language}/logo?updatedAt=${data.updatedAt}`,
+			);
+			favicon = await fetchFile(
+				`${window.location.origin}/cdn/${data.id}/${data.language}/favicon?updatedAt=${data.updatedAt}`,
+			);
+		}
 		return { logo, favicon, ...data };
 	},
-};
+});
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
-	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(options);
+	loaderDeps: ({ search: { locale } }) => ({ locale }),
+	loader: async ({ context: { queryClient }, deps }) => {
+		await queryClient.ensureQueryData(options(deps.locale));
 	},
 });
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
-	const { data: team } = useSuspenseQuery(options);
+	const search = Route.useSearch();
+	const { data: team } = useSuspenseQuery(options(search.locale));
 
 	const mutationOptions = useMutationOptions();
 	const updateTeam = useMutation(mutationOptions.team.update);

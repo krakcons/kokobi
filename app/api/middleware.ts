@@ -102,7 +102,6 @@ export const localeInputMiddleware = zValidator(
 		.object({
 			locale: LocaleSchema.optional(),
 			"fallback-locale": LocaleSchema.or(z.literal("none")).optional(),
-			"editing-locale": LocaleSchema.optional(),
 		})
 		.optional(),
 );
@@ -122,16 +121,8 @@ export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
 				"en",
 		);
 
-		const editingLocale =
-			LocaleSchema.optional().parse(
-				c.req.query("editing-locale") ??
-					c.req.header("editing-locale") ??
-					getCookie(c, "editing-locale"),
-			) ?? locale;
-
 		c.set("locale", locale);
 		c.set("fallbackLocale", fallbackLocale);
-		c.set("editingLocale", editingLocale);
 
 		return await next();
 	},

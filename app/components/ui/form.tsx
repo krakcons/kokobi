@@ -90,7 +90,7 @@ export const Error = ({ errors = [] }: { errors?: any[] }) => {
 	));
 };
 
-const TextField = (props: DefaultOptions) => {
+const TextField = (props: React.ComponentProps<"input"> & DefaultOptions) => {
 	const field = useFieldContext<string>();
 	return (
 		<Label>
@@ -98,6 +98,7 @@ const TextField = (props: DefaultOptions) => {
 			<Input
 				value={field.state.value}
 				onChange={(e) => field.handleChange(e.target.value)}
+				{...props}
 			/>
 			<Description {...props} />
 			<Error errors={field.getMeta().errors} />
@@ -160,7 +161,7 @@ const SelectField = ({
 				defaultValue={field.state.value}
 			>
 				<SelectTrigger>
-					<SelectValue placeholder="Select language" />
+					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
 					<SelectGroup>

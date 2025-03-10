@@ -1,51 +1,31 @@
-"use client";
+import { Button } from "@/components/ui/button";
+import { useLocale } from "@/lib/locale";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 
-import { locales } from "@/lib/locale";
-import { Language } from "@/types/translations";
-import { useNavigate, useParams } from "@tanstack/react-router";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "./ui/select";
-
-const LanguageToggle = () => {
-	const { locale } = useParams({
-		from: "/$locale/",
+export const LanguageToggle = () => {
+	const navigate = useNavigate({
+		from: "/$locale",
 	});
-	const navigate = useNavigate();
-
+	const locale = useLocale();
+	const queryClient = useQueryClient();
 	return (
-		<Select
-			onValueChange={(value: Language) => {
+		<Button
+			onClick={() => {
 				navigate({
 					replace: true,
 					params: (prev) => ({
 						...prev,
 						locale: locale === "en" ? "fr" : "en",
 					}),
-					search: (prev) => ({ ...prev }),
+					search: (p) => p,
+				}).then(() => {
+					queryClient.invalidateQueries();
 				});
 			}}
-			defaultValue={locale}
+			size="icon"
 		>
-			<SelectTrigger className="w-[80px]">
-				<SelectValue placeholder="Language" />
-			</SelectTrigger>
-			<SelectContent>
-				<SelectGroup>
-					{locales.map((locale) => (
-						<SelectItem key={locale.label} value={locale.value}>
-							{locale.label}
-						</SelectItem>
-					))}
-				</SelectGroup>
-			</SelectContent>
-		</Select>
+			{locale === "en" ? "FR" : "EN"}
+		</Button>
 	);
 };
-
-export default LanguageToggle;

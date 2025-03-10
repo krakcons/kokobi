@@ -73,7 +73,6 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 		return c.json({
 			teamId: c.get("teamId"),
 			locale: c.get("locale"),
-			editingLocale: c.get("editingLocale"),
 		});
 	})
 	.put(
@@ -83,11 +82,10 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 			z.object({
 				teamId: z.string().optional(),
 				locale: LocaleSchema.optional(),
-				editingLocale: LocaleSchema.optional(),
 			}),
 		),
 		async (c) => {
-			const { teamId, locale, editingLocale } = c.req.valid("json");
+			const { teamId, locale } = c.req.valid("json");
 
 			if (teamId) {
 				const user = c.get("user");
@@ -117,15 +115,6 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 
 			if (locale) {
 				setCookie(c, "locale", locale, {
-					path: "/",
-					httpOnly: true,
-					secure: true,
-					sameSite: "lax",
-				});
-			}
-
-			if (editingLocale) {
-				setCookie(c, "editing-locale", editingLocale, {
 					path: "/",
 					httpOnly: true,
 					secure: true,

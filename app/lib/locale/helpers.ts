@@ -20,8 +20,7 @@ export const handleLocalization = <
 	obj: TBase,
 	customLocale?: Locale,
 ): TResult => {
-	const editingLocale = c.get("editingLocale");
-	const locale = customLocale ?? editingLocale ?? c.get("locale");
+	const locale = customLocale ?? c.get("locale");
 	const fallbackLocale = c.get("fallbackLocale");
 
 	// Find translation in requested locale or fallback to first

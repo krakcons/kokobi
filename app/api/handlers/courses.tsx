@@ -8,6 +8,7 @@ import {
 import { CourseFormSchema } from "@/types/course";
 import {
 	ExtendLearner,
+	JoinCourseFormSchema,
 	LearnersFormSchema,
 	LearnerUpdateSchema,
 } from "@/types/learner";
@@ -31,6 +32,7 @@ import { createTranslator } from "@/lib/locale/actions";
 import { XMLParser } from "fast-xml-parser";
 import { IMSManifestSchema, Resource } from "@/types/scorm/content";
 import { S3File } from "bun";
+import { getInitialScormData } from "@/lib/scorm";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,
@@ -88,7 +90,9 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			},
 		});
 
-		return c.json(courseList);
+		return c.json(
+			courseList.map((course) => handleLocalization(c, course)),
+		);
 	})
 	.get("/:id", localeInputMiddleware, protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
@@ -245,8 +249,45 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 
 		return c.json(extendedLearnerList);
 	})
+	.post("/:id/join", zValidator("json", JoinCourseFormSchema), async (c) => {
+		const { id } = c.req.param();
+		const input = c.req.valid("json");
+
+		const courseModule = await db.query.modules.findFirst({
+			where: and(
+				eq(modules.id, input.moduleId),
+				eq(modules.courseId, id),
+			),
+		});
+		if (!courseModule) {
+			throw new HTTPException(404, {
+				message: "Course module not found",
+			});
+		}
+
+		const learnerId = input.id ?? Bun.randomUUIDv7();
+		const learner = await db
+			.insert(learners)
+			.values({
+				id: learnerId,
+				...input,
+				data: getInitialScormData(courseModule.type),
+				startedAt: new Date(),
+				courseId: id,
+			})
+			.onConflictDoUpdate({
+				target: [learners.courseId, learners.email],
+				set: {
+					moduleId: input.moduleId,
+				},
+			})
+			.returning();
+
+		// TODO:Send enrollment email (something like "You have enrolled" with a join link and a status link when we add login)
+		return c.json({ learnerId: learner[0].id });
+	})
 	.post(
-		"/:id/learners",
+		"/:id/invite",
 		zValidator("json", LearnersFormSchema.shape.learners),
 		protectedMiddleware(),
 		async (c) => {
@@ -406,28 +447,11 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				});
 			}
 
-			// JOIN COURSE
 			let courseModule = learner.module;
-			if (input.moduleId) {
-				if (courseModule) {
-					throw new HTTPException(400, {
-						message: "Learner already belongs to module",
-					});
-				}
-
-				courseModule =
-					(await db.query.modules.findFirst({
-						where: and(
-							eq(modules.id, input.moduleId),
-							eq(modules.courseId, learner.courseId),
-						),
-					})) ?? null;
-
-				if (!courseModule) {
-					throw new HTTPException(400, {
-						message: "Module id does not belong to course",
-					});
-				}
+			if (!courseModule) {
+				throw new HTTPException(400, {
+					message: "Module id does not belong to course",
+				});
 			}
 
 			// UPDATE LEARNER
@@ -477,7 +501,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 	})
 	.get("/:id/modules", protectedMiddleware(), async (c) => {
 		const { id } = c.req.param();
-		const locale = c.get("editingLocale");
+		const locale = c.get("locale");
 
 		const moduleList = await db.query.modules.findMany({
 			where: and(eq(modules.courseId, id), eq(modules.language, locale)),
@@ -493,7 +517,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 		async (c) => {
 			const { id } = c.req.param();
 			const teamId = c.get("teamId");
-			const locale = c.get("editingLocale");
+			const locale = c.get("locale");
 
 			const course = await db.query.courses.findFirst({
 				where: and(
@@ -555,9 +579,12 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			return c.json({ id: insertId });
 		},
 	)
+
 	.delete("/:id/modules/:moduleId", protectedMiddleware(), async (c) => {
 		const { id, moduleId } = c.req.param();
 		const teamId = c.get("teamId");
+
+		// TODO: Ensure module exists to this team
 
 		await db
 			.delete(modules)

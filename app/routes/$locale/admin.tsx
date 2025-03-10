@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -26,12 +25,14 @@ import {
 	SidebarTrigger,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Locale, locales } from "@/lib/locale";
+import { Locale, locales, LocaleSchema } from "@/lib/locale";
 import {
 	createFileRoute,
 	Link,
 	Outlet,
 	redirect,
+	useNavigate,
+	useSearch,
 } from "@tanstack/react-router";
 import {
 	DropdownMenu,
@@ -43,7 +44,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { client, queryOptions, useMutationOptions } from "@/lib/api";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { translate } from "@/lib/translation";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -60,7 +60,6 @@ import {
 	Settings,
 	Users,
 	Files,
-	Webhook,
 	Book,
 	FileBadge,
 	Moon,
@@ -69,9 +68,14 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Theme, useTheme } from "@/lib/theme";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { z } from "zod";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
+	validateSearch: z.object({
+		locale: LocaleSchema.optional(),
+	}),
 	beforeLoad: async ({ context: { queryClient } }) => {
 		const { user } = await queryClient.ensureQueryData(
 			queryOptions.user.me,
@@ -96,19 +100,7 @@ export const Route = createFileRoute("/$locale/admin")({
 			});
 		}
 	},
-	loader: async ({ params, context: { queryClient } }) => {
-		const { editingLocale } = await queryClient.ensureQueryData(
-			queryOptions.user.preferences,
-		);
-
-		if (!editingLocale) {
-			await client.api.user.preferences.$put({
-				json: {
-					editingLocale: params.locale as Locale,
-				},
-			});
-		}
-
+	loader: async ({ context: { queryClient } }) => {
 		Promise.all([
 			queryClient.ensureQueryData(queryOptions.user.teams),
 			queryClient.ensureQueryData(queryOptions.courses.all),
@@ -279,12 +271,7 @@ const AdminSidebar = () => {
 									<CollapsibleTrigger asChild>
 										<SidebarMenuButton>
 											<p className="truncate">
-												{
-													translate(
-														course.translations,
-														locale,
-													).name
-												}
+												{course.name}
 											</p>
 											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 										</SidebarMenuButton>
@@ -415,12 +402,6 @@ const AdminSidebar = () => {
 								<SidebarMenuItem>
 									<CollapsibleTrigger asChild>
 										<SidebarMenuButton>
-											{
-												translate(
-													collection.translations,
-													locale,
-												).name
-											}
 											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 										</SidebarMenuButton>
 									</CollapsibleTrigger>
@@ -595,16 +576,14 @@ const AdminSidebar = () => {
 };
 
 function RouteComponent() {
-	const locale = useLocale();
-	const navigate = Route.useNavigate();
 	const t = useTranslations("Nav");
+	const userLocale = useLocale();
+	const { locale } = useSearch({
+		from: "/$locale/admin",
+	});
+	const navigate = Route.useNavigate();
 
-	const {
-		data: { editingLocale },
-	} = useSuspenseQuery(queryOptions.user.preferences);
-
-	const mutationOptions = useMutationOptions();
-	const updatePreferences = useMutation(mutationOptions.user.preferences);
+	const editingLocale = locale ?? userLocale;
 
 	return (
 		<SidebarProvider>
@@ -616,12 +595,16 @@ function RouteComponent() {
 						<Select
 							value={editingLocale}
 							onValueChange={(value) => {
-								updatePreferences.mutate({
-									json: { editingLocale: value as Locale },
+								navigate({
+									search: (s) => ({
+										...s,
+										locale: value as Locale,
+									}),
+									params: (p) => p,
 								});
 							}}
 						>
-							<SelectTrigger>
+							<SelectTrigger className="gap-1">
 								<p className="text-sm text-muted-foreground">
 									{t.top.editing}
 								</p>
@@ -635,37 +618,7 @@ function RouteComponent() {
 								))}
 							</SelectContent>
 						</Select>
-						<Button
-							onClick={() => {
-								updatePreferences.mutate(
-									{
-										json: {
-											locale:
-												locale === "en" ? "fr" : "en",
-										},
-									},
-									{
-										onSuccess: () => {
-											navigate({
-												replace: true,
-												params: (prev) => ({
-													...prev,
-													locale:
-														locale === "en"
-															? "fr"
-															: "en",
-												}),
-												search: (p) => p,
-											});
-										},
-									},
-								);
-							}}
-							size="icon"
-							className="w-12"
-						>
-							{locale === "en" ? "FR" : "EN"}
-						</Button>
+						<LanguageToggle />
 					</div>
 				</header>
 				<Outlet />

@@ -59,17 +59,24 @@ export const ExtendLearner = (type?: Module["type"]) => {
 	});
 };
 
-// Should handle anonymous joining and inviting from dashboard
+export const JoinCourseFormSchema = z.object({
+	id: z.string().optional(),
+	email: z.string().email(),
+	firstName: z.string().min(1),
+	lastName: z.string().min(1),
+	moduleId: z.string(),
+});
+export type JoinCourseFormType = z.infer<typeof JoinCourseFormSchema>;
+
 export const LearnersFormSchema = z.object({
 	learners: z
 		.array(
 			z.object({
 				id: z.string().optional(),
-				moduleId: z.string().optional(),
 				email: z.string().email(),
-				sendEmail: z.boolean().optional(),
 				firstName: z.string().min(1),
 				lastName: z.string().min(1),
+				sendEmail: z.boolean().optional(),
 				inviteLanguage: LanguageSchema.optional(),
 			}),
 		)
@@ -78,8 +85,6 @@ export const LearnersFormSchema = z.object({
 export type LearnersFormType = z.infer<typeof LearnersFormSchema>;
 
 export const LearnerUpdateSchema = z.object({
-	// Can assign self to module
-	moduleId: z.string().optional(),
 	// Can update data
 	data: z.record(z.string()),
 });

@@ -69,7 +69,7 @@ export const queryOptions = {
 	},
 	team: {
 		me: (input: InferRequestType<typeof client.api.team.$get>) => ({
-			queryKey: ["editing-locale", "team.me", input],
+			queryKey: ["team.me", input],
 			queryFn: async () => {
 				const res = await client.api.team.$get(input);
 				return await res.json();
@@ -88,7 +88,7 @@ export const queryOptions = {
 	},
 	courses: {
 		id: (input: InferRequestType<typeof course.$get>) => ({
-			queryKey: ["editing-locale", "courses", input],
+			queryKey: ["courses", input],
 			queryFn: async () => {
 				const res = await course.$get(input);
 				if (!res.ok) {
@@ -132,13 +132,18 @@ export const queryOptions = {
 	},
 	modules: {
 		all: (input: InferRequestType<typeof course.modules.$get>) => ({
-			queryKey: ["editing-locale", "modules", input],
+			queryKey: ["modules", input],
 			queryFn: async () => {
 				const res = await course.modules.$get(input);
 				if (!res.ok) {
 					throw new Error(await res.text());
 				}
-				return await res.json();
+				const modules = await res.json();
+				return modules.map((m) => ({
+					...m,
+					createdAt: new Date(m.createdAt),
+					updatedAt: new Date(m.updatedAt),
+				}));
 			},
 		}),
 	},
@@ -216,6 +221,17 @@ export const useMutationOptions = () => {
 			},
 		},
 		course: {
+			join: {
+				mutationFn: async (
+					input: InferRequestType<typeof course.join.$post>,
+				) => {
+					const res = await course.join.$post(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+					return await res.json();
+				},
+			},
 			create: {
 				mutationFn: async (
 					input: InferRequestType<typeof client.api.courses.$post>,
@@ -274,9 +290,9 @@ export const useMutationOptions = () => {
 			learners: {
 				create: {
 					mutationFn: async (
-						input: InferRequestType<typeof course.learners.$post>,
+						input: InferRequestType<typeof course.invite.$post>,
 					) => {
-						const res = await course.learners.$post(input);
+						const res = await course.invite.$post(input);
 						if (!res.ok) {
 							throw new Error(await res.text());
 						}
@@ -386,11 +402,6 @@ export const useMutationOptions = () => {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.user.preferences.queryKey,
 					});
-					if (variables.json.editingLocale) {
-						queryClient.invalidateQueries({
-							queryKey: ["editing-locale"],
-						});
-					}
 					if (variables.json.locale) {
 						queryClient.invalidateQueries({
 							queryKey: queryOptions.user.i18n.queryKey,
