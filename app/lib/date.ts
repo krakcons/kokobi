@@ -26,5 +26,6 @@ export const formatDate = ({
 	locale: Locale;
 	type?: keyof typeof dateTypes;
 }): string => {
+	if (!date) return "";
 	return new Intl.DateTimeFormat(locale, dateTypes[type]).format(date);
 };

@@ -4,9 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 export const LanguageToggle = () => {
-	const navigate = useNavigate({
-		from: "/$locale",
-	});
+	const navigate = useNavigate();
 	const locale = useLocale();
 	const queryClient = useQueryClient();
 	return (
@@ -14,11 +12,13 @@ export const LanguageToggle = () => {
 			onClick={() => {
 				navigate({
 					replace: true,
+					// @ts-ignore
 					params: (prev) => ({
 						...prev,
 						locale: locale === "en" ? "fr" : "en",
 					}),
-					search: (p) => p,
+					// @ts-ignore
+					search: (s) => s,
 				}).then(() => {
 					queryClient.invalidateQueries();
 				});

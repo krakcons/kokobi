@@ -23,6 +23,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { APIKeyForm } from "@/components/forms/APIKeyForm";
+import CopyButton from "@/components/CopyButton";
 
 export const Route = createFileRoute("/$locale/admin/keys")({
 	component: RouteComponent,
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/$locale/admin/keys")({
 
 const APIKeyCell = ({ secret }: { secret: string }) => {
 	const [hidden, setHidden] = useState(true);
-	const [copied, setCopied] = useState(false);
+
 	return (
 		<div className="flex items-center">
 			<code className={cn("text-sm mr-2", hidden ? "pt-1" : "")}>
@@ -51,22 +52,7 @@ const APIKeyCell = ({ secret }: { secret: string }) => {
 					<EyeOff className="size-5" />
 				)}
 			</Button>
-			<Button
-				size="icon"
-				variant="ghost"
-				disabled={copied}
-				onClick={() => {
-					navigator.clipboard.writeText(secret);
-					setCopied(true);
-					setTimeout(() => setCopied(false), 1500);
-				}}
-			>
-				{copied ? (
-					<ClipboardCheck className="size-5" />
-				) : (
-					<Clipboard className="size-5" />
-				)}
-			</Button>
+			<CopyButton text={secret} />
 		</div>
 	);
 };

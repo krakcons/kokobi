@@ -29,6 +29,7 @@ export const CourseForm = ({
 
 	return (
 		<form.AppForm>
+			<form.BlockNavigation />
 			<form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 				<form.AppField name="name">
 					{(field) => <field.TextField label="Name" />}

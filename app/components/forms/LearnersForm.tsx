@@ -31,6 +31,7 @@ export const LearnersForm = ({
 
 	return (
 		<form.AppForm>
+			<form.BlockNavigation />
 			<form onSubmit={(e) => e.preventDefault()} className="space-y-4">
 				<div className="flex w-full gap-2">
 					<p className="flex-1 text-sm leading-none font-medium">

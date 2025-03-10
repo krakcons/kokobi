@@ -18,6 +18,7 @@ const ModuleForm = ({
 
 	return (
 		<form.AppForm>
+			<form.BlockNavigation />
 			<form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 				<form.AppField name="file">
 					{(field) => (

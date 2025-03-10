@@ -43,14 +43,15 @@ export const Route = createFileRoute(
 					},
 				}),
 			);
-			if (learner.module) {
-				redirect({
+			if (learner.moduleId) {
+				throw redirect({
 					from: "/$locale/play/$teamId/courses/$courseId/join",
 					to: "/$locale/play/$teamId/courses/$courseId",
 					search: () => ({
 						learnerId,
 					}),
 					params: (p) => p,
+					reloadDocument: true,
 				});
 			}
 		}
@@ -114,6 +115,7 @@ function RouteComponent() {
 											learnerId: data.learnerId,
 										},
 										params: (p) => p,
+										reloadDocument: true,
 									});
 								},
 							},

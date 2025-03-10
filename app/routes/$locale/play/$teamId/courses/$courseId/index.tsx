@@ -3,7 +3,6 @@ import LMSProvider from "@/components/LMSProvider";
 import { queryOptions } from "@/lib/api";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { Learner } from "@/types/learner";
 
 export const Route = createFileRoute(
 	"/$locale/play/$teamId/courses/$courseId/",
@@ -49,12 +48,14 @@ function RouteComponent() {
 		}),
 	);
 
+	console.log("LEARNER", learner);
+
 	return (
 		<main className="flex h-screen w-full flex-col">
 			<div className="flex flex-1 flex-row">
 				<LMSProvider
 					type={type}
-					learner={learner as Learner}
+					learner={learner}
 					url={url}
 					course={course.name}
 				/>

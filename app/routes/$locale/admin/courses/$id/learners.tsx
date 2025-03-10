@@ -13,7 +13,7 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { course, queryOptions, useMutationOptions } from "@/lib/api";
+import { queryOptions, useMutationOptions } from "@/lib/api";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
@@ -23,9 +23,9 @@ import { locales, useLocale, useTranslations } from "@/lib/locale";
 import { formatDate } from "@/lib/date";
 import { useState } from "react";
 import { LearnersForm } from "@/components/forms/LearnersForm";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { InferResponseType } from "hono";
+import CopyButton from "@/components/CopyButton";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -36,6 +36,7 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 				param: { id: params.id },
 			}),
 		);
+		await context.queryClient.ensureQueryData(queryOptions.team.me({}));
 	},
 });
 
@@ -49,6 +50,7 @@ function RouteComponent() {
 			param: { id: params.id },
 		}),
 	);
+	const { data: team } = useSuspenseQuery(queryOptions.team.me({}));
 	const t = useTranslations("Learner");
 	const locale = useLocale();
 
@@ -56,9 +58,7 @@ function RouteComponent() {
 	const createLearners = useMutation(mutationOptions.course.learners.create);
 	const deleteLearner = useMutation(mutationOptions.course.learners.delete);
 
-	const columns: ColumnDef<
-		InferResponseType<typeof course.learners.$get>[0]
-	>[] = [
+	const columns: ColumnDef<Learner & { module: Module }>[] = [
 		{
 			accessorKey: "firstName",
 			header: ({ column }) => (
@@ -141,6 +141,10 @@ function RouteComponent() {
 		]),
 	];
 
+	const inviteLink = team.customDomain
+		? `https://${team.customDomain}/courses/${params.id}/join`
+		: `${window.location.origin}/play/${team.id}/courses/${params.id}/join`;
+
 	return (
 		<Page>
 			<PageHeader
@@ -180,6 +184,12 @@ function RouteComponent() {
 					</DialogContent>
 				</Dialog>
 			</PageHeader>
+			<div className="bg-secondary rounded flex gap-2 items-center px-3 py-2">
+				<p className="truncate text-sm text-muted-foreground">
+					{inviteLink}
+				</p>
+				<CopyButton text={inviteLink} />
+			</div>
 			<DataTable
 				data={learners}
 				columns={columns}

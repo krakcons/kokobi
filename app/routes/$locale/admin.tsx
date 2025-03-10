@@ -581,7 +581,7 @@ function RouteComponent() {
 	const { locale } = useSearch({
 		from: "/$locale/admin",
 	});
-	const navigate = Route.useNavigate();
+	const navigate = useNavigate();
 
 	const editingLocale = locale ?? userLocale;
 
@@ -596,11 +596,11 @@ function RouteComponent() {
 							value={editingLocale}
 							onValueChange={(value) => {
 								navigate({
+									// @ts-ignore
 									search: (s) => ({
 										...s,
 										locale: value as Locale,
 									}),
-									params: (p) => p,
 								});
 							}}
 						>

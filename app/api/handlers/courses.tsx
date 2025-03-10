@@ -265,6 +265,16 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			});
 		}
 
+		const existingLearner = await db.query.learners.findFirst({
+			where: and(
+				eq(learners.email, input.email),
+				eq(learners.courseId, id),
+			),
+		});
+		if (existingLearner && existingLearner.moduleId) {
+			return c.json({ learnerId: existingLearner.id });
+		}
+
 		const learnerId = input.id ?? Bun.randomUUIDv7();
 		const learner = await db
 			.insert(learners)
@@ -276,8 +286,10 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				courseId: id,
 			})
 			.onConflictDoUpdate({
-				target: [learners.courseId, learners.email],
+				target: [learners.id],
 				set: {
+					startedAt: new Date(),
+					data: getInitialScormData(courseModule.type),
 					moduleId: input.moduleId,
 				},
 			})

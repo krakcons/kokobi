@@ -114,7 +114,12 @@ export const queryOptions = {
 				if (!res.ok) {
 					throw new Error(await res.text());
 				}
-				return await res.json();
+				const learners = await res.json();
+				return learners.map((l) => ({
+					...l,
+					completedAt: l.completedAt ? new Date(l.completedAt) : null,
+					startedAt: l.startedAt ? new Date(l.startedAt) : null,
+				}));
 			},
 		}),
 	},

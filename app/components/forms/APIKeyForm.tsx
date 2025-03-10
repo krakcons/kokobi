@@ -18,6 +18,7 @@ export const APIKeyForm = ({
 
 	return (
 		<form.AppForm>
+			<form.BlockNavigation />
 			<form
 				onSubmit={(e) => e.preventDefault()}
 				className="flex flex-col gap-6"

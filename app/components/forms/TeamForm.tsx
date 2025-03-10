@@ -60,6 +60,7 @@ export const TeamForm = ({
 
 	return (
 		<form.AppForm>
+			<form.BlockNavigation />
 			<form
 				onSubmit={(e) => e.preventDefault()}
 				className="flex flex-col gap-8 items-start"
