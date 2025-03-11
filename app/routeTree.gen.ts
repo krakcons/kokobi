@@ -13,6 +13,7 @@
 import { Route as rootRoute } from "./routes/__root"
 import { Route as LocaleIndexImport } from "./routes/$locale/index"
 import { Route as LocaleCreateTeamImport } from "./routes/$locale/create-team"
+import { Route as LocaleAiImport } from "./routes/$locale/ai"
 import { Route as LocaleAdminImport } from "./routes/$locale/admin"
 import { Route as LocaleAdminIndexImport } from "./routes/$locale/admin/index"
 import { Route as LocaleAdminSettingsImport } from "./routes/$locale/admin/settings"
@@ -43,6 +44,12 @@ const LocaleIndexRoute = LocaleIndexImport.update({
 const LocaleCreateTeamRoute = LocaleCreateTeamImport.update({
   id: "/$locale/create-team",
   path: "/$locale/create-team",
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LocaleAiRoute = LocaleAiImport.update({
+  id: "/$locale/ai",
+  path: "/$locale/ai",
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -173,6 +180,13 @@ declare module "@tanstack/react-router" {
       path: "/$locale/admin"
       fullPath: "/$locale/admin"
       preLoaderRoute: typeof LocaleAdminImport
+      parentRoute: typeof rootRoute
+    }
+    "/$locale/ai": {
+      id: "/$locale/ai"
+      path: "/$locale/ai"
+      fullPath: "/$locale/ai"
+      preLoaderRoute: typeof LocaleAiImport
       parentRoute: typeof rootRoute
     }
     "/$locale/create-team": {
@@ -355,6 +369,7 @@ const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   "/$locale/admin": typeof LocaleAdminRouteWithChildren
+  "/$locale/ai": typeof LocaleAiRoute
   "/$locale/create-team": typeof LocaleCreateTeamRoute
   "/$locale": typeof LocaleIndexRoute
   "/$locale/admin/certificate": typeof LocaleAdminCertificateRoute
@@ -377,6 +392,7 @@ export interface FileRoutesByFullPath {
 }
 
 export interface FileRoutesByTo {
+  "/$locale/ai": typeof LocaleAiRoute
   "/$locale/create-team": typeof LocaleCreateTeamRoute
   "/$locale": typeof LocaleIndexRoute
   "/$locale/admin/certificate": typeof LocaleAdminCertificateRoute
@@ -401,6 +417,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   "/$locale/admin": typeof LocaleAdminRouteWithChildren
+  "/$locale/ai": typeof LocaleAiRoute
   "/$locale/create-team": typeof LocaleCreateTeamRoute
   "/$locale/": typeof LocaleIndexRoute
   "/$locale/admin/certificate": typeof LocaleAdminCertificateRoute
@@ -426,6 +443,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | "/$locale/admin"
+    | "/$locale/ai"
     | "/$locale/create-team"
     | "/$locale"
     | "/$locale/admin/certificate"
@@ -447,6 +465,7 @@ export interface FileRouteTypes {
     | "/$locale/play/$teamId/courses/$courseId"
   fileRoutesByTo: FileRoutesByTo
   to:
+    | "/$locale/ai"
     | "/$locale/create-team"
     | "/$locale"
     | "/$locale/admin/certificate"
@@ -469,6 +488,7 @@ export interface FileRouteTypes {
   id:
     | "__root__"
     | "/$locale/admin"
+    | "/$locale/ai"
     | "/$locale/create-team"
     | "/$locale/"
     | "/$locale/admin/certificate"
@@ -493,6 +513,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
+  LocaleAiRoute: typeof LocaleAiRoute
   LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
   LocalePlayTeamIdCoursesCourseIdJoinRoute: typeof LocalePlayTeamIdCoursesCourseIdJoinRoute
@@ -501,6 +522,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   LocaleAdminRoute: LocaleAdminRouteWithChildren,
+  LocaleAiRoute: LocaleAiRoute,
   LocaleCreateTeamRoute: LocaleCreateTeamRoute,
   LocaleIndexRoute: LocaleIndexRoute,
   LocalePlayTeamIdCoursesCourseIdJoinRoute:
@@ -520,6 +542,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/$locale/admin",
+        "/$locale/ai",
         "/$locale/create-team",
         "/$locale/",
         "/$locale/play/$teamId/courses/$courseId/join",
@@ -545,6 +568,9 @@ export const routeTree = rootRoute
         "/$locale/admin/courses/$id/settings",
         "/$locale/admin/courses/$id/webhooks"
       ]
+    },
+    "/$locale/ai": {
+      "filePath": "$locale/ai.tsx"
     },
     "/$locale/create-team": {
       "filePath": "$locale/create-team.tsx"

@@ -37,9 +37,6 @@ export default $config({
 		const dns = sst.cloudflare.dns({
 			proxy: true,
 		});
-		const cloudflareZone = cloudflare.getZoneOutput({
-			name: ROOT_DOMAIN,
-		});
 		const bucket = new sst.aws.Bucket("Bucket", {
 			access: "public",
 		});
@@ -47,6 +44,7 @@ export default $config({
 		const environment = {
 			GOOGLE_CLIENT_SECRET: new sst.Secret("GOOGLE_CLIENT_SECRET").value,
 			GOOGLE_CLIENT_ID: new sst.Secret("GOOGLE_CLIENT_ID").value,
+			OPENAI_API_KEY: new sst.Secret("OPENAI_API_KEY").value,
 			// Bun adapters
 			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-${$app.stage}`,
 			S3_BUCKET: bucket.name,
@@ -65,6 +63,9 @@ export default $config({
 			sender: emailDomain,
 			dns,
 		});
+		//const cloudflareZone = cloudflare.getZoneOutput({
+		//	name: ROOT_DOMAIN,
+		//});
 		//if (email) {
 		//	new aws.ses.MailFrom("MailFrom", {
 		//		mailFromDomain: emailDomain,
