@@ -1,15 +1,36 @@
 import { Hono } from "hono";
 import { openai } from "@ai-sdk/openai";
-import {
-	streamText,
-	coreMessageSchema,
-	Output,
-	createDataStreamResponse,
-	createDataStream,
-} from "ai";
+import { streamText, coreMessageSchema, Output, createDataStream } from "ai";
 import { stream } from "hono/streaming";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+
+const PromptSchema = z.object({
+	character: z.object({
+		age: z.number(),
+		name: z.string(),
+		gender: z.string(),
+		sexuality: z.string(),
+		pronouns: z.string(),
+		ethnicity: z.string(),
+		country: z.string(),
+		education: z.string(),
+		location: z.string(),
+	}),
+	scenario: z.string(),
+	context: z
+		.object({
+			name: z.string(),
+			description: z.string(),
+		})
+		.array(),
+	evaluations: z
+		.object({
+			name: z.string(),
+			description: z.string(),
+		})
+		.array(),
+});
 
 const prompt = {
 	role: "You are the 'Character Bot' in a simulated conversation.",
@@ -62,14 +83,6 @@ const prompt = {
 		},
 		conversation_to_date: [],
 	},
-	output_format: {
-		response: {
-			content:
-				"The next statement the Character will make in response to the PUT.",
-			rapportDegree:
-				"A numerical value (0-100) representing the Character's rapport with the PUT at this point in the conversation.",
-		},
-	},
 };
 
 export const AssistantInputSchema = z.object({
@@ -103,8 +116,6 @@ export const aiHandler = new Hono().post(
 				result.mergeIntoDataStream(writer);
 			},
 			onError: (error) => {
-				// Error messages are masked by default for security reasons.
-				// If you want to expose the error message to the client, you can do so here:
 				return error instanceof Error ? error.message : String(error);
 			},
 		});

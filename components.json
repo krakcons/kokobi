@@ -5,7 +5,7 @@
 	"tsx": true,
 	"tailwind": {
 		"config": "",
-		"css": "app/index.css",
+		"css": "src/index.css",
 		"baseColor": "zinc",
 		"cssVariables": true,
 		"prefix": ""
@@ -19,4 +19,3 @@
 	},
 	"iconLibrary": "lucide"
 }
-

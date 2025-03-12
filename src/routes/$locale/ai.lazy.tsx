@@ -1,11 +1,11 @@
 import { useAppForm } from "@/components/ui/form";
-import { createFileRoute } from "@tanstack/react-router";
+import { createLazyFileRoute } from "@tanstack/react-router";
 import { Message, useChat } from "@ai-sdk/react";
 import { parsePartialJson } from "@ai-sdk/ui-utils";
 import { AssistantResponseType } from "@/api/handlers/ai";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/$locale/ai")({
+export const Route = createLazyFileRoute("/$locale/ai")({
 	component: RouteComponent,
 });
 
@@ -26,11 +26,6 @@ const parseAssistantMessage = (
 };
 
 function RouteComponent() {
-	//const { object, submit } = useObject({
-	//	api: "/api/ai/chat",
-	//	schema: z.object({ content: z.string() }),
-	//});
-	//{object?.content && <p>{object.content}</p>}{" "}
 	const { append, messages } = useChat({
 		api: "/api/ai/chat",
 	});

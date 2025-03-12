@@ -138,8 +138,8 @@ if (existsSync(outdir)) {
 const start = performance.now();
 
 // Scan for all HTML files in the project
-const entrypoints = [...new Bun.Glob("**.html").scanSync("app")]
-	.map((a) => path.resolve("app", a))
+const entrypoints = [...new Bun.Glob("**.html").scanSync("src")]
+	.map((a) => path.resolve("src", a))
 	.filter((dir) => !dir.includes("node_modules"));
 console.log(
 	`📄 Found ${entrypoints.length} HTML ${entrypoints.length === 1 ? "file" : "files"} to process\n`,

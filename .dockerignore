@@ -4,4 +4,13 @@ node_modules
 .gitignore
 README.md
 Dockerfile*
+docker-compose*
+.dockerignore
+LICENSE
+.vscode
+Makefile
+helm-charts
 .env
+.editorconfig
+.idea
+coverage*
