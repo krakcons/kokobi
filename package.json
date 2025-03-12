@@ -5,7 +5,8 @@
 	"module": "src/index.tsx",
 	"main": "src/index.tsx",
 	"scripts": {
-		"dev": "bun --hot src/index.tsx",
+		"dev1": "bun --hot src/index.tsx",
+		"dev": "NODE_ENV=production bun src/index.tsx",
 		"start": "NODE_ENV=production bun src/index.tsx",
 		"build": "bun run build.ts",
 		"generate-routes": "tsr generate",

@@ -133,6 +133,6 @@
 	}
 
 	h3 {
-		@apply text-2xl font-bold tracking-tight lg:text-3xl;
+		@apply text-xl font-bold tracking-tight lg:text-2xl;
 	}
 }
