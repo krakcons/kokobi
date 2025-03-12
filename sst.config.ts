@@ -99,8 +99,6 @@ export default $config({
 			dev: {
 				command: "bun dev:bun",
 			},
-			cpu: "1 vCPU",
-			memory: "2 GB",
 			environment,
 		});
 		if (!LOCAL_STAGES.includes($app.stage)) {

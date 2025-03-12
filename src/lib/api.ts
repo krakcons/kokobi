@@ -1,9 +1,10 @@
+import { env } from "@/env";
 import type { AppType } from "@/server";
 import { useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
 
-export const client = hc<AppType>("http://localhost:3000", {
+export const client = hc<AppType>(env.VITE_API_URL, {
 	init: {
 		credentials: "include",
 	},

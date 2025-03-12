@@ -5,7 +5,8 @@
 	"module": "src/index.tsx",
 	"main": "src/index.tsx",
 	"scripts": {
-		"dev:bun": "bun --hot src/index.tsx",
+		"dev:bun1": "bun --hot src/index.tsx",
+		"dev:bun": "NODE_ENV=production bun src/index.tsx",
 		"start": "NODE_ENV=production bun src/index.tsx",
 		"dev": "vite",
 		"build": "vite build",
