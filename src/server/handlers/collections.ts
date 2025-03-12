@@ -1,9 +1,9 @@
-import { db } from "@/api/db";
+import { db } from "@/server/db";
 import {
 	collectionTranslations,
 	collections,
 	collectionsToCourses,
-} from "@/api/db/schema";
+} from "@/server/db/schema";
 import { CreateCollectionTranslationSchema } from "@/types/collections";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";

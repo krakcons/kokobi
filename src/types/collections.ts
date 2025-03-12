@@ -1,4 +1,4 @@
-import { collectionTranslations, collections } from "@/api/db/schema";
+import { collectionTranslations, collections } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 

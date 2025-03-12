@@ -1,9 +1,9 @@
-import { AppType } from "@/api";
+import type { AppType } from "@/server";
 import { useQueryClient } from "@tanstack/react-query";
 import { hc, InferRequestType } from "hono/client";
 import { toast } from "sonner";
 
-export const client = hc<AppType>(window.location.origin, {
+export const client = hc<AppType>("http://localhost:3000", {
 	init: {
 		credentials: "include",
 	},

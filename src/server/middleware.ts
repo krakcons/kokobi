@@ -1,8 +1,8 @@
-import { SessionValidationResult, validateSessionToken } from "@/api/auth";
-import { db } from "@/api/db";
-import { keys, Session, usersToTeams } from "@/api/db/schema";
+import { SessionValidationResult, validateSessionToken } from "@/server/auth";
+import { db } from "@/server/db";
+import { keys, Session, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { deleteCookie, getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { Role, roles, User } from "@/types/users";
 import { LocalizedInputSchema, LocalizedInputType } from "@/lib/locale/types";

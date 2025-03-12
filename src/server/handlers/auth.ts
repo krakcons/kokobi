@@ -3,14 +3,14 @@ import {
 	createSession,
 	invalidateSession,
 	validateSessionToken,
-} from "@/api/auth";
-import { db } from "@/api/db";
-import { users, usersToTeams } from "@/api/db/schema";
+} from "@/server/auth";
+import { db } from "@/server/db";
+import { users, usersToTeams } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { setCookie, getCookie, deleteCookie } from "hono/cookie";
 import { generateCodeVerifier, generateState } from "arctic";
-import { env } from "@/env";
+import { env } from "@/server/env";
 
 import { Google } from "arctic";
 

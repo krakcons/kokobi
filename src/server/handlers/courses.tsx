@@ -1,10 +1,10 @@
-import { db } from "@/api/db";
+import { db } from "@/server/db";
 import {
 	courseTranslations,
 	courses,
 	learners,
 	modules,
-} from "@/api/db/schema";
+} from "@/server/db/schema";
 import { CourseFormSchema } from "@/types/course";
 import {
 	ExtendLearner,
@@ -21,11 +21,11 @@ import {
 	localeInputMiddleware,
 	protectedMiddleware,
 } from "../middleware";
-import { env } from "@/env";
+import { env } from "@/server/env";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
-import { s3 } from "@/api/s3";
+import { s3 } from "@/server/s3";
 import { sendEmail } from "../email";
 import CourseInvite from "@/emails/CourseInvite";
 import { createTranslator } from "@/lib/locale/actions";

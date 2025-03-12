@@ -12,6 +12,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { fetchFile } from "@/lib/api";
 import { Locale } from "@/lib/locale";
+import { env } from "@/env";
 
 const teamOptions = (locale?: Locale) =>
 	queryOptions.team.me({
@@ -29,10 +30,10 @@ const options = (locale?: Locale) => ({
 		// Only fetch if that team translation exists
 		if (data.language) {
 			logo = await fetchFile(
-				`${window.location.origin}/cdn/${data.id}/${data.language}/logo?updatedAt=${data.updatedAt}`,
+				`${env.VITE_API_URL}/cdn/${data.id}/${data.language}/logo?updatedAt=${data.updatedAt}`,
 			);
 			favicon = await fetchFile(
-				`${window.location.origin}/cdn/${data.id}/${data.language}/favicon?updatedAt=${data.updatedAt}`,
+				`${env.VITE_API_URL}/cdn/${data.id}/${data.language}/favicon?updatedAt=${data.updatedAt}`,
 			);
 		}
 		return { logo, favicon, ...data };

@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { routeTree } from "./routeTree.gen";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";
 import { ThemeProvider } from "./lib/theme";
 import { PendingComponent } from "./components/PendingComponent";
@@ -35,20 +35,13 @@ declare module "@tanstack/react-router" {
 	}
 }
 
-const elem = document.getElementById("root")!;
-const app = (
-	<StrictMode>
-		<RouterProvider router={router} />
-	</StrictMode>
-);
-
-// @ts-ignore
-if (import.meta.hot) {
-	// With hot module reloading, `import.meta.hot.data` is persisted.
-	// @ts-ignore
-	const root = (import.meta.hot.data.root ??= createRoot(elem));
-	root.render(app);
-} else {
-	// The hot module reloading API is not available in production.
-	createRoot(elem).render(app);
+// Render the app
+const rootElement = document.getElementById("root")!;
+if (!rootElement.innerHTML) {
+	const root = ReactDOM.createRoot(rootElement);
+	root.render(
+		<StrictMode>
+			<RouterProvider router={router} />
+		</StrictMode>,
+	);
 }

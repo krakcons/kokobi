@@ -15,6 +15,7 @@ import {
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
+import { env } from "@/env";
 
 export const Route = createFileRoute("/$locale/ai")({
 	component: RouteComponent,
@@ -44,7 +45,7 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const { options } = Route.useSearch();
 	const { append, messages } = useChat({
-		api: "/api/ai/chat",
+		api: env.VITE_API_URL + "/api/ai/chat",
 	});
 	const form = useAppForm({
 		defaultValues: {
@@ -54,7 +55,7 @@ function RouteComponent() {
 				scenario: {
 					character: {
 						name: "Marge",
-						age: 52,
+						age: "52",
 						education: "Highschool",
 						country: "Canada",
 						gender: "Woman",
@@ -84,8 +85,11 @@ function RouteComponent() {
 					},
 				],
 			}),
-		} satisfies Omit<AssistantInputType, "messages"> & {
-			content: string;
+		} as AssistantInputType & { content: string },
+		validators: {
+			onSubmit: AssistantInputSchema.extend({
+				content: z.string().min(1),
+			}),
 		},
 		onSubmit: ({ value: { content, ...body }, formApi }) => {
 			append(
@@ -129,13 +133,13 @@ function RouteComponent() {
 						<div className="border px-3 py-2 rounded flex flex-col gap-2">
 							{json.stats &&
 								json.stats.map((s) => (
-									<p>
+									<p key={s.name}>
 										{s.name} ({s.value})
 									</p>
 								))}
 							{json.evaluations &&
 								json.evaluations.map((s) => (
-									<p>
+									<p key={s.name}>
 										{s.name} ({s.value})
 									</p>
 								))}
@@ -287,48 +291,40 @@ function RouteComponent() {
 								mode="array"
 								children={(field) => (
 									<div className="flex flex-col gap-4">
-										{field.state.value.map((_, i) => {
-											return (
-												<div className="flex flex-col gap-4 border p-4 rounded">
-													<form.AppField
-														key={i}
-														name={`stats[${i}].name`}
-														children={(
-															subField,
-														) => (
-															<subField.TextField
-																label="Name"
-																description="Name the stat"
-															/>
-														)}
-													/>
-													<form.AppField
-														key={i}
-														name={`stats[${i}].description`}
-														children={(
-															subField,
-														) => (
-															<subField.TextField
-																label="Description"
-																description="Describe the stat"
-															/>
-														)}
-													/>
-													<form.AppField
-														key={i}
-														name={`stats[${i}].value`}
-														children={(
-															subField,
-														) => (
-															<subField.TextField
-																label="Value"
-																description="Describe the value shown for the stat"
-															/>
-														)}
-													/>
-												</div>
-											);
-										})}
+										{field.state.value.map((_, i) => (
+											<div
+												key={i}
+												className="flex flex-col gap-4 border p-4 rounded"
+											>
+												<form.AppField
+													name={`stats[${i}].name`}
+													children={(subField) => (
+														<subField.TextField
+															label="Name"
+															description="Name the stat"
+														/>
+													)}
+												/>
+												<form.AppField
+													name={`stats[${i}].description`}
+													children={(subField) => (
+														<subField.TextField
+															label="Description"
+															description="Describe the stat"
+														/>
+													)}
+												/>
+												<form.AppField
+													name={`stats[${i}].value`}
+													children={(subField) => (
+														<subField.TextField
+															label="Value"
+															description="Describe the value shown for the stat"
+														/>
+													)}
+												/>
+											</div>
+										))}
 										<Button
 											onClick={(e) => {
 												e.preventDefault();
@@ -350,48 +346,40 @@ function RouteComponent() {
 								mode="array"
 								children={(field) => (
 									<div className="flex flex-col gap-4">
-										{field.state.value.map((_, i) => {
-											return (
-												<div className="flex flex-col gap-4 border p-4 rounded">
-													<form.AppField
-														key={i}
-														name={`evaluations[${i}].name`}
-														children={(
-															subField,
-														) => (
-															<subField.TextField
-																label="Name"
-																description="Name the evaluation"
-															/>
-														)}
-													/>
-													<form.AppField
-														key={i}
-														name={`evaluations[${i}].description`}
-														children={(
-															subField,
-														) => (
-															<subField.TextField
-																label="Description"
-																description="Describe the evaluation"
-															/>
-														)}
-													/>
-													<form.AppField
-														key={i}
-														name={`evaluations[${i}].value`}
-														children={(
-															subField,
-														) => (
-															<subField.TextField
-																label="Value"
-																description="Describe the value shown for the evaluation"
-															/>
-														)}
-													/>
-												</div>
-											);
-										})}
+										{field.state.value.map((_, i) => (
+											<div
+												className="flex flex-col gap-4 border p-4 rounded"
+												key={i}
+											>
+												<form.AppField
+													name={`evaluations[${i}].name`}
+													children={(subField) => (
+														<subField.TextField
+															label="Name"
+															description="Name the evaluation"
+														/>
+													)}
+												/>
+												<form.AppField
+													name={`evaluations[${i}].description`}
+													children={(subField) => (
+														<subField.TextField
+															label="Description"
+															description="Describe the evaluation"
+														/>
+													)}
+												/>
+												<form.AppField
+													name={`evaluations[${i}].value`}
+													children={(subField) => (
+														<subField.TextField
+															label="Value"
+															description="Describe the value shown for the evaluation"
+														/>
+													)}
+												/>
+											</div>
+										))}
 										<Button
 											onClick={(e) => {
 												e.preventDefault();

@@ -49,11 +49,14 @@ export default $config({
 			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-${$app.stage}`,
 			S3_BUCKET: bucket.name,
 			// URLS
-			PUBLIC_SITE_URL: LOCAL_STAGES.includes($app.stage)
+			VITE_API_URL: LOCAL_STAGES.includes($app.stage)
 				? "http://localhost:3000"
 				: `https://${domain}`,
+			PUBLIC_SITE_URL: LOCAL_STAGES.includes($app.stage)
+				? "http://localhost:5173"
+				: `https://${domain}`,
 			PUBLIC_ROOT_DOMAIN: LOCAL_STAGES.includes($app.stage)
-				? "localhost:3000"
+				? "localhost:5173"
 				: domain,
 			PUBLIC_CDN_URL: $interpolate`https://${bucket.domain}`,
 		};
@@ -94,7 +97,7 @@ export default $config({
 				port: 3000,
 			},
 			dev: {
-				command: "bun dev",
+				command: "bun dev:bun",
 			},
 			cpu: "1 vCPU",
 			memory: "2 GB",
@@ -119,12 +122,13 @@ export default $config({
 			},
 			environment,
 		});
-		new sst.x.DevCommand("WatchRoutes", {
+		new sst.x.DevCommand("Vite", {
 			dev: {
-				command: "bun watch-routes",
+				command: "bun dev",
 			},
+			environment,
 		});
-		new sst.x.DevCommand("WatchEmail", {
+		new sst.x.DevCommand("EmailClient", {
 			dev: {
 				command: "bun email",
 			},

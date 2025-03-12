@@ -1,6 +1,6 @@
 import { Tailwind } from "@/components/email/Tailwind";
 import { buttonVariants } from "@/components/ui/button";
-import { env } from "@/env";
+import { env } from "@/server/env";
 import {
 	Body,
 	Button,
@@ -17,7 +17,7 @@ import {
 export const CollectionInvite = ({
 	collection = "Volunteer Training",
 	organization = "CompanionLink",
-	logo = `${env.NEXT_PUBLIC_SITE_URL}/cdn/466a5korjz3hykf/en/logo?1717019590878`,
+	logo = `${env.PUBLIC_SITE_URL}/cdn/466a5korjz3hykf/en/logo?1717019590878`,
 	text = {
 		title: "Invitation",
 		invite: "invites you to join the following:",

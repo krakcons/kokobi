@@ -35,7 +35,7 @@ export const ScenarioSchema = z.object({
 });
 
 export const AssistantInputSchema = z.object({
-	model: z.enum(["gpt-4o", "gpt-4o-mini"]).optional().default("gpt-4o-mini"),
+	model: z.enum(["gpt-4o", "gpt-4o-mini"]),
 	scenario: ScenarioSchema,
 	stats: DataSchema.array(),
 	evaluations: DataSchema.array(),

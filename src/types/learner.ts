@@ -1,4 +1,4 @@
-import { learners } from "@/api/db/schema";
+import { learners } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { Module } from "./module";

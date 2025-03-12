@@ -70,6 +70,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Theme, useTheme } from "@/lib/theme";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { z } from "zod";
+import { env } from "@/env";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -83,7 +84,7 @@ export const Route = createFileRoute("/$locale/admin")({
 
 		if (!user) {
 			throw redirect({
-				href: "/api/auth/google",
+				href: env.VITE_API_URL + "/api/auth/google",
 			});
 		}
 
@@ -142,7 +143,7 @@ const AdminSidebar = () => {
 								>
 									<Avatar className="rounded-lg size-8">
 										<AvatarImage
-											src={`${window.location.origin}/cdn/${activeTeam?.id}/${activeTeam?.language}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+											src={`${env.VITE_API_URL}/cdn/${activeTeam?.id}/${activeTeam?.language}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
 											className="rounded-lg"
 										/>
 										<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
@@ -187,7 +188,7 @@ const AdminSidebar = () => {
 									>
 										<Avatar className="rounded-md size-6">
 											<AvatarImage
-												src={`${window.location.origin}/cdn/${team.id}/${team.language}/favicon?updatedAt=${team.updatedAt.toString()}`}
+												src={`${env.VITE_API_URL}/cdn/${team.id}/${team.language}/favicon?updatedAt=${team.updatedAt.toString()}`}
 												className="rounded-md"
 											/>
 											<AvatarFallback className="rounded-md">
@@ -564,7 +565,7 @@ const AdminSidebar = () => {
 				</SidebarMenuItem>
 				<SidebarMenuItem>
 					<SidebarMenuButton asChild>
-						<a href="/api/auth/signout">
+						<a href={env.VITE_API_URL + "/api/auth/signout"}>
 							<LogOut />
 							Sign out
 						</a>

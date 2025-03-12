@@ -5,10 +5,10 @@
 	"module": "src/index.tsx",
 	"main": "src/index.tsx",
 	"scripts": {
-		"dev1": "bun --hot src/index.tsx",
-		"dev": "NODE_ENV=production bun src/index.tsx",
+		"dev:bun": "bun --hot src/index.tsx",
 		"start": "NODE_ENV=production bun src/index.tsx",
-		"build": "bun run build.ts",
+		"dev": "vite",
+		"build": "vite build",
 		"generate-routes": "tsr generate",
 		"watch-routes": "tsr watch",
 		"email": "email dev --dir src/emails --port 3001",
@@ -39,14 +39,16 @@
 		"@react-email/components": "^0.0.33",
 		"@react-pdf/renderer": "^4.3.0",
 		"@tailwindcss/typography": "^0.5.16",
+		"@tailwindcss/vite": "^4.0.13",
 		"@tanstack/react-form": "^1.0.5",
 		"@tanstack/react-query": "^5.67.3",
 		"@tanstack/react-router": "1.114.17",
 		"@tanstack/react-table": "^8.21.2",
+		"@tanstack/router-plugin": "^1.114.17",
+		"@vitejs/plugin-react": "^4.3.4",
 		"ai": "^4.1.56",
 		"arctic": "^3.5.0",
 		"bun": "1.2.5",
-		"bun-plugin-tailwind": "^0.0.15",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"drizzle-orm": "^0.40.0",
@@ -67,7 +69,6 @@
 		"zod": "^3.24.2"
 	},
 	"devDependencies": {
-		"@tanstack/router-cli": "^1.114.17",
 		"@types/aws-lambda": "8.10.147",
 		"@types/bun": "^1.2.5",
 		"@types/node": "^22.13.10",
@@ -80,12 +81,7 @@
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"tailwindcss": "^4.0.13",
 		"typescript": "^5.8.2",
+		"vite": "^6.2.1",
 		"vite-tsconfig-paths": "^5.1.4"
-	},
-	"resolutions": {
-		"**/queue": "7.0.0"
-	},
-	"patchedDependencies": {
-		"@react-pdf/renderer@4.2.2": "patches/@react-pdf%2Frenderer@4.2.2.patch"
 	}
 }

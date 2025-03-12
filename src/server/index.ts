@@ -9,7 +9,7 @@ import { aiHandler } from "./handlers/ai";
 import { serveStatic } from "hono/bun";
 import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
 import { logger } from "hono/logger";
-import { env } from "@/env";
+import { env } from "@/server/env";
 
 const app = new Hono<{
 	Variables: HonoVariables;
@@ -33,7 +33,6 @@ app.get("/cdn/**", (c) => {
 	return fetch(env.PUBLIC_CDN_URL + c.req.url.split("/cdn")[1]);
 });
 app.get("*", serveStatic({ root: "./dist/" }));
-app.get("*", serveStatic({ root: "./src/assets/" }));
 app.get("*", serveStatic({ path: "./dist/index.html" }));
 
 export default app;

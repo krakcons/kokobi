@@ -1,5 +1,5 @@
 import { FileSchema } from "@/types/file";
-import { teamTranslations, teams } from "@/api/db/schema";
+import { teamTranslations, teams } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
