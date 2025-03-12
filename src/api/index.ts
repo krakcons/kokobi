@@ -29,7 +29,6 @@ const apiRoutes = app
 	.route("/keys", keysHandler)
 	.route("/collections", collectionsHandler);
 
-//app.get("/public/*", serveStatic({ root: "./assets/" }));
 app.get("/cdn/**", (c) => {
 	return fetch(env.PUBLIC_CDN_URL + c.req.url.split("/cdn")[1]);
 });
