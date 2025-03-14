@@ -42,7 +42,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { client, queryOptions, useMutationOptions } from "@/lib/api";
+import { queryOptions, useMutationOptions } from "@/lib/api";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	Collapsible,
@@ -403,11 +403,30 @@ const AdminSidebar = () => {
 								<SidebarMenuItem>
 									<CollapsibleTrigger asChild>
 										<SidebarMenuButton>
+											{collection.name}
 											<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 										</SidebarMenuButton>
 									</CollapsibleTrigger>
 									<CollapsibleContent>
 										<SidebarMenuSub>
+											<SidebarMenuSubButton asChild>
+												<Link
+													to={
+														"/$locale/admin/collections/$id/learners"
+													}
+													params={{
+														locale,
+														id: collection.id,
+													}}
+													search={(p) => p}
+													onClick={() => {
+														setOpenMobile(false);
+													}}
+												>
+													<Users />
+													Learners
+												</Link>
+											</SidebarMenuSubButton>
 											<SidebarMenuSubItem>
 												<SidebarMenuSubButton asChild>
 													<Link

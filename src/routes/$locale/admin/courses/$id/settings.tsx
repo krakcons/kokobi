@@ -49,7 +49,7 @@ function RouteComponent() {
 		<Page>
 			<PageHeader
 				title="Settings"
-				description="Edit your course, delete, and more"
+				description="Edit your course settings"
 			/>
 			<CourseForm
 				key={course.language}

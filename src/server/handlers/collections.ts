@@ -4,13 +4,14 @@ import {
 	collections,
 	collectionsToCourses,
 } from "@/server/db/schema";
-import { CreateCollectionTranslationSchema } from "@/types/collections";
 import { zValidator } from "@hono/zod-validator";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
-import { protectedMiddleware } from "../middleware";
+import { localeInputMiddleware, protectedMiddleware } from "../middleware";
+import { CollectionFormSchema } from "@/types/collections";
+import { handleLocalization } from "@/lib/locale/helpers";
 
 export const collectionsHandler = new Hono()
 	.get("/", protectedMiddleware(), async (c) => {
@@ -23,41 +24,48 @@ export const collectionsHandler = new Hono()
 			},
 		});
 
-		return c.json(collectionList);
+		return c.json(
+			collectionList.map((collection) =>
+				handleLocalization(c, collection),
+			),
+		);
 	})
 	.post(
 		"/",
 		protectedMiddleware(),
-		zValidator("json", CreateCollectionTranslationSchema),
+		zValidator("json", CollectionFormSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
 			const input = c.req.valid("json");
+			const locale = c.get("locale");
 
-			const collection = await db
-				.insert(collections)
-				.values({
-					...input,
-					id: Bun.randomUUIDv7(),
-					teamId,
-				})
-				.returning();
+			const collectionId = Bun.randomUUIDv7();
 
+			await db.insert(collections).values({
+				id: collectionId,
+				...input,
+				teamId,
+			});
 			await db.insert(collectionTranslations).values({
 				...input,
-				collectionId: collection[0].id,
+				language: locale,
+				collectionId,
 			});
 
-			return c.json(null);
+			return c.json({
+				id: collectionId,
+			});
 		},
 	)
 	.put(
 		"/:id",
 		protectedMiddleware(),
-		zValidator("json", CreateCollectionTranslationSchema),
+		zValidator("json", CollectionFormSchema),
 		async (c) => {
 			const { id } = c.req.param();
 			const teamId = c.get("teamId");
 			const input = c.req.valid("json");
+			const locale = c.get("locale");
 
 			const collection = await db.query.collections.findFirst({
 				where: and(
@@ -76,6 +84,7 @@ export const collectionsHandler = new Hono()
 				.insert(collectionTranslations)
 				.values({
 					...input,
+					language: locale,
 					collectionId: id,
 				})
 				.onConflictDoUpdate({
@@ -92,6 +101,25 @@ export const collectionsHandler = new Hono()
 			return c.json(null);
 		},
 	)
+	.get("/:id", protectedMiddleware(), localeInputMiddleware, async (c) => {
+		const { id } = c.req.param();
+		const teamId = c.get("teamId");
+
+		const collection = await db.query.collections.findFirst({
+			where: and(eq(collections.id, id), eq(collections.teamId, teamId)),
+			with: {
+				translations: true,
+			},
+		});
+
+		if (!collection) {
+			throw new HTTPException(404, {
+				message: "Collection not found",
+			});
+		}
+
+		return c.json(handleLocalization(c, collection));
+	})
 	.post(
 		"/:id/courses",
 		protectedMiddleware(),
@@ -170,9 +198,6 @@ export const collectionsHandler = new Hono()
 		await db
 			.delete(collections)
 			.where(and(eq(collections.id, id), eq(collections.teamId, teamId)));
-		await db
-			.delete(collectionsToCourses)
-			.where(eq(collectionsToCourses.collectionId, id));
 
 		return c.json(null);
 	});

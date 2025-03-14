@@ -14,6 +14,7 @@ export const course = client.api.courses[":id"];
 export const courseLearner = client.api.courses[":id"].learners[":learnerId"];
 export const key = client.api.keys[":id"];
 export const courseModule = client.api.courses[":id"].modules[":moduleId"];
+export const collection = client.api.collections[":id"];
 
 export const fetchFile = async (fileUrl: string): Promise<File | ""> => {
 	const response = await fetch(fileUrl);
@@ -135,6 +136,16 @@ export const queryOptions = {
 		}),
 	},
 	collections: {
+		id: (input: InferRequestType<typeof collection.$get>) => ({
+			queryKey: ["collections", input],
+			queryFn: async () => {
+				const res = await collection.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		}),
 		all: {
 			queryKey: ["collections"],
 			queryFn: async () => {
@@ -203,6 +214,66 @@ export const useMutationOptions = () => {
 	const queryClient = useQueryClient();
 
 	return {
+		collections: {
+			create: {
+				mutationFn: async (
+					input: InferRequestType<
+						typeof client.api.collections.$post
+					>,
+				) => {
+					const res = await client.api.collections.$post(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+					return await res.json();
+				},
+				onSuccess: () => {
+					toast.success("Collection created successfully");
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.collections.all.queryKey,
+					});
+				},
+			},
+			update: {
+				mutationFn: async (
+					input: InferRequestType<typeof collection.$put>,
+				) => {
+					const res = await collection.$put(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+				},
+				onSuccess: (_: any, variables: any) => {
+					toast.success("Collection updated successfully");
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.collections.id({
+							param: {
+								id: variables.param.id,
+							},
+						}).queryKey,
+					});
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.collections.all.queryKey,
+					});
+				},
+			},
+			delete: {
+				mutationFn: async (
+					input: InferRequestType<typeof collection.$delete>,
+				) => {
+					const res = await collection.$delete(input);
+					if (!res.ok) {
+						throw new Error(await res.text());
+					}
+				},
+				onSuccess: () => {
+					toast.success("Collection deleted successfully");
+					queryClient.invalidateQueries({
+						queryKey: queryOptions.collections.all.queryKey,
+					});
+				},
+			},
+		},
 		keys: {
 			create: {
 				mutationFn: async (
@@ -214,6 +285,7 @@ export const useMutationOptions = () => {
 					}
 				},
 				onSuccess: () => {
+					toast.success("Key created successfully");
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.keys.all.queryKey,
 					});
@@ -230,6 +302,7 @@ export const useMutationOptions = () => {
 					}
 				},
 				onSuccess: () => {
+					toast.success("Key deleted successfully");
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.keys.all.queryKey,
 					});
@@ -259,6 +332,7 @@ export const useMutationOptions = () => {
 					return await res.json();
 				},
 				onSuccess: () => {
+					toast.success("Course created successfully");
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.courses.all.queryKey,
 					});

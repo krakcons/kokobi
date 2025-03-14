@@ -136,8 +136,6 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				name: input.name,
 				description: input.description,
 				language,
-				// TODO: Remove default
-				default: false,
 			});
 
 			return c.json({ id: courseId });
@@ -178,8 +176,6 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 					name: input.name,
 					description: input.description,
 					language,
-					// TODO: Remove default
-					default: false,
 				})
 				.onConflictDoUpdate({
 					set: {
