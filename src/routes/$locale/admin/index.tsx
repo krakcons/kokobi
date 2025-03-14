@@ -83,8 +83,8 @@ function RouteComponent() {
 										{c.description}
 									</CardDescription>
 								)}
-								<ChevronRight className="mr-2 size-6 min-w-6" />
 							</CardHeader>
+							<ChevronRight className="mr-2 size-6 min-w-6" />
 						</Card>
 					</Link>
 				))

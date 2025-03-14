@@ -226,21 +226,24 @@ const AdminSidebar = () => {
 							{t.sidebar.manage}
 						</SidebarGroupLabel>
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild>
-								<Link
-									to="/$locale/admin"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									<LayoutDashboard />
-									{t.sidebar.dashboard}
-								</Link>
-							</SidebarMenuButton>
+							<Link
+								to="/$locale/admin"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+								activeOptions={{ exact: true }}
+							>
+								{({ isActive }) => (
+									<SidebarMenuButton isActive={isActive}>
+										<LayoutDashboard />
+										{t.sidebar.dashboard}
+									</SidebarMenuButton>
+								)}
+							</Link>
 						</SidebarMenuItem>
 					</SidebarGroupContent>
 				</SidebarGroup>
@@ -280,48 +283,52 @@ const AdminSidebar = () => {
 									<CollapsibleContent>
 										<SidebarMenuSub>
 											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
-															"/$locale/admin/courses/$id/learners"
-														}
-														params={{
-															locale,
-															id: course.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Users />
-														Learners
-													</Link>
-												</SidebarMenuSubButton>
+												<Link
+													to={
+														"/$locale/admin/courses/$id/learners"
+													}
+													params={{
+														locale,
+														id: course.id,
+													}}
+													search={(p) => p}
+													onClick={() => {
+														setOpenMobile(false);
+													}}
+												>
+													{({ isActive }) => (
+														<SidebarMenuSubButton
+															isActive={isActive}
+														>
+															<Users />
+															Learners
+														</SidebarMenuSubButton>
+													)}
+												</Link>
 											</SidebarMenuSubItem>
 											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
-															"/$locale/admin/courses/$id/modules"
-														}
-														params={{
-															locale,
-															id: course.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Files />
-														Modules
-													</Link>
-												</SidebarMenuSubButton>
+												<Link
+													to={
+														"/$locale/admin/courses/$id/modules"
+													}
+													params={{
+														locale,
+														id: course.id,
+													}}
+													search={(p) => p}
+													onClick={() => {
+														setOpenMobile(false);
+													}}
+												>
+													{({ isActive }) => (
+														<SidebarMenuSubButton
+															isActive={isActive}
+														>
+															<Files />
+															Modules
+														</SidebarMenuSubButton>
+													)}
+												</Link>
 											</SidebarMenuSubItem>
 											{/* <SidebarMenuSubItem>
 												<SidebarMenuSubButton asChild>
@@ -346,26 +353,28 @@ const AdminSidebar = () => {
 												</SidebarMenuSubButton>
 											</SidebarMenuSubItem> */}
 											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
-															"/$locale/admin/courses/$id/settings"
-														}
-														params={{
-															locale,
-															id: course.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Settings />
-														Settings
-													</Link>
-												</SidebarMenuSubButton>
+												<Link
+													to={
+														"/$locale/admin/courses/$id/settings"
+													}
+													params={{
+														locale,
+														id: course.id,
+													}}
+													search={(p) => p}
+													onClick={() => {
+														setOpenMobile(false);
+													}}
+												>
+													{({ isActive }) => (
+														<SidebarMenuSubButton
+															isActive={isActive}
+														>
+															<Settings />
+															Settings
+														</SidebarMenuSubButton>
+													)}
+												</Link>
 											</SidebarMenuSubItem>
 										</SidebarMenuSub>
 									</CollapsibleContent>
@@ -409,10 +418,32 @@ const AdminSidebar = () => {
 									</CollapsibleTrigger>
 									<CollapsibleContent>
 										<SidebarMenuSub>
-											<SidebarMenuSubButton asChild>
+											<Link
+												to={
+													"/$locale/admin/collections/$id/learners"
+												}
+												params={{
+													locale,
+													id: collection.id,
+												}}
+												search={(p) => p}
+												onClick={() => {
+													setOpenMobile(false);
+												}}
+											>
+												{({ isActive }) => (
+													<SidebarMenuSubButton
+														isActive={isActive}
+													>
+														<Users />
+														Learners
+													</SidebarMenuSubButton>
+												)}
+											</Link>
+											<SidebarMenuSubItem>
 												<Link
 													to={
-														"/$locale/admin/collections/$id/learners"
+														"/$locale/admin/collections/$id/courses"
 													}
 													params={{
 														locale,
@@ -423,53 +454,39 @@ const AdminSidebar = () => {
 														setOpenMobile(false);
 													}}
 												>
-													<Users />
-													Learners
+													{({ isActive }) => (
+														<SidebarMenuSubButton
+															isActive={isActive}
+														>
+															<Book />
+															Courses
+														</SidebarMenuSubButton>
+													)}
 												</Link>
-											</SidebarMenuSubButton>
-											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
-															"/$locale/admin/collections/$id/courses"
-														}
-														params={{
-															locale,
-															id: collection.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Book />
-														Courses
-													</Link>
-												</SidebarMenuSubButton>
 											</SidebarMenuSubItem>
 											<SidebarMenuSubItem>
-												<SidebarMenuSubButton asChild>
-													<Link
-														to={
-															"/$locale/admin/collections/$id/settings"
-														}
-														params={{
-															locale,
-															id: collection.id,
-														}}
-														search={(p) => p}
-														onClick={() => {
-															setOpenMobile(
-																false,
-															);
-														}}
-													>
-														<Settings />
-														Settings
-													</Link>
-												</SidebarMenuSubButton>
+												<Link
+													to={
+														"/$locale/admin/collections/$id/settings"
+													}
+													params={{
+														locale,
+														id: collection.id,
+													}}
+													search={(p) => p}
+													onClick={() => {
+														setOpenMobile(false);
+													}}
+												>
+													{({ isActive }) => (
+														<SidebarMenuSubButton
+															isActive={isActive}
+														>
+															<Settings />
+															Settings
+														</SidebarMenuSubButton>
+													)}
+												</Link>
 											</SidebarMenuSubItem>
 										</SidebarMenuSub>
 									</CollapsibleContent>
@@ -482,72 +499,80 @@ const AdminSidebar = () => {
 					<SidebarGroupContent>
 						<SidebarGroupLabel>{t.sidebar.team}</SidebarGroupLabel>
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild>
-								<Link
-									to="/$locale/admin/keys"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									<Key />
-									{t.sidebar.apiKeys}
-								</Link>
-							</SidebarMenuButton>
+							<Link
+								to="/$locale/admin/keys"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuButton isActive={isActive}>
+										<Key />
+										{t.sidebar.apiKeys}
+									</SidebarMenuButton>
+								)}
+							</Link>
 						</SidebarMenuItem>
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild>
-								<Link
-									to="/$locale/admin/certificate"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									<FileBadge />
-									{t.sidebar.certificate}
-								</Link>
-							</SidebarMenuButton>
+							<Link
+								to="/$locale/admin/certificate"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuButton isActive={isActive}>
+										<FileBadge />
+										{t.sidebar.certificate}
+									</SidebarMenuButton>
+								)}
+							</Link>
 						</SidebarMenuItem>
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild>
-								<Link
-									to="/$locale/admin/members"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									<Users />
-									{t.sidebar.members}
-								</Link>
-							</SidebarMenuButton>
+							<Link
+								to="/$locale/admin/members"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuButton isActive={isActive}>
+										<Users />
+										{t.sidebar.members}
+									</SidebarMenuButton>
+								)}
+							</Link>
 						</SidebarMenuItem>
 						<SidebarMenuItem>
-							<SidebarMenuButton asChild>
-								<Link
-									to="/$locale/admin/settings"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									<Settings />
-									Settings
-								</Link>
-							</SidebarMenuButton>
+							<Link
+								to="/$locale/admin/settings"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuButton isActive={isActive}>
+										<Settings />
+										Settings
+									</SidebarMenuButton>
+								)}
+							</Link>
 						</SidebarMenuItem>
 					</SidebarGroupContent>
 				</SidebarGroup>
@@ -583,12 +608,12 @@ const AdminSidebar = () => {
 					</SidebarMenuButton>
 				</SidebarMenuItem>
 				<SidebarMenuItem>
-					<SidebarMenuButton asChild>
-						<a href={env.VITE_API_URL + "/api/auth/signout"}>
+					<a href={env.VITE_API_URL + "/api/auth/signout"}>
+						<SidebarMenuButton>
 							<LogOut />
 							Sign out
-						</a>
-					</SidebarMenuButton>
+						</SidebarMenuButton>
+					</a>
 				</SidebarMenuItem>
 			</SidebarFooter>
 		</Sidebar>
