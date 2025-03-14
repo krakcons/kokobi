@@ -1,5 +1,6 @@
 import { db } from "@/server/db";
 import {
+	learners,
 	teamTranslations,
 	teams,
 	users,
@@ -8,7 +9,7 @@ import {
 import { s3 } from "@/server/s3";
 import { InviteMemberFormSchema, TeamFormSchema } from "@/types/team";
 import { zValidator } from "@hono/zod-validator";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -64,6 +65,17 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 				role,
 			})),
 		);
+	})
+	.get("/stats", protectedMiddleware(), async (c) => {
+		const teamId = c.get("teamId");
+		const learnerCount = (
+			await db
+				.select({ count: count() })
+				.from(learners)
+				.where(eq(learners.teamId, teamId))
+		)[0].count;
+
+		return c.json({ learnerCount });
 	})
 	.get("/", protectedMiddleware(), localeInputMiddleware, async (c) => {
 		const teamId = c.get("teamId");
@@ -251,7 +263,7 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			}),
 		),
 		protectedMiddleware(),
-		async (c) => {
+		async () => {
 			throw new HTTPException(404, {
 				message: "Not available yet",
 			});

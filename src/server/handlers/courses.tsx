@@ -258,6 +258,9 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				eq(modules.id, input.moduleId),
 				eq(modules.courseId, id),
 			),
+			with: {
+				course: true,
+			},
 		});
 		if (!courseModule) {
 			throw new HTTPException(404, {
@@ -281,6 +284,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			.values({
 				id: learnerId,
 				...input,
+				teamId: courseModule.course.teamId,
 				data: getInitialScormData(courseModule.type),
 				startedAt: new Date(),
 				courseId: id,
@@ -329,6 +333,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				...l,
 				id: Bun.randomUUIDv7(),
 				courseId: id,
+				teamId: course.teamId,
 			}));
 
 			const finalLearnersList = await db
@@ -596,7 +601,25 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 		const { id, moduleId } = c.req.param();
 		const teamId = c.get("teamId");
 
-		// TODO: Ensure module exists to this team
+		const moduleExists = await db.query.modules.findFirst({
+			where: and(eq(modules.id, moduleId), eq(modules.courseId, id)),
+			with: {
+				course: true,
+			},
+		});
+
+		if (!moduleExists) {
+			throw new HTTPException(404, {
+				message: "Module does not exist",
+			});
+		}
+
+		// If module is not owned by the team
+		if (moduleExists.course.teamId !== teamId) {
+			throw new HTTPException(401, {
+				message: "Unauthorized",
+			});
+		}
 
 		await db
 			.delete(modules)

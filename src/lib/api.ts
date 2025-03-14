@@ -86,6 +86,16 @@ export const queryOptions = {
 				return await res.json();
 			},
 		},
+		stats: {
+			queryKey: ["stats"],
+			queryFn: async () => {
+				const res = await client.api.team.stats.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		},
 	},
 	courses: {
 		id: (input: InferRequestType<typeof course.$get>) => ({

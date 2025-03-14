@@ -147,6 +147,8 @@ export const learners = pgTable(
 	"learners",
 	{
 		id: text("id").primaryKey().notNull(),
+		teamId: text("teamId").notNull(),
+		collectionId: text("collectionId"),
 		courseId: text("courseId").notNull(),
 		moduleId: text("moduleId").references(() => modules.id, {
 			onDelete: "cascade",
