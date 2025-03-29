@@ -335,7 +335,8 @@ export const collectionsHandler = new Hono()
 						l.inviteLanguage,
 					);
 					const id = finalLearnersList.find(
-						(fl) => fl.email === l.email,
+						(fl) =>
+							fl.email === l.email && fl.courseId === course.id,
 					)!.id;
 					const href =
 						team?.customDomain &&

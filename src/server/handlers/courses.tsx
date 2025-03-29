@@ -422,7 +422,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			const { scorm, resources } = await parseIMSManifest(imsManifest);
 			return c.json({
 				learner: ExtendLearner(learner.module.type).parse(learner),
-				url: `/cdn/${courseFileUrl}/${resources[0].href}`,
+				url: `${env.VITE_API_URL}/cdn${courseFileUrl}/${resources[0].href}`,
 				type: scorm.metadata.schemaversion,
 			});
 		} else {
