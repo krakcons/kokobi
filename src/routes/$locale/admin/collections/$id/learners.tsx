@@ -23,9 +23,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { formatDate } from "@/lib/date";
 import { useState } from "react";
 import { LearnersForm } from "@/components/forms/LearnersForm";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import CopyButton from "@/components/CopyButton";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{

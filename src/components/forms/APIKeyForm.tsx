@@ -4,7 +4,7 @@ import { useAppForm } from "../ui/form";
 export const APIKeyForm = ({
 	onSubmit,
 }: {
-	onSubmit: (value: APIKeyFormType) => Promise<void>;
+	onSubmit: (value: APIKeyFormType) => Promise<any>;
 }) => {
 	const form = useAppForm({
 		validators: {

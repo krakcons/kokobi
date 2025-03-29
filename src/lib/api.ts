@@ -15,6 +15,8 @@ export const courseLearner = client.api.courses[":id"].learners[":learnerId"];
 export const key = client.api.keys[":id"];
 export const courseModule = client.api.courses[":id"].modules[":moduleId"];
 export const collection = client.api.collections[":id"];
+export const collectionCourse =
+	client.api.collections[":id"].courses[":courseId"];
 
 export const fetchFile = async (fileUrl: string): Promise<File | ""> => {
 	const response = await fetch(fileUrl);
@@ -168,6 +170,16 @@ export const queryOptions = {
 				return await res.json();
 			},
 		}),
+		courses: (input: InferRequestType<typeof collection.courses.$get>) => ({
+			queryKey: ["collections.courses.$get", input],
+			queryFn: async () => {
+				const res = await collection.courses.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		}),
 	},
 	modules: {
 		all: (input: InferRequestType<typeof course.modules.$get>) => ({
@@ -305,6 +317,54 @@ export const useMutationOptions = () => {
 							}).queryKey,
 						});
 						toast.success("Learners created successfully");
+					},
+				},
+			},
+			courses: {
+				add: {
+					mutationFn: async (
+						input: InferRequestType<
+							typeof collection.courses.$post
+						>,
+					) => {
+						const res = await collection.courses.$post(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
+					},
+					onSuccess: (_: any, input: any) => {
+						queryClient.invalidateQueries({
+							queryKey: queryOptions.collections.courses({
+								param: {
+									id: input.param.id,
+								},
+							}).queryKey,
+						});
+						toast.success("Courses added successfully");
+					},
+				},
+				delete: {
+					mutationFn: async (
+						input: InferRequestType<
+							typeof collectionCourse.$delete
+						>,
+					) => {
+						const res = await collectionCourse.$delete(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
+					},
+					onSuccess: (_: any, input: any) => {
+						queryClient.invalidateQueries({
+							queryKey: queryOptions.collections.courses({
+								param: {
+									id: input.param.id,
+								},
+							}).queryKey,
+						});
+						toast.success("Course deleted successfully");
 					},
 				},
 			},

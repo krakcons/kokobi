@@ -18,6 +18,7 @@ import { env } from "../env";
 import { createTranslator } from "@/lib/locale/actions";
 import { sendEmail } from "../email";
 import CollectionInvite from "@/emails/CollectionInvite";
+import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 
 export const collectionsHandler = new Hono()
 	.get("/", protectedMiddleware(), async (c) => {
@@ -180,23 +181,55 @@ export const collectionsHandler = new Hono()
 			return c.json(extendedLearnerList);
 		},
 	)
+	.get("/:id/courses", protectedMiddleware(), async (c) => {
+		const { id } = c.req.param();
+		const teamId = c.get("teamId");
+
+		const collection = await db.query.collections.findFirst({
+			where: and(eq(collections.id, id), eq(collections.teamId, teamId)),
+			with: {
+				translations: true,
+				collectionsToCourses: {
+					with: {
+						course: {
+							with: {
+								translations: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!collection) {
+			throw new HTTPException(404, {
+				message: "Collection not found.",
+			});
+		}
+
+		const courses = collection.collectionsToCourses.map(({ course }) =>
+			handleLocalization(c, course),
+		);
+
+		return c.json(courses);
+	})
 	.post(
 		"/:id/courses",
 		protectedMiddleware(),
-		zValidator(
-			"json",
-			z.object({
-				id: z.string(),
-			}),
-		),
+		zValidator("json", CoursesFormSchema),
 		async (c) => {
 			const { id } = c.req.param();
 			const input = c.req.valid("json");
 
-			await db.insert(collectionsToCourses).values({
-				collectionId: id,
-				courseId: input.id,
-			});
+			await db
+				.insert(collectionsToCourses)
+				.values(
+					input.ids.map((courseId) => ({
+						collectionId: id,
+						courseId,
+					})),
+				)
+				.onConflictDoNothing();
 
 			return c.json(null);
 		},
