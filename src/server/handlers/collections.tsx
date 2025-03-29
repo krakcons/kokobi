@@ -294,15 +294,18 @@ export const collectionsHandler = new Hono()
 				});
 			}
 
-			const learnersList = collection.collectionsToCourses.map(
-				({ course }) =>
-					input.map((l) => ({
+			const learnersList = input.map((l) => {
+				return collection.collectionsToCourses.map(({ course }) => {
+					return {
 						...l,
 						id: Bun.randomUUIDv7(),
 						courseId: course.id,
+						collectionId: id,
 						teamId,
-					})),
-			);
+					};
+				});
+			});
+			console.log(learnersList);
 
 			const finalLearnersList = await db
 				.insert(learners)
@@ -348,9 +351,11 @@ export const collectionsHandler = new Hono()
 
 				const t = await createTranslator({ locale });
 
+				console.log(courses, learner, "EMAIL");
+
 				sendEmail({
 					to: [email],
-					subject: "Course Invite",
+					subject: "Collection Invite",
 					content: (
 						<CollectionInvite
 							name={collectionName}

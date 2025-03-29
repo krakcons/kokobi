@@ -30,7 +30,7 @@ export const CourseInvite = ({
 	href: string;
 	name?: string;
 	teamName?: string;
-	logo?: string | null;
+	logo?: string;
 	t: Messages["Email"]["CourseInvite"];
 }) => (
 	<Html lang="en">
@@ -39,7 +39,12 @@ export const CourseInvite = ({
 		<Tailwind>
 			<Body className="mx-auto my-auto bg-white font-sans">
 				<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
-					{logo && <Img src={logo} alt="logo" width={175} />}
+					<Img
+						src={logo}
+						alt="logo"
+						width={175}
+						className="text-[0px]"
+					/>
 					<Heading className={!logo ? "mt-0" : ""}>{t.title}</Heading>
 					<Text>
 						<strong>{teamName}</strong> {t.invite}{" "}

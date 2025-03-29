@@ -1,7 +1,6 @@
 import { Tailwind } from "@/components/email/Tailwind";
 import { buttonVariants } from "@/components/ui/button";
 import { Messages } from "@/lib/locale";
-import { env } from "@/server/env";
 import {
 	Body,
 	Button,
@@ -18,7 +17,7 @@ import {
 export const CollectionInvite = ({
 	name = "Volunteer Training",
 	teamName = "CompanionLink",
-	logo = `${env.VITE_SITE_URL}/cdn/466a5korjz3hykf/en/logo?1717019590878`,
+	logo = "/favicon.ico",
 	t = {
 		title: "Invitation",
 		invite: "invites you to join the following:",
@@ -44,7 +43,7 @@ export const CollectionInvite = ({
 		name: string;
 	}[];
 	teamName?: string;
-	logo?: string | null;
+	logo?: string;
 	t: Messages["Email"]["CollectionInvite"];
 }) => (
 	<Html lang="en">
@@ -53,7 +52,12 @@ export const CollectionInvite = ({
 		<Tailwind>
 			<Body className="mx-auto my-auto bg-white font-sans">
 				<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
-					{logo && <Img src={logo} alt="logo" width={175} />}
+					<Img
+						src={logo}
+						alt="logo"
+						width={175}
+						className="text-[0px]"
+					/>
 					<Heading className={!logo ? "mt-0" : ""}>{t.title}</Heading>
 					<Text>
 						<strong>{teamName}</strong> {t.invite}
