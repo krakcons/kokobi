@@ -329,7 +329,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				...l,
 				id: Bun.randomUUIDv7(),
 				courseId: id,
-				teamId: course.teamId,
+				teamId,
 			}));
 
 			const finalLearnersList = await db

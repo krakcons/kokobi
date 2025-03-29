@@ -156,6 +156,18 @@ export const queryOptions = {
 				return await res.json();
 			},
 		},
+		learners: (
+			input: InferRequestType<typeof collection.learners.$get>,
+		) => ({
+			queryKey: ["collections.learners.$get", input],
+			queryFn: async () => {
+				const res = await collection.learners.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		}),
 	},
 	modules: {
 		all: (input: InferRequestType<typeof course.modules.$get>) => ({
@@ -271,6 +283,29 @@ export const useMutationOptions = () => {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.collections.all.queryKey,
 					});
+				},
+			},
+			learners: {
+				create: {
+					mutationFn: async (
+						input: InferRequestType<typeof collection.invite.$post>,
+					) => {
+						const res = await collection.invite.$post(input);
+						if (!res.ok) {
+							throw new Error(await res.text());
+						}
+						return await res.json();
+					},
+					onSuccess: (_: any, input: any) => {
+						queryClient.invalidateQueries({
+							queryKey: queryOptions.collections.learners({
+								param: {
+									id: input.param.id,
+								},
+							}).queryKey,
+						});
+						toast.success("Learners created successfully");
+					},
 				},
 			},
 		},

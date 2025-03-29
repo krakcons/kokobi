@@ -78,7 +78,7 @@ const handleUser = async (
 		});
 	}
 
-	return c.redirect("/admin");
+	return c.redirect(env.VITE_SITE_URL + "/admin");
 };
 
 export const authHandler = new Hono()
@@ -98,7 +98,7 @@ export const authHandler = new Hono()
 			const { user } = await validateSessionToken(sessionId);
 
 			if (user) {
-				return c.redirect("/admin");
+				return c.redirect(env.VITE_SITE_URL + "/admin");
 			}
 		}
 
