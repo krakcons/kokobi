@@ -1,7 +1,11 @@
 import { queryOptions, useMutationOptions } from "@/lib/api";
 import { useLocale, locales, useTranslations } from "@/lib/locale";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	Dialog,
 	DialogContent,
@@ -23,7 +27,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { formatDate } from "@/lib/date";
 import { useState } from "react";
 import { LearnersForm } from "@/components/forms/LearnersForm";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
@@ -33,6 +37,13 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 		loader: async ({ params, context: { queryClient } }) => {
 			await queryClient.ensureQueryData(
 				queryOptions.collections.learners({
+					param: {
+						id: params.id,
+					},
+				}),
+			);
+			await queryClient.ensureQueryData(
+				queryOptions.collections.courses({
 					param: {
 						id: params.id,
 					},
@@ -52,6 +63,13 @@ function RouteComponent() {
 			},
 		}),
 	);
+	const { data: courses } = useSuspenseQuery(
+		queryOptions.collections.courses({
+			param: {
+				id: params.id,
+			},
+		}),
+	);
 	const [open, setOpen] = useState(false);
 	const t = useTranslations("Learner");
 	const locale = useLocale();
@@ -61,8 +79,32 @@ function RouteComponent() {
 	);
 	const deleteLearner = useMutation(mutationOptions.course.learners.delete);
 	const navigate = Route.useNavigate();
+	const queryClient = useQueryClient();
 
 	const columns: ColumnDef<Learner & { module: Module }>[] = [
+		{
+			accessorKey: "courseId",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Course" column={column} />
+			),
+			cell: ({ cell }) => (
+				<Link
+					to="/$locale/admin/courses/$id/settings"
+					params={(p) => ({
+						...p,
+						id: cell.row.original.courseId,
+					})}
+					from={Route.fullPath}
+					className={buttonVariants()}
+				>
+					{
+						courses.find(
+							(c) => c.id === cell.row.original.courseId,
+						)!.name
+					}
+				</Link>
+			),
+		},
 		{
 			accessorKey: "firstName",
 			header: ({ column }) => (
@@ -134,13 +176,25 @@ function RouteComponent() {
 		>([
 			{
 				name: "Delete",
-				onClick: ({ id }) =>
-					deleteLearner.mutate({
-						param: {
-							id: params.id,
-							learnerId: id,
+				onClick: ({ id, courseId }) =>
+					deleteLearner.mutate(
+						{
+							param: {
+								id: courseId,
+								learnerId: id,
+							},
 						},
-					}),
+						{
+							onSuccess: () =>
+								queryClient.invalidateQueries(
+									queryOptions.collections.learners({
+										param: {
+											id: params.id,
+										},
+									}),
+								),
+						},
+					),
 			},
 		]),
 	];

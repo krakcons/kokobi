@@ -131,8 +131,17 @@ export const queryOptions = {
 				const learners = await res.json();
 				return learners.map((l) => ({
 					...l,
+					createdAt: new Date(l.createdAt),
+					updatedAt: new Date(l.updatedAt),
 					completedAt: l.completedAt ? new Date(l.completedAt) : null,
 					startedAt: l.startedAt ? new Date(l.startedAt) : null,
+					module: l.module
+						? {
+								...l.module,
+								createdAt: new Date(l.module.createdAt),
+								updatedAt: new Date(l.module.updatedAt),
+							}
+						: null,
 				}));
 			},
 		}),
@@ -167,7 +176,21 @@ export const queryOptions = {
 				if (!res.ok) {
 					throw new Error(await res.text());
 				}
-				return await res.json();
+				const learners = await res.json();
+				return learners.map((l) => ({
+					...l,
+					createdAt: new Date(l.createdAt),
+					updatedAt: new Date(l.updatedAt),
+					completedAt: l.completedAt ? new Date(l.completedAt) : null,
+					startedAt: l.startedAt ? new Date(l.startedAt) : null,
+					module: l.module
+						? {
+								...l.module,
+								createdAt: new Date(l.module.createdAt),
+								updatedAt: new Date(l.module.updatedAt),
+							}
+						: null,
+				}));
 			},
 		}),
 		courses: (input: InferRequestType<typeof collection.courses.$get>) => ({

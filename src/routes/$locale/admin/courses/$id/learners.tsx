@@ -23,7 +23,7 @@ import { locales, useLocale, useTranslations } from "@/lib/locale";
 import { formatDate } from "@/lib/date";
 import { useState } from "react";
 import { LearnersForm } from "@/components/forms/LearnersForm";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 
@@ -58,7 +58,7 @@ function RouteComponent() {
 	const createLearners = useMutation(mutationOptions.course.learners.create);
 	const deleteLearner = useMutation(mutationOptions.course.learners.delete);
 
-	const columns: ColumnDef<Learner & { module: Module }>[] = [
+	const columns: ColumnDef<Learner & { module: Module | null }>[] = [
 		{
 			accessorKey: "firstName",
 			header: ({ column }) => (
