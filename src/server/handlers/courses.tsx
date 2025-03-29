@@ -236,9 +236,9 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				joinLink:
 					teamRole === "owner"
 						? course.team?.customDomain &&
-							env.PUBLIC_SITE_URL !== "http://localhost:3000"
+							env.VITE_SITE_URL !== "http://localhost:3000"
 							? `https://${course.team.customDomain}/courses/${course.id}/join?learnerId=${learner.id}`
-							: `${env.PUBLIC_SITE_URL}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
+							: `${env.VITE_SITE_URL}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
 						: undefined,
 			};
 		});
@@ -360,9 +360,9 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 
 					const href =
 						team?.customDomain &&
-						env.PUBLIC_SITE_URL !== "http://localhost:3000"
+						env.VITE_SITE_URL !== "http://localhost:3000"
 							? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/courses/${course.id}/join?learnerId=${id}`
-							: `${env.PUBLIC_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${id}`;
+							: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${id}`;
 
 					sendEmail({
 						to: [l.email],
@@ -372,7 +372,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 								href={href}
 								name={name}
 								teamName={team.name}
-								logo={`${env.PUBLIC_SITE_URL}/cdn/${team.id}/${team.language}/logo?updatedAt=${team?.updatedAt.toString()}`}
+								logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.language}/logo?updatedAt=${team?.updatedAt.toString()}`}
 								t={t.Email.CourseInvite}
 							/>
 						),

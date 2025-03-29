@@ -30,7 +30,7 @@ const apiRoutes = app
 	.route("/collections", collectionsHandler);
 
 app.get("/cdn/**", (c) => {
-	return fetch(env.PUBLIC_CDN_URL + c.req.url.split("/cdn")[1]);
+	return fetch(env.VITE_API_URL + c.req.url.split("/cdn")[1]);
 });
 app.get("*", serveStatic({ root: "./dist/" }));
 app.get("*", serveStatic({ path: "./dist/index.html" }));

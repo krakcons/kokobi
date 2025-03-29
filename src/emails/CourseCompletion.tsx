@@ -18,7 +18,7 @@ export const CourseCompletion = ({
 	course = "Golfing Tutorial",
 	organization = "Krak",
 	href = "https://google.com",
-	logo = `${env.PUBLIC_SITE_URL}/cdn/466a5korjz3hykf/en/logo?1717019590878`,
+	logo = `${env.VITE_SITE_URL}/cdn/466a5korjz3hykf/en/logo?1717019590878`,
 	text = {
 		title: "Congratulations!",
 		completed: "Completed",

@@ -17,7 +17,7 @@ import { Google } from "arctic";
 export const google = new Google(
 	env.GOOGLE_CLIENT_ID,
 	env.GOOGLE_CLIENT_SECRET,
-	`${env.PUBLIC_SITE_URL}/api/auth/google/callback`,
+	`${env.VITE_API_URL}/api/auth/google/callback`,
 );
 
 const GoogleCallbackSchema = z
@@ -89,7 +89,7 @@ export const authHandler = new Hono()
 		deleteCookie(c, "teamId");
 		invalidateSession(sessionId);
 		console.log("signout");
-		return c.redirect(env.PUBLIC_SITE_URL);
+		return c.redirect(env.VITE_SITE_URL);
 	})
 	.get("/google", async (c) => {
 		const sessionId = getCookie(c, "auth_session");
