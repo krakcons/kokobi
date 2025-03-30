@@ -280,6 +280,9 @@ export const useMutationOptions = () => {
 						queryKey: queryOptions.collections.all.queryKey,
 					});
 				},
+				onError: (error: Error) => {
+					toast.error(error.message);
+				},
 			},
 			update: {
 				mutationFn: async (
@@ -303,6 +306,9 @@ export const useMutationOptions = () => {
 						queryKey: queryOptions.collections.all.queryKey,
 					});
 				},
+				onError: (error: Error) => {
+					toast.error(error.message);
+				},
 			},
 			delete: {
 				mutationFn: async (
@@ -318,6 +324,9 @@ export const useMutationOptions = () => {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.collections.all.queryKey,
 					});
+				},
+				onError: (error: Error) => {
+					toast.error(error.message);
 				},
 			},
 			learners: {
@@ -340,6 +349,9 @@ export const useMutationOptions = () => {
 							}).queryKey,
 						});
 						toast.success("Learners created successfully");
+					},
+					onError: (error: Error) => {
+						toast.error(error.message);
 					},
 				},
 			},
@@ -366,6 +378,9 @@ export const useMutationOptions = () => {
 						});
 						toast.success("Courses added successfully");
 					},
+					onError: (error: Error) => {
+						toast.error(error.message);
+					},
 				},
 				delete: {
 					mutationFn: async (
@@ -389,6 +404,9 @@ export const useMutationOptions = () => {
 						});
 						toast.success("Course deleted successfully");
 					},
+					onError: (error: Error) => {
+						toast.error(error.message);
+					},
 				},
 			},
 		},
@@ -408,6 +426,9 @@ export const useMutationOptions = () => {
 						queryKey: queryOptions.keys.all.queryKey,
 					});
 				},
+				onError: (error: Error) => {
+					toast.error(error.message);
+				},
 			},
 			delete: {
 				mutationFn: async (
@@ -425,6 +446,9 @@ export const useMutationOptions = () => {
 						queryKey: queryOptions.keys.all.queryKey,
 					});
 				},
+				onError: (error: Error) => {
+					toast.error(error.message);
+				},
 			},
 		},
 		course: {
@@ -437,6 +461,9 @@ export const useMutationOptions = () => {
 						throw new Error(await res.text());
 					}
 					return await res.json();
+				},
+				onError: (error: Error) => {
+					toast.error(error.message);
 				},
 			},
 			create: {
@@ -454,6 +481,9 @@ export const useMutationOptions = () => {
 					queryClient.invalidateQueries({
 						queryKey: queryOptions.courses.all.queryKey,
 					});
+				},
+				onError: (error: Error) => {
+					toast.error(error.message);
 				},
 			},
 			update: {
@@ -478,6 +508,9 @@ export const useMutationOptions = () => {
 					});
 					toast.success("Course updated successfully");
 				},
+				onError: (error: Error) => {
+					toast.error(error.message);
+				},
 			},
 			delete: {
 				mutationFn: async (
@@ -493,6 +526,9 @@ export const useMutationOptions = () => {
 						queryKey: queryOptions.courses.all.queryKey,
 					});
 					toast.success("Course deleted successfully");
+				},
+				onError: (error: Error) => {
+					toast.error(error.message);
 				},
 			},
 			learners: {
@@ -516,6 +552,9 @@ export const useMutationOptions = () => {
 						});
 						toast.success("Learner created successfully");
 					},
+					onError: (error: Error) => {
+						toast.error(error.message);
+					},
 				},
 				update: {
 					mutationFn: async (
@@ -526,6 +565,9 @@ export const useMutationOptions = () => {
 							throw new Error(await res.text());
 						}
 						return await res.json();
+					},
+					onError: (error: Error) => {
+						toast.error(error.message);
 					},
 				},
 				delete: {
@@ -546,6 +588,9 @@ export const useMutationOptions = () => {
 								},
 							}).queryKey,
 						});
+					},
+					onError: (error: Error) => {
+						toast.error(error.message);
 					},
 				},
 			},
@@ -570,6 +615,9 @@ export const useMutationOptions = () => {
 						});
 						toast.success("Module created successfully");
 					},
+					onError: (error: Error) => {
+						toast.error(error.message);
+					},
 				},
 				delete: {
 					mutationFn: async (
@@ -590,6 +638,9 @@ export const useMutationOptions = () => {
 							}).queryKey,
 						});
 						toast.success("Module deleted successfully");
+					},
+					onError: (error: Error) => {
+						toast.error(error.message);
 					},
 				},
 			},
@@ -619,6 +670,9 @@ export const useMutationOptions = () => {
 						queryClient.invalidateQueries();
 					}
 				},
+				onError: (error: Error) => {
+					toast.error(error.message);
+				},
 			},
 		},
 		team: {
@@ -635,6 +689,9 @@ export const useMutationOptions = () => {
 				onSuccess: () => {
 					queryClient.invalidateQueries();
 					toast.success("Team created successfully");
+				},
+				onError: (error: Error) => {
+					toast.error(error.message);
 				},
 			},
 			update: {
@@ -655,6 +712,9 @@ export const useMutationOptions = () => {
 					});
 					toast.success("Team updated successfully");
 				},
+				onError: (error: Error) => {
+					toast.error(error.message);
+				},
 			},
 			delete: {
 				mutationFn: async () => {
@@ -666,6 +726,9 @@ export const useMutationOptions = () => {
 				},
 				onSuccess: () => {
 					toast.success("Team deleted successfully");
+				},
+				onError: (error: Error) => {
+					toast.error(error.message);
 				},
 			},
 		},

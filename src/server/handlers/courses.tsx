@@ -341,9 +341,15 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			learnersList
 				.filter((l) => l.sendEmail)
 				.forEach(async (l) => {
-					const id = finalLearnersList.find(
+					const finalLearner = finalLearnersList.find(
 						(fl) => fl.email === l.email,
-					)!.id;
+					);
+					if (!finalLearner) {
+						throw new HTTPException(500, {
+							message: "Server error sending email.",
+						});
+					}
+					const id = finalLearner.id;
 					const t = await createTranslator({
 						locale: l.inviteLanguage ?? "en",
 					});

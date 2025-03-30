@@ -237,6 +237,20 @@ export const collectionsHandler = new Hono()
 	.delete("/:id/courses/:courseId", protectedMiddleware(), async (c) => {
 		const { id, courseId } = c.req.param();
 
+		const learnerList = await db.query.learners.findMany({
+			where: and(
+				eq(learners.collectionId, id),
+				eq(learners.courseId, courseId),
+			),
+		});
+
+		if (learnerList.length > 0) {
+			throw new HTTPException(400, {
+				message:
+					"Cannot delete course while learners exist. Delete learners first.",
+			});
+		}
+
 		await db
 			.delete(collectionsToCourses)
 			.where(
@@ -302,10 +316,10 @@ export const collectionsHandler = new Hono()
 						courseId: course.id,
 						collectionId: id,
 						teamId,
+						course,
 					};
 				});
 			});
-			console.log(learnersList);
 
 			const finalLearnersList = await db
 				.insert(learners)
@@ -327,32 +341,37 @@ export const collectionsHandler = new Hono()
 				const team = handleLocalization(c, collection.team, locale);
 
 				const courses = learner.map((l) => {
-					const course = handleLocalization(
+					const { name } = handleLocalization(
 						c,
-						collection.collectionsToCourses.find(
-							({ course }) => course.id === l.courseId,
-						)!.course,
+						l.course,
 						l.inviteLanguage,
 					);
-					const id = finalLearnersList.find(
+
+					// Use the final learner to get the id since there could be a conflict
+					const finalLearner = finalLearnersList.find(
 						(fl) =>
-							fl.email === l.email && fl.courseId === course.id,
-					)!.id;
+							fl.email === l.email && fl.courseId === l.course.id,
+					);
+					if (!finalLearner) {
+						throw new HTTPException(500, {
+							message: "Server error sending email.",
+						});
+					}
+					const id = finalLearner.id;
+
 					const href =
 						team?.customDomain &&
 						env.VITE_SITE_URL !== "http://localhost:3000"
-							? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/courses/${course.id}/join?learnerId=${id}`
-							: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${id}`;
+							? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/courses/${l.course.id}/join?learnerId=${id}`
+							: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${l.course.id}/join?learnerId=${id}`;
 
 					return {
 						href,
-						name: course.name,
+						name,
 					};
 				});
 
 				const t = await createTranslator({ locale });
-
-				console.log(courses, learner, "EMAIL");
 
 				sendEmail({
 					to: [email],

@@ -5,7 +5,6 @@ import { routeTree } from "./routeTree.gen";
 import ReactDOM from "react-dom/client";
 import { StrictMode } from "react";
 import { ThemeProvider } from "./lib/theme";
-import { PendingComponent } from "./components/PendingComponent";
 import { NotFound } from "./components/NotFound";
 import "./index.css";
 
@@ -18,7 +17,6 @@ const router = createRouter({
 	defaultErrorComponent: DefaultCatchBoundary,
 	scrollRestoration: true,
 	defaultNotFoundComponent: () => <NotFound />,
-	defaultPendingComponent: PendingComponent,
 	Wrap: ({ children }) => {
 		return (
 			<QueryClientProvider client={queryClient}>
