@@ -53,9 +53,20 @@ export const PageSubHeader = ({
 	</div>
 );
 
-export const FloatingPage = ({ children }: { children: React.ReactNode }) => {
+export const FloatingPage = ({
+	children,
+	className,
+}: {
+	children: React.ReactNode;
+	className?: string;
+}) => {
 	return (
-		<div className="min-h-screen w-screen flex flex-col items-center justify-center p-4 sm:p-8">
+		<div
+			className={cn(
+				"min-h-screen max-w-screen w-full flex flex-col items-center justify-center p-4 sm:p-8",
+				className,
+			)}
+		>
 			{children}
 		</div>
 	);

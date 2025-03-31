@@ -1,6 +1,3 @@
-import { BlockNavigation } from "@/components/ui/form";
-import { completionStatuses } from "@/types/course";
-
 const en = {
 	Nav: {
 		top: {

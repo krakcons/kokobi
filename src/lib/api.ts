@@ -261,7 +261,36 @@ export const queryOptions = {
 				if (!res.ok) {
 					throw new Error(await res.text());
 				}
-				return await res.json();
+				const play = await res.json();
+				return {
+					...play,
+					learner: {
+						...play.learner,
+						createdAt: new Date(play.learner.createdAt),
+						updatedAt: new Date(play.learner.updatedAt),
+					},
+				};
+			},
+		}),
+		certificate: (
+			input: InferRequestType<typeof courseLearner.certificate.$get>,
+		) => ({
+			queryKey: ["learners", input],
+			queryFn: async () => {
+				const res = await courseLearner.certificate.$get(input);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				const { team, course, learner } = await res.json();
+				return {
+					team,
+					course,
+					learner: {
+						...learner,
+						createdAt: new Date(learner.createdAt),
+						updatedAt: new Date(learner.updatedAt),
+					},
+				};
 			},
 		}),
 	},

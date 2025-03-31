@@ -233,6 +233,7 @@ export const teamRelations = relations(teams, ({ many }) => ({
 	courses: many(courses),
 	keys: many(keys),
 	translations: many(teamTranslations),
+	learners: many(learners),
 }));
 
 export const usersToTeamsRelations = relations(usersToTeams, ({ one }) => ({
@@ -261,6 +262,7 @@ export const collectionsRelations = relations(collections, ({ one, many }) => ({
 	}),
 	collectionsToCourses: many(collectionsToCourses),
 	translations: many(collectionTranslations),
+	learners: many(learners),
 }));
 
 export const collectionsToCoursesRelations = relations(
@@ -320,6 +322,14 @@ export const learnersRelations = relations(learners, ({ one }) => ({
 	course: one(courses, {
 		fields: [learners.courseId],
 		references: [courses.id],
+	}),
+	team: one(teams, {
+		fields: [learners.teamId],
+		references: [teams.id],
+	}),
+	collection: one(collections, {
+		fields: [learners.collectionId],
+		references: [collections.id],
 	}),
 }));
 

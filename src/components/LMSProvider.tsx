@@ -1,11 +1,3 @@
-import { buttonVariants } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { useMutationOptions } from "@/lib/api";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
@@ -18,10 +10,8 @@ import {
 	Scorm2004ErrorMessage,
 } from "@/types/scorm/versions/2004";
 import { useMutation } from "@tanstack/react-query";
-import { Link, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "@tanstack/react-router";
-import { useTranslations } from "@/lib/locale";
 
 declare global {
 	interface Window {
@@ -233,17 +223,13 @@ const useSCORM = ({
 const LMSProvider = ({
 	type,
 	learner,
-	course,
 	url,
 }: {
 	type: Module["type"];
 	learner: Learner;
 	url: string;
-	course: string;
 }) => {
-	const t = useTranslations("Certificate");
 	const [loading, setLoading] = useState(true);
-	const [certOpen, setCertOpen] = useState(false);
 
 	// Course completion status
 	const [completed, setCompleted] = useState(!!learner.completedAt);
@@ -257,13 +243,6 @@ const LMSProvider = ({
 	// Update learner mutation
 	const mutationOptions = useMutationOptions();
 	const { mutate } = useMutation(mutationOptions.course.learners.update);
-
-	useEffect(() => {
-		const hidden = localStorage.getItem(learner.id);
-		if (completed && !hidden) {
-			setCertOpen(true);
-		}
-	}, [completed, learner.id]);
 
 	useEffect(() => {
 		if (!completed) {
@@ -284,41 +263,8 @@ const LMSProvider = ({
 		}
 	}, [data, completed, mutate, learner]);
 
-	const { pathname } = useLocation();
-
 	return (
 		<>
-			<Dialog onOpenChange={(open) => setCertOpen(open)} open={certOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>
-							{course} {t.dialog.title}
-						</DialogTitle>
-						<DialogDescription>
-							{t.dialog.description}
-						</DialogDescription>
-					</DialogHeader>
-					<label className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							onChange={(e) => {
-								if (e.target.checked) {
-									localStorage.setItem(learner.id, "true");
-								} else {
-									localStorage.removeItem(learner.id);
-								}
-							}}
-						/>
-						<p className="text-sm">{t.dialog["dont-show"]}</p>
-					</label>
-					<Link
-						href={`${pathname}/certificate?learnerId=${learner.id}`}
-						className={buttonVariants()}
-					>
-						{t.download}
-					</Link>
-				</DialogContent>
-			</Dialog>
 			{loading && (
 				<div className="absolute flex h-screen w-screen items-center justify-center bg-background">
 					<Loader2 size={48} className="animate-spin" />

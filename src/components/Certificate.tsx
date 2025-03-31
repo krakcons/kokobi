@@ -1,3 +1,4 @@
+import { Messages } from "@/lib/locale";
 import {
 	Document,
 	Font,
@@ -57,15 +58,7 @@ export type CertificateProps = {
 	completedAt: string;
 	teamName: string;
 	logo?: string;
-	text: {
-		title: string;
-		message: string;
-		congratulations: {
-			1: string;
-			2: string;
-		};
-		date: string;
-	};
+	t: Messages["Certificate"]["pdf"];
 };
 
 export const Certificate = ({
@@ -73,7 +66,7 @@ export const Certificate = ({
 	course,
 	completedAt,
 	teamName,
-	text,
+	t,
 	logo,
 }: CertificateProps) => {
 	return (
@@ -90,8 +83,8 @@ export const Certificate = ({
 						bottom: 0,
 					}}
 				/>
-				<Text style={[styles.h1, { marginTop: 15 }]}>{text.title}</Text>
-				<Text>{text.message}</Text>
+				<Text style={[styles.h1, { marginTop: 15 }]}>{t.title}</Text>
+				<Text>{t.message}</Text>
 				<Text
 					style={[
 						styles.h1,
@@ -118,7 +111,7 @@ export const Certificate = ({
 								fontStyle: "italic",
 							}}
 						>
-							{text.congratulations[1]}
+							{t.congratulations["1"]}
 						</Text>
 						<Text
 							style={{
@@ -133,7 +126,7 @@ export const Certificate = ({
 								fontStyle: "italic",
 							}}
 						>
-							{" " + text.congratulations[2]}
+							{" " + t.congratulations["2"]}
 						</Text>
 						<Text
 							style={{
@@ -161,7 +154,7 @@ export const Certificate = ({
 							marginVertical: 10,
 						}}
 					/>
-					<Text>{text.date}</Text>
+					<Text>{t.date}</Text>
 				</View>
 				{logo && (
 					/* eslint-disable-next-line jsx-a11y/alt-text */

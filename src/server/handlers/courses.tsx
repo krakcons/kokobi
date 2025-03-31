@@ -420,22 +420,54 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			},
 		});
 
-		if (learner && learner.module) {
-			const courseFileUrl = `/${learner.course.teamId}/courses/${learner.courseId}/${learner.module.language}${learner.module.versionNumber === 1 ? "" : "_" + learner.module.versionNumber}`;
-
-			const imsManifest = s3.file(courseFileUrl + "/imsmanifest.xml");
-
-			const { scorm, resources } = await parseIMSManifest(imsManifest);
-			return c.json({
-				learner: ExtendLearner(learner.module.type).parse(learner),
-				url: `${env.VITE_API_URL}/cdn${courseFileUrl}/${resources[0].href}`,
-				type: scorm.metadata.schemaversion,
-			});
-		} else {
+		if (!learner || !learner.module) {
 			throw new HTTPException(404, {
 				message: "Learner not found",
 			});
 		}
+
+		const courseFileUrl = `/${learner.course.teamId}/courses/${learner.courseId}/${learner.module.language}${learner.module.versionNumber === 1 ? "" : "_" + learner.module.versionNumber}`;
+
+		const imsManifest = s3.file(courseFileUrl + "/imsmanifest.xml");
+
+		const { scorm, resources } = await parseIMSManifest(imsManifest);
+		return c.json({
+			learner: ExtendLearner(learner.module.type).parse(learner),
+			url: `${env.VITE_API_URL}/cdn${courseFileUrl}/${resources[0].href}`,
+			type: scorm.metadata.schemaversion,
+		});
+	})
+	.get("/:id/learners/:learnerId/certificate", async (c) => {
+		const { id, learnerId } = c.req.param();
+
+		const learner = await db.query.learners.findFirst({
+			where: and(eq(learners.courseId, id), eq(learners.id, learnerId)),
+			with: {
+				module: true,
+				course: {
+					with: {
+						translations: true,
+					},
+				},
+				team: {
+					with: {
+						translations: true,
+					},
+				},
+			},
+		});
+
+		if (!learner || !learner.module) {
+			throw new HTTPException(404, {
+				message: "Learner not found",
+			});
+		}
+
+		return c.json({
+			learner: ExtendLearner(learner.module.type).parse(learner),
+			course: handleLocalization(c, learner.course),
+			team: handleLocalization(c, learner.team),
+		});
 	})
 	.put(
 		"/:id/learners/:learnerId",

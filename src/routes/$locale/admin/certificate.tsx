@@ -35,15 +35,7 @@ function RouteComponent() {
 							date: new Date(),
 							locale,
 						}),
-						text: {
-							title: t.pdf.title,
-							message: t.pdf.message,
-							congratulations: {
-								1: t.pdf.congratulations["1"],
-								2: t.pdf.congratulations["2"],
-							},
-							date: t.pdf.date,
-						},
+						t: t.pdf,
 					}}
 				/>
 			</PDFViewer>

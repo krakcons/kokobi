@@ -10,12 +10,21 @@ import { serveStatic } from "hono/bun";
 import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
 import { logger } from "hono/logger";
 import { env } from "@/server/env";
+import { cors } from "hono/cors";
 
 const app = new Hono<{
 	Variables: HonoVariables;
 }>();
 
 app.use(logger());
+app.use(
+	cors({
+		origin: [env.VITE_SITE_URL],
+		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+		allowHeaders: ["Content-Type", "Authorization"],
+		credentials: true,
+	}),
+);
 
 const apiRoutes = app
 	.basePath("/api")
