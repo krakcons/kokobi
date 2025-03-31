@@ -702,15 +702,13 @@ function SidebarMenuSubButton({
 	isActive = false,
 	className,
 	...props
-}: React.ComponentProps<"a"> & {
+}: React.ComponentProps<"div"> & {
 	asChild?: boolean;
 	size?: "sm" | "md";
 	isActive?: boolean;
 }) {
-	const Comp = asChild ? Slot : "a";
-
 	return (
-		<Comp
+		<div
 			data-slot="sidebar-menu-sub-button"
 			data-sidebar="menu-sub-button"
 			data-size={size}
