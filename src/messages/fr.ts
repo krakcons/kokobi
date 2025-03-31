@@ -69,10 +69,12 @@ const fr: Messages = {
 		},
 	},
 	Email: {
-		Completion: {
+		CourseCompletion: {
+			subject: "Achèvement du cours",
 			title: "Félicitations !",
 			completed: "Complété",
 			congratulations: "Félicitations ! Vous avez complété",
+			by: "offert par",
 			certificate: "Téléchargez votre certificat de réussite :",
 			get: "Télécharger",
 		},

@@ -1,5 +1,3 @@
-import { useMutationOptions } from "@/lib/api";
-import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
 import {
 	Scorm12ErrorCode,
@@ -9,8 +7,6 @@ import {
 	Scorm2004ErrorCode,
 	Scorm2004ErrorMessage,
 } from "@/types/scorm/versions/2004";
-import { useMutation } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 declare global {
@@ -20,14 +16,15 @@ declare global {
 	}
 }
 
-const useSCORM = ({
+export const useLMS = ({
 	type,
-	initialData,
+	data,
+	onDataChange,
 }: {
 	type: Module["type"];
-	initialData: Record<string, any>;
+	data: Record<string, string>;
+	onDataChange: (data: Record<string, string>) => void;
 }) => {
-	const [data, setData] = useState<Record<string, string>>(initialData);
 	const error = useRef<number | null>(null);
 	const initialized = useRef<boolean>(false);
 	const [isApiAvailable, setIsApiAvailable] = useState(false);
@@ -98,11 +95,9 @@ const useSCORM = ({
 					return "false";
 				}
 
-				setData((prev) => {
-					return {
-						...prev,
-						[key]: `${value}`,
-					};
+				onDataChange({
+					...data,
+					[key]: `${value}`,
 				});
 
 				return "true";
@@ -177,11 +172,9 @@ const useSCORM = ({
 					return "false";
 				}
 
-				setData((prev) => {
-					return {
-						...prev,
-						[key]: `${value}`,
-					};
+				onDataChange({
+					...data,
+					[key]: `${value}`,
 				});
 
 				return "true";
@@ -217,68 +210,5 @@ const useSCORM = ({
 		};
 	}
 
-	return { data, isApiAvailable };
+	return { isApiAvailable };
 };
-
-const LMSProvider = ({
-	type,
-	learner,
-	url,
-}: {
-	type: Module["type"];
-	learner: Learner;
-	url: string;
-}) => {
-	const [loading, setLoading] = useState(true);
-
-	// Course completion status
-	const [completed, setCompleted] = useState(!!learner.completedAt);
-
-	// Scorm wrapper
-	const { data, isApiAvailable } = useSCORM({
-		type,
-		initialData: learner.data,
-	});
-
-	// Update learner mutation
-	const mutationOptions = useMutationOptions();
-	const { mutate } = useMutation(mutationOptions.course.learners.update);
-
-	useEffect(() => {
-		if (!completed) {
-			mutate(
-				{
-					param: { id: learner.courseId, learnerId: learner.id },
-					json: { data },
-				},
-				{
-					onSuccess: async ({ completedAt }) => {
-						const hidden = localStorage.getItem(learner.id);
-						if (!!completedAt && !hidden) {
-							setCompleted(true);
-						}
-					},
-				},
-			);
-		}
-	}, [data, completed, mutate, learner]);
-
-	return (
-		<>
-			{loading && (
-				<div className="absolute flex h-screen w-screen items-center justify-center bg-background">
-					<Loader2 size={48} className="animate-spin" />
-				</div>
-			)}
-			{isApiAvailable && (
-				<iframe
-					src={url}
-					className="flex-1"
-					onLoad={() => setLoading(false)}
-				/>
-			)}
-		</>
-	);
-};
-
-export default LMSProvider;

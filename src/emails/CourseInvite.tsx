@@ -1,6 +1,7 @@
 import { Tailwind } from "@/components/email/Tailwind";
 import { buttonVariants } from "@/components/ui/button";
 import { Messages } from "@/lib/locale";
+import en from "@/messages/en";
 import {
 	Body,
 	Button,
@@ -19,13 +20,7 @@ export const CourseInvite = ({
 	name = "Golfing Tutorial",
 	teamName = "CompanionLink",
 	logo = "/favicon.ico",
-	t = {
-		subject: "",
-		title: "Invitation",
-		invite: "invites you to join the following:",
-		start: "Join",
-		below: "☕ Need to take a break? We got you covered. Learn at your own pace by clicking the button above to pick up where you left off at any time. \n\n When you’ve completed your learning, you’ll receive an email with a Certificate of Completion. \n\n Please refrain from responding to this email as there is no corresponding inbox for replies. \n\n Happy Learning!",
-	},
+	t = en.Email.CourseInvite,
 }: {
 	href: string;
 	name?: string;
@@ -58,7 +53,7 @@ export const CourseInvite = ({
 					>
 						{t.start}
 					</Button>
-					<Hr className="my-6" />
+					<Hr className="mt-6" />
 					<Text
 						style={{
 							whiteSpace: "pre-line",

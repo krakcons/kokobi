@@ -33,6 +33,7 @@ import { XMLParser } from "fast-xml-parser";
 import { IMSManifestSchema, Resource } from "@/types/scorm/content";
 import { S3File } from "bun";
 import { getInitialScormData } from "@/lib/scorm";
+import CourseCompletion from "@/emails/CourseCompletion";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,
@@ -372,7 +373,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 
 					sendEmail({
 						to: [l.email],
-						subject: "Course Invite",
+						subject: t.Email.CourseInvite.subject,
 						content: (
 							<CourseInvite
 								href={href}
@@ -483,7 +484,16 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 				),
 				with: {
 					module: true,
-					course: true,
+					course: {
+						with: {
+							translations: true,
+						},
+					},
+					team: {
+						with: {
+							translations: true,
+						},
+					},
 				},
 			});
 
@@ -525,6 +535,34 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 					learner.module && justCompleted
 						? new Date()
 						: learner.completedAt;
+
+				if (justCompleted) {
+					const team = handleLocalization(c, learner.team);
+					const course = handleLocalization(c, learner.course);
+
+					const href =
+						team?.customDomain &&
+						env.VITE_SITE_URL !== "http://localhost:3000"
+							? `https://${team.customDomain}${course.language ? `/${course.language}` : ""}/courses/${course.id}/join?learnerId=${learner.id}`
+							: `${env.VITE_SITE_URL}/play/${team?.id}/courses/${course.id}/join?learnerId=${learner.id}`;
+
+					const t = await createTranslator({
+						locale: learner.module?.language ?? "en",
+					});
+
+					sendEmail({
+						to: [learner.email],
+						subject: t.Email.CourseCompletion.subject,
+						content: (
+							<CourseCompletion
+								name={course.name}
+								teamName={team.name}
+								href={href}
+								t={t.Email.CourseCompletion}
+							/>
+						),
+					});
+				}
 			}
 
 			await db
@@ -538,7 +576,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 					and(eq(learners.courseId, id), eq(learners.id, learnerId)),
 				);
 
-			return c.json({ completedAt });
+			return c.json(ExtendLearner(courseModule!.type).parse(learner));
 		},
 	)
 	.delete("/:id/learners/:learnerId", protectedMiddleware(), async (c) => {

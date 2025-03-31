@@ -67,22 +67,23 @@ const en = {
 		},
 	},
 	Email: {
-		Completion: {
+		CourseCompletion: {
 			title: "Congratulations!",
 			completed: "Completed",
+			by: "offered by",
 			congratulations: "Congratulations! You have completed",
 			certificate: "Download your certificate of completion:",
 			get: "Download",
 		},
 		CourseInvite: {
-			subject: "Invitation:",
+			subject: "Course Invite",
 			title: "Invitation",
 			invite: "invites you to join the following:",
 			start: "Join",
 			below: "☕ Need to take a break? We got you covered. Learn at your own pace by clicking the button above to pick up where you left off at any time. \n\n When you’ve completed your learning, you’ll receive an email with a Certificate of Completion. \n\n Please refrain from responding to this email as there is no corresponding inbox for replies. \n\n Happy Learning!",
 		},
 		CollectionInvite: {
-			subject: "Invitation:",
+			subject: "Collection Invite",
 			title: "Invitation",
 			invite: "invites you to join the following:",
 			by: "offered by",

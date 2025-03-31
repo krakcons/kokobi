@@ -375,7 +375,7 @@ export const collectionsHandler = new Hono()
 
 				sendEmail({
 					to: [email],
-					subject: "Collection Invite",
+					subject: t.Email.CollectionInvite.subject,
 					content: (
 						<CollectionInvite
 							name={collectionName}
