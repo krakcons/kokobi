@@ -371,7 +371,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 							? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/courses/${course.id}/join?learnerId=${id}`
 							: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${id}`;
 
-					sendEmail({
+					await sendEmail({
 						to: [l.email],
 						subject: t.Email.CourseInvite.subject,
 						content: (
@@ -550,7 +550,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 						locale: learner.module?.language ?? "en",
 					});
 
-					sendEmail({
+					await sendEmail({
 						to: [learner.email],
 						subject: t.Email.CourseCompletion.subject,
 						content: (

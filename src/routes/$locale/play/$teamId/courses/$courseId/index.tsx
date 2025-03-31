@@ -77,25 +77,27 @@ function RouteComponent() {
 		type: type,
 		data: learner.data,
 		onDataChange: (data) => {
-			mutate(
-				{
-					param: { id: learner.courseId, learnerId: learner.id },
-					json: { data },
-				},
-				{
-					onSuccess: async (learner) => {
-						queryClient.setQueryData(
-							queryOptions.learners.play({
-								param: {
-									id: learner.courseId,
-									learnerId: learner.id,
-								},
-							}).queryKey,
-							{ learner, url, type },
-						);
+			if (!learner.completedAt) {
+				mutate(
+					{
+						param: { id: learner.courseId, learnerId: learner.id },
+						json: { data },
 					},
-				},
-			);
+					{
+						onSuccess: async (learner) => {
+							queryClient.setQueryData(
+								queryOptions.learners.play({
+									param: {
+										id: learner.courseId,
+										learnerId: learner.id,
+									},
+								}).queryKey,
+								{ learner, url, type },
+							);
+						},
+					},
+				);
+			}
 		},
 	});
 

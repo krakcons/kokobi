@@ -68,6 +68,7 @@ const en = {
 	},
 	Email: {
 		CourseCompletion: {
+			subject: "Course Completion",
 			title: "Congratulations!",
 			completed: "Completed",
 			by: "offered by",

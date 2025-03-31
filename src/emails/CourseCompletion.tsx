@@ -19,13 +19,13 @@ export const CourseCompletion = ({
 	name = "Golfing Tutorial",
 	teamName = "Krak",
 	href = "https://google.com",
-	logo = "/favicon.ico",
+	logo = "/favicon.ico2",
 	t = en.Email.CourseCompletion,
 }: {
 	name?: string;
 	teamName?: string;
 	href?: string;
-	logo?: string | null;
+	logo?: string;
 	t: Messages["Email"]["CourseCompletion"];
 }) => (
 	<Html lang="en">
@@ -34,7 +34,12 @@ export const CourseCompletion = ({
 		<Tailwind>
 			<Body className="mx-auto my-auto bg-white font-sans">
 				<Container className="mx-auto mt-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
-					{logo && <Img src={logo} alt="logo" width={175} />}
+					<Img
+						src={logo}
+						alt="logo"
+						width={175}
+						className="text-[0px]"
+					/>
 					<Heading className={!logo ? "mt-0" : ""}>
 						{t.title} {name} {t.completed}
 					</Heading>
