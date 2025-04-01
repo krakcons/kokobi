@@ -37,6 +37,7 @@ function RouteComponent() {
 											locale,
 										},
 										search: (s) => s,
+										reloadDocument: true,
 									});
 								},
 							},
