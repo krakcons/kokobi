@@ -41,10 +41,10 @@ export const CollectionInvite = ({
 	t: Messages["Email"]["CollectionInvite"];
 }) => (
 	<Html lang="en">
-		<Head />
-		<Preview>{`${t.invite} ${name} by ${teamName}.`}</Preview>
 		<Tailwind>
+			<Head />
 			<Body className="mx-auto my-auto bg-white font-sans">
+				<Preview>{`${t.invite} ${name} by ${teamName}.`}</Preview>
 				<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
 					<Img
 						src={logo}

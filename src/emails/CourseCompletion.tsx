@@ -29,10 +29,10 @@ export const CourseCompletion = ({
 	t: Messages["Email"]["CourseCompletion"];
 }) => (
 	<Html lang="en">
-		<Head />
-		<Preview>{t.title}</Preview>
 		<Tailwind>
+			<Head />
 			<Body className="mx-auto my-auto bg-white font-sans">
+				<Preview>{t.title}</Preview>
 				<Container className="mx-auto mt-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
 					<Img
 						src={logo}

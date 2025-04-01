@@ -1,4 +1,4 @@
-import { Tailwind as EmailTailwind, Head } from "@react-email/components";
+import { Tailwind as EmailTailwind } from "@react-email/components";
 
 export const Tailwind = ({ children }: { children: React.ReactNode }) => {
 	return (
@@ -34,7 +34,6 @@ export const Tailwind = ({ children }: { children: React.ReactNode }) => {
 				},
 			}}
 		>
-			<Head />
 			{children}
 		</EmailTailwind>
 	);

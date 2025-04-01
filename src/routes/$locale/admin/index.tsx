@@ -36,6 +36,7 @@ function RouteComponent() {
 			{courses.length > 0 ? (
 				courses.map((c) => (
 					<Link
+						key={c.id}
 						from="/$locale/admin/"
 						to="/$locale/admin/courses/$id/learners"
 						params={(p) => ({ ...p, id: c.id })}
@@ -71,6 +72,7 @@ function RouteComponent() {
 			{collections.length > 0 ? (
 				collections.map((c) => (
 					<Link
+						key={c.id}
 						from="/$locale/admin/"
 						to="/$locale/admin/collections/$id/learners"
 						params={(p) => ({ ...p, id: c.id })}
