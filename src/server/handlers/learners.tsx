@@ -158,7 +158,12 @@ export const learnerHandler = new Hono<{ Variables: HonoVariables }>()
 			const finalLearnersList = await db
 				.insert(learners)
 				.values(learnersList)
-				.onConflictDoNothing()
+				.onConflictDoUpdate({
+					target: [learners.email, learners.courseId],
+					set: {
+						updatedAt: new Date(),
+					},
+				})
 				.returning();
 
 			learnersList

@@ -326,7 +326,12 @@ export const collectionsHandler = new Hono()
 			const finalLearnersList = await db
 				.insert(learners)
 				.values(learnersList.flat())
-				.onConflictDoNothing()
+				.onConflictDoUpdate({
+					target: [learners.email, learners.courseId],
+					set: {
+						updatedAt: new Date(),
+					},
+				})
 				.returning();
 
 			// Email Invites
