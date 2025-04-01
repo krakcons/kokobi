@@ -173,9 +173,7 @@ export const learnerHandler = new Hono<{ Variables: HonoVariables }>()
 						(fl) => fl.email === l.email,
 					);
 					if (!finalLearner) {
-						throw new HTTPException(500, {
-							message: "Server error sending email.",
-						});
+						return;
 					}
 					const id = finalLearner.id;
 					const t = await createTranslator({
@@ -434,18 +432,21 @@ export const learnerHandler = new Hono<{ Variables: HonoVariables }>()
 				}
 			}
 
-			await db
+			const newLearner = await db
 				.update(learners)
 				.set({
-					moduleId: courseModule!.id,
+					moduleId: courseModule.id,
 					...(input.data ? { data: input.data } : {}),
 					...(completedAt ? { completedAt } : {}),
 				})
 				.where(
 					and(eq(learners.courseId, id), eq(learners.id, learnerId)),
-				);
+				)
+				.returning();
 
-			return c.json(ExtendLearner(courseModule!.type).parse(learner));
+			return c.json(
+				ExtendLearner(courseModule.type).parse(newLearner[0]),
+			);
 		},
 	)
 	.delete("/:id/learners/:learnerId", protectedMiddleware(), async (c) => {

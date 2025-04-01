@@ -101,6 +101,8 @@ function RouteComponent() {
 		},
 	});
 
+	console.log("ELA", learner);
+
 	useEffect(() => {
 		const hidden = localStorage.getItem(learner.id);
 		if (!!learner.completedAt && !hidden) {

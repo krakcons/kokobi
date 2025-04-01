@@ -360,9 +360,7 @@ export const collectionsHandler = new Hono()
 							fl.email === l.email && fl.courseId === l.course.id,
 					);
 					if (!finalLearner) {
-						throw new HTTPException(500, {
-							message: "Server error sending email.",
-						});
+						return;
 					}
 					const id = finalLearner.id;
 
