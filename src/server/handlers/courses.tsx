@@ -95,12 +95,11 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 			courseList.map((course) => handleLocalization(c, course)),
 		);
 	})
-	.get("/:id", localeInputMiddleware, protectedMiddleware(), async (c) => {
+	.get("/:id", localeInputMiddleware, async (c) => {
 		const { id } = c.req.param();
-		const teamId = c.get("teamId");
 
 		const course = await db.query.courses.findFirst({
-			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
+			where: and(eq(courses.id, id)),
 			with: {
 				translations: true,
 			},
@@ -588,7 +587,7 @@ export const coursesHandler = new Hono<{ Variables: HonoVariables }>()
 
 		return c.json(null);
 	})
-	.get("/:id/modules", protectedMiddleware(), async (c) => {
+	.get("/:id/modules", async (c) => {
 		const { id } = c.req.param();
 		const locale = c.get("locale");
 
