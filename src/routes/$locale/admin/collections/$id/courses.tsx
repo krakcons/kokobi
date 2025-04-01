@@ -122,7 +122,7 @@ function RouteComponent() {
 								collection below.
 							</DialogDescription>
 						</DialogHeader>
-						{courses.length > 0 ? (
+						{courseFormCourses.length === 0 ? (
 							<div className="flex flex-col gap-2">
 								<p className="text-muted-foreground text-sm">
 									No courses available. Create a course first
