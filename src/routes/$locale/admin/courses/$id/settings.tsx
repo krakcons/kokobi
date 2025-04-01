@@ -58,6 +58,9 @@ function RouteComponent() {
 					updateCourse.mutateAsync({
 						param: { id: params.id },
 						json: values,
+						query: {
+							locale: search.locale,
+						},
 					})
 				}
 			/>

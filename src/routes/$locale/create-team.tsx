@@ -31,12 +31,12 @@ function RouteComponent() {
 							},
 							{
 								onSuccess: () => {
-									console.log("redirecting");
 									navigate({
 										to: "/$locale/admin",
 										params: {
 											locale,
 										},
+										search: (s) => s,
 									});
 								},
 							},

@@ -12,6 +12,7 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const mutationOptions = useMutationOptions();
 	const { mutateAsync } = useMutation(mutationOptions.course.create);
+	const search = Route.useSearch();
 
 	return (
 		<Page>
@@ -23,12 +24,16 @@ function RouteComponent() {
 				onSubmit={async (values) => {
 					const data = await mutateAsync({
 						json: values,
+						query: {
+							locale: search.locale,
+						},
 					});
 					navigate({
 						to: "/$locale/admin/courses/$id/learners",
 						params: {
 							id: data.id,
 						},
+						search: (s) => s,
 					});
 				}}
 			/>

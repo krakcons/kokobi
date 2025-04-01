@@ -116,9 +116,7 @@ export const localeMiddleware = createMiddleware<{ Variables: HonoVariables }>(
 		);
 
 		const fallbackLocale = LocalizedInputSchema.shape.fallbackLocale.parse(
-			c.req.query("fallback-locale") ??
-				c.req.header("fallback-locale") ??
-				"en",
+			c.req.query("fallback-locale") ?? c.req.header("fallback-locale"),
 		);
 
 		c.set("locale", locale);

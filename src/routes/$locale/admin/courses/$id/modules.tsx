@@ -16,7 +16,6 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { queryOptions, useMutationOptions } from "@/lib/api";
-import { locales } from "@/lib/locale";
 import { Module } from "@/types/module";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -27,10 +26,15 @@ import { useState } from "react";
 export const Route = createFileRoute("/$locale/admin/courses/$id/modules")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: async ({ params: param, context: { queryClient } }) => {
+	loaderDeps: ({ search: { locale } }) => ({ locale }),
+	loader: async ({ params: param, deps, context: { queryClient } }) => {
 		await queryClient.ensureQueryData(
 			queryOptions.modules.all({
 				param,
+				query: {
+					locale: deps.locale,
+					"fallback-locale": "none",
+				},
 			}),
 		);
 	},
@@ -43,6 +47,10 @@ function RouteComponent() {
 	const { data: modules } = useSuspenseQuery(
 		queryOptions.modules.all({
 			param,
+			query: {
+				locale: search.locale,
+				"fallback-locale": "none",
+			},
 		}),
 	);
 
@@ -110,6 +118,9 @@ function RouteComponent() {
 									{
 										form: values,
 										param,
+										query: {
+											locale: search.locale,
+										},
 									},
 									{
 										onSuccess: () => {

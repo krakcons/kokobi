@@ -24,11 +24,28 @@ export const handleLocalization = <
 	const fallbackLocale = c.get("fallbackLocale");
 
 	// Find translation in requested locale or fallback to first
-	const translation =
-		obj.translations.find((item) => item.language === locale) ??
-		(fallbackLocale !== "none"
-			? obj.translations.find((item) => item.language === fallbackLocale)
-			: undefined);
+	let translation = undefined;
+	switch (fallbackLocale) {
+		case "none":
+			translation = obj.translations.find(
+				(item) => item.language === locale,
+			);
+			break;
+		default:
+			translation = obj.translations.find(
+				(item) => item.language === locale,
+			);
+			if (!translation) {
+				if (fallbackLocale) {
+					translation = obj.translations.find(
+						(item) => item.language === fallbackLocale,
+					);
+				} else {
+					translation = obj.translations[0];
+				}
+			}
+			break;
+	}
 
 	// Create new object without translations array
 	const { translations, ...rest } = obj;

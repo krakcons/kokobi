@@ -59,6 +59,9 @@ function RouteComponent() {
 						param: {
 							id: params.id,
 						},
+						query: {
+							locale: search.locale,
+						},
 					})
 				}
 				defaultValues={{

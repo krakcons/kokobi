@@ -3,7 +3,7 @@ import { LocaleSchema } from ".";
 
 export const LocalizedInputSchema = z.object({
 	locale: LocaleSchema,
-	fallbackLocale: LocaleSchema.or(z.literal("none")),
+	fallbackLocale: LocaleSchema.or(z.literal("none")).optional(),
 });
 export type LocalizedInputType = z.infer<typeof LocalizedInputSchema>;
 

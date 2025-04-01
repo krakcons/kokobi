@@ -22,31 +22,6 @@ import { handleLocalization } from "@/lib/locale/helpers";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { locales } from "@/lib/locale";
 
-//const removeDomain = async ({
-//	customDomain,
-//	resendDomainId,
-//}: {
-//	customDomain: Team["customDomain"];
-//	resendDomainId?: Team["resendDomainId"];
-//}) => {
-//	if (customDomain) {
-//		const res = await fetch(
-//			`https://api.vercel.com/v9/projects/${env.PROJECT_ID_VERCEL}/domains/${customDomain}?teamId=${env.TEAM_ID_VERCEL}`,
-//			{
-//				headers: {
-//					Authorization: `Bearer ${env.AUTH_BEARER_TOKEN_VERCEL}`,
-//				},
-//				method: "DELETE",
-//			},
-//		);
-//		console.log("VERCEL DELETE", res.status, await res.text());
-//	}
-//	if (resendDomainId) {
-//		const res = await resend.domains.remove(resendDomainId);
-//		console.log("RESEND DELETE", res.error, res.data);
-//	}
-//};
-
 export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/members", protectedMiddleware(), async (c) => {
 		const teamId = c.get("teamId");
@@ -95,54 +70,59 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 
 		return c.json(handleLocalization(c, team));
 	})
-	.post("/", zValidator("form", TeamFormSchema), async (c) => {
-		const locale = c.get("locale");
-		const userId = c.get("user")?.id;
-		const teamId = c.get("teamId");
-		const input = c.req.valid("form");
+	.post(
+		"/",
+		zValidator("form", TeamFormSchema),
+		localeInputMiddleware,
+		async (c) => {
+			const locale = c.get("locale");
+			const userId = c.get("user")?.id;
+			const teamId = c.get("teamId");
+			const input = c.req.valid("form");
 
-		if (!userId) {
-			throw new HTTPException(401, {
-				message: "Must be logged into dashboard",
+			if (!userId) {
+				throw new HTTPException(401, {
+					message: "Must be logged into dashboard",
+				});
+			}
+
+			if (input.logo) {
+				await s3.write(`${teamId}/${locale}/logo`, input.logo);
+			}
+			if (input.favicon) {
+				await s3.write(`${teamId}/${locale}/favicon`, input.favicon);
+			}
+
+			const id = Bun.randomUUIDv7();
+			await db.insert(teams).values({ id });
+			await db.insert(teamTranslations).values({
+				name: input.name,
+				teamId: id,
+				language: locale,
 			});
-		}
+			await db.insert(usersToTeams).values({
+				userId,
+				teamId: id,
+				role: "owner",
+			});
 
-		if (input.logo) {
-			await s3.write(`${teamId}/${locale}/logo`, input.logo);
-		}
-		if (input.favicon) {
-			await s3.write(`${teamId}/${locale}/favicon`, input.favicon);
-		}
+			setCookie(c, "teamId", id, {
+				path: "/",
+				secure: true,
+				httpOnly: true,
+				sameSite: "lax",
+			});
 
-		const id = Bun.randomUUIDv7();
-		await db.insert(teams).values({ id });
-		await db.insert(teamTranslations).values({
-			name: input.name,
-			teamId: id,
-			language: locale,
-			default: true,
-		});
-		await db.insert(usersToTeams).values({
-			userId,
-			teamId: id,
-			role: "owner",
-		});
-
-		setCookie(c, "teamId", id, {
-			path: "/",
-			secure: true,
-			httpOnly: true,
-			sameSite: "lax",
-		});
-
-		return c.json({
-			id,
-		});
-	})
+			return c.json({
+				id,
+			});
+		},
+	)
 	.put(
 		"/",
 		zValidator("form", TeamFormSchema),
 		protectedMiddleware(),
+		localeInputMiddleware,
 		async (c) => {
 			const locale = c.get("locale");
 			const teamId = c.get("teamId");
@@ -165,7 +145,6 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 				.values({
 					name: input.name,
 					language: locale,
-					default: false,
 					teamId,
 				})
 				.onConflictDoUpdate({
@@ -254,121 +233,6 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			return c.json(null);
 		},
 	)
-	.put(
-		"/:id/domain",
-		zValidator(
-			"json",
-			z.object({
-				customDomain: z.string(),
-			}),
-		),
-		protectedMiddleware(),
-		async () => {
-			throw new HTTPException(404, {
-				message: "Not available yet",
-			});
-			//const { id } = c.req.param();
-			//const { customDomain } = c.req.valid("json");
-			//
-			//const team = await db.query.teams.findFirst({
-			//	where: eq(teams.id, id),
-			//});
-			//
-			//if (!team) {
-			//	throw new HTTPException(404, {
-			//		message: "Team not found.",
-			//	});
-			//}
-			//let resendDomainId: string | null = null;
-			//
-			//if (team.customDomain !== customDomain) {
-			//	// Add the new domain
-			//	const res = await fetch(
-			//		`https://api.vercel.com/v10/projects/${env.PROJECT_ID_VERCEL}/domains?teamId=${env.TEAM_ID_VERCEL}`,
-			//		{
-			//			method: "POST",
-			//			headers: {
-			//				Authorization: `Bearer ${env.AUTH_BEARER_TOKEN_VERCEL}`,
-			//				"Content-Type": "application/json",
-			//			},
-			//			body: JSON.stringify({
-			//				name: customDomain,
-			//			}),
-			//		},
-			//	);
-			//	if (!res.ok) {
-			//		console.log("ERROR (VERCEL)", await res.text());
-			//		throw new HTTPException(500, {
-			//			message: "Failed to add domain to Vercel.",
-			//		});
-			//	}
-			//	const resendRes = await resend.domains.create({
-			//		name: customDomain,
-			//	});
-			//	if (resendRes.error) {
-			//		// Rollback
-			//		await removeDomain({
-			//			customDomain,
-			//		});
-			//		console.log("ERROR (RESEND)", resendRes.error.message);
-			//		throw new HTTPException(500, {
-			//			message: "Failed to add domain to Resend.",
-			//		});
-			//	}
-			//	resendDomainId = resendRes.data!.id;
-			//	// Remove the old domain
-			//	if (team.customDomain)
-			//		await removeDomain({
-			//			customDomain: team.customDomain,
-			//			resendDomainId: team.resendDomainId,
-			//		});
-			//} else {
-			//	throw new HTTPException(400, {
-			//		message: "That domain is already set.",
-			//	});
-			//}
-			//
-			//// Update the team in the database
-			//await db
-			//	.update(teams)
-			//	.set({
-			//		customDomain,
-			//		resendDomainId,
-			//	})
-			//	.where(eq(teams.id, id));
-			//return c.json(null);
-		},
-	)
-	// TODO: Fix this breaking cdn catchall
-	//.delete("/:id/domain", protectedMiddleware(), async (c) => {
-	//	const { id } = c.req.param();
-	//
-	//	const team = await db.query.teams.findFirst({
-	//		where: eq(teams.id, id),
-	//	});
-	//
-	//	if (!team) {
-	//		throw new HTTPException(404, {
-	//			message: "Team not found.",
-	//		});
-	//	}
-	//
-	//	if (team.customDomain)
-	//		await removeDomain({
-	//			customDomain: team.customDomain,
-	//			resendDomainId: team.resendDomainId,
-	//		});
-	//
-	//	await db
-	//		.update(teams)
-	//		.set({
-	//			customDomain: null,
-	//			resendDomainId: null,
-	//		})
-	//		.where(eq(teams.id, id));
-	//
-	//	return c.json(null);
-	//})
 	.delete("/", protectedMiddleware({ role: "owner" }), async (c) => {
 		const userId = c.get("user").id;
 		const teamId = c.get("teamId");

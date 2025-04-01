@@ -12,6 +12,7 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const mutationOptions = useMutationOptions();
 	const createCollection = useMutation(mutationOptions.collections.create);
+	const search = Route.useSearch();
 
 	return (
 		<Page>
@@ -23,6 +24,9 @@ function RouteComponent() {
 				onSubmit={async (value) => {
 					const data = await createCollection.mutateAsync({
 						json: value,
+						query: {
+							locale: search.locale,
+						},
 					});
 					navigate({
 						to: "/$locale/admin/collections/$id/learners",
@@ -30,6 +34,7 @@ function RouteComponent() {
 							...p,
 							id: data.id,
 						}),
+						search: (s) => s,
 					});
 				}}
 			/>

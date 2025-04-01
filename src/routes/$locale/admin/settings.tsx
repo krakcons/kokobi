@@ -72,6 +72,9 @@ function RouteComponent() {
 				onSubmit={(values) =>
 					updateTeam.mutateAsync({
 						form: values,
+						query: {
+							locale: search.locale,
+						},
 					})
 				}
 			/>

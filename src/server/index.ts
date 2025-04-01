@@ -5,6 +5,8 @@ import { keysHandler } from "./handlers/keys";
 import { teamsHandler } from "./handlers/teams";
 import { authHandler } from "./handlers/auth";
 import { userHandler } from "./handlers/user";
+import { learnerHandler } from "./handlers/learners";
+import { moduleHandler } from "./handlers/modules";
 import { aiHandler } from "./handlers/ai";
 import { serveStatic } from "hono/bun";
 import { authMiddleware, HonoVariables, localeMiddleware } from "./middleware";
@@ -35,6 +37,8 @@ const apiRoutes = app
 	.route("/team", teamsHandler)
 	.route("/user", userHandler)
 	.route("/courses", coursesHandler)
+	.route("/courses", learnerHandler)
+	.route("/courses", moduleHandler)
 	.route("/keys", keysHandler)
 	.route("/collections", collectionsHandler);
 

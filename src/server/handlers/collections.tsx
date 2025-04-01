@@ -40,6 +40,7 @@ export const collectionsHandler = new Hono()
 	.post(
 		"/",
 		protectedMiddleware(),
+		localeInputMiddleware,
 		zValidator("json", CollectionFormSchema),
 		async (c) => {
 			const teamId = c.get("teamId");
@@ -67,6 +68,7 @@ export const collectionsHandler = new Hono()
 	.put(
 		"/:id",
 		protectedMiddleware(),
+		localeInputMiddleware,
 		zValidator("json", CollectionFormSchema),
 		async (c) => {
 			const { id } = c.req.param();
