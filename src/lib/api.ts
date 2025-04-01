@@ -10,6 +10,7 @@ export const client = hc<AppType>(env.VITE_API_URL, {
 	},
 });
 
+export const userLearnerId = client.api.user.learners[":id"];
 export const course = client.api.courses[":id"];
 export const courseLearner = client.api.courses[":id"].learners[":learnerId"];
 export const key = client.api.keys[":id"];
@@ -70,6 +71,26 @@ export const queryOptions = {
 				return await res.json();
 			},
 		},
+		learners: {
+			queryKey: ["user.learners"],
+			queryFn: async () => {
+				const res = await client.api.user.learners.$get();
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		},
+		learnerId: (param: InferRequestType<typeof userLearnerId.$get>) => ({
+			queryKey: ["user.learnerId"],
+			queryFn: async () => {
+				const res = await userLearnerId.$get(param);
+				if (!res.ok) {
+					throw new Error(await res.text());
+				}
+				return await res.json();
+			},
+		}),
 	},
 	team: {
 		me: (input: InferRequestType<typeof client.api.team.$get>) => ({

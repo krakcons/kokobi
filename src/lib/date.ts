@@ -1,6 +1,6 @@
 import { Locale } from "./locale";
 
-const dateTypes: Record<string, Intl.DateTimeFormatOptions> = {
+const dateTypes: Record<"readable" | "detailed", Intl.DateTimeFormatOptions> = {
 	readable: {
 		year: "numeric",
 		month: "long",

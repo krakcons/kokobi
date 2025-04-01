@@ -1,11 +1,12 @@
 import { Hono } from "hono";
 import {
+	authenticatedMiddleware,
 	HonoVariables,
 	localeInputMiddleware,
 	protectedMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
-import { usersToTeams } from "@/server/db/schema";
+import { learners, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
@@ -13,6 +14,7 @@ import { setCookie } from "hono/cookie";
 import { LocaleSchema } from "@/lib/locale";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
+import { ExtendLearner } from "@/types/learner";
 
 export const userHandler = new Hono<{ Variables: HonoVariables }>()
 	.get("/me", async (c) => {
@@ -126,4 +128,71 @@ export const userHandler = new Hono<{ Variables: HonoVariables }>()
 				success: true,
 			});
 		},
-	);
+	)
+	.get("/learners", authenticatedMiddleware(), async (c) => {
+		const user = c.get("user");
+
+		const learnerList = await db.query.learners.findMany({
+			where: eq(learners.email, user!.email),
+			with: {
+				course: {
+					with: {
+						translations: true,
+					},
+				},
+				team: {
+					with: {
+						translations: true,
+					},
+				},
+				module: true,
+			},
+		});
+
+		return c.json(
+			learnerList.map(({ course, team, module, ...learner }) => ({
+				learner: ExtendLearner(module?.type).parse(learner),
+				course: handleLocalization(c, course),
+				team: handleLocalization(c, team),
+			})),
+		);
+	})
+	.get("/learners/:id", authenticatedMiddleware(), async (c) => {
+		const user = c.get("user");
+		const id = c.req.param("id");
+
+		const learner = await db.query.learners.findFirst({
+			where: and(eq(learners.email, user!.email), eq(learners.id, id)),
+			with: {
+				course: {
+					with: {
+						translations: true,
+						team: {
+							with: {
+								translations: true,
+							},
+						},
+					},
+				},
+				team: {
+					with: {
+						translations: true,
+					},
+				},
+				module: true,
+			},
+		});
+
+		if (!learner) {
+			return c.text("Learner not found", 404);
+		}
+
+		return c.json({
+			learner: ExtendLearner(learner.module?.type).parse(learner),
+			course: handleLocalization(c, {
+				...learner.course,
+				team: handleLocalization(c, learner.course.team),
+			}),
+			team: handleLocalization(c, learner.team),
+		});
+	});

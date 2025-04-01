@@ -74,6 +74,19 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 	return await next();
 });
 
+export const authenticatedMiddleware = () =>
+	createMiddleware<{
+		Variables: HonoVariables & {
+			user: User;
+			session: Session;
+		};
+	}>(async (c, next) => {
+		if (c.get("user") && c.get("session")) {
+			return await next();
+		}
+		return c.text("Unauthorized", 401);
+	});
+
 export const protectedMiddleware = ({
 	role = "member",
 }: { role?: Role } = {}) =>
