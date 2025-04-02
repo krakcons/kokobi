@@ -3,28 +3,23 @@ import { createRouter as createTanstackRouter } from "@tanstack/react-router";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { routeTree } from "./routeTree.gen";
 import { ThemeProvider } from "./lib/theme";
+import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { NotFound } from "./components/NotFound";
 
-const queryClient = new QueryClient();
-
 export const createRouter = () => {
-	const router = createTanstackRouter({
-		routeTree,
-		context: { queryClient },
-		defaultPreload: "intent",
-		defaultErrorComponent: DefaultCatchBoundary,
-		scrollRestoration: true,
-		defaultNotFoundComponent: () => <NotFound />,
-		Wrap: ({ children }) => {
-			return (
-				<QueryClientProvider client={queryClient}>
-					<ThemeProvider defaultTheme="system">
-						{children}
-					</ThemeProvider>
-				</QueryClientProvider>
-			);
-		},
-	});
+	const queryClient = new QueryClient();
+
+	const router = routerWithQueryClient(
+		createTanstackRouter({
+			routeTree,
+			context: { queryClient },
+			defaultPreload: "intent",
+			defaultErrorComponent: DefaultCatchBoundary,
+			scrollRestoration: true,
+			defaultNotFoundComponent: () => <NotFound />,
+		}),
+		queryClient,
+	);
 	return router;
 };
 

@@ -5,6 +5,7 @@ import {
 	createRootRouteWithContext,
 	HeadContent,
 	redirect,
+	Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
@@ -78,10 +79,18 @@ function RootComponent() {
 	});
 
 	return (
-		<IntlProvider i18n={i18n}>
-			<HeadContent />
-			<Outlet />
-			<Toaster />
-		</IntlProvider>
+		<html>
+			<head>
+				<HeadContent />
+			</head>
+			<body>
+				<IntlProvider i18n={i18n}>
+					<HeadContent />
+					<Outlet />
+					<Toaster />
+				</IntlProvider>
+				<Scripts />
+			</body>
+		</html>
 	);
 }
