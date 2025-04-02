@@ -1,7 +1,6 @@
 import { IMSManifestSchema } from "@/types/scorm/content";
 import { XMLParser } from "fast-xml-parser";
 import { formatBytes } from "./helpers";
-import { HTTPException } from "hono/http-exception";
 import { Module } from "@/types/module";
 import { unzip } from "unzipit";
 
@@ -14,11 +13,11 @@ const parser = new XMLParser({
 
 export const validateModule = async (file: File) => {
 	if (file.size > MAX_FILE_SIZE) {
-		throw new HTTPException(400, {
-			message: `Module is too large. Maximum file size is ${formatBytes(
+		throw new Error(
+			`Module is too large. Maximum file size is ${formatBytes(
 				MAX_FILE_SIZE,
 			)}.`,
-		});
+		);
 	}
 
 	const fileBuffer = await file.arrayBuffer();
@@ -27,9 +26,7 @@ export const validateModule = async (file: File) => {
 	// validate imsmanifest.xml exists
 	const manifestFile = entries["imsmanifest.xml"];
 	if (!manifestFile) {
-		throw new HTTPException(400, {
-			message: "Module does not contain imsmanifest.xml file",
-		});
+		throw new Error("Module does not contain imsmanifest.xml file");
 	}
 
 	// validate imsmanifest.xml is valid scorm content
@@ -38,9 +35,7 @@ export const validateModule = async (file: File) => {
 
 	const manifest = IMSManifestSchema.safeParse(IMSManifest);
 	if (!manifest.success) {
-		throw new HTTPException(400, {
-			message: "Invalid IMS Manifest",
-		});
+		throw new Error("Invalid IMS Manifest");
 	}
 
 	const scorm = manifest.data.manifest;

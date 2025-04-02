@@ -17,6 +17,7 @@ export const Route = createFileRoute("/$locale/admin/certificate")({
 		});
 	},
 });
+
 function RouteComponent() {
 	const locale = useLocale();
 	const { data: team } = useSuspenseQuery({
@@ -31,21 +32,6 @@ function RouteComponent() {
 				title="Certificate"
 				description="View how your certificate will look"
 			/>
-			<PDFViewer className="h-[700px] w-full">
-				<Certificate
-					{...{
-						teamName: team?.name,
-						teamLogo: `${env.VITE_SITE_URL}/cdn/${team.id}/${locale}/logo`,
-						name: "John Doe",
-						course: "Volunteer Training",
-						completedAt: formatDate({
-							date: new Date(),
-							locale,
-						}),
-						t: t.pdf,
-					}}
-				/>
-			</PDFViewer>
 		</Page>
 	);
 }

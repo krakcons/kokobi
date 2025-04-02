@@ -1,7 +1,6 @@
 import { db } from "@/server/db";
 import { courses, modules } from "@/server/db/schema";
 import { and, desc, eq, max } from "drizzle-orm";
-import { HTTPException } from "hono/http-exception";
 import { localeMiddleware, teamMiddleware } from "../middleware";
 import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
@@ -41,16 +40,12 @@ export const createModuleFn = createServerFn({ method: "POST" })
 		});
 
 		if (!course) {
-			throw new HTTPException(404, {
-				message: "Course not found.",
-			});
+			throw new Error("Course not found.");
 		}
 
 		const moduleFile = data.file;
 		if (moduleFile === "") {
-			throw new HTTPException(400, {
-				message: "Module empty",
-			});
+			throw new Error("Module empty");
 		}
 		const { entries, type } = await validateModule(moduleFile);
 
@@ -114,16 +109,12 @@ export const deleteModuleFn = createServerFn({ method: "POST" })
 		});
 
 		if (!moduleExists) {
-			throw new HTTPException(404, {
-				message: "Module does not exist",
-			});
+			throw new Error("Module does not exist");
 		}
 
 		// If module is not owned by the team
 		if (moduleExists.course.teamId !== teamId) {
-			throw new HTTPException(401, {
-				message: "Unauthorized",
-			});
+			throw new Error("Unauthorized");
 		}
 
 		await db
