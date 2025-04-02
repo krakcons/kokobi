@@ -20,7 +20,7 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
-    "Bun": {
+    "Client": {
       "service": string
       "type": "sst.aws.Service"
     }
