@@ -1,11 +1,13 @@
 import { JoinCourseForm } from "@/components/forms/JoinCourseForm";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { queryOptions, useMutationOptions } from "@/lib/api";
 import { useLocale } from "@/lib/locale";
+import { getModulesFn } from "@/server/handlers/modules";
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
+import { getCourseFn } from "@/server/handlers/courses";
+import { getLearnerFn, joinCourseFn } from "@/server/handlers/learners";
 
 export const Route = createFileRoute(
 	"/$locale/play/$teamId/courses/$courseId/join",
@@ -17,32 +19,34 @@ export const Route = createFileRoute(
 	loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
 	loader: async ({ context: { queryClient }, params, deps }) => {
 		await Promise.all([
-			queryClient.ensureQueryData(
-				queryOptions.modules.all({
-					param: {
-						id: params.courseId,
-					},
-				}),
-			),
-			queryClient.ensureQueryData(
-				queryOptions.courses.id({
-					param: {
-						id: params.courseId,
-					},
-				}),
-			),
+			queryClient.ensureQueryData({
+				queryKey: [getModulesFn.url, params.courseId],
+				queryFn: () =>
+					getModulesFn({ data: { courseId: params.courseId } }),
+			}),
+			queryClient.ensureQueryData({
+				queryKey: [getCourseFn.url, params.courseId],
+				queryFn: () =>
+					getCourseFn({
+						data: {
+							id: params.courseId,
+						},
+					}),
+			}),
 		]);
 
 		const learnerId = deps.learnerId;
 		if (learnerId) {
-			const learner = await queryClient.ensureQueryData(
-				queryOptions.learners.id({
-					param: {
-						id: params.courseId,
-						learnerId,
-					},
-				}),
-			);
+			const learner = await queryClient.ensureQueryData({
+				queryKey: [getLearnerFn.url, params.courseId, learnerId],
+				queryFn: () =>
+					getLearnerFn({
+						data: {
+							courseId: params.courseId,
+							learnerId,
+						},
+					}),
+			});
 			if (learner.moduleId) {
 				throw redirect({
 					from: "/$locale/play/$teamId/courses/$courseId/join",
@@ -63,32 +67,34 @@ function RouteComponent() {
 	const params = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { data: moduleOptions } = useSuspenseQuery(
-		queryOptions.modules.all({
-			param: {
-				id: params.courseId,
-			},
-		}),
-	);
-	const { data: course } = useSuspenseQuery(
-		queryOptions.courses.id({
-			param: {
-				id: params.courseId,
-			},
-		}),
-	);
+	const { data: moduleOptions } = useSuspenseQuery({
+		queryKey: [getModulesFn.url, params.courseId],
+		queryFn: () => getModulesFn({ data: { courseId: params.courseId } }),
+	});
+	const { data: course } = useSuspenseQuery({
+		queryKey: [getCourseFn.url, params.courseId],
+		queryFn: () =>
+			getCourseFn({
+				data: {
+					id: params.courseId,
+				},
+			}),
+	});
 	const { data: learner } = useQuery({
-		...queryOptions.learners.id({
-			param: {
-				id: params.courseId,
-				learnerId: search.learnerId!,
-			},
-		}),
+		queryKey: [getLearnerFn.url, params.courseId, search.learnerId!],
+		queryFn: () =>
+			getLearnerFn({
+				data: {
+					courseId: params.courseId,
+					learnerId: search.learnerId!,
+				},
+			}),
 		enabled: !!search.learnerId,
 	});
 
-	const mutationOptions = useMutationOptions();
-	const joinCourse = useMutation(mutationOptions.course.join);
+	const joinCourse = useMutation({
+		mutationFn: joinCourseFn,
+	});
 
 	return (
 		<FloatingPage>
@@ -102,10 +108,7 @@ function RouteComponent() {
 					onSubmit={async (value) =>
 						joinCourse.mutateAsync(
 							{
-								json: value,
-								param: {
-									id: params.courseId,
-								},
+								data: { ...value, courseId: params.courseId },
 							},
 							{
 								onSuccess(data) {

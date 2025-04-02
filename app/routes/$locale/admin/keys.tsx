@@ -6,13 +6,12 @@ import {
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
-import { queryOptions, useMutationOptions } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Key } from "@/types/keys";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Clipboard, ClipboardCheck, Eye, EyeOff, Plus } from "lucide-react";
+import { Eye, EyeOff, Plus } from "lucide-react";
 import { useState } from "react";
 import {
 	Dialog,
@@ -24,12 +23,16 @@ import {
 } from "@/components/ui/dialog";
 import { APIKeyForm } from "@/components/forms/APIKeyForm";
 import CopyButton from "@/components/CopyButton";
+import { createKeyFn, deleteKeyFn, getKeysFn } from "@/server/handlers/keys";
 
 export const Route = createFileRoute("/$locale/admin/keys")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(queryOptions.keys.all);
+		await queryClient.ensureQueryData({
+			queryKey: [getKeysFn.url],
+			queryFn: () => getKeysFn(),
+		});
 	},
 });
 
@@ -62,11 +65,17 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const [open, setOpen] = useState(false);
 
-	const { data: keys } = useSuspenseQuery(queryOptions.keys.all);
+	const { data: keys } = useSuspenseQuery({
+		queryKey: [getKeysFn.url],
+		queryFn: () => getKeysFn(),
+	});
 
-	const mutationOptions = useMutationOptions();
-	const createKey = useMutation(mutationOptions.keys.create);
-	const deleteKey = useMutation(mutationOptions.keys.delete);
+	const createKey = useMutation({
+		mutationFn: createKeyFn,
+	});
+	const deleteKey = useMutation({
+		mutationFn: deleteKeyFn,
+	});
 
 	const columns: ColumnDef<Key>[] = [
 		{
@@ -87,7 +96,7 @@ function RouteComponent() {
 				name: "Delete",
 				onClick: (data) => {
 					deleteKey.mutate({
-						param: {
+						data: {
 							id: data.id,
 						},
 					});
@@ -116,7 +125,7 @@ function RouteComponent() {
 						<APIKeyForm
 							onSubmit={(values) =>
 								createKey.mutateAsync(
-									{ json: values },
+									{ data: values },
 									{
 										onSuccess: () => {
 											setOpen(false);

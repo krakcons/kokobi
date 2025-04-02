@@ -13,7 +13,6 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { queryOptions, useMutationOptions } from "@/lib/api";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
@@ -26,17 +25,31 @@ import { LearnersForm } from "@/components/forms/LearnersForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
+import {
+	deleteLearnerFn,
+	getLearnersFn,
+	inviteLearnersToCourseFn,
+} from "@/server/handlers/learners";
+import { getTeamFn } from "@/server/handlers/teams";
+import { env } from "@/env";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(
-			queryOptions.courses.learners({
-				param: { id: params.id },
-			}),
-		);
-		await context.queryClient.ensureQueryData(queryOptions.team.me({}));
+		await context.queryClient.ensureQueryData({
+			queryKey: [getLearnersFn.url, params.id],
+			queryFn: () =>
+				getLearnersFn({
+					data: {
+						id: params.id,
+					},
+				}),
+		});
+		await context.queryClient.ensureQueryData({
+			queryKey: [getTeamFn.url],
+			queryFn: () => getTeamFn({ data: {} }),
+		});
 	},
 });
 
@@ -45,18 +58,28 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const { data: learners } = useSuspenseQuery(
-		queryOptions.courses.learners({
-			param: { id: params.id },
-		}),
-	);
-	const { data: team } = useSuspenseQuery(queryOptions.team.me({}));
+	const { data: learners } = useSuspenseQuery({
+		queryKey: [getLearnersFn.url, params.id],
+		queryFn: () =>
+			getLearnersFn({
+				data: {
+					id: params.id,
+				},
+			}),
+	});
+	const { data: team } = useSuspenseQuery({
+		queryKey: [getTeamFn.url],
+		queryFn: () => getTeamFn({ data: {} }),
+	});
 	const t = useTranslations("Learner");
 	const locale = useLocale();
 
-	const mutationOptions = useMutationOptions();
-	const createLearners = useMutation(mutationOptions.course.learners.create);
-	const deleteLearner = useMutation(mutationOptions.course.learners.delete);
+	const createLearners = useMutation({
+		mutationFn: inviteLearnersToCourseFn,
+	});
+	const deleteLearner = useMutation({
+		mutationFn: deleteLearnerFn,
+	});
 
 	const columns: ColumnDef<Learner & { module: Module | null }>[] = [
 		{
@@ -132,8 +155,8 @@ function RouteComponent() {
 				name: "Delete",
 				onClick: ({ id }) =>
 					deleteLearner.mutate({
-						param: {
-							id: params.id,
+						data: {
+							courseId: params.id,
 							learnerId: id,
 						},
 					}),
@@ -143,7 +166,7 @@ function RouteComponent() {
 
 	const inviteLink = team.customDomain
 		? `https://${team.customDomain}/courses/${params.id}/join`
-		: `${window.location.origin}/play/${team.id}/courses/${params.id}/join`;
+		: `${env.VITE_SITE_URL}/play/${team.id}/courses/${params.id}/join`;
 
 	return (
 		<Page>
@@ -170,10 +193,10 @@ function RouteComponent() {
 							onSubmit={(value) =>
 								createLearners.mutateAsync(
 									{
-										param: {
-											id: params.id,
+										data: {
+											...value,
+											courseId: params.id,
 										},
-										json: value.learners,
 									},
 									{
 										onSuccess: () => setOpen(false),

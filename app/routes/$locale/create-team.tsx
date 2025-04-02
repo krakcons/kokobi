@@ -1,7 +1,7 @@
 import { TeamForm } from "@/components/forms/TeamForm";
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { useMutationOptions } from "@/lib/api";
 import { useLocale } from "@/lib/locale";
+import { createTeamFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -11,8 +11,9 @@ export const Route = createFileRoute("/$locale/create-team")({
 
 function RouteComponent() {
 	const locale = useLocale();
-	const mutationOptions = useMutationOptions();
-	const createTeam = useMutation(mutationOptions.team.create);
+	const createTeam = useMutation({
+		mutationFn: createTeamFn,
+	});
 	const navigate = Route.useNavigate();
 
 	return (
@@ -25,23 +26,18 @@ function RouteComponent() {
 				<TeamForm
 					collapsible
 					onSubmit={(values) =>
-						createTeam.mutateAsync(
-							{
-								form: values,
+						createTeam.mutateAsync(values, {
+							onSuccess: () => {
+								navigate({
+									to: "/$locale/admin",
+									params: {
+										locale,
+									},
+									search: (s) => s,
+									reloadDocument: true,
+								});
 							},
-							{
-								onSuccess: () => {
-									navigate({
-										to: "/$locale/admin",
-										params: {
-											locale,
-										},
-										search: (s) => s,
-										reloadDocument: true,
-									});
-								},
-							},
-						)
+						})
 					}
 				/>
 			</div>

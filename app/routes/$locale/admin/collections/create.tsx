@@ -1,6 +1,6 @@
 import { CollectionForm } from "@/components/forms/CollectionForm";
 import { Page, PageHeader } from "@/components/Page";
-import { useMutationOptions } from "@/lib/api";
+import { createCollectionFn } from "@/server/handlers/collections";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -10,8 +10,9 @@ export const Route = createFileRoute("/$locale/admin/collections/create")({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
-	const mutationOptions = useMutationOptions();
-	const createCollection = useMutation(mutationOptions.collections.create);
+	const createCollection = useMutation({
+		mutationFn: createCollectionFn,
+	});
 	const search = Route.useSearch();
 
 	return (
@@ -23,8 +24,8 @@ function RouteComponent() {
 			<CollectionForm
 				onSubmit={async (value) => {
 					const data = await createCollection.mutateAsync({
-						json: value,
-						query: {
+						data: {
+							...value,
 							locale: search.locale,
 						},
 					});

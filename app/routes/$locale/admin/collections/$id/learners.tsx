@@ -1,4 +1,3 @@
-import { queryOptions, useMutationOptions } from "@/lib/api";
 import { useLocale, locales, useTranslations } from "@/lib/locale";
 import {
 	useMutation,
@@ -29,26 +28,36 @@ import { useState } from "react";
 import { LearnersForm } from "@/components/forms/LearnersForm";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import {
+	getCollectionCoursesFn,
+	getCollectionLearnersFn,
+	inviteLearnerToCollectionFn,
+} from "@/server/handlers/collections";
+import { deleteLearnerFn } from "@/server/handlers/learners";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
 		component: RouteComponent,
 		validateSearch: TableSearchSchema,
 		loader: async ({ params, context: { queryClient } }) => {
-			await queryClient.ensureQueryData(
-				queryOptions.collections.learners({
-					param: {
-						id: params.id,
-					},
-				}),
-			);
-			await queryClient.ensureQueryData(
-				queryOptions.collections.courses({
-					param: {
-						id: params.id,
-					},
-				}),
-			);
+			await queryClient.ensureQueryData({
+				queryKey: [getCollectionLearnersFn.url, params.id],
+				queryFn: () =>
+					getCollectionLearnersFn({
+						data: {
+							id: params.id,
+						},
+					}),
+			});
+			await queryClient.ensureQueryData({
+				queryKey: [getCollectionCoursesFn.url, params.id],
+				queryFn: () =>
+					getCollectionCoursesFn({
+						data: {
+							id: params.id,
+						},
+					}),
+			});
 		},
 	},
 );
@@ -56,28 +65,33 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 function RouteComponent() {
 	const search = Route.useSearch();
 	const params = Route.useParams();
-	const { data: learners } = useSuspenseQuery(
-		queryOptions.collections.learners({
-			param: {
-				id: params.id,
-			},
-		}),
-	);
-	const { data: courses } = useSuspenseQuery(
-		queryOptions.collections.courses({
-			param: {
-				id: params.id,
-			},
-		}),
-	);
+	const { data: learners } = useSuspenseQuery({
+		queryKey: [getCollectionLearnersFn.url, params.id],
+		queryFn: () =>
+			getCollectionLearnersFn({
+				data: {
+					id: params.id,
+				},
+			}),
+	});
+	const { data: courses } = useSuspenseQuery({
+		queryKey: [getCollectionCoursesFn.url, params.id],
+		queryFn: () =>
+			getCollectionCoursesFn({
+				data: {
+					id: params.id,
+				},
+			}),
+	});
 	const [open, setOpen] = useState(false);
 	const t = useTranslations("Learner");
 	const locale = useLocale();
-	const mutationOptions = useMutationOptions();
-	const createLearners = useMutation(
-		mutationOptions.collections.learners.create,
-	);
-	const deleteLearner = useMutation(mutationOptions.course.learners.delete);
+	const createLearners = useMutation({
+		mutationFn: inviteLearnerToCollectionFn,
+	});
+	const deleteLearner = useMutation({
+		mutationFn: deleteLearnerFn,
+	});
 	const navigate = Route.useNavigate();
 	const queryClient = useQueryClient();
 
@@ -179,20 +193,19 @@ function RouteComponent() {
 				onClick: ({ id, courseId }) =>
 					deleteLearner.mutate(
 						{
-							param: {
-								id: courseId,
+							data: {
+								courseId,
 								learnerId: id,
 							},
 						},
 						{
 							onSuccess: () =>
-								queryClient.invalidateQueries(
-									queryOptions.collections.learners({
-										param: {
-											id: params.id,
-										},
-									}),
-								),
+								queryClient.invalidateQueries({
+									queryKey: [
+										getCollectionLearnersFn.url,
+										params.id,
+									],
+								}),
 						},
 					),
 			},
@@ -224,10 +237,10 @@ function RouteComponent() {
 							onSubmit={(value) =>
 								createLearners.mutateAsync(
 									{
-										param: {
+										data: {
+											...value,
 											id: params.id,
 										},
-										json: value.learners,
 									},
 									{
 										onSuccess: () => setOpen(false),

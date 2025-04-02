@@ -2,7 +2,6 @@ import { TeamForm } from "@/components/forms/TeamForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { queryOptions, useMutationOptions } from "@/lib/api";
 import {
 	useMutation,
 	useQueryClient,
@@ -10,17 +9,16 @@ import {
 } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
-import { fetchFile } from "@/lib/api";
+import { fetchFile } from "@/lib/file";
 import { Locale } from "@/lib/locale";
 import { env } from "@/env";
+import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
 
-const teamOptions = (locale?: Locale) =>
-	queryOptions.team.me({
-		query: {
-			locale,
-			"fallback-locale": "none",
-		},
-	});
+const teamOptions = (locale?: Locale) => ({
+	queryKey: [getTeamFn.url, locale],
+	queryFn: () => getTeamFn({ data: { locale, fallbackLocale: "none" } }),
+});
+
 const options = (locale?: Locale) => ({
 	queryKey: teamOptions(locale).queryKey,
 	queryFn: async () => {
@@ -54,9 +52,12 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const { data: team } = useSuspenseQuery(options(search.locale));
 
-	const mutationOptions = useMutationOptions();
-	const updateTeam = useMutation(mutationOptions.team.update);
-	const deleteTeam = useMutation(mutationOptions.team.delete);
+	const updateTeam = useMutation({
+		mutationFn: updateTeamFn,
+	});
+	const deleteTeam = useMutation({
+		mutationFn: deleteTeamFn,
+	});
 
 	return (
 		<Page>
@@ -71,8 +72,8 @@ function RouteComponent() {
 				}}
 				onSubmit={(values) =>
 					updateTeam.mutateAsync({
-						form: values,
-						query: {
+						data: {
+							...values,
 							locale: search.locale,
 						},
 					})

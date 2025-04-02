@@ -5,7 +5,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { queryOptions } from "@/lib/api";
+import { getCollectionsFn } from "@/server/handlers/collections";
+import { getCoursesFn } from "@/server/handlers/courses";
+import { getTeamStatsFn } from "@/server/handlers/teams";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
@@ -13,18 +15,34 @@ import { ChevronRight } from "lucide-react";
 export const Route = createFileRoute("/$locale/admin/")({
 	component: RouteComponent,
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(queryOptions.courses.all);
-		await queryClient.ensureQueryData(queryOptions.collections.all);
-		await queryClient.ensureQueryData(queryOptions.team.stats);
+		await queryClient.ensureQueryData({
+			queryKey: [getCoursesFn.url],
+			queryFn: () => getCoursesFn({ data: {} }),
+		});
+		await queryClient.ensureQueryData({
+			queryKey: [getCollectionsFn.url],
+			queryFn: () => getCollectionsFn({ data: {} }),
+		});
+		await queryClient.ensureQueryData({
+			queryKey: [getTeamStatsFn.url],
+			queryFn: () => getTeamStatsFn(),
+		});
 	},
 });
 
 function RouteComponent() {
-	const { data: courses } = useSuspenseQuery(queryOptions.courses.all);
-	const { data: collections } = useSuspenseQuery(
-		queryOptions.collections.all,
-	);
-	const { data: stats } = useSuspenseQuery(queryOptions.team.stats);
+	const { data: courses } = useSuspenseQuery({
+		queryKey: [getCoursesFn.url],
+		queryFn: () => getCoursesFn({ data: {} }),
+	});
+	const { data: collections } = useSuspenseQuery({
+		queryKey: [getCollectionsFn.url],
+		queryFn: () => getCollectionsFn({ data: {} }),
+	});
+	const { data: stats } = useSuspenseQuery({
+		queryKey: [getTeamStatsFn.url],
+		queryFn: () => getTeamStatsFn(),
+	});
 
 	return (
 		<Page>

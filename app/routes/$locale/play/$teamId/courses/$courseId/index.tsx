@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
-import { queryOptions, useMutationOptions } from "@/lib/api";
 import {
 	useMutation,
 	useQueryClient,
@@ -19,6 +18,8 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useTranslations } from "@/lib/locale";
 import { Loader2 } from "lucide-react";
+import { getCourseFn } from "@/server/handlers/courses";
+import { playFn, updateLearnerFn } from "@/server/handlers/learners";
 
 export const Route = createFileRoute(
 	"/$locale/play/$teamId/courses/$courseId/",
@@ -29,19 +30,25 @@ export const Route = createFileRoute(
 	}),
 	loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
 	loader: async ({ context: { queryClient }, params, deps }) => {
-		await queryClient.ensureQueryData(
-			queryOptions.courses.id({
-				param: { id: params.courseId },
-			}),
-		);
-		await queryClient.ensureQueryData(
-			queryOptions.learners.play({
-				param: {
-					id: params.courseId,
-					learnerId: deps.learnerId,
-				},
-			}),
-		);
+		await queryClient.ensureQueryData({
+			queryKey: [getCourseFn.url, params.courseId],
+			queryFn: () =>
+				getCourseFn({
+					data: {
+						id: params.courseId,
+					},
+				}),
+		});
+		await queryClient.ensureQueryData({
+			queryKey: [playFn.url, params.courseId, deps.learnerId],
+			queryFn: () =>
+				playFn({
+					data: {
+						courseId: params.courseId,
+						learnerId: deps.learnerId,
+					},
+				}),
+		});
 	},
 });
 
@@ -49,29 +56,36 @@ function RouteComponent() {
 	const { courseId } = Route.useParams();
 	const [certOpen, setCertOpen] = useState(false);
 	const search = Route.useSearch();
-	const { data: course } = useSuspenseQuery(
-		queryOptions.courses.id({
-			param: { id: courseId },
-		}),
-	);
+	const { data: course } = useSuspenseQuery({
+		queryKey: [getCourseFn.url, courseId],
+		queryFn: () =>
+			getCourseFn({
+				data: {
+					id: courseId,
+				},
+			}),
+	});
 	const {
 		data: { learner, url, type },
-	} = useSuspenseQuery(
-		queryOptions.learners.play({
-			param: {
-				id: courseId,
-				learnerId: search.learnerId,
-			},
-		}),
-	);
+	} = useSuspenseQuery({
+		queryKey: [playFn.url, courseId, search.learnerId],
+		queryFn: () =>
+			playFn({
+				data: {
+					courseId,
+					learnerId: search.learnerId,
+				},
+			}),
+	});
 	const queryClient = useQueryClient();
 	const t = useTranslations("Certificate");
 
 	const [loading, setLoading] = useState(true);
 
 	// Update learner mutation
-	const mutationOptions = useMutationOptions();
-	const { mutate } = useMutation(mutationOptions.course.learners.update);
+	const { mutate } = useMutation({
+		mutationFn: updateLearnerFn,
+	});
 
 	const { isApiAvailable } = useLMS({
 		type: type,
@@ -80,8 +94,11 @@ function RouteComponent() {
 			if (!learner.completedAt) {
 				mutate(
 					{
-						param: { id: learner.courseId, learnerId: learner.id },
-						json: { data },
+						data: {
+							courseId: learner.courseId,
+							learnerId: learner.id,
+							data,
+						},
 					},
 					{
 						onSuccess: async (learner) => {

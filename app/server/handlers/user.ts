@@ -1,13 +1,14 @@
 import { authMiddleware, localeMiddleware } from "../middleware";
 import { db } from "@/server/db";
-import { usersToTeams } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { learners, usersToTeams } from "@/server/db/schema";
+import { and, eq } from "drizzle-orm";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { LocaleSchema } from "@/lib/locale";
 import { setCookie } from "@tanstack/react-start/server";
+import { ExtendLearner } from "@/types/learner";
 
 export const updateI18nFn = createServerFn({ method: "POST" })
 	.validator(z.object({ locale: LocaleSchema }))
@@ -52,70 +53,80 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 		return teams.map(({ team }) => handleLocalization(context, team));
 	});
 
-//.get("/learners", authenticatedMiddleware(), async (c) => {
-//	const user = c.get("user");
-//
-//	const learnerList = await db.query.learners.findMany({
-//		where: eq(learners.email, user!.email),
-//		with: {
-//			course: {
-//				with: {
-//					translations: true,
-//				},
-//			},
-//			team: {
-//				with: {
-//					translations: true,
-//				},
-//			},
-//			module: true,
-//		},
-//	});
-//
-//	return c.json(
-//		learnerList.map(({ course, team, module, ...learner }) => ({
-//			learner: ExtendLearner(module?.type).parse(learner),
-//			course: handleLocalization(c, course),
-//			team: handleLocalization(c, team),
-//		})),
-//	);
-//})
-//.get("/learners/:id", authenticatedMiddleware(), async (c) => {
-//	const user = c.get("user");
-//	const id = c.req.param("id");
-//
-//	const learner = await db.query.learners.findFirst({
-//		where: and(eq(learners.email, user!.email), eq(learners.id, id)),
-//		with: {
-//			course: {
-//				with: {
-//					translations: true,
-//					team: {
-//						with: {
-//							translations: true,
-//						},
-//					},
-//				},
-//			},
-//			team: {
-//				with: {
-//					translations: true,
-//				},
-//			},
-//			module: true,
-//		},
-//	});
-//
-//	if (!learner) {
-//		return c.text("Learner not found", 404);
-//	}
-//
-//	return c.json({
-//		learner: ExtendLearner(learner.module?.type).parse(learner),
-//		course: handleLocalization(c, {
-//			...learner.course,
-//			team: handleLocalization(c, learner.course.team),
-//		}),
-//		team: handleLocalization(c, learner.team),
-//	});
-//});
+export const getMyLearnersFn = createServerFn({ method: "GET" })
+	.middleware([authMiddleware, localeMiddleware])
+	.handler(async ({ context }) => {
+		const user = context.user;
+
+		if (!user) {
+			throw new Error("Unauthorized");
+		}
+
+		const learnerList = await db.query.learners.findMany({
+			where: eq(learners.email, user!.email),
+			with: {
+				course: {
+					with: {
+						translations: true,
+					},
+				},
+				team: {
+					with: {
+						translations: true,
+					},
+				},
+				module: true,
+			},
+		});
+
+		return learnerList.map(({ course, team, module, ...learner }) => ({
+			learner: ExtendLearner(module?.type).parse(learner),
+			course: handleLocalization(context, course),
+			team: handleLocalization(context, team),
+		}));
+	});
+
+export const getMyLearnerFn = createServerFn({ method: "GET" })
+	.middleware([authMiddleware, localeMiddleware])
+	.validator(z.object({ learnerId: z.string() }))
+	.handler(async ({ context, data: { learnerId } }) => {
+		const user = context.user;
+
+		const learner = await db.query.learners.findFirst({
+			where: and(
+				eq(learners.email, user!.email),
+				eq(learners.id, learnerId),
+			),
+			with: {
+				course: {
+					with: {
+						translations: true,
+						team: {
+							with: {
+								translations: true,
+							},
+						},
+					},
+				},
+				team: {
+					with: {
+						translations: true,
+					},
+				},
+				module: true,
+			},
+		});
+
+		if (!learner) {
+			throw new Error("Learner not found");
+		}
+
+		return {
+			learner: ExtendLearner(learner.module?.type).parse(learner),
+			course: handleLocalization(context, {
+				...learner.course,
+				team: handleLocalization(context, learner.course.team),
+			}),
+			team: handleLocalization(context, learner.team),
+		};
+	});

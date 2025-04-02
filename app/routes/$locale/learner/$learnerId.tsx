@@ -1,7 +1,5 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Table,
 	TableBody,
@@ -10,10 +8,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { queryOptions } from "@/lib/api";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { cn } from "@/lib/utils";
+import { getLearnerFn } from "@/server/handlers/learners";
+import { getMyLearnerFn } from "@/server/handlers/user";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Container } from "lucide-react";
@@ -21,13 +20,15 @@ import { Container } from "lucide-react";
 export const Route = createFileRoute("/$locale/learner/$learnerId")({
 	component: RouteComponent,
 	loader: async ({ params, context: { queryClient } }) => {
-		await queryClient.ensureQueryData(
-			queryOptions.user.learnerId({
-				param: {
-					id: params.learnerId,
-				},
-			}),
-		);
+		await queryClient.ensureQueryData({
+			queryKey: [getLearnerFn.url, params.learnerId],
+			queryFn: () =>
+				getMyLearnerFn({
+					data: {
+						learnerId: params.learnerId,
+					},
+				}),
+		});
 	},
 });
 
@@ -38,13 +39,15 @@ function RouteComponent() {
 
 	const {
 		data: { course, team, learner },
-	} = useSuspenseQuery(
-		queryOptions.user.learnerId({
-			param: {
-				id: params.learnerId,
-			},
-		}),
-	);
+	} = useSuspenseQuery({
+		queryKey: [getMyLearnerFn.url, params.learnerId],
+		queryFn: () =>
+			getMyLearnerFn({
+				data: {
+					learnerId: params.learnerId,
+				},
+			}),
+	});
 
 	const teams = [
 		{

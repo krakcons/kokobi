@@ -8,23 +8,22 @@ import {
 } from "@/server/db/schema";
 import { s3 } from "@/server/s3";
 import { InviteMemberFormSchema, TeamFormSchema } from "@/types/team";
-import { zValidator } from "@hono/zod-validator";
 import { and, count, eq } from "drizzle-orm";
-import { Hono } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import {
-	HonoVariables,
-	localeInputMiddleware,
+	localeMiddleware,
 	protectedMiddleware,
+	teamMiddleware,
 } from "../middleware";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { deleteCookie, setCookie } from "hono/cookie";
 import { locales } from "@/lib/locale";
+import { createServerFn } from "@tanstack/react-start";
+import { deleteCookie, setCookie } from "@tanstack/react-start/server";
 
-export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
-	.get("/members", protectedMiddleware(), async (c) => {
-		const teamId = c.get("teamId");
+export const getTeamMembersFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.handler(async ({ context }) => {
+		const teamId = context.teamId;
 
 		const members = await db.query.usersToTeams.findMany({
 			where: eq(usersToTeams.teamId, teamId),
@@ -33,16 +32,17 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 			},
 		});
 
-		return c.json(
-			members.map(({ user, role, createdAt }) => ({
-				...user,
-				joinedAt: createdAt,
-				role,
-			})),
-		);
-	})
-	.get("/stats", protectedMiddleware(), async (c) => {
-		const teamId = c.get("teamId");
+		return members.map(({ user, role, createdAt }) => ({
+			...user,
+			joinedAt: createdAt,
+			role,
+		}));
+	});
+
+export const getTeamStatsFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.handler(async ({ context }) => {
+		const teamId = context.teamId;
 		const learnerCount = (
 			await db
 				.select({ count: count() })
@@ -50,10 +50,13 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 				.where(eq(learners.teamId, teamId))
 		)[0].count;
 
-		return c.json({ learnerCount });
-	})
-	.get("/", protectedMiddleware(), localeInputMiddleware, async (c) => {
-		const teamId = c.get("teamId");
+		return { learnerCount };
+	});
+
+export const getTeamFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware(), localeMiddleware])
+	.handler(async ({ context }) => {
+		const teamId = context.teamId;
 
 		const team = await db.query.teams.findFirst({
 			where: eq(teams.id, teamId),
@@ -63,184 +66,166 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 		});
 
 		if (!team) {
-			throw new HTTPException(404, {
-				message: "Team not found.",
-			});
+			throw new Error("Team not found.");
 		}
 
-		return c.json(handleLocalization(c, team));
-	})
-	.post(
-		"/",
-		zValidator("form", TeamFormSchema),
-		localeInputMiddleware,
-		async (c) => {
-			const locale = c.get("locale");
-			const userId = c.get("user")?.id;
-			const teamId = c.get("teamId");
-			const input = c.req.valid("form");
+		return handleLocalization(context, team);
+	});
 
-			if (!userId) {
-				throw new HTTPException(401, {
-					message: "Must be logged into dashboard",
-				});
-			}
+export const createTeamFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware({ role: "owner" }), localeMiddleware])
+	.validator(TeamFormSchema)
+	.handler(async ({ context, data }) => {
+		const locale = context.locale;
+		const userId = context.user.id;
+		const teamId = context.teamId;
 
-			if (input.logo) {
-				await s3.write(`${teamId}/${locale}/logo`, input.logo);
-			}
-			if (input.favicon) {
-				await s3.write(`${teamId}/${locale}/favicon`, input.favicon);
-			}
+		if (data.logo) {
+			await s3.write(`${teamId}/${locale}/logo`, data.logo);
+		}
+		if (data.favicon) {
+			await s3.write(`${teamId}/${locale}/favicon`, data.favicon);
+		}
 
-			const id = Bun.randomUUIDv7();
-			await db.insert(teams).values({ id });
-			await db.insert(teamTranslations).values({
-				name: input.name,
-				teamId: id,
+		const id = Bun.randomUUIDv7();
+		await db.insert(teams).values({ id });
+		await db.insert(teamTranslations).values({
+			name: data.name,
+			teamId: id,
+			language: locale,
+		});
+		await db.insert(usersToTeams).values({
+			userId,
+			teamId: id,
+			role: "owner",
+		});
+
+		setCookie("teamId", id, {
+			path: "/",
+			secure: true,
+			httpOnly: true,
+			sameSite: "lax",
+		});
+
+		return {
+			id,
+		};
+	});
+
+export const updateTeamFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware({ role: "owner" }), localeMiddleware])
+	.validator(TeamFormSchema)
+	.handler(async ({ context, data }) => {
+		const locale = context.locale;
+		const teamId = context.teamId;
+
+		if (data.logo) {
+			await s3.write(`${teamId}/${locale}/logo`, data.logo);
+		} else {
+			await s3.delete(`${teamId}/${locale}/logo`);
+		}
+
+		if (data.favicon) {
+			await s3.write(`${teamId}/${locale}/favicon`, data.favicon);
+		} else {
+			await s3.delete(`${teamId}/${locale}/favicon`);
+		}
+
+		await db
+			.insert(teamTranslations)
+			.values({
+				name: data.name,
 				language: locale,
-			});
-			await db.insert(usersToTeams).values({
-				userId,
-				teamId: id,
-				role: "owner",
-			});
-
-			setCookie(c, "teamId", id, {
-				path: "/",
-				secure: true,
-				httpOnly: true,
-				sameSite: "lax",
+				teamId,
+			})
+			.onConflictDoUpdate({
+				set: {
+					name: data.name,
+					updatedAt: new Date(),
+				},
+				target: [teamTranslations.teamId, teamTranslations.language],
 			});
 
-			return c.json({
-				id,
-			});
-		},
-	)
-	.put(
-		"/",
-		zValidator("form", TeamFormSchema),
-		protectedMiddleware(),
-		localeInputMiddleware,
-		async (c) => {
-			const locale = c.get("locale");
-			const teamId = c.get("teamId");
-			const input = c.req.valid("form");
+		return null;
+	});
 
-			if (input.logo) {
-				await s3.write(`${teamId}/${locale}/logo`, input.logo);
-			} else {
-				await s3.delete(`${teamId}/${locale}/logo`);
-			}
+export const inviteMemberFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.validator(InviteMemberFormSchema)
+	.handler(async ({ context, data }) => {
+		const id = context.teamId;
+		const { email, role } = data;
 
-			if (input.favicon) {
-				await s3.write(`${teamId}/${locale}/favicon`, input.favicon);
-			} else {
-				await s3.delete(`${teamId}/${locale}/favicon`);
-			}
+		const team = await db.query.teams.findFirst({
+			where: eq(teams.id, id),
+		});
 
-			await db
-				.insert(teamTranslations)
-				.values({
-					name: input.name,
-					language: locale,
-					teamId,
-				})
-				.onConflictDoUpdate({
-					set: {
-						name: input.name,
-						updatedAt: new Date(),
-					},
-					target: [
-						teamTranslations.teamId,
-						teamTranslations.language,
-					],
-				});
+		if (!team) {
+			throw new Error("Team not found.");
+		}
 
-			return c.json({
-				success: true,
-			});
-		},
-	)
-	.post(
-		"/invite",
-		zValidator("json", InviteMemberFormSchema),
-		protectedMiddleware({ role: "owner" }),
-		async (c) => {
-			const id = c.get("teamId");
-			const { email, role } = c.req.valid("json");
+		const user = await db.query.users.findFirst({
+			where: eq(users.email, email),
+		});
 
-			const team = await db.query.teams.findFirst({
-				where: eq(teams.id, id),
-			});
+		if (!user) {
+			throw new Error(
+				"User email not found. Please ask them to sign up before continuing.",
+			);
+		}
 
-			if (!team) {
-				throw new HTTPException(404, {
-					message: "Team not found.",
-				});
-			}
+		const existing = await db.query.usersToTeams.findFirst({
+			where: and(
+				eq(usersToTeams.userId, user.id),
+				eq(usersToTeams.teamId, id),
+			),
+		});
 
-			const user = await db.query.users.findFirst({
-				where: eq(users.email, email),
-			});
+		if (existing) {
+			throw new Error("User is already in the team.");
+		}
 
-			if (!user) {
-				throw new HTTPException(404, {
-					message:
-						"User email not found. Please ask them to sign up before continuing.",
-				});
-			}
+		await db.insert(usersToTeams).values({
+			userId: user.id,
+			teamId: id,
+			role,
+		});
 
-			const existing = await db.query.usersToTeams.findFirst({
-				where: and(
-					eq(usersToTeams.userId, user.id),
+		return null;
+	});
+
+export const deleteTeamMemberFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.validator(z.object({ userId: z.string() }))
+	.handler(async ({ context, data: { userId } }) => {
+		const id = context.teamId;
+
+		await db
+			.delete(usersToTeams)
+			.where(
+				and(
+					eq(usersToTeams.userId, userId),
 					eq(usersToTeams.teamId, id),
 				),
-			});
+			);
 
-			if (existing) {
-				throw new HTTPException(400, {
-					message: "User is already in the team.",
-				});
-			}
+		return null;
+	});
 
-			await db.insert(usersToTeams).values({
-				userId: user.id,
-				teamId: id,
-				role,
-			});
-
-			return c.json(null);
-		},
-	)
-	.delete(
-		"/member/:userId",
-		protectedMiddleware({ role: "owner" }),
-		async (c) => {
-			const id = c.get("teamId");
-			const { userId } = c.req.param();
-
-			await db
-				.delete(usersToTeams)
-				.where(
-					and(
-						eq(usersToTeams.userId, userId),
-						eq(usersToTeams.teamId, id),
-					),
-				);
-
-			return c.json(null);
-		},
-	)
-	.delete("/", protectedMiddleware({ role: "owner" }), async (c) => {
-		const userId = c.get("user").id;
-		const teamId = c.get("teamId");
+export const deleteTeamFn = createServerFn({ method: "DELETE" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.handler(async ({ context }) => {
+		const userId = context.user?.id;
+		const teamId = context.teamId;
 
 		// TODO: DELETE full team data w/courses (waiting on bun s3 list function)
 		locales.forEach(async (locale) => {
 			await s3.delete(`/${teamId}/${locale.value}/logo`);
-			await s3.delete(`/${teamId}/${locale.value}/favicon`);
+			await s3.delete(
+				`/${teamId}/${locale.value
+					.toLowerCase()
+					.replaceAll("-", "_")}/favicon`,
+			);
 		});
 		await db.delete(teams).where(eq(teams.id, teamId));
 
@@ -250,19 +235,19 @@ export const teamsHandler = new Hono<{ Variables: HonoVariables }>()
 		});
 
 		if (!team) {
-			deleteCookie(c, "teamId");
-			return c.json({
+			deleteCookie("teamId");
+			return {
 				teamId: null,
-			});
+			};
 		} else {
-			setCookie(c, "teamId", team.teamId, {
+			setCookie("teamId", team.teamId, {
 				path: "/",
 				secure: true,
 				httpOnly: true,
 				sameSite: "lax",
 			});
-			return c.json({
+			return {
 				teamId: team.teamId,
-			});
+			};
 		}
 	});

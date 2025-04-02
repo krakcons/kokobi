@@ -1,9 +1,10 @@
 import { Certificate } from "@/components/Certificate";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { queryOptions } from "@/lib/api";
+import { env } from "@/env";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
+import { getLearnerCertificateFn } from "@/server/handlers/learners";
 import { PDFViewer } from "@react-pdf/renderer";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -22,14 +23,16 @@ export const Route = createFileRoute(
 		deps,
 		context: { queryClient },
 	}) => {
-		await queryClient.ensureQueryData(
-			queryOptions.learners.certificate({
-				param: {
-					id: courseId,
-					learnerId: deps.learnerId,
-				},
-			}),
-		);
+		await queryClient.ensureQueryData({
+			queryKey: [getLearnerCertificateFn.url, courseId, deps.learnerId],
+			queryFn: () =>
+				getLearnerCertificateFn({
+					data: {
+						courseId,
+						learnerId: deps.learnerId,
+					},
+				}),
+		});
 	},
 });
 
@@ -39,14 +42,20 @@ function RouteComponent() {
 	const t = useTranslations("Certificate");
 	const {
 		data: { learner, team, course },
-	} = useSuspenseQuery(
-		queryOptions.learners.certificate({
-			param: {
-				id: params.courseId,
-				learnerId: search.learnerId,
-			},
-		}),
-	);
+	} = useSuspenseQuery({
+		queryKey: [
+			getLearnerCertificateFn.url,
+			params.courseId,
+			search.learnerId,
+		],
+		queryFn: () =>
+			getLearnerCertificateFn({
+				data: {
+					courseId: params.courseId,
+					learnerId: search.learnerId,
+				},
+			}),
+	});
 	const locale = useLocale();
 
 	return (
@@ -58,7 +67,7 @@ function RouteComponent() {
 				<Certificate
 					{...{
 						teamName: team.name,
-						teamLogo: `${window.location.origin}/cdn/${team.id}/${locale}/logo`,
+						teamLogo: `${env.VITE_SITE_URL}/cdn/${team.id}/${locale}/logo`,
 						name: learner.firstName + " " + learner.lastName,
 						course: course.name,
 						completedAt: formatDate({

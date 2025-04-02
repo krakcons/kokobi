@@ -15,11 +15,16 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { collection, queryOptions, useMutationOptions } from "@/lib/api";
+import {
+	createCollectionCourseFn,
+	deleteCollectionCourseFn,
+	getCollectionCoursesFn,
+} from "@/server/handlers/collections";
+import { getCoursesFn } from "@/server/handlers/courses";
+import { Course, CourseTranslation } from "@/types/course";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
-import { InferResponseType } from "hono";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -27,40 +32,49 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/courses")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ params, context: { queryClient } }) => {
-		await queryClient.ensureQueryData(
-			queryOptions.collections.courses({
-				param: {
-					id: params.id,
-				},
-			}),
-		);
-		await queryClient.ensureQueryData(queryOptions.courses.all);
+		await queryClient.ensureQueryData({
+			queryKey: [getCollectionCoursesFn.url, params.id],
+			queryFn: () =>
+				getCollectionCoursesFn({
+					data: {
+						id: params.id,
+					},
+				}),
+		});
+		await queryClient.ensureQueryData({
+			queryKey: [getCoursesFn.url],
+			queryFn: () => getCoursesFn({ data: {} }),
+		});
 	},
 });
 
 function RouteComponent() {
 	const [open, setOpen] = useState(false);
 	const params = Route.useParams();
-	const { data: collectionCourses } = useSuspenseQuery(
-		queryOptions.collections.courses({
-			param: {
-				id: params.id,
-			},
-		}),
-	);
-	const { data: courses } = useSuspenseQuery(queryOptions.courses.all);
+	const { data: collectionCourses } = useSuspenseQuery({
+		queryKey: [getCollectionCoursesFn.url, params.id],
+		queryFn: () =>
+			getCollectionCoursesFn({
+				data: {
+					id: params.id,
+				},
+			}),
+	});
+	const { data: courses } = useSuspenseQuery({
+		queryKey: [getCoursesFn.url],
+		queryFn: () => getCoursesFn({ data: {} }),
+	});
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 
-	const mutationOptions = useMutationOptions();
-	const createCourses = useMutation(mutationOptions.collections.courses.add);
-	const deleteCourse = useMutation(
-		mutationOptions.collections.courses.delete,
-	);
+	const createCourses = useMutation({
+		mutationFn: createCollectionCourseFn,
+	});
+	const deleteCourse = useMutation({
+		mutationFn: deleteCollectionCourseFn,
+	});
 
-	const columns: ColumnDef<
-		InferResponseType<typeof collection.courses.$get>[0]
-	>[] = [
+	const columns: ColumnDef<Course & CourseTranslation>[] = [
 		{
 			accessorKey: "name",
 			header: ({ column }) => (
@@ -78,14 +92,12 @@ function RouteComponent() {
 				</div>
 			),
 		},
-		createDataTableActionsColumn<
-			InferResponseType<typeof collection.courses.$get>[0]
-		>([
+		createDataTableActionsColumn<Course & CourseTranslation>([
 			{
 				name: "Remove",
 				onClick: ({ id }) =>
 					deleteCourse.mutate({
-						param: {
+						data: {
 							id: params.id,
 							courseId: id,
 						},
@@ -143,10 +155,10 @@ function RouteComponent() {
 								onSubmit={(value) =>
 									createCourses.mutateAsync(
 										{
-											param: {
+											data: {
 												id: params.id,
+												...value,
 											},
-											json: value,
 										},
 										{
 											onSuccess: () => setOpen(false),

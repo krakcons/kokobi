@@ -11,7 +11,7 @@ export const CourseForm = ({
 	onSubmit,
 }: {
 	defaultValues?: CourseFormType;
-	onSubmit: (values: CourseFormType) => Promise<void>;
+	onSubmit: (values: CourseFormType) => Promise<any>;
 }) => {
 	const t = useTranslations("CompletionStatuses");
 	const form = useAppForm({

@@ -4,9 +4,9 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { queryOptions } from "@/lib/api";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
+import { getTeamMembersFn } from "@/server/handlers/teams";
 import { Role, User } from "@/types/users";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -16,7 +16,10 @@ export const Route = createFileRoute("/$locale/admin/members")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(queryOptions.team.members);
+		await queryClient.ensureQueryData({
+			queryKey: [getTeamMembersFn.url],
+			queryFn: () => getTeamMembersFn(),
+		});
 	},
 });
 
@@ -24,7 +27,10 @@ function RouteComponent() {
 	const locale = useLocale();
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const { data: members } = useSuspenseQuery(queryOptions.team.members);
+	const { data: members } = useSuspenseQuery({
+		queryKey: [getTeamMembersFn.url],
+		queryFn: () => getTeamMembersFn(),
+	});
 	const t = useTranslations("Role");
 
 	const columns: ColumnDef<User & { role: Role; joinedAt: Date }>[] = [

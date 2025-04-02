@@ -15,7 +15,11 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { queryOptions, useMutationOptions } from "@/lib/api";
+import {
+	createModuleFn,
+	deleteModuleFn,
+	getModulesFn,
+} from "@/server/handlers/modules";
 import { Module } from "@/types/module";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -28,15 +32,17 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/modules")({
 	validateSearch: TableSearchSchema,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: async ({ params: param, deps, context: { queryClient } }) => {
-		await queryClient.ensureQueryData(
-			queryOptions.modules.all({
-				param,
-				query: {
-					locale: deps.locale,
-					"fallback-locale": "none",
-				},
-			}),
-		);
+		await queryClient.ensureQueryData({
+			queryKey: [getModulesFn.url, param.id, deps.locale],
+			queryFn: () =>
+				getModulesFn({
+					data: {
+						courseId: param.id,
+						locale: deps.locale,
+						fallbackLocale: "none",
+					},
+				}),
+		});
 	},
 });
 
@@ -44,21 +50,26 @@ function RouteComponent() {
 	const param = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { data: modules } = useSuspenseQuery(
-		queryOptions.modules.all({
-			param,
-			query: {
-				locale: search.locale,
-				"fallback-locale": "none",
-			},
-		}),
-	);
+	const { data: modules } = useSuspenseQuery({
+		queryKey: [getModulesFn.url, param.id, search.locale],
+		queryFn: () =>
+			getModulesFn({
+				data: {
+					courseId: param.id,
+					locale: search.locale,
+					fallbackLocale: "none",
+				},
+			}),
+	});
 
 	const [open, setOpen] = useState(false);
 
-	const mutationOptions = useMutationOptions();
-	const createModule = useMutation(mutationOptions.course.modules.create);
-	const deleteModule = useMutation(mutationOptions.course.modules.delete);
+	const createModule = useMutation({
+		mutationFn: createModuleFn,
+	});
+	const deleteModule = useMutation({
+		mutationFn: deleteModuleFn,
+	});
 
 	const columns: ColumnDef<Module>[] = [
 		{
@@ -84,7 +95,7 @@ function RouteComponent() {
 				name: "Delete",
 				onClick: ({ id, courseId }) => {
 					deleteModule.mutate({
-						param: { moduleId: id, id: courseId },
+						data: { moduleId: id, courseId },
 					});
 				},
 			},
@@ -116,9 +127,9 @@ function RouteComponent() {
 							onSubmit={(values) =>
 								createModule.mutateAsync(
 									{
-										form: values,
-										param,
-										query: {
+										data: {
+											...values,
+											courseId: param.id,
 											locale: search.locale,
 										},
 									},

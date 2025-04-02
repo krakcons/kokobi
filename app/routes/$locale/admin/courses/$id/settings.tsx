@@ -2,7 +2,11 @@ import { CourseForm } from "@/components/forms/CourseForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { queryOptions, useMutationOptions } from "@/lib/api";
+import {
+	deleteCourseFn,
+	getCourseFn,
+	updateCourseFn,
+} from "@/server/handlers/courses";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
@@ -11,17 +15,17 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: async ({ params, context: { queryClient }, deps }) => {
-		await queryClient.ensureQueryData(
-			queryOptions.courses.id({
-				param: {
-					id: params.id,
-				},
-				query: {
-					locale: deps.locale,
-					"fallback-locale": "none",
-				},
-			}),
-		);
+		await queryClient.ensureQueryData({
+			queryKey: [getCourseFn.url, params.id, deps.locale],
+			queryFn: () =>
+				getCourseFn({
+					data: {
+						id: params.id,
+						locale: deps.locale,
+						fallbackLocale: "none",
+					},
+				}),
+		});
 	},
 });
 
@@ -29,21 +33,24 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const { data: course } = useSuspenseQuery(
-		queryOptions.courses.id({
-			param: {
-				id: params.id,
-			},
-			query: {
-				locale: search.locale,
-				"fallback-locale": "none",
-			},
-		}),
-	);
+	const { data: course } = useSuspenseQuery({
+		queryKey: [getCourseFn.url, params.id, search.locale],
+		queryFn: () =>
+			getCourseFn({
+				data: {
+					id: params.id,
+					locale: search.locale,
+					fallbackLocale: "none",
+				},
+			}),
+	});
 
-	const mutationOptions = useMutationOptions();
-	const updateCourse = useMutation(mutationOptions.course.update);
-	const deleteCourse = useMutation(mutationOptions.course.delete);
+	const updateCourse = useMutation({
+		mutationFn: updateCourseFn,
+	});
+	const deleteCourse = useMutation({
+		mutationFn: deleteCourseFn,
+	});
 
 	return (
 		<Page>
@@ -56,9 +63,9 @@ function RouteComponent() {
 				defaultValues={course}
 				onSubmit={(values) =>
 					updateCourse.mutateAsync({
-						param: { id: params.id },
-						json: values,
-						query: {
+						data: {
+							...values,
+							id: params.id,
 							locale: search.locale,
 						},
 					})
@@ -73,7 +80,7 @@ function RouteComponent() {
 				variant="destructive"
 				onClick={async () => {
 					await deleteCourse.mutateAsync({
-						param: { id: params.id },
+						data: { id: params.id },
 					});
 					await navigate({ to: "/$locale/admin" });
 				}}

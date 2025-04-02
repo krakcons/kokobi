@@ -1,21 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Certificate } from "@/components/Certificate";
 import { PDFViewer } from "@react-pdf/renderer";
-import { queryOptions } from "@/lib/api";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
+import { getTeamFn } from "@/server/handlers/teams";
+import { env } from "@/env";
 
 export const Route = createFileRoute("/$locale/admin/certificate")({
 	component: RouteComponent,
 	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData(queryOptions.team.me({}));
+		await queryClient.ensureQueryData({
+			queryKey: [getTeamFn.url],
+			queryFn: () => getTeamFn({ data: {} }),
+		});
 	},
 });
 function RouteComponent() {
 	const locale = useLocale();
-	const { data: team } = useSuspenseQuery(queryOptions.team.me({}));
+	const { data: team } = useSuspenseQuery({
+		queryKey: [getTeamFn.url],
+		queryFn: () => getTeamFn({ data: {} }),
+	});
 	const t = useTranslations("Certificate");
 
 	return (
@@ -28,7 +35,7 @@ function RouteComponent() {
 				<Certificate
 					{...{
 						teamName: team?.name,
-						teamLogo: `${window.location.origin}/cdn/${team.id}/${locale}/logo`,
+						teamLogo: `${env.VITE_SITE_URL}/cdn/${team.id}/${locale}/logo`,
 						name: "John Doe",
 						course: "Volunteer Training",
 						completedAt: formatDate({

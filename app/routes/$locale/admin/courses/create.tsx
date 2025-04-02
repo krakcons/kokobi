@@ -1,6 +1,6 @@
 import { CourseForm } from "@/components/forms/CourseForm";
 import { Page, PageHeader } from "@/components/Page";
-import { useMutationOptions } from "@/lib/api";
+import { createCourseFn } from "@/server/handlers/courses";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -10,8 +10,9 @@ export const Route = createFileRoute("/$locale/admin/courses/create")({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
-	const mutationOptions = useMutationOptions();
-	const { mutateAsync } = useMutation(mutationOptions.course.create);
+	const { mutateAsync } = useMutation({
+		mutationFn: createCourseFn,
+	});
 	const search = Route.useSearch();
 
 	return (
@@ -23,8 +24,8 @@ function RouteComponent() {
 			<CourseForm
 				onSubmit={async (values) => {
 					const data = await mutateAsync({
-						json: values,
-						query: {
+						data: {
+							...values,
 							locale: search.locale,
 						},
 					});
