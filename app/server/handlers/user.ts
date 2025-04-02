@@ -1,4 +1,8 @@
-import { authMiddleware, localeMiddleware } from "../middleware";
+import {
+	authMiddleware,
+	localeMiddleware,
+	teamMiddleware,
+} from "../middleware";
 import { db } from "@/server/db";
 import { learners, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -129,4 +133,30 @@ export const getMyLearnerFn = createServerFn({ method: "GET" })
 			}),
 			team: handleLocalization(context, learner.team),
 		};
+	});
+
+export const setTeamFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware()])
+	.validator(
+		z.object({
+			teamId: z.string(),
+		}),
+	)
+	.handler(async ({ context, data }) => {
+		if (data.teamId === context.teamId) {
+			return;
+		}
+
+		const team = await db.query.usersToTeams.findFirst({
+			where: and(
+				eq(usersToTeams.userId, context.user.id),
+				eq(usersToTeams.teamId, data.teamId),
+			),
+		});
+
+		if (!team) {
+			throw new Error("Team not found");
+		}
+
+		setCookie("teamId", data.teamId);
 	});

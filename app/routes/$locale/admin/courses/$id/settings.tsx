@@ -7,47 +7,39 @@ import {
 	getCourseFn,
 	updateCourseFn,
 } from "@/server/handlers/courses";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: async ({ params, context: { queryClient }, deps }) => {
-		await queryClient.ensureQueryData({
-			queryKey: [getCourseFn.url, params.id, deps.locale],
-			queryFn: () =>
-				getCourseFn({
-					data: {
-						id: params.id,
-						locale: deps.locale,
-						fallbackLocale: "none",
-					},
-				}),
-		});
-	},
+	loader: ({ params, deps }) =>
+		getCourseFn({
+			data: {
+				courseId: params.id,
+			},
+			headers: {
+				locale: deps.locale ?? "",
+				fallbackLocale: "none",
+			},
+		}),
 });
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const { data: course } = useSuspenseQuery({
-		queryKey: [getCourseFn.url, params.id, search.locale],
-		queryFn: () =>
-			getCourseFn({
-				data: {
-					id: params.id,
-					locale: search.locale,
-					fallbackLocale: "none",
-				},
-			}),
-	});
+	const course = Route.useLoaderData();
+	const router = useRouter();
 
 	const updateCourse = useMutation({
 		mutationFn: updateCourseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
+
 	const deleteCourse = useMutation({
 		mutationFn: deleteCourseFn,
 	});
@@ -66,7 +58,9 @@ function RouteComponent() {
 						data: {
 							...values,
 							id: params.id,
-							locale: search.locale,
+						},
+						headers: {
+							locale: search.locale ?? "",
 						},
 					})
 				}

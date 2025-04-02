@@ -21,7 +21,7 @@ import {
 	getModulesFn,
 } from "@/server/handlers/modules";
 import { Module } from "@/types/module";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
@@ -31,18 +31,16 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/modules")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: async ({ params: param, deps, context: { queryClient } }) => {
-		await queryClient.ensureQueryData({
-			queryKey: [getModulesFn.url, param.id, deps.locale],
-			queryFn: () =>
-				getModulesFn({
-					data: {
-						courseId: param.id,
-						locale: deps.locale,
-						fallbackLocale: "none",
-					},
-				}),
+	loader: async ({ params: param, deps }) => {
+		const modules = await getModulesFn({
+			data: {
+				courseId: param.id,
+				locale: deps.locale,
+				fallbackLocale: "none",
+			},
 		});
+		console.log(modules);
+		return { modules };
 	},
 });
 
@@ -50,17 +48,7 @@ function RouteComponent() {
 	const param = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { data: modules } = useSuspenseQuery({
-		queryKey: [getModulesFn.url, param.id, search.locale],
-		queryFn: () =>
-			getModulesFn({
-				data: {
-					courseId: param.id,
-					locale: search.locale,
-					fallbackLocale: "none",
-				},
-			}),
-	});
+	const { modules } = Route.useLoaderData();
 
 	const [open, setOpen] = useState(false);
 

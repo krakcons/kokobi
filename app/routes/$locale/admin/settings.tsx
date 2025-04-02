@@ -2,61 +2,43 @@ import { TeamForm } from "@/components/forms/TeamForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { fetchFile } from "@/lib/file";
-import { Locale } from "@/lib/locale";
 import { env } from "@/env";
 import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
-
-const teamOptions = (locale?: Locale) => ({
-	queryKey: [getTeamFn.url, locale],
-	queryFn: () => getTeamFn({ data: { locale, fallbackLocale: "none" } }),
-});
-
-const options = (locale?: Locale) => ({
-	queryKey: teamOptions(locale).queryKey,
-	queryFn: async () => {
-		const data = await teamOptions(locale).queryFn();
-		let logo: File | "" = "";
-		let favicon: File | "" = "";
-		// Only fetch if that team translation exists
-		if (data.language) {
-			logo = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${data.id}/${data.language}/logo?updatedAt=${data.updatedAt}`,
-			);
-			favicon = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${data.id}/${data.language}/favicon?updatedAt=${data.updatedAt}`,
-			);
-		}
-		return { logo, favicon, ...data };
-	},
-});
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: async ({ context: { queryClient }, deps }) => {
-		await queryClient.ensureQueryData(options(deps.locale));
-	},
+	loader: ({ deps }) =>
+		getTeamFn({
+			headers: {
+				locale: deps.locale ?? "",
+				fallbackLocale: "none",
+			},
+		}),
 });
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const { data: team } = useSuspenseQuery(options(search.locale));
+	const team = Route.useLoaderData();
+	const router = useRouter();
 
 	const updateTeam = useMutation({
 		mutationFn: updateTeamFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 	const deleteTeam = useMutation({
 		mutationFn: deleteTeamFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 
 	return (
@@ -70,14 +52,18 @@ function RouteComponent() {
 				defaultValues={{
 					...team,
 				}}
-				onSubmit={(values) =>
-					updateTeam.mutateAsync({
-						data: {
-							...values,
-							locale: search.locale,
+				onSubmit={(values) => {
+					const formData = new FormData();
+					Object.entries(values).forEach(([key, value]) => {
+						formData.append(key, value);
+					});
+					return updateTeam.mutateAsync({
+						data: formData,
+						headers: {
+							locale: search.locale ?? "",
 						},
-					})
-				}
+					});
+				}}
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader title="Domains" description="WIP" />

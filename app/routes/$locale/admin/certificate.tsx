@@ -1,29 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Certificate } from "@/components/Certificate";
-import { PDFViewer } from "@react-pdf/renderer";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
 import { getTeamFn } from "@/server/handlers/teams";
-import { env } from "@/env";
+import { lazy } from "react";
 
 export const Route = createFileRoute("/$locale/admin/certificate")({
 	component: RouteComponent,
-	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData({
-			queryKey: [getTeamFn.url],
-			queryFn: () => getTeamFn({ data: {} }),
-		});
-	},
+	loader: () => getTeamFn(),
 });
 
+const CertificatePDF = lazy(() => import("@/components/CertificatePDF"));
+
 function RouteComponent() {
+	const team = Route.useLoaderData();
 	const locale = useLocale();
-	const { data: team } = useSuspenseQuery({
-		queryKey: [getTeamFn.url],
-		queryFn: () => getTeamFn({ data: {} }),
-	});
 	const t = useTranslations("Certificate");
 
 	return (
@@ -31,6 +22,19 @@ function RouteComponent() {
 			<PageHeader
 				title="Certificate"
 				description="View how your certificate will look"
+			/>
+			<CertificatePDF
+				certificate={{
+					teamName: team?.name,
+					teamLogo: `${window.location.origin}/cdn/${team.id}/${locale}/logo`,
+					name: "John Doe",
+					course: "Volunteer Training",
+					completedAt: formatDate({
+						date: new Date(),
+						locale,
+					}),
+					t: t.pdf,
+				}}
 			/>
 		</Page>
 	);

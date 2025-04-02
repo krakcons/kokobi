@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Key } from "@/types/keys";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Eye, EyeOff, Plus } from "lucide-react";
 import { useState } from "react";
@@ -28,12 +28,7 @@ import { createKeyFn, deleteKeyFn, getKeysFn } from "@/server/handlers/keys";
 export const Route = createFileRoute("/$locale/admin/keys")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: async ({ context: { queryClient } }) => {
-		await queryClient.ensureQueryData({
-			queryKey: [getKeysFn.url],
-			queryFn: () => getKeysFn(),
-		});
-	},
+	loader: () => getKeysFn(),
 });
 
 const APIKeyCell = ({ secret }: { secret: string }) => {
@@ -64,17 +59,20 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
 	const [open, setOpen] = useState(false);
-
-	const { data: keys } = useSuspenseQuery({
-		queryKey: [getKeysFn.url],
-		queryFn: () => getKeysFn(),
-	});
+	const keys = Route.useLoaderData();
+	const router = useRouter();
 
 	const createKey = useMutation({
 		mutationFn: createKeyFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 	const deleteKey = useMutation({
 		mutationFn: deleteKeyFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 
 	const columns: ColumnDef<Key>[] = [

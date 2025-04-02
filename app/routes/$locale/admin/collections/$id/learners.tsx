@@ -39,50 +39,26 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
 		component: RouteComponent,
 		validateSearch: TableSearchSchema,
-		loader: async ({ params, context: { queryClient } }) => {
-			await queryClient.ensureQueryData({
-				queryKey: [getCollectionLearnersFn.url, params.id],
-				queryFn: () =>
-					getCollectionLearnersFn({
-						data: {
-							id: params.id,
-						},
-					}),
-			});
-			await queryClient.ensureQueryData({
-				queryKey: [getCollectionCoursesFn.url, params.id],
-				queryFn: () =>
-					getCollectionCoursesFn({
-						data: {
-							id: params.id,
-						},
-					}),
-			});
-		},
+		loader: ({ params }) =>
+			Promise.all([
+				getCollectionLearnersFn({
+					data: {
+						id: params.id,
+					},
+				}),
+				getCollectionCoursesFn({
+					data: {
+						id: params.id,
+					},
+				}),
+			]),
 	},
 );
 
 function RouteComponent() {
 	const search = Route.useSearch();
 	const params = Route.useParams();
-	const { data: learners } = useSuspenseQuery({
-		queryKey: [getCollectionLearnersFn.url, params.id],
-		queryFn: () =>
-			getCollectionLearnersFn({
-				data: {
-					id: params.id,
-				},
-			}),
-	});
-	const { data: courses } = useSuspenseQuery({
-		queryKey: [getCollectionCoursesFn.url, params.id],
-		queryFn: () =>
-			getCollectionCoursesFn({
-				data: {
-					id: params.id,
-				},
-			}),
-	});
+	const [learners, courses] = Route.useLoaderData();
 	const [open, setOpen] = useState(false);
 	const t = useTranslations("Learner");
 	const locale = useLocale();

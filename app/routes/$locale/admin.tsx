@@ -16,7 +16,6 @@ import {
 	Outlet,
 	redirect,
 	useNavigate,
-	useSearch,
 } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { LanguageToggle } from "@/components/LanguageToggle";
@@ -29,58 +28,50 @@ import { getCoursesFn } from "@/server/handlers/courses";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
-	validateSearch: z.object({
-		locale: LocaleSchema.optional(),
-	}),
-	beforeLoad: async ({ context: { queryClient } }) => {
-		const { user, teamId } = await queryClient.ensureQueryData({
-			queryKey: [getAuthFn.url],
-			queryFn: () => getAuthFn(),
-		});
+	validateSearch: () =>
+		z.object({
+			locale: LocaleSchema.optional(),
+		}),
+	beforeLoad: async () => {
+		const auth = await getAuthFn();
 
-		if (!user) {
+		if (!auth.user) {
 			throw redirect({
 				href: env.VITE_SITE_URL + "/api/auth/google",
 			});
 		}
 
-		if (!teamId) {
+		if (!auth.teamId) {
 			throw redirect({
 				to: "/$locale/create-team",
 			});
 		}
 	},
-	loader: async ({ context: { queryClient } }) => {
+	loader: () =>
 		Promise.all([
-			queryClient.ensureQueryData({
-				queryKey: [getTeamsFn.url],
-				queryFn: () => getTeamsFn({ data: {} }),
-			}),
-			queryClient.ensureQueryData({
-				queryKey: [getCoursesFn.url],
-				queryFn: () => getCoursesFn({ data: {} }),
-			}),
-			queryClient.ensureQueryData({
-				queryKey: [getCollectionsFn.url],
-				queryFn: () => getCollectionsFn({ data: {} }),
-			}),
-		]);
-	},
+			getAuthFn(),
+			getTeamsFn(),
+			getCoursesFn(),
+			getCollectionsFn(),
+		]),
 });
 
 function RouteComponent() {
 	const t = useTranslations("Nav");
-	const userLocale = useLocale();
-	const { locale } = useSearch({
-		from: "/$locale/admin",
-	});
+	const locale = useLocale();
+	const search = Route.useSearch();
 	const navigate = useNavigate();
-
-	const editingLocale = locale ?? userLocale;
+	const editingLocale = search.locale ?? locale;
+	const [auth, teams, courses, collections] = Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
-			<AdminSidebar />
+			<AdminSidebar
+				teamId={auth.teamId}
+				teams={teams}
+				courses={courses}
+				collections={collections}
+			/>
 			<SidebarInset>
 				<header className="p-4 flex flex-row items-center justify-between">
 					<SidebarTrigger />

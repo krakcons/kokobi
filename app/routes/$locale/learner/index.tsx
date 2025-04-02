@@ -4,36 +4,25 @@ import { env } from "@/env";
 import { useTranslations } from "@/lib/locale";
 import { cn } from "@/lib/utils";
 import { getAuthFn, getMyLearnersFn } from "@/server/handlers/user";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Container } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
-	beforeLoad: async ({ context: { queryClient } }) => {
-		const { user } = await queryClient.ensureQueryData({
-			queryKey: [getAuthFn.url],
-			queryFn: () => getAuthFn(),
-		});
+	beforeLoad: async () => {
+		const { user } = await getAuthFn();
 
 		if (!user) {
 			throw redirect({
 				href: env.VITE_SITE_URL + "/api/auth/google",
 			});
 		}
-
-		await queryClient.ensureQueryData({
-			queryKey: [getMyLearnersFn.url],
-			queryFn: () => getMyLearnersFn({ data: {} }),
-		});
 	},
+	loader: () => getMyLearnersFn(),
 });
 
 function RouteComponent() {
-	const { data: learners } = useSuspenseQuery({
-		queryKey: [getMyLearnersFn.url],
-		queryFn: () => getMyLearnersFn({ data: {} }),
-	});
+	const learners = Route.useLoaderData();
 	const t = useTranslations("Learner");
 
 	const teams = [

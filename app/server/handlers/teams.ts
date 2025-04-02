@@ -114,10 +114,14 @@ export const createTeamFn = createServerFn({ method: "POST" })
 
 export const updateTeamFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" }), localeMiddleware])
-	.validator(TeamFormSchema)
-	.handler(async ({ context, data }) => {
+	.validator(z.instanceof(FormData))
+	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const teamId = context.teamId;
+
+		const data = TeamFormSchema.parse(
+			Object.fromEntries(formData.entries()),
+		);
 
 		if (data.logo) {
 			await s3.write(`${teamId}/${locale}/logo`, data.logo);

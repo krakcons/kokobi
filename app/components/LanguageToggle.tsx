@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 export const LanguageToggle = () => {
 	const navigate = useNavigate();
 	const locale = useLocale();
-	const queryClient = useQueryClient();
+
 	return (
 		<Button
 			onClick={() => {
@@ -19,8 +18,6 @@ export const LanguageToggle = () => {
 					}),
 					// @ts-ignore
 					search: (s) => s,
-				}).then(() => {
-					queryClient.invalidateQueries();
 				});
 			}}
 			size="icon"

@@ -22,8 +22,8 @@ import {
 } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { Course, CourseTranslation } from "@/types/course";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -31,47 +31,36 @@ import { useMemo, useState } from "react";
 export const Route = createFileRoute("/$locale/admin/collections/$id/courses")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: async ({ params, context: { queryClient } }) => {
-		await queryClient.ensureQueryData({
-			queryKey: [getCollectionCoursesFn.url, params.id],
-			queryFn: () =>
-				getCollectionCoursesFn({
-					data: {
-						id: params.id,
-					},
-				}),
-		});
-		await queryClient.ensureQueryData({
-			queryKey: [getCoursesFn.url],
-			queryFn: () => getCoursesFn({ data: {} }),
-		});
-	},
-});
-
-function RouteComponent() {
-	const [open, setOpen] = useState(false);
-	const params = Route.useParams();
-	const { data: collectionCourses } = useSuspenseQuery({
-		queryKey: [getCollectionCoursesFn.url, params.id],
-		queryFn: () =>
+	loader: ({ params }) =>
+		Promise.all([
 			getCollectionCoursesFn({
 				data: {
 					id: params.id,
 				},
 			}),
-	});
-	const { data: courses } = useSuspenseQuery({
-		queryKey: [getCoursesFn.url],
-		queryFn: () => getCoursesFn({ data: {} }),
-	});
+			getCoursesFn(),
+		]),
+});
+
+function RouteComponent() {
+	const [open, setOpen] = useState(false);
+	const params = Route.useParams();
+	const [collectionCourses, courses] = Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
+	const router = useRouter();
 
 	const createCourses = useMutation({
 		mutationFn: createCollectionCourseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 	const deleteCourse = useMutation({
 		mutationFn: deleteCollectionCourseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 
 	const columns: ColumnDef<Course & CourseTranslation>[] = [
@@ -111,8 +100,6 @@ function RouteComponent() {
 			collectionCourses.find((cc) => cc.id === c.id) ? false : true,
 		);
 	}, [courses, collectionCourses]);
-
-	console.log(courseFormCourses);
 
 	return (
 		<Page>

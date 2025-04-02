@@ -31,7 +31,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -60,9 +59,8 @@ import { env } from "@/env";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
-import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
-import { getCoursesFn } from "@/server/handlers/courses";
-import { getCollectionsFn } from "@/server/handlers/collections";
+import { setTeamFn } from "@/server/handlers/user";
+import { Team, TeamTranslation } from "@/types/team";
 
 const CourseCollapsible = ({
 	course,
@@ -288,34 +286,22 @@ const CollectionCollapsible = ({
 	);
 };
 
-export const AdminSidebar = () => {
+export const AdminSidebar = ({
+	teamId,
+	teams,
+	courses,
+	collections,
+}: {
+	teamId: string;
+	teams: (Team & TeamTranslation)[];
+	courses: (Course & CourseTranslation)[];
+	collections: (Collection & CollectionTranslation)[];
+}) => {
 	const { theme, setTheme } = useTheme();
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const locale = useLocale();
 	const navigate = useNavigate();
-	const {
-		data: { teamId },
-	} = useSuspenseQuery({
-		queryKey: [getAuthFn.url],
-		queryFn: () => getAuthFn(),
-	});
-	const { data: teams } = useSuspenseQuery({
-		queryKey: [getTeamsFn.url],
-		queryFn: () => getTeamsFn({ data: {} }),
-	});
-	const { data: courses } = useSuspenseQuery({
-		queryKey: [getCoursesFn.url],
-		queryFn: () => getCoursesFn({ data: {} }),
-	});
-	const { data: collections } = useSuspenseQuery({
-		queryKey: [getCollectionsFn.url],
-		queryFn: () => getCollectionsFn({ data: {} }),
-	});
-
-	const updatePreferences = useMutation({
-		mutationFn: () => {},
-	});
 
 	const activeTeam = teams.find((t) => t.id === teamId);
 
@@ -357,22 +343,16 @@ export const AdminSidebar = () => {
 								{teams.map((team) => (
 									<DropdownMenuItem
 										key={team.id}
-										onClick={() => {
-											updatePreferences.mutate(
-												{
-													json: {
-														teamId: team.id,
-													},
+										onClick={async () => {
+											await setTeamFn({
+												data: {
+													teamId: team.id,
 												},
-												{
-													onSuccess: () => {
-														navigate({
-															to: "/$locale/admin",
-															params: { locale },
-														});
-													},
-												},
-											);
+											});
+											navigate({
+												to: "/$locale/admin",
+												params: { locale },
+											});
 										}}
 										className="gap-2 p-2"
 									>

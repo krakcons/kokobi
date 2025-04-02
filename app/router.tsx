@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanstackRouter } from "@tanstack/react-router";
 import { DefaultCatchBoundary } from "./components/DefaultCatchBoundary";
 import { routeTree } from "./routeTree.gen";
@@ -17,6 +17,7 @@ export const createRouter = () => {
 			defaultErrorComponent: DefaultCatchBoundary,
 			scrollRestoration: true,
 			defaultNotFoundComponent: () => <NotFound />,
+			Wrap: ({ children }) => <ThemeProvider>{children}</ThemeProvider>,
 		}),
 		queryClient,
 	);

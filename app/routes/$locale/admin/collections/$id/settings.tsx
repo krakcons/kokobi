@@ -7,26 +7,25 @@ import {
 	getCollectionFn,
 	updateCollectionFn,
 } from "@/server/handlers/collections";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/settings")(
 	{
 		component: RouteComponent,
 		loaderDeps: ({ search: { locale } }) => ({ locale }),
-		loader: async ({ params, context: { queryClient }, deps }) => {
-			await queryClient.ensureQueryData({
-				queryKey: [getCollectionFn.url, params.id],
-				queryFn: () =>
-					getCollectionFn({
-						data: {
-							id: params.id,
-							locale: deps.locale,
-							fallbackLocale: "none",
-						},
-					}),
+		loader: async ({ params, deps }) => {
+			const collection = await getCollectionFn({
+				data: {
+					id: params.id,
+				},
+				headers: {
+					locale: deps.locale ?? "",
+					fallbackLocale: "none",
+				},
 			});
+			return { collection };
 		},
 	},
 );
@@ -34,23 +33,21 @@ function RouteComponent() {
 	const params = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { data: collection } = useSuspenseQuery({
-		queryKey: [getCollectionFn.url, params.id],
-		queryFn: () =>
-			getCollectionFn({
-				data: {
-					id: params.id,
-					locale: search.locale,
-					fallbackLocale: "none",
-				},
-			}),
-	});
+	const { collection } = Route.useLoaderData();
+	const router = useRouter();
 
 	const updateCollection = useMutation({
 		mutationFn: updateCollectionFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
+
 	const deleteCollection = useMutation({
 		mutationFn: deleteCollectionFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 
 	return (
@@ -65,7 +62,9 @@ function RouteComponent() {
 						data: {
 							...value,
 							id: params.id,
-							locale: search.locale,
+						},
+						headers: {
+							locale: search.locale ?? "",
 						},
 					})
 				}

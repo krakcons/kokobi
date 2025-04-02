@@ -328,7 +328,7 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 					(fl) => fl.email === l.email && fl.courseId === l.course.id,
 				);
 				if (!finalLearner) {
-					return;
+					throw new Error("Learner not found");
 				}
 				const id = finalLearner.id;
 
@@ -352,7 +352,7 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 				content: (
 					<CollectionInvite
 						name={collectionName}
-						courses={courses}
+						curses={courses}
 						teamName={team.name}
 						logo={`${env.VITE_SITE_URL}/cdn/${collection.team.id}/${team.language}/logo?updatedAt=${team?.updatedAt.toString()}`}
 						t={t.Email.CollectionInvite}

@@ -36,20 +36,15 @@ import { env } from "@/env";
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData({
-			queryKey: [getLearnersFn.url, params.id],
-			queryFn: () =>
-				getLearnersFn({
-					data: {
-						id: params.id,
-					},
-				}),
-		});
-		await context.queryClient.ensureQueryData({
-			queryKey: [getTeamFn.url],
-			queryFn: () => getTeamFn({ data: {} }),
-		});
+	loader: ({ params }) => {
+		return Promise.all([
+			getLearnersFn({
+				data: {
+					id: params.id,
+				},
+			}),
+			getTeamFn(),
+		]);
 	},
 });
 
@@ -58,21 +53,9 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const { data: learners } = useSuspenseQuery({
-		queryKey: [getLearnersFn.url, params.id],
-		queryFn: () =>
-			getLearnersFn({
-				data: {
-					id: params.id,
-				},
-			}),
-	});
-	const { data: team } = useSuspenseQuery({
-		queryKey: [getTeamFn.url],
-		queryFn: () => getTeamFn({ data: {} }),
-	});
 	const t = useTranslations("Learner");
 	const locale = useLocale();
+	const [learners, team] = Route.useLoaderData();
 
 	const createLearners = useMutation({
 		mutationFn: inviteLearnersToCourseFn,
