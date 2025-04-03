@@ -94,10 +94,11 @@ export default $config({
 				port: 3000,
 			},
 			dev: {
-				command: "bun dev",
+				command: "bun start",
 			},
 			environment,
 		});
+
 		if (!LOCAL_STAGES.includes($app.stage)) {
 			const api = new sst.aws.ApiGatewayV2("Api", {
 				vpc,

@@ -47,6 +47,7 @@
 		"bun": "^1.2.8",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
+		"dotenv": "^16.4.7",
 		"drizzle-orm": "^0.41.0",
 		"drizzle-zod": "^0.7.1",
 		"fast-xml-parser": "^5.2.0",
@@ -79,6 +80,7 @@
 		"tailwindcss": "^4.1.1",
 		"typescript": "^5.8.2",
 		"vite": "^6.2.5",
+		"vite-plugin-runtime": "^1.4.0",
 		"vite-tsconfig-paths": "^5.1.4"
 	}
 }

@@ -4,6 +4,7 @@ import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
 import { getTeamFn } from "@/server/handlers/teams";
 import { lazy } from "react";
+import { env } from "@/env";
 
 export const Route = createFileRoute("/$locale/admin/certificate")({
 	component: RouteComponent,
@@ -26,7 +27,7 @@ function RouteComponent() {
 			<CertificatePDF
 				certificate={{
 					teamName: team?.name,
-					teamLogo: `${window.location.origin}/cdn/${team.id}/${locale}/logo`,
+					logo: `${env.VITE_SITE_URL}/cdn/${team.id}/${locale}/logo`,
 					name: "John Doe",
 					course: "Volunteer Training",
 					completedAt: formatDate({
