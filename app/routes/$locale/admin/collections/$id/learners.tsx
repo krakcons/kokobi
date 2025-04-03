@@ -4,7 +4,7 @@ import {
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
 	Dialog,
 	DialogContent,
@@ -62,11 +62,19 @@ function RouteComponent() {
 	const [open, setOpen] = useState(false);
 	const t = useTranslations("Learner");
 	const locale = useLocale();
+	const router = useRouter();
+
 	const createLearners = useMutation({
 		mutationFn: inviteLearnerToCollectionFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 	const deleteLearner = useMutation({
 		mutationFn: deleteLearnerFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 	const navigate = Route.useNavigate();
 	const queryClient = useQueryClient();

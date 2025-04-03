@@ -10,7 +10,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Locale, locales, LocaleSchema } from "@/lib/locale";
+import { Locale, locales } from "@/lib/locale";
 import {
 	createFileRoute,
 	Outlet,
@@ -19,19 +19,16 @@ import {
 } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { z } from "zod";
 import { env } from "@/env";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
+import { EditingLocaleSchema } from "@/types/router";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
-	validateSearch: () =>
-		z.object({
-			locale: LocaleSchema.optional(),
-		}),
+	validateSearch: EditingLocaleSchema,
 	beforeLoad: async () => {
 		const auth = await getAuthFn();
 

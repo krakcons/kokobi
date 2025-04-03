@@ -27,10 +27,14 @@ export const getModulesFn = createServerFn({ method: "GET" })
 
 export const createModuleFn = createServerFn({ method: "POST" })
 	.middleware([localeMiddleware, teamMiddleware()])
-	.validator(ModuleFormSchema.extend({ courseId: z.string() }))
-	.handler(async ({ context, data }) => {
+	.validator(z.instanceof(FormData))
+	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const teamId = context.teamId;
+
+		const data = ModuleFormSchema.extend({ courseId: z.string() }).parse(
+			Object.fromEntries(formData.entries()),
+		);
 
 		const course = await db.query.courses.findFirst({
 			where: and(

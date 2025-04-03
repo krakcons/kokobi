@@ -5,9 +5,11 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "../ui/collapsible";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { useAppForm } from "../ui/form";
+import { fetchFile } from "@/lib/file";
+import { env } from "@/env";
 
 const CollapsibleWrapper = ({ children }: { children: React.ReactNode }) => {
 	const [open, setOpen] = useState(false);

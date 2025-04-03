@@ -20,9 +20,9 @@ import {
 	deleteModuleFn,
 	getModulesFn,
 } from "@/server/handlers/modules";
-import { Module } from "@/types/module";
+import { Module, ModuleFormType } from "@/types/module";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -31,32 +31,38 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/modules")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: async ({ params: param, deps }) => {
-		const modules = await getModulesFn({
+	loader: ({ params: param, deps }) =>
+		getModulesFn({
 			data: {
 				courseId: param.id,
-				locale: deps.locale,
+			},
+			headers: {
+				locale: deps.locale ?? "",
 				fallbackLocale: "none",
 			},
-		});
-		console.log(modules);
-		return { modules };
-	},
+		}),
 });
 
 function RouteComponent() {
 	const param = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { modules } = Route.useLoaderData();
+	const modules = Route.useLoaderData();
+	const router = useRouter();
 
 	const [open, setOpen] = useState(false);
 
 	const createModule = useMutation({
 		mutationFn: createModuleFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 	const deleteModule = useMutation({
 		mutationFn: deleteModuleFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 
 	const columns: ColumnDef<Module>[] = [
@@ -112,22 +118,21 @@ function RouteComponent() {
 						</DialogHeader>
 						<ModuleForm
 							key={modules.length}
-							onSubmit={(values) =>
-								createModule.mutateAsync(
+							onSubmit={(values) => {
+								const formData = new FormData();
+								formData.append("file", values.file);
+								formData.append("courseId", param.id);
+								return createModule.mutateAsync(
 									{
-										data: {
-											...values,
-											courseId: param.id,
-											locale: search.locale,
-										},
+										data: formData,
 									},
 									{
 										onSuccess: () => {
 											setOpen(false);
 										},
 									},
-								)
-							}
+								);
+							}}
 						/>
 					</DialogContent>
 				</Dialog>

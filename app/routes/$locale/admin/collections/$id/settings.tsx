@@ -15,8 +15,8 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/settings")(
 	{
 		component: RouteComponent,
 		loaderDeps: ({ search: { locale } }) => ({ locale }),
-		loader: async ({ params, deps }) => {
-			const collection = await getCollectionFn({
+		loader: ({ params, deps }) =>
+			getCollectionFn({
 				data: {
 					id: params.id,
 				},
@@ -24,16 +24,14 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/settings")(
 					locale: deps.locale ?? "",
 					fallbackLocale: "none",
 				},
-			});
-			return { collection };
-		},
+			}),
 	},
 );
 function RouteComponent() {
 	const params = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { collection } = Route.useLoaderData();
+	const collection = Route.useLoaderData();
 	const router = useRouter();
 
 	const updateCollection = useMutation({
@@ -46,7 +44,7 @@ function RouteComponent() {
 	const deleteCollection = useMutation({
 		mutationFn: deleteCollectionFn,
 		onSuccess: () => {
-			router.invalidate();
+			navigate({ to: "/$locale/admin" });
 		},
 	});
 
@@ -79,11 +77,10 @@ function RouteComponent() {
 			/>
 			<Button
 				variant="destructive"
-				onClick={async () => {
-					await deleteCollection.mutateAsync({
+				onClick={() => {
+					deleteCollection.mutate({
 						data: { id: params.id },
 					});
-					await navigate({ to: "/$locale/admin" });
 				}}
 				className="self-start"
 			>

@@ -42,6 +42,9 @@ function RouteComponent() {
 
 	const deleteCourse = useMutation({
 		mutationFn: deleteCourseFn,
+		onSuccess: () => {
+			navigate({ to: "/$locale/admin" });
+		},
 	});
 
 	return (
@@ -72,11 +75,10 @@ function RouteComponent() {
 			/>
 			<Button
 				variant="destructive"
-				onClick={async () => {
-					await deleteCourse.mutateAsync({
+				onClick={() => {
+					deleteCourse.mutate({
 						data: { id: params.id },
 					});
-					await navigate({ to: "/$locale/admin" });
 				}}
 				className="self-start"
 			>

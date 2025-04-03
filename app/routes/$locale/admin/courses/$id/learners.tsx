@@ -16,7 +16,7 @@ import { Page, PageHeader } from "@/components/Page";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { locales, useLocale, useTranslations } from "@/lib/locale";
 import { formatDate } from "@/lib/date";
@@ -56,12 +56,19 @@ function RouteComponent() {
 	const t = useTranslations("Learner");
 	const locale = useLocale();
 	const [learners, team] = Route.useLoaderData();
+	const router = useRouter();
 
 	const createLearners = useMutation({
 		mutationFn: inviteLearnersToCourseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 	const deleteLearner = useMutation({
 		mutationFn: deleteLearnerFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
 	});
 
 	const columns: ColumnDef<Learner & { module: Module | null }>[] = [
