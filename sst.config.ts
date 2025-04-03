@@ -124,7 +124,7 @@ export default $config({
 		});
 
 		return {
-			BUCKET: bucket.arn,
+			BUCKET_URL: $interpolate`https://${bucket.domain}`,
 		};
 	},
 });

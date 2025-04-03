@@ -2,6 +2,7 @@
 import { defineConfig } from "@tanstack/react-start/config";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
+import { Resource } from "sst";
 
 export default defineConfig({
 	server: {
@@ -9,7 +10,7 @@ export default defineConfig({
 		routeRules: {
 			"/cdn/**": {
 				proxy: {
-					to: process.env.VITE_CDN_URL + "/**",
+					to: `https://${Resource.Bucket.name}.s3.amazonaws.com/**`,
 				},
 			},
 		},
