@@ -17,35 +17,15 @@ export const Route = createFileRoute(
 		learnerId: z.string().optional(),
 	}),
 	loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
-	loader: async ({ context: { queryClient }, params, deps }) => {
-		await Promise.all([
-			queryClient.ensureQueryData({
-				queryKey: [getModulesFn.url, params.courseId],
-				queryFn: () =>
-					getModulesFn({ data: { courseId: params.courseId } }),
-			}),
-			queryClient.ensureQueryData({
-				queryKey: [getCourseFn.url, params.courseId],
-				queryFn: () =>
-					getCourseFn({
-						data: {
-							id: params.courseId,
-						},
-					}),
-			}),
-		]);
-
+	loader: async ({ params, deps }) => {
 		const learnerId = deps.learnerId;
+		let learner = undefined;
 		if (learnerId) {
-			const learner = await queryClient.ensureQueryData({
-				queryKey: [getLearnerFn.url, params.courseId, learnerId],
-				queryFn: () =>
-					getLearnerFn({
-						data: {
-							courseId: params.courseId,
-							learnerId,
-						},
-					}),
+			learner = await getLearnerFn({
+				data: {
+					courseId: params.courseId,
+					learnerId,
+				},
 			});
 			if (learner.moduleId) {
 				throw redirect({
@@ -59,38 +39,34 @@ export const Route = createFileRoute(
 				});
 			}
 		}
+
+		const moduleOptions = await getModulesFn({
+			data: {
+				courseId: params.courseId,
+			},
+		});
+
+		if (!moduleOptions.length) {
+			throw new Error("No modules available");
+		}
+
+		return Promise.all([
+			learner,
+			moduleOptions,
+			getCourseFn({
+				data: {
+					courseId: params.courseId,
+				},
+			}),
+		]);
 	},
 });
 
 function RouteComponent() {
 	const locale = useLocale();
 	const params = Route.useParams();
-	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { data: moduleOptions } = useSuspenseQuery({
-		queryKey: [getModulesFn.url, params.courseId],
-		queryFn: () => getModulesFn({ data: { courseId: params.courseId } }),
-	});
-	const { data: course } = useSuspenseQuery({
-		queryKey: [getCourseFn.url, params.courseId],
-		queryFn: () =>
-			getCourseFn({
-				data: {
-					id: params.courseId,
-				},
-			}),
-	});
-	const { data: learner } = useQuery({
-		queryKey: [getLearnerFn.url, params.courseId, search.learnerId!],
-		queryFn: () =>
-			getLearnerFn({
-				data: {
-					courseId: params.courseId,
-					learnerId: search.learnerId!,
-				},
-			}),
-		enabled: !!search.learnerId,
-	});
+	const [learner, moduleOptions, course] = Route.useLoaderData();
 
 	const joinCourse = useMutation({
 		mutationFn: joinCourseFn,

@@ -53,7 +53,6 @@ function RouteComponent() {
 				title="Settings"
 				description="Edit your course settings"
 			/>
-			{course.name}
 			<CourseForm
 				defaultValues={course}
 				onSubmit={(values) =>

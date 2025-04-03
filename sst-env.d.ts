@@ -5,6 +5,10 @@
 
 declare module "sst" {
   export interface Resource {
+    "Api": {
+      "type": "sst.aws.ApiGatewayV2"
+      "url": string
+    }
     "Aurora": {
       "clusterArn": string
       "database": string

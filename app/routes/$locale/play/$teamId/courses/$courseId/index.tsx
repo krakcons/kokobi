@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
@@ -29,58 +25,29 @@ export const Route = createFileRoute(
 		learnerId: z.string(),
 	}),
 	loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
-	loader: async ({ context: { queryClient }, params, deps }) => {
-		await queryClient.ensureQueryData({
-			queryKey: [getCourseFn.url, params.courseId],
-			queryFn: () =>
-				getCourseFn({
-					data: {
-						id: params.courseId,
-					},
-				}),
-		});
-		await queryClient.ensureQueryData({
-			queryKey: [playFn.url, params.courseId, deps.learnerId],
-			queryFn: () =>
-				playFn({
-					data: {
-						courseId: params.courseId,
-						learnerId: deps.learnerId,
-					},
-				}),
-		});
-	},
+	loader: async ({ params, deps }) =>
+		Promise.all([
+			getCourseFn({
+				data: {
+					courseId: params.courseId,
+				},
+			}),
+			playFn({
+				data: {
+					courseId: params.courseId,
+					learnerId: deps.learnerId,
+				},
+			}),
+		]),
 });
 
 function RouteComponent() {
-	const { courseId } = Route.useParams();
 	const [certOpen, setCertOpen] = useState(false);
-	const search = Route.useSearch();
-	const { data: course } = useSuspenseQuery({
-		queryKey: [getCourseFn.url, courseId],
-		queryFn: () =>
-			getCourseFn({
-				data: {
-					id: courseId,
-				},
-			}),
-	});
-	const {
-		data: { learner, url, type },
-	} = useSuspenseQuery({
-		queryKey: [playFn.url, courseId, search.learnerId],
-		queryFn: () =>
-			playFn({
-				data: {
-					courseId,
-					learnerId: search.learnerId,
-				},
-			}),
-	});
-	const queryClient = useQueryClient();
+	const [course, { learner, url, type }] = Route.useLoaderData();
 	const t = useTranslations("Certificate");
 
 	const [loading, setLoading] = useState(true);
+	const [completed, setCompleted] = useState(!!learner.completedAt);
 
 	// Update learner mutation
 	const { mutate } = useMutation({
@@ -101,16 +68,10 @@ function RouteComponent() {
 						},
 					},
 					{
-						onSuccess: async (learner) => {
-							queryClient.setQueryData(
-								queryOptions.learners.play({
-									param: {
-										id: learner.courseId,
-										learnerId: learner.id,
-									},
-								}).queryKey,
-								{ learner, url, type },
-							);
+						onSuccess: (learner) => {
+							if (!completed && learner.completedAt) {
+								setCompleted(true);
+							}
 						},
 					},
 				);
@@ -118,14 +79,12 @@ function RouteComponent() {
 		},
 	});
 
-	console.log("ELA", learner);
-
 	useEffect(() => {
 		const hidden = localStorage.getItem(learner.id);
-		if (!!learner.completedAt && !hidden) {
+		if (completed && !hidden) {
 			setCertOpen(true);
 		}
-	}, [learner.completedAt, learner.id]);
+	}, [completed, learner.id]);
 
 	if (!isApiAvailable) {
 		return <div>LMS not available. Please try again later.</div>;

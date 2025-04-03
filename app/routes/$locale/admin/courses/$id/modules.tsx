@@ -15,6 +15,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { locales } from "@/lib/locale";
 import {
 	createModuleFn,
 	deleteModuleFn,
@@ -67,21 +68,23 @@ function RouteComponent() {
 
 	const columns: ColumnDef<Module>[] = [
 		{
-			accessorKey: "id",
+			accessorKey: "versionNumber",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="ID" column={column} />
+				<DataTableColumnHeader title="Version" column={column} />
+			),
+		},
+		{
+			accessorKey: "language",
+			accessorFn: ({ language }) =>
+				locales.find((l) => l.value === language)?.label,
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Language" column={column} />
 			),
 		},
 		{
 			accessorKey: "type",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Type" column={column} />
-			),
-		},
-		{
-			accessorKey: "versionNumber",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Version" column={column} />
 			),
 		},
 		createDataTableActionsColumn<Module>([
@@ -125,6 +128,11 @@ function RouteComponent() {
 								return createModule.mutateAsync(
 									{
 										data: formData,
+										headers: {
+											...(search.locale && {
+												locale: search.locale,
+											}),
+										},
 									},
 									{
 										onSuccess: () => {

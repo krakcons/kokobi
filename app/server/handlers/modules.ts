@@ -11,14 +11,9 @@ import { z } from "zod";
 export const getModulesFn = createServerFn({ method: "GET" })
 	.middleware([localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
-	.handler(async ({ context, data }) => {
-		const locale = context.locale;
-
+	.handler(async ({ data }) => {
 		const moduleList = await db.query.modules.findMany({
-			where: and(
-				eq(modules.courseId, data.courseId),
-				eq(modules.language, locale),
-			),
+			where: and(eq(modules.courseId, data.courseId)),
 			orderBy: desc(modules.versionNumber),
 		});
 
