@@ -53,7 +53,7 @@ export default $config({
 				? "http://localhost:3000"
 				: `https://${domain}`,
 			VITE_ROOT_DOMAIN: LOCAL_STAGES.includes($app.stage)
-				? "localhost:5173"
+				? "localhost:3000"
 				: domain,
 			VITE_CDN_URL: $interpolate`https://${bucket.domain}`,
 		};

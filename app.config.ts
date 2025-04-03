@@ -2,7 +2,6 @@
 import { defineConfig } from "@tanstack/react-start/config";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
-import { env } from "@/server/env";
 
 export default defineConfig({
 	server: {
@@ -10,8 +9,18 @@ export default defineConfig({
 		routeRules: {
 			"/cdn/**": {
 				proxy: {
-					to: env.VITE_CDN_URL + "/**",
+					to: process.env.VITE_CDN_URL + "/**",
 				},
+			},
+		},
+		rollupConfig: {
+			output: {
+				format: "esm",
+			},
+		},
+		esbuild: {
+			options: {
+				target: "es2022",
 			},
 		},
 	},

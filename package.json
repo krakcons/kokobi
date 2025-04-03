@@ -4,8 +4,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "bunx --bun vinxi dev",
-		"start": "vinxi start",
-		"build": "vinxi build",
+		"start": "bunx --bun vinxi start",
+		"build": "bunx --bun vinxi build",
 		"generate-routes": "tsr generate",
 		"watch-routes": "tsr watch",
 		"email": "email dev --dir app/emails --port 3001",
