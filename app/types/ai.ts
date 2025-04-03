@@ -34,6 +34,12 @@ export const ScenarioSchema = z.object({
 	description: z.string(),
 });
 
+export const MessageSchema = z.object({
+	id: z.string(),
+	role: z.enum(["user", "assistant"]),
+	content: z.string(),
+});
+
 export const AssistantInputSchema = z.object({
 	model: z.enum(["gpt-4o", "gpt-4o-mini"]),
 	scenario: ScenarioSchema,

@@ -8,10 +8,15 @@ import { Trash } from "lucide-react";
 import { fetchFile } from "@/lib/file";
 import { env } from "@/env";
 import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
+import { LocaleSchema } from "@/lib/locale";
+import { z } from "zod";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
-	loaderDeps: ({ search: { locale } }) => ({ locale }),
+	validateSearch: z.object({
+		locale: LocaleSchema.optional(),
+	}),
+	loaderDeps: ({ search }) => ({ locale: search.locale }),
 	loader: ({ deps }) =>
 		getTeamFn({
 			headers: {

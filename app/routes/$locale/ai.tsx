@@ -5,7 +5,9 @@ import { parsePartialJson } from "@ai-sdk/ui-utils";
 import {
 	AssistantInputSchema,
 	AssistantInputType,
+	AssistantResponseSchema,
 	AssistantResponseType,
+	MessageSchema,
 } from "@/types/ai";
 import {
 	Collapsible,
@@ -15,7 +17,9 @@ import {
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
-import { env } from "@/env";
+import { streamText, Output, coreMessageSchema } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { createServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/$locale/ai")({
 	component: RouteComponent,
@@ -41,11 +45,69 @@ const parseAssistantMessage = (
 	return undefined;
 };
 
+const genAIResponse = createServerFn({ method: "POST", response: "raw" })
+	.validator(
+		AssistantInputSchema.extend({ messages: coreMessageSchema.array() }),
+	)
+	.handler(
+		async ({ data: { model, scenario, messages, stats, evaluations } }) => {
+			const system = [
+				// INTRO
+				`You are a specific CHARACTER ${JSON.stringify(scenario.character)}.`,
+				// ACTION
+				`You should respond as if you were the CHARACTER.`,
+				// SCENARIO
+				`You should respond in context of this specific scenario ${JSON.stringify(scenario.description)}`,
+				// USER
+				`You should respond as if you were talking to the user: ${JSON.stringify(scenario.user)}`,
+				// STATS
+				`You should maintain personal stats here: ${JSON.stringify(stats)}. Use previous messages to see where your stats are and adjust them according to new messages (ex: Mood could be a stat and if the user says something to offend you, you can lower mood)`,
+				// EVALUATIONS
+				`Separately from your character you should analyze the incoming messages: ${JSON.stringify(evaluations)}. (ex. Politness, if the user says something rude you can evaluate their politness low)`,
+			];
+			try {
+				const result = streamText({
+					model: openai(model),
+					system: system.join(" "),
+					experimental_output: Output.object({
+						schema: AssistantResponseSchema,
+					}),
+					messages,
+				});
+
+				return result.toDataStreamResponse();
+			} catch (error) {
+				console.error("Error in genAIResponse:", error);
+				if (
+					error instanceof Error &&
+					error.message.includes("rate limit")
+				) {
+					throw new Error(
+						"Rate limit exceeded. Please try again in a moment.",
+					);
+				}
+				throw new Error(
+					error instanceof Error
+						? error.message
+						: "Failed to get AI response",
+				);
+			}
+		},
+	);
+
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const { options } = Route.useSearch();
 	const { append, messages } = useChat({
-		api: env.VITE_SITE_URL + "/api/ai/chat",
+		initialMessages: [],
+		fetch: (_, options) => {
+			const body = JSON.parse(options!.body! as string);
+			console.log("BODY", body);
+			console.log("MESSAGES", body.messages);
+			return genAIResponse({
+				data: body,
+			});
+		},
 	});
 	const form = useAppForm({
 		defaultValues: {
@@ -102,6 +164,7 @@ function RouteComponent() {
 				},
 			);
 			navigate({
+				replace: true,
 				search: {
 					options: body,
 				},
@@ -113,6 +176,7 @@ function RouteComponent() {
 	return (
 		<div className="max-w-xl mx-auto w-full flex flex-col min-h-[100svh] justify-end py-8 px-4 gap-8">
 			{messages.map((m) => {
+				console.log("MESSAGE", m);
 				if (m.role === "user") {
 					return (
 						<div
@@ -130,20 +194,22 @@ function RouteComponent() {
 				return (
 					<div key={m.id} className="self-start flex-col flex gap-2">
 						<p>{json?.content}</p>
-						<div className="border px-3 py-2 rounded flex flex-col gap-2">
-							{json.stats &&
-								json.stats.map((s) => (
-									<p key={s.name}>
-										{s.name} ({s.value})
-									</p>
-								))}
-							{json.evaluations &&
-								json.evaluations.map((s) => (
-									<p key={s.name}>
-										{s.name} ({s.value})
-									</p>
-								))}
-						</div>
+						{(json.stats || json.evaluations) && (
+							<div className="border px-3 py-2 rounded flex flex-col gap-2">
+								{json.stats &&
+									json.stats.map((s) => (
+										<p key={s.name}>
+											{s.name} ({s.value})
+										</p>
+									))}
+								{json.evaluations &&
+									json.evaluations.map((s) => (
+										<p key={s.name}>
+											{s.name} ({s.value})
+										</p>
+									))}
+							</div>
+						)}
 					</div>
 				);
 			})}
