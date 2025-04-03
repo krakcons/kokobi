@@ -49,14 +49,11 @@ export default $config({
 			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-prod`,
 			S3_BUCKET: bucket.name,
 			// URLS
-			VITE_API_URL: LOCAL_STAGES.includes($app.stage)
+			VITE_SITE_URL: LOCAL_STAGES.includes($app.stage)
 				? "http://localhost:3000"
 				: `https://${domain}`,
-			VITE_SITE_URL: LOCAL_STAGES.includes($app.stage)
-				? "http://localhost:5173"
-				: `https://${domain}`,
 			VITE_ROOT_DOMAIN: LOCAL_STAGES.includes($app.stage)
-				? "localhost:5173"
+				? "localhost:3000"
 				: domain,
 			VITE_CDN_URL: $interpolate`https://${bucket.domain}`,
 		};
@@ -90,14 +87,14 @@ export default $config({
 		//}
 
 		const cluster = new sst.aws.Cluster("Cluster", { vpc });
-		const service = new sst.aws.Service("Bun", {
+		const service = new sst.aws.Service("Client", {
 			link: [bucket, aurora, email],
 			cluster,
 			serviceRegistry: {
 				port: 3000,
 			},
 			dev: {
-				command: "bun dev:bun",
+				command: "bun dev",
 			},
 			environment,
 		});
@@ -117,12 +114,6 @@ export default $config({
 			link: [aurora],
 			dev: {
 				command: "drizzle-kit studio",
-			},
-			environment,
-		});
-		new sst.x.DevCommand("Vite", {
-			dev: {
-				command: "bun dev",
 			},
 			environment,
 		});
