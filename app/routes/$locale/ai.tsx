@@ -14,12 +14,20 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronRight, Filter, Sliders } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { z } from "zod";
 import { streamText, Output, coreMessageSchema } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { createServerFn } from "@tanstack/react-start";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/$locale/ai")({
 	component: RouteComponent,
@@ -116,19 +124,19 @@ function RouteComponent() {
 				model: "gpt-4o-mini",
 				scenario: {
 					character: {
-						name: "Marge",
+						name: "Sara",
 						age: "52",
+						gender: "Woman",
+						pronouns: "She/Her",
+						sexuality: "Hetero",
 						education: "Highschool",
 						country: "Canada",
-						gender: "Woman",
-						sexuality: "Hetero",
-						location: "Hamilton",
-						pronouns: "She/Her",
+						location: "Toronto",
 						ethnicity: "White",
 					},
-					user: "A call center employee picking up the phone",
+					user: "A call center user picking up the phone",
 					description:
-						"Character is calling the user due to having a panic attack while having a panic attack.",
+						"Character is calling the Toronto Community Crisis Line. They are experiencing a mental health crisis. They are scattered in their conversation and would really like to talk to someone in person. Only provide an address and unit number when asked.",
 				},
 				evaluations: [
 					{
@@ -136,6 +144,18 @@ function RouteComponent() {
 						description:
 							"Measure of how polite the user message is",
 						value: "1-100: 1 is very rude and 100 being super nice.",
+					},
+					{
+						name: "Address",
+						description:
+							"Measure whether the user asked for the address",
+						value: "1-100: 1 is no address and 100 is a full address is given",
+					},
+					{
+						name: "Age",
+						description:
+							"Did the user ask about the age of the caller",
+						value: "1-100: 1 is not asking and 100 is asking",
 					},
 				],
 				stats: [
@@ -174,14 +194,14 @@ function RouteComponent() {
 	});
 
 	return (
-		<div className="max-w-xl mx-auto w-full flex flex-col min-h-[100svh] justify-end py-8 px-4 gap-8">
+		<div className="max-w-2xl mx-auto w-full flex flex-col min-h-[100svh] justify-end p-4 gap-8">
 			{messages.map((m) => {
 				console.log("MESSAGE", m);
 				if (m.role === "user") {
 					return (
 						<div
 							key={m.id}
-							className="self-end bg-muted px-3 py-2 rounded max-w-[70%]"
+							className="self-end bg-blue-500 text-white px-3 py-2 rounded max-w-[70%]"
 						>
 							{m.content}
 						</div>
@@ -219,27 +239,40 @@ function RouteComponent() {
 						e.preventDefault();
 						form.handleSubmit();
 					}}
-					className="flex flex-col gap-4"
+					className="flex flex-row justify-between gap-2"
 				>
-					<form.AppField
-						name="content"
-						children={(field) => (
-							<field.TextField
-								placeholder="Enter your response"
-								label=""
-								className="h-14"
-							/>
-						)}
-					/>
-					<button type="submit" className="hidden" />
-					<Collapsible className="group/collapsible">
-						<CollapsibleTrigger className="flex gap-2">
-							<>
-								Customize
-								<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-							</>
-						</CollapsibleTrigger>
-						<CollapsibleContent className="flex flex-col gap-4 py-4">
+					<div className="flex-1">
+						<form.AppField
+							name="content"
+							children={(field) => (
+								<field.TextField
+									placeholder="Enter your response"
+									label=""
+									className="h-14"
+								/>
+							)}
+						/>
+						<button type="submit" className="hidden" />
+					</div>
+					<Dialog>
+						<DialogTrigger
+							className={buttonVariants({
+								variant: "secondary",
+								className: "h-14",
+							})}
+							aria-label="Customize"
+						>
+							<Sliders />
+							<p className="hidden sm:block">Customize</p>
+						</DialogTrigger>
+						<DialogContent className="flex flex-col gap-4 py-4">
+							<DialogHeader>
+								<DialogTitle>Customize Scenario</DialogTitle>
+								<DialogDescription>
+									Customize the scenario for the AI, including
+									the persona, evaluations and stats.
+								</DialogDescription>
+							</DialogHeader>
 							<form.AppField
 								name="model"
 								children={(field) => (
@@ -461,8 +494,8 @@ function RouteComponent() {
 									</div>
 								)}
 							/>
-						</CollapsibleContent>
-					</Collapsible>
+						</DialogContent>
+					</Dialog>
 				</form>
 			</form.AppForm>
 		</div>
