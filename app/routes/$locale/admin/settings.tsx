@@ -15,7 +15,7 @@ export const Route = createFileRoute("/$locale/admin/settings")({
 	loader: ({ deps }) =>
 		getTeamFn({
 			headers: {
-				locale: deps.locale ?? "",
+				...(deps.locale && { locale: deps.locale }),
 				fallbackLocale: "none",
 			},
 		}),
@@ -75,7 +75,7 @@ function RouteComponent() {
 					return updateTeam.mutateAsync({
 						data: formData,
 						headers: {
-							locale: search.locale ?? "",
+							...(search.locale && { locale: search.locale }),
 						},
 					});
 				}}

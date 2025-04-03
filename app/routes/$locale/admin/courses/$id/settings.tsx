@@ -20,7 +20,7 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
 				courseId: params.id,
 			},
 			headers: {
-				locale: deps.locale ?? "",
+				...(deps.locale && { locale: deps.locale }),
 				fallbackLocale: "none",
 			},
 		}),
@@ -53,8 +53,8 @@ function RouteComponent() {
 				title="Settings"
 				description="Edit your course settings"
 			/>
+			{course.name}
 			<CourseForm
-				key={course.language}
 				defaultValues={course}
 				onSubmit={(values) =>
 					updateCourse.mutateAsync({
@@ -63,7 +63,7 @@ function RouteComponent() {
 							id: params.id,
 						},
 						headers: {
-							locale: search.locale ?? "",
+							...(search.locale && { locale: search.locale }),
 						},
 					})
 				}

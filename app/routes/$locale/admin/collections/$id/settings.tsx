@@ -21,7 +21,7 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/settings")(
 					id: params.id,
 				},
 				headers: {
-					locale: deps.locale ?? "",
+					...(deps.locale && { locale: deps.locale }),
 					fallbackLocale: "none",
 				},
 			}),
@@ -62,7 +62,7 @@ function RouteComponent() {
 							id: params.id,
 						},
 						headers: {
-							locale: search.locale ?? "",
+							...(search.locale && { locale: search.locale }),
 						},
 					})
 				}

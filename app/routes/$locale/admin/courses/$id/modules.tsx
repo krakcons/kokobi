@@ -20,7 +20,7 @@ import {
 	deleteModuleFn,
 	getModulesFn,
 } from "@/server/handlers/modules";
-import { Module, ModuleFormType } from "@/types/module";
+import { Module } from "@/types/module";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/modules")({
 				courseId: param.id,
 			},
 			headers: {
-				locale: deps.locale ?? "",
+				...(deps.locale && { locale: deps.locale }),
 				fallbackLocale: "none",
 			},
 		}),

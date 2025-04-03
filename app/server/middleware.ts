@@ -52,13 +52,10 @@ export const teamMiddleware = ({ role = "member" }: { role?: Role } = {}) =>
 		});
 
 export const localeMiddleware = createMiddleware().server(async ({ next }) => {
-	const locale = getHeader("locale") ?? getCookie("locale");
-	const fallbackLocale = getHeader("fallbackLocale");
-
 	return next({
 		context: LocalizedInputSchema.parse({
-			locale: locale !== "" ? locale : undefined,
-			fallbackLocale: fallbackLocale !== "" ? fallbackLocale : undefined,
+			locale: getHeader("locale") ?? getCookie("locale"),
+			fallbackLocale: getHeader("fallbackLocale"),
 		}),
 	});
 });
