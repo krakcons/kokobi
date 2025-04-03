@@ -7,7 +7,15 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { fetchFile } from "@/lib/file";
 import { env } from "@/env";
-import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
+import {
+	deleteTeamFn,
+	DomainFormSchema,
+	DomainFormType,
+	getTeamFn,
+	updateDomainFn,
+	updateTeamFn,
+} from "@/server/handlers/teams";
+import { useAppForm } from "@/components/ui/form";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
@@ -21,14 +29,57 @@ export const Route = createFileRoute("/$locale/admin/settings")({
 		}),
 });
 
+const DomainForm = ({
+	defaultValues,
+	onSubmit,
+}: {
+	defaultValues?: DomainFormType;
+	onSubmit: (values: DomainFormType) => Promise<any>;
+}) => {
+	const form = useAppForm({
+		defaultValues: {
+			customDomain: undefined,
+			...defaultValues,
+		} as DomainFormType,
+		validators: {
+			onSubmit: DomainFormSchema,
+		},
+		onSubmit: ({ value }) => onSubmit(value),
+	});
+
+	return (
+		<form.AppForm>
+			<form
+				onSubmit={(e) => e.preventDefault()}
+				className="flex flex-col gap-8"
+			>
+				<form.AppField
+					name="customDomain"
+					children={(field) => (
+						<field.TextField label="Custom Domain" optional />
+					)}
+				/>
+				<form.SubmitButton />
+			</form>
+		</form.AppForm>
+	);
+};
+
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
 	const team = Route.useLoaderData();
-	console.log(team);
 	const router = useRouter();
 
+	console.log(team);
+
+	const updateDomain = useMutation({
+		mutationFn: updateDomainFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
 	const updateTeam = useMutation({
 		mutationFn: updateTeamFn,
 		onSuccess: () => {
@@ -81,7 +132,14 @@ function RouteComponent() {
 				}}
 			/>
 			<Separator className="my-4" />
-			<PageSubHeader title="Domains" description="WIP" />
+			<PageSubHeader
+				title="Domain"
+				description="Set a custom domain to serve your team's content"
+			/>
+			<DomainForm
+				defaultValues={team}
+				onSubmit={async (data) => updateDomain.mutateAsync({ data })}
+			/>
 			<Separator className="my-4" />
 			<PageSubHeader
 				title="Delete Team"

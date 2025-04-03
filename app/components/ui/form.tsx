@@ -73,8 +73,8 @@ export const Title = (props: DefaultOptions) => {
 };
 
 export const Error = ({ errors = [] }: { errors?: any[] }) => {
-	return errors.map((e) => (
-		<em role="alert" className="text-destructive text-sm">
+	return errors.map((e, i) => (
+		<em key={i} role="alert" className="text-destructive text-sm">
 			{e.message
 				?.toString()
 				.split(" ")
