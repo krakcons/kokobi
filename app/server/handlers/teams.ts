@@ -135,7 +135,25 @@ export const updateDomainFn = createServerFn({ method: "POST" })
 			})
 			.where(eq(teams.id, teamId));
 
+		// TODO: Add domain to ACM
+
 		return null;
+	});
+
+export const getTeamDomainFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.handler(async ({ context }) => {
+		const teamId = context.teamId;
+
+		const team = await db.query.teams.findFirst({
+			where: eq(teams.id, teamId),
+		});
+
+		if (!team) {
+			throw new Error("Team not found.");
+		}
+
+		return {};
 	});
 
 export const updateTeamFn = createServerFn({ method: "POST" })

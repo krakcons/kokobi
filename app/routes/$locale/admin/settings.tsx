@@ -11,6 +11,7 @@ import {
 	deleteTeamFn,
 	DomainFormSchema,
 	DomainFormType,
+	getTeamDomainFn,
 	getTeamFn,
 	updateDomainFn,
 	updateTeamFn,
@@ -21,12 +22,15 @@ export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: ({ deps }) =>
-		getTeamFn({
-			headers: {
-				...(deps.locale && { locale: deps.locale }),
-				fallbackLocale: "none",
-			},
-		}),
+		Promise.all([
+			getTeamFn({
+				headers: {
+					...(deps.locale && { locale: deps.locale }),
+					fallbackLocale: "none",
+				},
+			}),
+			getTeamDomainFn(),
+		]),
 });
 
 const DomainForm = ({
@@ -69,10 +73,10 @@ function RouteComponent() {
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const team = Route.useLoaderData();
+	const [team, domains] = Route.useLoaderData();
 	const router = useRouter();
 
-	console.log(team);
+	console.log(domains);
 
 	const updateDomain = useMutation({
 		mutationFn: updateDomainFn,

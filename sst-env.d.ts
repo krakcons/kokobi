@@ -20,10 +20,6 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
-    "Client": {
-      "service": string
-      "type": "sst.aws.Service"
-    }
     "Email": {
       "configSet": string
       "sender": string
@@ -40,6 +36,11 @@ declare module "sst" {
     "OPENAI_API_KEY": {
       "type": "sst.sst.Secret"
       "value": string
+    }
+    "TSS": {
+      "service": string
+      "type": "sst.aws.Service"
+      "url": string
     }
     "Vpc": {
       "bastion": string
