@@ -12,6 +12,16 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const createCollection = useMutation({
 		mutationFn: createCollectionFn,
+		onSuccess: (data) => {
+			navigate({
+				to: "/$locale/admin/collections/$id/learners",
+				params: (p) => ({
+					...p,
+					id: data.id,
+				}),
+				search: (s) => s,
+			});
+		},
 	});
 	const search = Route.useSearch();
 
@@ -22,22 +32,16 @@ function RouteComponent() {
 				description="Enter the details of your collection below."
 			/>
 			<CollectionForm
-				onSubmit={async (value) => {
-					const data = await createCollection.mutateAsync({
+				onSubmit={(value) =>
+					createCollection.mutateAsync({
 						data: {
 							...value,
-							locale: search.locale,
 						},
-					});
-					navigate({
-						to: "/$locale/admin/collections/$id/learners",
-						params: (p) => ({
-							...p,
-							id: data.id,
-						}),
-						search: (s) => s,
-					});
-				}}
+						headers: {
+							...(search.locale && { locale: search.locale }),
+						},
+					})
+				}
 			/>
 		</Page>
 	);

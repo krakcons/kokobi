@@ -10,8 +10,17 @@ export const Route = createFileRoute("/$locale/admin/courses/create")({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
-	const { mutateAsync } = useMutation({
+	const createCourse = useMutation({
 		mutationFn: createCourseFn,
+		onSuccess: (data) => {
+			navigate({
+				to: "/$locale/admin/courses/$id/learners",
+				params: {
+					id: data.id,
+				},
+				search: (s) => s,
+			});
+		},
 	});
 	const search = Route.useSearch();
 
@@ -22,21 +31,16 @@ function RouteComponent() {
 				description="Enter the details of your course below."
 			/>
 			<CourseForm
-				onSubmit={async (values) => {
-					const data = await mutateAsync({
+				onSubmit={(values) =>
+					createCourse.mutateAsync({
 						data: {
 							...values,
-							locale: search.locale,
 						},
-					});
-					navigate({
-						to: "/$locale/admin/courses/$id/learners",
-						params: {
-							id: data.id,
+						headers: {
+							...(search.locale && { locale: search.locale }),
 						},
-						search: (s) => s,
-					});
-				}}
+					})
+				}
 			/>
 		</Page>
 	);

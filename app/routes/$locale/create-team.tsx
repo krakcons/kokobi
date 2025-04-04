@@ -11,10 +11,20 @@ export const Route = createFileRoute("/$locale/create-team")({
 
 function RouteComponent() {
 	const locale = useLocale();
+	const navigate = Route.useNavigate();
 	const createTeam = useMutation({
 		mutationFn: createTeamFn,
+		onSuccess: () => {
+			navigate({
+				to: "/$locale/admin",
+				params: {
+					locale,
+				},
+				search: (s) => s,
+				reloadDocument: true,
+			});
+		},
 	});
-	const navigate = Route.useNavigate();
 
 	return (
 		<FloatingPage>
@@ -25,20 +35,13 @@ function RouteComponent() {
 				/>
 				<TeamForm
 					collapsible
-					onSubmit={(values) =>
-						createTeam.mutateAsync(values, {
-							onSuccess: () => {
-								navigate({
-									to: "/$locale/admin",
-									params: {
-										locale,
-									},
-									search: (s) => s,
-									reloadDocument: true,
-								});
-							},
-						})
-					}
+					onSubmit={(values) => {
+						const formData = new FormData();
+						for (const [key, value] of Object.entries(values)) {
+							formData.append(key, value);
+						}
+						createTeam.mutateAsync({ data: formData });
+					}}
 				/>
 			</div>
 		</FloatingPage>

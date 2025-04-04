@@ -10,7 +10,11 @@ import { s3 } from "@/server/s3";
 import { InviteMemberFormSchema, TeamFormSchema } from "@/types/team";
 import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
-import { localeMiddleware, teamMiddleware } from "../middleware";
+import {
+	localeMiddleware,
+	protectedMiddleware,
+	teamMiddleware,
+} from "../middleware";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { locales } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
@@ -69,21 +73,24 @@ export const getTeamFn = createServerFn({ method: "GET" })
 	});
 
 export const createTeamFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware({ role: "owner" }), localeMiddleware])
-	.validator(TeamFormSchema)
-	.handler(async ({ context, data }) => {
+	.middleware([protectedMiddleware, localeMiddleware])
+	.validator(z.instanceof(FormData))
+	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const userId = context.user.id;
-		const teamId = context.teamId;
+
+		const data = TeamFormSchema.parse(
+			Object.fromEntries(formData.entries()),
+		);
+		const id = Bun.randomUUIDv7();
 
 		if (data.logo) {
-			await s3.write(`${teamId}/${locale}/logo`, data.logo);
+			await s3.write(`${id}/${locale}/logo`, data.logo);
 		}
 		if (data.favicon) {
-			await s3.write(`${teamId}/${locale}/favicon`, data.favicon);
+			await s3.write(`${id}/${locale}/favicon`, data.favicon);
 		}
 
-		const id = Bun.randomUUIDv7();
 		await db.insert(teams).values({ id });
 		await db.insert(teamTranslations).values({
 			name: data.name,

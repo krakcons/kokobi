@@ -106,7 +106,7 @@ function RouteComponent() {
 	});
 
 	const { data } = useQuery({
-		queryKey: ["team-logo-favicon", team.id],
+		queryKey: ["team-logo-favicon", team.id, team.language, team.updatedAt],
 		queryFn: async () => {
 			const logo = await fetchFile(
 				`${env.VITE_SITE_URL}/cdn/${team.id}/${team.language}/logo?updatedAt=${team.updatedAt}`,
