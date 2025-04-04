@@ -43,13 +43,18 @@ export const PageHeader = ({
 export const PageSubHeader = ({
 	title,
 	description,
+	children,
 }: {
 	title: string;
 	description: string;
+	children?: React.ReactNode;
 }) => (
-	<div className="flex flex-col gap-2">
-		<h3>{title}</h3>
-		<p>{description}</p>
+	<div className="flex items-end justify-between">
+		<div className="flex flex-col gap-2">
+			<h3>{title}</h3>
+			<p>{description}</p>
+		</div>
+		{children}
 	</div>
 );
 

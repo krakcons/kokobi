@@ -34,14 +34,20 @@ export default $config({
 
 		const vpc = sst.aws.Vpc.get("Vpc", "vpc-08c28b23ee20f3975");
 		const aurora = sst.aws.Aurora.get("Aurora", "krak-prod-auroracluster");
+
 		const dns = sst.cloudflare.dns({
 			proxy: true,
+		});
+		const cloudflareZone = cloudflare.getZoneOutput({
+			name: ROOT_DOMAIN,
 		});
 		const bucket = new sst.aws.Bucket("Bucket", {
 			access: "public",
 		});
 
 		const environment = {
+			CLOUDFLARE_ZONE_TOKEN: process.env.CLOUDFLARE_ZONE_TOKEN,
+			CLOUDFLARE_ZONE_ID: cloudflareZone.id,
 			GOOGLE_CLIENT_SECRET: new sst.Secret("GOOGLE_CLIENT_SECRET").value,
 			GOOGLE_CLIENT_ID: new sst.Secret("GOOGLE_CLIENT_ID").value,
 			OPENAI_API_KEY: new sst.Secret("OPENAI_API_KEY").value,
@@ -62,9 +68,6 @@ export default $config({
 			sender: emailDomain,
 			dns,
 		});
-		//const cloudflareZone = cloudflare.getZoneOutput({
-		//	name: ROOT_DOMAIN,
-		//});
 		//if (email) {
 		//	new aws.ses.MailFrom("MailFrom", {
 		//		mailFromDomain: emailDomain,

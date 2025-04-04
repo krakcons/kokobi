@@ -40,7 +40,18 @@ export const users = pgTable("users", {
 
 export const teams = pgTable("teams", {
 	id: text("id").primaryKey(),
-	customDomain: text("customDomain").unique(),
+	...dates,
+});
+
+export const domains = pgTable("domains", {
+	id: text("id").primaryKey(),
+	teamId: text("teamId")
+		.notNull()
+		.references(() => teams.id, {
+			onDelete: "cascade",
+		}),
+	hostname: text("hostname").unique().notNull(),
+	hostnameId: text("hostnameId").notNull(),
 	...dates,
 });
 
@@ -233,6 +244,14 @@ export const teamRelations = relations(teams, ({ many }) => ({
 	keys: many(keys),
 	translations: many(teamTranslations),
 	learners: many(learners),
+	domains: many(domains),
+}));
+
+export const domainsRelations = relations(domains, ({ one }) => ({
+	team: one(teams, {
+		fields: [domains.teamId],
+		references: [teams.id],
+	}),
 }));
 
 export const usersToTeamsRelations = relations(usersToTeams, ({ one }) => ({
@@ -356,6 +375,7 @@ export const tableSchemas = {
 	users,
 	sessions,
 	teams,
+	domains,
 	usersToTeams,
 	keys,
 	collections,
@@ -372,6 +392,7 @@ export const relationSchemas = {
 	usersRelations,
 	sessionRelations,
 	teamRelations,
+	domainsRelations,
 	coursesRelations,
 	learnersRelations,
 	usersToTeamsRelations,

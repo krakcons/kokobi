@@ -17,6 +17,7 @@ import { sendEmail } from "../email";
 import CollectionInvite from "@/emails/CollectionInvite";
 import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { createServerFn } from "@tanstack/react-start";
+import { createJoinLink } from "@/lib/invite";
 
 export const getCollectionsFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -141,7 +142,11 @@ export const getCollectionLearnersFn = createServerFn({ method: "GET" })
 				module: true,
 				course: {
 					with: {
-						team: true,
+						team: {
+							with: {
+								domains: true,
+							},
+						},
 					},
 				},
 			},
@@ -153,10 +158,15 @@ export const getCollectionLearnersFn = createServerFn({ method: "GET" })
 				module: learner.module,
 				joinLink:
 					context.role === "owner"
-						? learner.course.team?.customDomain &&
-							env.VITE_SITE_URL !== "http://localhost:3000"
-							? `https://${learner.course.team.customDomain}/courses/${learner.course.id}/join?learnerId=${learner.id}`
-							: `${env.VITE_SITE_URL}/play/${learner.course.team?.id}/courses/${learner.course.id}/join?learnerId=${learner.id}`
+						? createJoinLink({
+								domain:
+									learner.course.team.domains.length > 0
+										? learner.course.team.domains[0]
+										: undefined,
+								courseId: learner.course.id,
+								teamId: learner.course.team.id,
+								learnerId: learner.id,
+							})
 						: undefined,
 			};
 		});
@@ -264,6 +274,7 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 				team: {
 					with: {
 						translations: true,
+						domains: true,
 					},
 				},
 			},
@@ -332,11 +343,13 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 				}
 				const id = finalLearner.id;
 
-				const href =
-					team?.customDomain &&
-					env.VITE_SITE_URL !== "http://localhost:3000"
-						? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${l.course.id}/join?learnerId=${id}`
-						: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${l.course.id}/join?learnerId=${id}`;
+				const href = createJoinLink({
+					domain:
+						team.domains.length > 0 ? team.domains[0] : undefined,
+					courseId: l.course.id,
+					teamId: team.id,
+					learnerId: id,
+				});
 
 				return {
 					href,

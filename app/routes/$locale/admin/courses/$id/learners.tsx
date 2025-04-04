@@ -32,6 +32,7 @@ import {
 } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
 import { env } from "@/env";
+import { createJoinLink } from "@/lib/invite";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -154,9 +155,11 @@ function RouteComponent() {
 		]),
 	];
 
-	const inviteLink = team.customDomain
-		? `https://${team.customDomain}/play/${team.id}/courses/${params.id}/join`
-		: `${env.VITE_SITE_URL}/play/${team.id}/courses/${params.id}/join`;
+	const inviteLink = createJoinLink({
+		domain: team.domains.length > 0 ? team.domains[0] : undefined,
+		courseId: params.id,
+		teamId: team.id,
+	});
 
 	return (
 		<Page>
@@ -197,7 +200,7 @@ function RouteComponent() {
 					</DialogContent>
 				</Dialog>
 			</PageHeader>
-			<div className="bg-secondary rounded flex gap-2 items-center px-3 py-2">
+			<div className="bg-secondary rounded flex gap-2 items-center px-3 py-2 overflow-x-auto">
 				<p className="truncate text-sm text-muted-foreground">
 					{inviteLink}
 				</p>

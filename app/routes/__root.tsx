@@ -18,20 +18,20 @@ import { getRequestHost } from "vinxi/http";
 import { env } from "@/server/env";
 import { db } from "@/server/db";
 import { eq } from "drizzle-orm";
-import { teams } from "@/server/db/schema";
+import { domains } from "@/server/db/schema";
 
 const getTenant = createServerFn({ method: "GET" }).handler(async () => {
-	const host = getRequestHost();
+	const hostname = getRequestHost();
 
-	if (host === env.VITE_ROOT_DOMAIN) {
+	if (hostname === env.VITE_ROOT_DOMAIN) {
 		return null;
 	}
 
-	const team = await db.query.teams.findFirst({
-		where: eq(teams.customDomain, host),
+	const domain = await db.query.domains.findFirst({
+		where: eq(domains.hostname, hostname),
 	});
 
-	return team ?? null;
+	return domain ? domain.teamId : null;
 });
 
 // http://localhost:3000/courses/019600d9-c45e-7000-9483-7d88eb3d9ee8?learnerId=019600db-5b76-7000-a930-77de7c04eb60
@@ -65,27 +65,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					});
 				}
 
-				const tenant = await getTenant();
-				if (tenant) {
+				const teamId = await getTenant();
+				if (teamId) {
 					if (
 						!location.pathname.startsWith(
-							`/${pathLocale}/play/${tenant.id}`,
+							`/${pathLocale}/play/${teamId}`,
 						)
 					) {
 						throw notFound();
 					}
 				}
 			}
-			if (location.pathname.includes("/scormcontent/0")) {
-				throw redirect({
-					replace: true,
-					reloadDocument: true,
-					href: location.pathname.replace(
-						"/scormcontent/0",
-						"/scormcontent/index.html",
-					),
-				});
-			}
+
 			return { locale };
 		},
 		pendingComponent: () => (

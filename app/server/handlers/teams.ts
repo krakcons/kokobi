@@ -1,5 +1,6 @@
 import { db } from "@/server/db";
 import {
+	domains,
 	learners,
 	teamTranslations,
 	teams,
@@ -19,6 +20,8 @@ import { handleLocalization } from "@/lib/locale/helpers";
 import { locales } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, setCookie } from "@tanstack/react-start/server";
+import { cf } from "../cloudflare";
+import { env } from "../env";
 
 export const getTeamMembersFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware({ role: "owner" })])
@@ -62,6 +65,7 @@ export const getTeamFn = createServerFn({ method: "GET" })
 			where: eq(teams.id, teamId),
 			with: {
 				translations: true,
+				domains: true,
 			},
 		});
 
@@ -116,33 +120,74 @@ export const createTeamFn = createServerFn({ method: "POST" })
 	});
 
 export const DomainFormSchema = z.object({
-	customDomain: z
+	hostname: z
 		.string()
 		.regex(
 			new RegExp(
 				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
 			),
 			"Invalid domain format, use format (example.com)",
-		)
-		.or(z.literal(""))
-		.optional(),
+		),
 });
 export type DomainFormType = z.infer<typeof DomainFormSchema>;
-export const updateDomainFn = createServerFn({ method: "POST" })
+export const createDomainFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.validator(DomainFormSchema)
-	.handler(async ({ context, data: { customDomain } }) => {
+	.handler(async ({ context, data: { hostname } }) => {
 		const teamId = context.teamId;
 
-		await db
-			.update(teams)
-			.set({
-				customDomain: customDomain !== "" ? customDomain : null,
-				updatedAt: new Date(),
-			})
-			.where(eq(teams.id, teamId));
+		const existingDomain = await db.query.domains.findFirst({
+			where: eq(domains.teamId, teamId),
+		});
 
-		// TODO: Add domain to ACM
+		if (existingDomain) {
+			throw new Error("Domain already exists");
+		}
+
+		const domain = await cf.customHostnames.create({
+			zone_id: env.CLOUDFLARE_ZONE_ID,
+			hostname,
+			ssl: {
+				method: "http",
+				type: "dv",
+				settings: {
+					http2: "on",
+					tls_1_3: "on",
+					min_tls_version: "1.2",
+				},
+			},
+		});
+
+		// TODO: Create ses identity and store in db
+
+		await db.insert(domains).values({
+			id: Bun.randomUUIDv7(),
+			hostname,
+			hostnameId: domain.id,
+			teamId,
+		});
+
+		return null;
+	});
+
+export const deleteTeamDomainFn = createServerFn({ method: "POST" })
+	.validator(z.object({ hostnameId: z.string() }))
+	.middleware([teamMiddleware({ role: "owner" })])
+	.handler(async ({ context, data: { hostnameId } }) => {
+		const teamId = context.teamId;
+
+		await cf.customHostnames.delete(hostnameId, {
+			zone_id: env.CLOUDFLARE_ZONE_ID,
+		});
+
+		await db
+			.delete(domains)
+			.where(
+				and(
+					eq(domains.hostnameId, hostnameId),
+					eq(domains.teamId, teamId),
+				),
+			);
 
 		return null;
 	});
@@ -152,15 +197,19 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 	.handler(async ({ context }) => {
 		const teamId = context.teamId;
 
-		const team = await db.query.teams.findFirst({
-			where: eq(teams.id, teamId),
+		const teamDomain = await db.query.domains.findFirst({
+			where: and(eq(domains.teamId, teamId)),
 		});
 
-		if (!team) {
-			throw new Error("Team not found.");
+		if (!teamDomain) {
+			return undefined;
 		}
 
-		return {};
+		const domain = await cf.customHostnames.get(teamDomain.hostnameId, {
+			zone_id: env.CLOUDFLARE_ZONE_ID,
+		});
+
+		return { ...teamDomain, cloudflare: domain };
 	});
 
 export const updateTeamFn = createServerFn({ method: "POST" })

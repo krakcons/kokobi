@@ -21,6 +21,7 @@ import { getInitialScormData } from "@/lib/scorm";
 import CourseInvite from "@/emails/CourseInvite";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { createJoinLink } from "@/lib/invite";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,
@@ -132,6 +133,7 @@ export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 				team: {
 					with: {
 						translations: true,
+						domains: true,
 					},
 				},
 			},
@@ -183,11 +185,14 @@ export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 					l.inviteLanguage,
 				);
 
-				const href =
-					team?.customDomain &&
-					env.VITE_SITE_URL !== "http://localhost:3000"
-						? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${id}`
-						: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${id}`;
+				const href = createJoinLink({
+					domain:
+						team.domains.length > 0 ? team.domains[0] : undefined,
+					courseId: course.id,
+					teamId: team.id,
+					learnerId: id,
+					locale: l.inviteLanguage,
+				});
 
 				await sendEmail({
 					to: [l.email],
@@ -217,7 +222,11 @@ export const getLearnersFn = createServerFn({ method: "GET" })
 			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
 			with: {
 				translations: true,
-				team: true,
+				team: {
+					with: {
+						domains: true,
+					},
+				},
 			},
 		});
 		if (!course) {
@@ -235,10 +244,15 @@ export const getLearnersFn = createServerFn({ method: "GET" })
 				module: learner.module,
 				joinLink:
 					teamRole === "owner"
-						? course.team?.customDomain &&
-							env.VITE_SITE_URL !== "http://localhost:3000"
-							? `https://${course.team.customDomain}/courses/${course.id}/join?learnerId=${learner.id}`
-							: `${env.VITE_SITE_URL}/play/${course.team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
+						? createJoinLink({
+								domain:
+									course.team.domains.length > 0
+										? course.team.domains[0]
+										: undefined,
+								courseId: course.id,
+								teamId: course.team.id,
+								learnerId: learner.id,
+							})
 						: undefined,
 			};
 		});
@@ -361,6 +375,7 @@ export const updateLearnerFn = createServerFn({ method: "POST" })
 				team: {
 					with: {
 						translations: true,
+						domains: true,
 					},
 				},
 			},
@@ -403,11 +418,14 @@ export const updateLearnerFn = createServerFn({ method: "POST" })
 				const team = handleLocalization(context, learner.team);
 				const course = handleLocalization(context, learner.course);
 
-				const href =
-					team?.customDomain &&
-					env.VITE_SITE_URL !== "http://localhost:3000"
-						? `https://${team.customDomain}${course.language ? `/${course.language}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
-						: `${env.VITE_SITE_URL}/play/${team?.id}/courses/${course.id}/join?learnerId=${learner.id}`;
+				const href = createJoinLink({
+					domain:
+						team.domains.length > 0 ? team.domains[0] : undefined,
+					courseId: course.id,
+					teamId: team.id,
+					learnerId: learner.id,
+					locale: course.language,
+				});
 
 				const t = await createTranslator({
 					locale: learner.module?.language ?? "en",
