@@ -17,6 +17,14 @@ import {
 	updateTeamFn,
 } from "@/server/handlers/teams";
 import { useAppForm } from "@/components/ui/form";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
@@ -144,6 +152,31 @@ function RouteComponent() {
 				defaultValues={team}
 				onSubmit={async (data) => updateDomain.mutateAsync({ data })}
 			/>
+			<Separator className="my-4" />
+			{team.customDomain && (
+				<div>
+					<PageSubHeader
+						title="DNS"
+						description="Required dns records for your custom domain"
+					/>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Type</TableHead>
+								<TableHead>Value</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							<TableRow>
+								<TableCell>CNAME</TableCell>
+								<TableHead>
+									{env.VITE_SITE_URL.split("://")[1]}
+								</TableHead>
+							</TableRow>
+						</TableBody>
+					</Table>
+				</div>
+			)}
 			<Separator className="my-4" />
 			<PageSubHeader
 				title="Delete Team"
