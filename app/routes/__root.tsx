@@ -41,11 +41,13 @@ const getTenant = createServerFn({ method: "GET" }).handler(async () => {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
 		beforeLoad: async ({ location }) => {
-			const { locale } = await getI18nFn();
+			const i18n = await getI18nFn();
+			let locale = i18n.locale;
 
 			// Handle locale
 			let pathLocale = location.pathname.split("/")[1];
 			if (!["api", "cdn"].includes(pathLocale)) {
+				console.log(pathLocale);
 				if (!locales.some(({ value }) => value === pathLocale)) {
 					throw redirect({
 						replace: true,
@@ -55,9 +57,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				}
 
 				if (pathLocale !== locale) {
+					locale = pathLocale as Locale;
 					await updateI18nFn({
 						data: {
-							locale: pathLocale as Locale,
+							locale,
 						},
 					});
 				}
@@ -73,6 +76,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					}
 				}
 			}
+			return { locale };
 		},
 		pendingComponent: () => (
 			<FloatingPage>
@@ -80,7 +84,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			</FloatingPage>
 		),
 		component: RootComponent,
-		loader: () => getI18nFn(),
+		loader: ({ context: { locale } }) =>
+			getI18nFn({
+				headers: {
+					locale,
+				},
+			}),
 		head: () => ({
 			meta: [
 				{

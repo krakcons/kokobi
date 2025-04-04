@@ -335,7 +335,7 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 				const href =
 					team?.customDomain &&
 					env.VITE_SITE_URL !== "http://localhost:3000"
-						? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/courses/${l.course.id}/join?learnerId=${id}`
+						? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${l.course.id}/join?learnerId=${id}`
 						: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${l.course.id}/join?learnerId=${id}`;
 
 				return {
@@ -352,7 +352,7 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 				content: (
 					<CollectionInvite
 						name={collectionName}
-						curses={courses}
+						courses={courses}
 						teamName={team.name}
 						logo={`${env.VITE_SITE_URL}/cdn/${collection.team.id}/${team.language}/logo?updatedAt=${team?.updatedAt.toString()}`}
 						t={t.Email.CollectionInvite}

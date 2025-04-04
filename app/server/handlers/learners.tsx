@@ -186,7 +186,7 @@ export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 				const href =
 					team?.customDomain &&
 					env.VITE_SITE_URL !== "http://localhost:3000"
-						? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/courses/${course.id}/join?learnerId=${id}`
+						? `https://${team.customDomain}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${id}`
 						: `${env.VITE_SITE_URL}${l.inviteLanguage ? `/${l.inviteLanguage}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${id}`;
 
 				await sendEmail({
@@ -406,7 +406,7 @@ export const updateLearnerFn = createServerFn({ method: "POST" })
 				const href =
 					team?.customDomain &&
 					env.VITE_SITE_URL !== "http://localhost:3000"
-						? `https://${team.customDomain}${course.language ? `/${course.language}` : ""}/courses/${course.id}/join?learnerId=${learner.id}`
+						? `https://${team.customDomain}${course.language ? `/${course.language}` : ""}/play/${team?.id}/courses/${course.id}/join?learnerId=${learner.id}`
 						: `${env.VITE_SITE_URL}/play/${team?.id}/courses/${course.id}/join?learnerId=${learner.id}`;
 
 				const t = await createTranslator({

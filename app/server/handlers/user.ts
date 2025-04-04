@@ -18,6 +18,7 @@ export const updateI18nFn = createServerFn({ method: "POST" })
 	.validator(z.object({ locale: LocaleSchema }))
 	.handler(async ({ data: { locale } }) => {
 		setCookie("locale", locale);
+		return { locale };
 	});
 
 export const getI18nFn = createServerFn({ method: "GET" })

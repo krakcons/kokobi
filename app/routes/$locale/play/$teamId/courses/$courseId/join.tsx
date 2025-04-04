@@ -72,6 +72,8 @@ function RouteComponent() {
 		mutationFn: joinCourseFn,
 	});
 
+	console.log(locale);
+
 	return (
 		<FloatingPage>
 			<div className="max-w-lg w-full flex flex-col gap-4">
