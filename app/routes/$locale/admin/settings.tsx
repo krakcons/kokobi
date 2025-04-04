@@ -152,9 +152,9 @@ function RouteComponent() {
 				defaultValues={team}
 				onSubmit={async (data) => updateDomain.mutateAsync({ data })}
 			/>
-			<Separator className="my-4" />
 			{team.customDomain && (
-				<div>
+				<>
+					<Separator className="my-4" />
 					<PageSubHeader
 						title="DNS"
 						description="Required dns records for your custom domain"
@@ -175,7 +175,7 @@ function RouteComponent() {
 							</TableRow>
 						</TableBody>
 					</Table>
-				</div>
+				</>
 			)}
 			<Separator className="my-4" />
 			<PageSubHeader
