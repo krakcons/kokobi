@@ -326,6 +326,10 @@ export const getLearnerCertificateFn = createServerFn({ method: "GET" })
 			throw new Error("Learner not found");
 		}
 
+		if (!learner.completedAt) {
+			throw new Error("Learner has not completed the course.");
+		}
+
 		return {
 			learner: ExtendLearner(learner.module.type).parse(learner),
 			course: handleLocalization(context, learner.course),
