@@ -76,6 +76,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					}
 				}
 			}
+			if (location.pathname.includes("/scormcontent/0")) {
+				throw redirect({
+					replace: true,
+					reloadDocument: true,
+					href: location.pathname.replace(
+						"/scormcontent/0",
+						"/scormcontent/index.html",
+					),
+				});
+			}
 			return { locale };
 		},
 		pendingComponent: () => (

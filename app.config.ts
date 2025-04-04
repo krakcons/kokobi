@@ -7,13 +7,14 @@ import { Resource } from "sst";
 export default defineConfig({
 	server: {
 		preset: "bun",
-		routeRules: {
-			"/cdn/**": {
-				proxy: {
-					to: `https://${Resource.Bucket.name}.s3.amazonaws.com/**`,
-				},
-			},
-		},
+		//routeRules: {
+		//	// Move to tss rewrite when available
+		//	"/cdn/**": {
+		//		proxy: {
+		//			to: `https://${Resource.Bucket.name}.s3.amazonaws.com/**`,
+		//		},
+		//	},
+		//},
 		rollupConfig: {
 			output: {
 				format: "esm",
@@ -23,6 +24,17 @@ export default defineConfig({
 			options: {
 				target: "es2022",
 			},
+		},
+	},
+	routers: {
+		api: {
+			middleware: "./middleware.ts",
+		},
+		server: {
+			middleware: "./middleware.ts",
+		},
+		ssr: {
+			middleware: "./middleware.ts",
 		},
 	},
 	vite: {
