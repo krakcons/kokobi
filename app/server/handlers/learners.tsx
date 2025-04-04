@@ -68,7 +68,6 @@ const parseIMSManifest = async (file: S3File) => {
 };
 
 export const joinCourseFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware({ role: "owner" })])
 	.validator(JoinCourseFormSchema.extend({ courseId: z.string() }))
 	.handler(async ({ data }) => {
 		const courseModule = await db.query.modules.findFirst({

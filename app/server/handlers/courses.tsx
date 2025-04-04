@@ -23,7 +23,7 @@ export const getCoursesFn = createServerFn({ method: "GET" })
 	});
 
 export const getCourseFn = createServerFn({ method: "GET" })
-	.middleware([teamMiddleware(), localeMiddleware])
+	.middleware([localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
 	.handler(async ({ context, data: { courseId } }) => {
 		const course = await db.query.courses.findFirst({
