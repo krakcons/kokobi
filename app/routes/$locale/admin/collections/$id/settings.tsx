@@ -55,6 +55,7 @@ function RouteComponent() {
 				description="Edit your collection settings"
 			/>
 			<CollectionForm
+				key={collection.language}
 				onSubmit={(value) =>
 					updateCollection.mutateAsync({
 						data: {

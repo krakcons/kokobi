@@ -22,6 +22,7 @@ export const CollectionForm = ({
 
 	return (
 		<form.AppForm>
+			<form.BlockNavigation />
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();

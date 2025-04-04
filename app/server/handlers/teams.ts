@@ -36,7 +36,7 @@ export const getTeamMembersFn = createServerFn({ method: "GET" })
 	});
 
 export const getTeamStatsFn = createServerFn({ method: "GET" })
-	.middleware([teamMiddleware({ role: "owner" })])
+	.middleware([teamMiddleware()])
 	.handler(async ({ context }) => {
 		const teamId = context.teamId;
 		const learnerCount = (
