@@ -55,7 +55,6 @@ export default $config({
 			VITE_ROOT_DOMAIN: LOCAL_STAGES.includes($app.stage)
 				? "localhost:3000"
 				: domain,
-			VITE_CDN_URL: $interpolate`https://${bucket.domain}`,
 		};
 
 		// EMAIL //
@@ -87,27 +86,21 @@ export default $config({
 		//}
 
 		const cluster = new sst.aws.Cluster("Cluster", { vpc });
-		const service = new sst.aws.Service("Client", {
+		new sst.aws.Service("TSS", {
 			link: [bucket, aurora, email],
 			cluster,
-			serviceRegistry: {
-				port: 3000,
+			loadBalancer: {
+				ports: [{ listen: "443/https", forward: "3000/http" }],
+				domain: {
+					name: domain,
+					dns,
+				},
 			},
 			dev: {
 				command: "bun dev",
 			},
 			environment,
 		});
-		if (!LOCAL_STAGES.includes($app.stage)) {
-			const api = new sst.aws.ApiGatewayV2("Api", {
-				vpc,
-				domain: {
-					name: domain,
-					dns,
-				},
-			});
-			api.routePrivate("$default", service.nodes.cloudmapService.arn);
-		}
 
 		// Dev
 		new sst.x.DevCommand("Studio", {
@@ -122,9 +115,5 @@ export default $config({
 				command: "bun email",
 			},
 		});
-
-		return {
-			BUCKET_URL: $interpolate`https://${bucket.domain}`,
-		};
 	},
 });

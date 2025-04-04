@@ -155,7 +155,7 @@ function RouteComponent() {
 	];
 
 	const inviteLink = team.customDomain
-		? `https://${team.customDomain}/courses/${params.id}/join`
+		? `https://${team.customDomain}/play/${team.id}/courses/${params.id}/join`
 		: `${env.VITE_SITE_URL}/play/${team.id}/courses/${params.id}/join`;
 
 	return (

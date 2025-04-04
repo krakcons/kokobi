@@ -10,11 +10,7 @@ import { s3 } from "@/server/s3";
 import { InviteMemberFormSchema, TeamFormSchema } from "@/types/team";
 import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
-import {
-	localeMiddleware,
-	protectedMiddleware,
-	teamMiddleware,
-} from "../middleware";
+import { localeMiddleware, teamMiddleware } from "../middleware";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { locales } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
@@ -110,6 +106,54 @@ export const createTeamFn = createServerFn({ method: "POST" })
 		return {
 			id,
 		};
+	});
+
+export const DomainFormSchema = z.object({
+	customDomain: z
+		.string()
+		.regex(
+			new RegExp(
+				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
+			),
+			"Invalid domain format, use format (example.com)",
+		)
+		.or(z.literal(""))
+		.optional(),
+});
+export type DomainFormType = z.infer<typeof DomainFormSchema>;
+export const updateDomainFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.validator(DomainFormSchema)
+	.handler(async ({ context, data: { customDomain } }) => {
+		const teamId = context.teamId;
+
+		await db
+			.update(teams)
+			.set({
+				customDomain: customDomain !== "" ? customDomain : null,
+				updatedAt: new Date(),
+			})
+			.where(eq(teams.id, teamId));
+
+		// TODO: Add domain to ACM
+
+		return null;
+	});
+
+export const getTeamDomainFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.handler(async ({ context }) => {
+		const teamId = context.teamId;
+
+		const team = await db.query.teams.findFirst({
+			where: eq(teams.id, teamId),
+		});
+
+		if (!team) {
+			throw new Error("Team not found.");
+		}
+
+		return {};
 	});
 
 export const updateTeamFn = createServerFn({ method: "POST" })
@@ -216,7 +260,7 @@ export const deleteTeamMemberFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
-export const deleteTeamFn = createServerFn({ method: "DELETE" })
+export const deleteTeamFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.handler(async ({ context }) => {
 		const userId = context.user?.id;

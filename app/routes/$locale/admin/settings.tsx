@@ -7,28 +7,91 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { fetchFile } from "@/lib/file";
 import { env } from "@/env";
-import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
+import {
+	deleteTeamFn,
+	DomainFormSchema,
+	DomainFormType,
+	getTeamDomainFn,
+	getTeamFn,
+	updateDomainFn,
+	updateTeamFn,
+} from "@/server/handlers/teams";
+import { useAppForm } from "@/components/ui/form";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: ({ deps }) =>
-		getTeamFn({
-			headers: {
-				...(deps.locale && { locale: deps.locale }),
-				fallbackLocale: "none",
-			},
-		}),
+		Promise.all([
+			getTeamFn({
+				headers: {
+					...(deps.locale && { locale: deps.locale }),
+					fallbackLocale: "none",
+				},
+			}),
+			getTeamDomainFn(),
+		]),
 });
+
+const DomainForm = ({
+	defaultValues,
+	onSubmit,
+}: {
+	defaultValues?: DomainFormType;
+	onSubmit: (values: DomainFormType) => Promise<any>;
+}) => {
+	const form = useAppForm({
+		defaultValues: {
+			customDomain: undefined,
+			...defaultValues,
+		} as DomainFormType,
+		validators: {
+			onSubmit: DomainFormSchema,
+		},
+		onSubmit: ({ value }) => onSubmit(value),
+	});
+
+	return (
+		<form.AppForm>
+			<form
+				onSubmit={(e) => e.preventDefault()}
+				className="flex flex-col gap-8"
+			>
+				<form.AppField
+					name="customDomain"
+					children={(field) => (
+						<field.TextField label="Custom Domain" optional />
+					)}
+				/>
+				<form.SubmitButton />
+			</form>
+		</form.AppForm>
+	);
+};
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const team = Route.useLoaderData();
-	console.log(team);
+	const [team, domains] = Route.useLoaderData();
 	const router = useRouter();
 
+	console.log(domains);
+
+	const updateDomain = useMutation({
+		mutationFn: updateDomainFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
 	const updateTeam = useMutation({
 		mutationFn: updateTeamFn,
 		onSuccess: () => {
@@ -81,7 +144,39 @@ function RouteComponent() {
 				}}
 			/>
 			<Separator className="my-4" />
-			<PageSubHeader title="Domains" description="WIP" />
+			<PageSubHeader
+				title="Domain"
+				description="Set a custom domain to serve your team's content"
+			/>
+			<DomainForm
+				defaultValues={team}
+				onSubmit={async (data) => updateDomain.mutateAsync({ data })}
+			/>
+			<Separator className="my-4" />
+			{team.customDomain && (
+				<div>
+					<PageSubHeader
+						title="DNS"
+						description="Required dns records for your custom domain"
+					/>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Type</TableHead>
+								<TableHead>Value</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							<TableRow>
+								<TableCell>CNAME</TableCell>
+								<TableHead>
+									{env.VITE_SITE_URL.split("://")[1]}
+								</TableHead>
+							</TableRow>
+						</TableBody>
+					</Table>
+				</div>
+			)}
 			<Separator className="my-4" />
 			<PageSubHeader
 				title="Delete Team"
