@@ -201,7 +201,7 @@ function RouteComponent() {
 										<TableCell>
 											<span className="flex items-center">
 												<CopyButton
-													text={record.value}
+													text={record.name}
 												/>
 												{record.name}
 											</span>
