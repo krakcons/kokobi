@@ -105,6 +105,7 @@ export default $config({
 						"ses:CreateEmailIdentity",
 						"ses:DeleteEmailIdentity",
 						"ses:GetEmailIdentity",
+						"ses:PutEmailIdentityMailFromAttributes",
 					],
 					resources: ["*"],
 				},

@@ -206,6 +206,7 @@ export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 							t={t.Email.CourseInvite}
 						/>
 					),
+					team,
 				});
 			});
 
@@ -442,6 +443,7 @@ export const updateLearnerFn = createServerFn({ method: "POST" })
 							t={t.Email.CourseCompletion}
 						/>
 					),
+					team,
 				});
 			}
 		}

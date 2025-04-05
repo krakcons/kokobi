@@ -371,6 +371,7 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 						t={t.Email.CollectionInvite}
 					/>
 				),
+				team,
 			});
 		});
 

@@ -12,20 +12,9 @@ import {
 	CreateEmailIdentityCommand,
 	DeleteEmailIdentityCommand,
 	GetEmailIdentityCommand,
+	PutEmailIdentityMailFromAttributesCommand,
 } from "@aws-sdk/client-sesv2";
-import { hostname } from "os";
-
-export const DomainFormSchema = z.object({
-	hostname: z
-		.string()
-		.regex(
-			new RegExp(
-				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
-			),
-			"Invalid domain format, use format (learn.example.com)",
-		),
-});
-export type DomainFormType = z.infer<typeof DomainFormSchema>;
+import { DomainFormSchema } from "@/types/domains";
 
 export const createDomainFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
@@ -73,6 +62,24 @@ export const createDomainFn = createServerFn({ method: "POST" })
 			await cf.customHostnames.delete(hostnameId, {
 				zone_id: env.CLOUDFLARE_ZONE_ID,
 			});
+			console.error(e);
+			throw new Error("Error creating SES identity");
+		}
+
+		try {
+			const command = new PutEmailIdentityMailFromAttributesCommand({
+				EmailIdentity: hostname,
+				MailFromDomain: `email.${hostname}`,
+			});
+			await ses.send(command);
+		} catch (e) {
+			await cf.customHostnames.delete(hostnameId, {
+				zone_id: env.CLOUDFLARE_ZONE_ID,
+			});
+			const command = new DeleteEmailIdentityCommand({
+				EmailIdentity: hostname,
+			});
+			await ses.send(command);
 			console.error(e);
 			throw new Error("Error creating SES identity");
 		}
@@ -142,23 +149,57 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 			zone_id: env.CLOUDFLARE_ZONE_ID,
 		});
 
-		const dkim = email.DkimAttributes?.Tokens?.map((token) => ({
-			status: email.DkimAttributes?.Status,
-			type: "CNAME",
-			name: `${token}._domainkey.${teamDomain.hostname}`,
-			value: `${token}.dkim.amazonses.com`,
-		}));
-
 		return {
 			...teamDomain,
 			records: [
 				{
-					status: cloudflare.status,
+					required: true,
+					status:
+						cloudflare.status === "active"
+							? "success"
+							: cloudflare.status,
 					type: "CNAME",
 					name: teamDomain.hostname,
 					value: "kokobi.org",
 				},
-				...(dkim ?? []),
+				...(email.DkimAttributes?.Tokens
+					? email.DkimAttributes.Tokens.map((token) => ({
+							required: true,
+							status: email.DkimAttributes?.Status,
+							type: "CNAME",
+							name: `${token}._domainkey.${teamDomain.hostname}`,
+							value: `${token}.dkim.amazonses.com`,
+						}))
+					: []),
+				...(email.MailFromAttributes
+					? [
+							{
+								required: true,
+								status:
+									email.MailFromAttributes
+										.MailFromDomainStatus ?? "unknown",
+								type: "MX",
+								name: email.MailFromAttributes.MailFromDomain,
+								value: "10 feedback-smtp.ca-central-1.amazonses.com",
+							},
+							{
+								required: true,
+								status:
+									email.MailFromAttributes
+										.MailFromDomainStatus ?? "unknown",
+								type: "TXT",
+								name: email.MailFromAttributes.MailFromDomain,
+								value: '"v=spf1 include:amazonses.com ~all"',
+							},
+						]
+					: []),
+				{
+					required: false,
+					status: "unknown",
+					type: "TXT",
+					name: `_dmarc.${teamDomain.hostname}`,
+					value: '"v=DMARC1; p=none;"',
+				},
 			],
 		};
 	});

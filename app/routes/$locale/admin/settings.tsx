@@ -4,16 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Trash } from "lucide-react";
+import { CheckSquare, Trash } from "lucide-react";
 import { fetchFile } from "@/lib/file";
 import { env } from "@/env";
 import {
 	createDomainFn,
 	deleteTeamDomainFn,
-	DomainFormSchema,
-	DomainFormType,
 	getTeamDomainFn,
 } from "@/server/handlers/domains";
+import { DomainFormSchema, DomainFormType } from "@/types/domains";
 import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
 import { useAppForm } from "@/components/ui/form";
 import {
@@ -188,11 +187,15 @@ function RouteComponent() {
 									<TableRow key={record.value}>
 										<TableCell>
 											<Badge
-												className={cn(
-													record.status === "active"
-														? "bg-green-500"
-														: "bg-red-500",
-												)}
+												variant={
+													record.status.toUpperCase() ===
+													"SUCCESS"
+														? "success"
+														: record.status.toUpperCase() ===
+															  "UNKNOWN"
+															? "secondary"
+															: "destructive"
+												}
 											>
 												{record.status.toUpperCase()}
 											</Badge>
