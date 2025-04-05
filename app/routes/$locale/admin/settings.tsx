@@ -192,7 +192,7 @@ function RouteComponent() {
 													"SUCCESS"
 														? "success"
 														: record.status.toUpperCase() ===
-															  "UNKNOWN"
+															  "OPTIONAL"
 															? "secondary"
 															: "destructive"
 												}
@@ -210,11 +210,21 @@ function RouteComponent() {
 											</span>
 										</TableCell>
 										<TableCell>
-											<span className="flex items-center">
-												<CopyButton
-													text={record.value}
-												/>
-												{record.value}
+											<span className="flex items-center gap-4">
+												<span className="flex items-center">
+													<CopyButton
+														text={record.value}
+													/>
+													{record.value}
+												</span>
+												{record.priority && (
+													<p>
+														<strong>
+															Priority:
+														</strong>
+														{" " + record.priority}
+													</p>
+												)}
 											</span>
 										</TableCell>
 									</TableRow>
