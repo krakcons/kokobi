@@ -20,6 +20,10 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Bucket"
     }
+    "CLOUDFLARE_API_TOKEN": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
     "Email": {
       "configSet": string
       "sender": string

@@ -307,7 +307,7 @@ export const playFn = createServerFn({ method: "GET" })
 		const { scorm, resources } = await parseIMSManifest(imsManifest);
 		return {
 			learner: ExtendLearner(learner.module.type).parse(learner),
-			url: `${env.VITE_SITE_URL}/cdn${courseFileUrl}/${resources[0].href}`,
+			url: `/cdn${courseFileUrl}/${resources[0].href}`,
 			type: scorm.metadata.schemaversion,
 		};
 	});
