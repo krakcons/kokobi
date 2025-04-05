@@ -21,6 +21,7 @@ import { locales } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, setCookie } from "@tanstack/react-start/server";
 import { cf } from "../cloudflare";
+import { APIError } from "cloudflare";
 import { env } from "../env";
 
 export const getTeamMembersFn = createServerFn({ method: "GET" })
@@ -126,7 +127,7 @@ export const DomainFormSchema = z.object({
 			new RegExp(
 				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
 			),
-			"Invalid domain format, use format (example.com)",
+			"Invalid domain format, use format (learn.example.com)",
 		),
 });
 export type DomainFormType = z.infer<typeof DomainFormSchema>;
@@ -144,26 +145,35 @@ export const createDomainFn = createServerFn({ method: "POST" })
 			throw new Error("Domain already exists");
 		}
 
-		const domain = await cf.customHostnames.create({
-			zone_id: env.CLOUDFLARE_ZONE_ID,
-			hostname,
-			ssl: {
-				method: "http",
-				type: "dv",
-				settings: {
-					http2: "on",
-					tls_1_3: "on",
-					min_tls_version: "1.2",
+		let hostnameId: string;
+		try {
+			const domain = await cf.customHostnames.create({
+				zone_id: env.CLOUDFLARE_ZONE_ID,
+				hostname,
+				ssl: {
+					method: "http",
+					type: "dv",
+					settings: {
+						http2: "on",
+						tls_1_3: "on",
+						min_tls_version: "1.2",
+					},
 				},
-			},
-		});
+			});
+			hostnameId = domain.id;
+		} catch (e) {
+			if (e instanceof APIError) {
+				throw new Error(e.errors[0].message);
+			}
+			throw new Error("Error creating domain in Cloudflare");
+		}
 
 		// TODO: Create ses identity and store in db
 
 		await db.insert(domains).values({
 			id: Bun.randomUUIDv7(),
 			hostname,
-			hostnameId: domain.id,
+			hostnameId,
 			teamId,
 		});
 
