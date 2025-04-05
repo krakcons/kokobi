@@ -6,7 +6,6 @@ import {
 } from "../middleware";
 import { db } from "@/server/db";
 import {
-	users,
 	usersToCourses,
 	usersToModules,
 	usersToTeams,
@@ -95,6 +94,32 @@ export const getMyCoursesFn = createServerFn({ method: "GET" })
 		}));
 	});
 
+export const connectToCourseFn = createServerFn({ method: "POST" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.validator(
+		z.object({
+			courseId: z.string(),
+			connectStatus: z.enum(["accepted", "rejected"]),
+		}),
+	)
+	.handler(async ({ context, data: { courseId, connectStatus } }) => {
+		const user = context.user;
+
+		await db
+			.update(usersToCourses)
+			.set({
+				connectStatus,
+			})
+			.where(
+				and(
+					eq(usersToCourses.userId, user.id),
+					eq(usersToCourses.courseId, courseId),
+				),
+			);
+
+		return null;
+	});
+
 export const getMyCourseFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
@@ -134,10 +159,11 @@ export const getMyCourseFn = createServerFn({ method: "GET" })
 		});
 
 		return {
+			...course,
 			...handleLocalization(context, course.course),
 			team: handleLocalization(context, course.team),
-			attempts: attempts.map(({ module }) =>
-				ExtendLearner(module.type).parse(module),
+			attempts: attempts.map((attempt) =>
+				ExtendLearner(attempt.module.type).parse(attempt),
 			),
 		};
 	});

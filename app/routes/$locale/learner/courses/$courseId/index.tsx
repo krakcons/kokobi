@@ -21,10 +21,20 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 				courseId: params.courseId,
 			},
 		});
+		console.log(course);
 
 		if (!course) {
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/request",
+				params: {
+					courseId: params.courseId,
+				},
+			});
+		}
+
+		if (course.connectStatus === "pending") {
+			throw redirect({
+				to: "/$locale/learner/courses/$courseId/invite",
 				params: {
 					courseId: params.courseId,
 				},
@@ -59,7 +69,7 @@ function RouteComponent() {
 					title={course.name}
 					description={course.description}
 				/>
-				{course.attemps ? (
+				{course.attempts.length > 0 ? (
 					<div className="flex flex-col gap-4">
 						<h3>Attempts</h3>
 						<Table>
@@ -69,6 +79,7 @@ function RouteComponent() {
 									<TableHead>Score</TableHead>
 									<TableHead>Started At</TableHead>
 									<TableHead>Completed At</TableHead>
+									<TableHead></TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -83,22 +94,39 @@ function RouteComponent() {
 												attempt.score.max}
 										</TableCell>
 										<TableCell>
-											{formatDate({
-												date: new Date(
-													attempt.startedAt,
-												),
-												locale,
-												type: "detailed",
-											})}
+											{attempt.startedAt &&
+												formatDate({
+													date: new Date(
+														attempt.startedAt,
+													),
+													locale,
+													type: "detailed",
+												})}
 										</TableCell>
 										<TableCell>
-											{formatDate({
-												date: new Date(
-													attempt.completedAt,
-												),
-												locale,
-												type: "detailed",
-											})}
+											{attempt.completedAt &&
+												formatDate({
+													date: new Date(
+														attempt.completedAt,
+													),
+													locale,
+													type: "detailed",
+												})}
+										</TableCell>
+										<TableCell>
+											<Link
+												to="/$locale/learner/courses/$courseId/play"
+												params={{
+													courseId: course.id,
+													locale,
+												}}
+												search={{
+													attemptId: attempt.id,
+												}}
+												className={buttonVariants()}
+											>
+												Continue
+											</Link>
 										</TableCell>
 									</TableRow>
 								))}

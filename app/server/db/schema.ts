@@ -243,6 +243,7 @@ export const usersToModules = pgTable("users_to_modules", {
 		.default(sql`null`)
 		.$type<Date | null>(),
 	data: jsonb("data").$type<Record<string, string>>().notNull().default({}),
+	...dates,
 });
 
 export const usersToCollections = pgTable(
@@ -433,6 +434,10 @@ export const usersToModulesRelations = relations(usersToModules, ({ one }) => ({
 	user: one(users, {
 		fields: [usersToModules.userId],
 		references: [users.id],
+	}),
+	course: one(courses, {
+		fields: [usersToModules.courseId],
+		references: [courses.id],
 	}),
 	module: one(modules, {
 		fields: [usersToModules.moduleId],

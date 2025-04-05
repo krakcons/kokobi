@@ -26,9 +26,9 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import {
-	deleteLearnerFn,
 	getLearnersFn,
 	inviteLearnersToCourseFn,
+	removeCourseUserFn,
 } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
 import { createCourseLink } from "@/lib/invite";
@@ -68,8 +68,8 @@ function RouteComponent() {
 			router.invalidate();
 		},
 	});
-	const deleteLearner = useMutation({
-		mutationFn: deleteLearnerFn,
+	const removeCourseUser = useMutation({
+		mutationFn: removeCourseUserFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -151,16 +151,14 @@ function RouteComponent() {
 		//		<DataTableColumnHeader title="Score" column={column} />
 		//	),
 		//},
-		createDataTableActionsColumn<
-			Learner & { module: Module | null; joinLink?: string }
-		>([
+		createDataTableActionsColumn<UserToCourseType & { user: User }>([
 			{
 				name: "Delete",
-				onClick: ({ id }) =>
-					deleteLearner.mutate({
+				onClick: ({ userId }) =>
+					removeCourseUser.mutate({
 						data: {
 							courseId: params.id,
-							learnerId: id,
+							userId,
 						},
 					}),
 			},

@@ -13,17 +13,18 @@ import {
 } from "@/components/ui/dialog";
 import { Link } from "@tanstack/react-router";
 import { useTranslations } from "@/lib/locale";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
-import { playFn, updateLearnerFn } from "@/server/handlers/learners";
+import { playFn, updateAttemptFn } from "@/server/handlers/learners";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 	{
 		component: RouteComponent,
 		validateSearch: z.object({
-			learnerId: z.string(),
+			attemptId: z.string().optional(),
 		}),
-		loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
+		ssr: false,
+		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
 		loader: async ({ params, deps }) =>
 			Promise.all([
 				getCourseFn({
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 				playFn({
 					data: {
 						courseId: params.courseId,
-						learnerId: deps.learnerId,
+						attemptId: deps.attemptId,
 					},
 				}),
 			]),
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 
 function RouteComponent() {
 	const [certOpen, setCertOpen] = useState(false);
-	const [course, { learner, url, type }] = Route.useLoaderData();
+	const [course, { learner, url, type, attemptId }] = Route.useLoaderData();
 	const t = useTranslations("Certificate");
 
 	const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ function RouteComponent() {
 
 	// Update learner mutation
 	const { mutate } = useMutation({
-		mutationFn: updateLearnerFn,
+		mutationFn: updateAttemptFn,
 	});
 
 	const { isApiAvailable } = useLMS({
@@ -63,7 +64,7 @@ function RouteComponent() {
 					{
 						data: {
 							courseId: learner.courseId,
-							learnerId: learner.id,
+							attemptId,
 							data,
 						},
 					},
@@ -136,6 +137,16 @@ function RouteComponent() {
 						</Link>
 					</DialogContent>
 				</Dialog>
+				<Link
+					to="/$locale/learner/courses/$courseId"
+					params={{ courseId: course.id }}
+					className={buttonVariants({
+						size: "icon",
+						className: "absolute right-4 bottom-4",
+					})}
+				>
+					<LogOut />
+				</Link>
 				{loading && (
 					<div className="absolute flex h-screen w-screen items-center justify-center bg-background">
 						<Loader2 size={48} className="animate-spin" />

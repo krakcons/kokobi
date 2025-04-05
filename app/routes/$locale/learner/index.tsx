@@ -11,6 +11,7 @@ export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
 	beforeLoad: async () => {
 		const { user } = await getAuthFn();
+		console.log(user);
 
 		if (!user) {
 			throw redirect({
