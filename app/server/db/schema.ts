@@ -28,10 +28,10 @@ const dates = {
 };
 
 const sharing = {
-	connectType: text("type", { enum: ["shared", "requested"] }),
+	connectType: text("type", { enum: ["shared", "requested"] }).notNull(),
 	connectStatus: text("status", {
 		enum: ["pending", "accepted", "rejected"],
-	}),
+	}).notNull(),
 };
 
 // USERS //
@@ -39,7 +39,9 @@ const sharing = {
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
 	email: text("email").unique().notNull(),
-	googleId: text("googleId").unique(),
+	googleId: text("googleId").unique("googleId", { nulls: "not distinct" }),
+	firstName: text("firstName"),
+	lastName: text("lastName"),
 	...dates,
 });
 export const sessions = pgTable("sessions", {
@@ -225,6 +227,11 @@ export const usersToModules = pgTable("users_to_modules", {
 		.references(() => modules.id, {
 			onDelete: "cascade",
 		}),
+	courseId: text("courseId")
+		.notNull()
+		.references(() => courses.id, {
+			onDelete: "cascade",
+		}),
 	completedAt: timestamp("completedAt", {
 		withTimezone: true,
 	})
@@ -281,10 +288,10 @@ export const usersToTeams = pgTable(
 // USERS
 
 export const usersRelations = relations(users, ({ many }) => ({
-	teams: many(usersToTeams),
-	courses: many(usersToCourses),
-	modules: many(usersToModules),
-	collections: many(usersToCollections),
+	usersToTeams: many(usersToTeams),
+	usersToCourses: many(usersToCourses),
+	usersToModules: many(usersToModules),
+	usersToCollections: many(usersToCollections),
 }));
 
 export const sessionRelations = relations(sessions, ({ one }) => ({
@@ -356,7 +363,7 @@ export const modulesRelations = relations(modules, ({ many, one }) => ({
 		fields: [modules.courseId],
 		references: [courses.id],
 	}),
-	users: many(usersToModules),
+	usersToModules: many(usersToModules),
 }));
 
 // COLLECTIONS
@@ -411,6 +418,10 @@ export const usersToCoursesRelations = relations(usersToCourses, ({ one }) => ({
 	user: one(users, {
 		fields: [usersToCourses.userId],
 		references: [users.id],
+	}),
+	team: one(teams, {
+		fields: [usersToCourses.teamId],
+		references: [teams.id],
 	}),
 	course: one(courses, {
 		fields: [usersToCourses.courseId],

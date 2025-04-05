@@ -1,5 +1,11 @@
 import { db } from "@/server/db";
-import { courses, modules, usersToModules } from "@/server/db/schema";
+import {
+	courses,
+	modules,
+	users,
+	usersToCourses,
+	usersToModules,
+} from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { localeMiddleware, teamMiddleware } from "../middleware";
 import { s3 } from "@/server/s3";
@@ -21,7 +27,8 @@ import { getInitialScormData } from "@/lib/scorm";
 import CourseInvite from "@/emails/CourseInvite";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createJoinLink } from "@/lib/invite";
+import { createCourseLink } from "@/lib/invite";
+import { UserToCourseType } from "@/types/connections";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,
@@ -118,11 +125,9 @@ export const joinCourseFn = createServerFn({ method: "POST" })
 	});
 
 export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware({ role: "owner" })])
+	.middleware([teamMiddleware()])
 	.validator(LearnersFormSchema.extend({ courseId: z.string() }))
-	.handler(async ({ context, data }) => {
-		const teamId = context.teamId;
-
+	.handler(async ({ context: { teamId }, data }) => {
 		const course = await db.query.courses.findFirst({
 			where: and(
 				eq(courses.id, data.courseId),
@@ -143,55 +148,67 @@ export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 			throw new Error("Course not found.");
 		}
 
-		const learnersList = data.learners.map((l) => ({
-			...l,
-			id: Bun.randomUUIDv7(),
-			courseId: data.courseId,
-			teamId,
-		}));
-
-		const finalLearnersList = await db
-			.insert(learners)
-			.values(learnersList)
+		const userList = await db
+			.insert(users)
+			.values(
+				data.learners.map((l) => ({
+					email: l.email,
+					id: Bun.randomUUIDv7(),
+					teamId,
+				})),
+			)
 			.onConflictDoUpdate({
-				target: [learners.email, learners.courseId],
+				target: [users.email],
 				set: {
 					updatedAt: new Date(),
 				},
 			})
 			.returning();
 
-		learnersList
+		await db
+			.insert(usersToCourses)
+			.values(
+				userList.map((u) => ({
+					userId: u.id,
+					teamId,
+					courseId: data.courseId,
+					connectType: "shared" as UserToCourseType["connectType"],
+					connectStatus:
+						"pending" as UserToCourseType["connectStatus"],
+				})),
+			)
+			.onConflictDoNothing({
+				target: [
+					usersToCourses.userId,
+					usersToCourses.courseId,
+					usersToCourses.teamId,
+				],
+			})
+			.returning();
+
+		data.learners
 			.filter((l) => l.sendEmail)
 			.forEach(async (l) => {
-				const finalLearner = finalLearnersList.find(
-					(fl) => fl.email === l.email,
-				);
-				if (!finalLearner) {
-					return;
-				}
-				const id = finalLearner.id;
 				const t = await createTranslator({
-					locale: l.inviteLanguage ?? "en",
+					locale: l.inviteLocale ?? "en",
 				});
 				const name = handleLocalization(
-					{ locale: l.inviteLanguage ?? "en" },
+					{ locale: l.inviteLocale ?? "en" },
 					course,
-					l.inviteLanguage,
+					l.inviteLocale,
 				).name;
 				const team = handleLocalization(
-					{ locale: l.inviteLanguage ?? "en" },
+					{ locale: l.inviteLocale ?? "en" },
 					course.team,
-					l.inviteLanguage,
+					l.inviteLocale,
 				);
 
-				const href = createJoinLink({
+				const href = createCourseLink({
 					domain:
 						team.domains.length > 0 ? team.domains[0] : undefined,
 					courseId: course.id,
-					teamId: team.id,
-					learnerId: id,
-					locale: l.inviteLanguage,
+					email: l.email,
+					locale: l.inviteLocale,
 				});
 
 				await sendEmail({
@@ -218,7 +235,6 @@ export const getLearnersFn = createServerFn({ method: "GET" })
 	.validator(z.object({ id: z.string() }))
 	.handler(async ({ context, data: { id } }) => {
 		const { teamId } = context;
-		const teamRole = context.role;
 		const course = await db.query.courses.findFirst({
 			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
 			with: {
@@ -233,32 +249,15 @@ export const getLearnersFn = createServerFn({ method: "GET" })
 		if (!course) {
 			throw new Error("Course not found.");
 		}
-		const moduleList = await db.query.modules.findMany({
+
+		const learnerList = await db.query.usersToCourses.findMany({
 			where: eq(modules.courseId, course.id),
 			with: {
-				users: true,
+				user: true,
 			},
 		});
-		const extendedLearnerList = moduleList.flatMap(({ users, type }) => {
-			return users.map((user) => {
-				return {
-					...ExtendLearner(type).parse(user),
-					joinLink:
-						teamRole === "owner"
-							? createJoinLink({
-									domain:
-										course.team.domains.length > 0
-											? course.team.domains[0]
-											: undefined,
-									courseId: course.id,
-									teamId: course.team.id,
-									learnerId: user.id,
-								})
-							: undefined,
-				};
-			});
-		});
-		return extendedLearnerList;
+
+		return learnerList;
 	});
 
 export const getLearnerFn = createServerFn({ method: "GET" })
@@ -420,13 +419,12 @@ export const updateLearnerFn = createServerFn({ method: "POST" })
 				const team = handleLocalization(context, learner.team);
 				const course = handleLocalization(context, learner.course);
 
-				const href = createJoinLink({
+				const href = createCourseLink({
 					domain:
 						team.domains.length > 0 ? team.domains[0] : undefined,
 					courseId: course.id,
-					teamId: team.id,
-					learnerId: learner.id,
 					locale: course.locale,
+					email: learner.email,
 				});
 
 				const t = await createTranslator({

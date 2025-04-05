@@ -17,29 +17,29 @@ import { Loader2 } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
 import { playFn, updateLearnerFn } from "@/server/handlers/learners";
 
-export const Route = createFileRoute(
-	"/$locale/play/$teamId/courses/$courseId/",
-)({
-	component: RouteComponent,
-	validateSearch: z.object({
-		learnerId: z.string(),
-	}),
-	loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
-	loader: async ({ params, deps }) =>
-		Promise.all([
-			getCourseFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
-			playFn({
-				data: {
-					courseId: params.courseId,
-					learnerId: deps.learnerId,
-				},
-			}),
-		]),
-});
+export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
+	{
+		component: RouteComponent,
+		validateSearch: z.object({
+			learnerId: z.string(),
+		}),
+		loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
+		loader: async ({ params, deps }) =>
+			Promise.all([
+				getCourseFn({
+					data: {
+						courseId: params.courseId,
+					},
+				}),
+				playFn({
+					data: {
+						courseId: params.courseId,
+						learnerId: deps.learnerId,
+					},
+				}),
+			]),
+	},
+);
 
 function RouteComponent() {
 	const [certOpen, setCertOpen] = useState(false);

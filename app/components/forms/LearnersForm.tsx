@@ -18,8 +18,6 @@ export const LearnersForm = ({
 			learners: [
 				{
 					email: "",
-					firstName: "",
-					lastName: "",
 					sendEmail: true,
 					id: undefined,
 					inviteLanguage: "en",
@@ -35,12 +33,6 @@ export const LearnersForm = ({
 			<form onSubmit={(e) => e.preventDefault()} className="space-y-4">
 				<div className="flex w-full gap-2">
 					<p className="flex-1 text-sm leading-none font-medium">
-						First Name
-					</p>
-					<p className="flex-1 text-sm leading-none font-medium">
-						Last Name
-					</p>
-					<p className="flex-[2] text-sm leading-none font-medium">
 						Email
 					</p>
 					<p className="w-[100px] text-sm leading-none font-medium">
@@ -57,24 +49,6 @@ export const LearnersForm = ({
 									key={field.id}
 									className="flex items-start gap-2"
 								>
-									<form.AppField
-										name={`learners[${index}].firstName`}
-									>
-										{(subField) => (
-											<div className="flex-1">
-												<subField.TextField label="" />
-											</div>
-										)}
-									</form.AppField>
-									<form.AppField
-										name={`learners[${index}].lastName`}
-									>
-										{(subField) => (
-											<div className="flex-1">
-												<subField.TextField label="" />
-											</div>
-										)}
-									</form.AppField>
 									<form.AppField
 										name={`learners[${index}].email`}
 									>

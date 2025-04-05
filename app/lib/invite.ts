@@ -2,19 +2,17 @@ import { env } from "@/env";
 import { Domain } from "@/types/domains";
 import { Locale } from "./locale";
 
-export const createJoinLink = ({
+export const createCourseLink = ({
 	domain,
 	courseId,
-	teamId,
-	learnerId,
+	email,
 	locale,
 }: {
 	domain?: Domain;
 	courseId: string;
-	teamId: string;
-	learnerId?: string;
+	email?: string;
 	locale?: Locale;
 }) => {
 	const base = domain ? `https://${domain.hostname}` : env.VITE_SITE_URL;
-	return `${base}${locale ? `/${locale}` : ""}/play/${teamId}/courses/${courseId}/join${learnerId ? `?learnerId=${learnerId}` : ""}`;
+	return `${base}${locale ? `/${locale}` : ""}/learner/courses/${courseId}${email ? `?email=${email}` : ""}`;
 };

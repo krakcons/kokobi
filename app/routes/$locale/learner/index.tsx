@@ -25,6 +25,8 @@ function RouteComponent() {
 	const [courses] = Route.useLoaderData();
 	const t = useTranslations("Learner");
 
+	console.log(courses);
+
 	const teams = [
 		{
 			name: "CompanionLink",
@@ -46,7 +48,7 @@ function RouteComponent() {
 					{courses?.map(({ id, name, description }) => (
 						<Link
 							key={id}
-							to="/$locale/learner/$courseId"
+							to="/$locale/learner/courses/$courseId"
 							from={Route.fullPath}
 							params={{
 								courseId: id,

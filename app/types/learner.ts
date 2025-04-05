@@ -61,8 +61,6 @@ export const ExtendLearner = (type?: Module["type"]) => {
 export const JoinCourseFormSchema = z.object({
 	id: z.string().optional(),
 	email: z.string().email(),
-	firstName: z.string().min(1),
-	lastName: z.string().min(1),
 	moduleId: z.string(),
 });
 export type JoinCourseFormType = z.infer<typeof JoinCourseFormSchema>;
@@ -71,12 +69,9 @@ export const LearnersFormSchema = z.object({
 	learners: z
 		.array(
 			z.object({
-				id: z.string().optional(),
 				email: z.string().email(),
-				firstName: z.string().min(1),
-				lastName: z.string().min(1),
 				sendEmail: z.boolean().optional(),
-				inviteLanguage: LocaleSchema.optional(),
+				inviteLocale: LocaleSchema.optional(),
 			}),
 		)
 		.min(1),

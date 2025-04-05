@@ -31,7 +31,9 @@ import {
 	inviteLearnersToCourseFn,
 } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
-import { createJoinLink } from "@/lib/invite";
+import { createCourseLink } from "@/lib/invite";
+import { User } from "@/types/users";
+import { UserToCourseType } from "@/types/connections";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -58,7 +60,9 @@ function RouteComponent() {
 	const [learners, team] = Route.useLoaderData();
 	const router = useRouter();
 
-	const createLearners = useMutation({
+	console.log("LEARNERS", learners);
+
+	const inviteLearners = useMutation({
 		mutationFn: inviteLearnersToCourseFn,
 		onSuccess: () => {
 			router.invalidate();
@@ -71,73 +75,82 @@ function RouteComponent() {
 		},
 	});
 
-	const columns: ColumnDef<Learner & { module: Module | null }>[] = [
+	const columns: ColumnDef<UserToCourseType & { user: User }>[] = [
 		{
-			accessorKey: "firstName",
+			accessorKey: "user.firstName",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="First Name" column={column} />
 			),
 		},
 		{
-			accessorKey: "lastName",
+			accessorKey: "user.lastName",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Last Name" column={column} />
 			),
 		},
 		{
-			accessorKey: "email",
+			accessorKey: "user.email",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Email" column={column} />
 			),
 		},
 		{
-			accessorKey: "startedAt",
-			accessorFn: ({ startedAt }) =>
-				formatDate({ date: startedAt, locale, type: "detailed" }),
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Started At" column={column} />
-			),
-		},
-		{
-			accessorKey: "completedAt",
-			accessorFn: ({ completedAt }) =>
-				formatDate({ date: completedAt, locale, type: "detailed" }),
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Completed At" column={column} />
-			),
-		},
-		{
-			accessorKey: "status",
-			accessorFn: ({ status }) => t.statuses[status],
+			accessorKey: "connectStatus",
+			accessorFn: ({ connectStatus }) =>
+				connectStatus.slice(0, 1).toUpperCase() +
+				connectStatus.slice(1),
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
 			),
 		},
-		{
-			accessorKey: "module.locale",
-			accessorFn: ({ module }) =>
-				locales.find((l) => l.value === module?.locale)?.label,
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Locale" column={column} />
-			),
-		},
-		{
-			accessorKey: "module.versionNumber",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Version" column={column} />
-			),
-		},
-		{
-			accessorKey: "score",
-			accessorFn: ({ score }) => {
-				if (score && score.raw && score.max) {
-					return `${score.raw} / ${score.max}`;
-				}
-			},
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Score" column={column} />
-			),
-		},
+		//{
+		//	accessorKey: "startedAt",
+		//	accessorFn: ({ startedAt }) =>
+		//		formatDate({ date: startedAt, locale, type: "detailed" }),
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Started At" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "completedAt",
+		//	accessorFn: ({ completedAt }) =>
+		//		formatDate({ date: completedAt, locale, type: "detailed" }),
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Completed At" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "status",
+		//	accessorFn: ({ status }) => t.statuses[status],
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Status" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "module.locale",
+		//	accessorFn: ({ module }) =>
+		//		locales.find((l) => l.value === module?.locale)?.label,
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Locale" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "module.versionNumber",
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Version" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "score",
+		//	accessorFn: ({ score }) => {
+		//		if (score && score.raw && score.max) {
+		//			return `${score.raw} / ${score.max}`;
+		//		}
+		//	},
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Score" column={column} />
+		//	),
+		//},
 		createDataTableActionsColumn<
 			Learner & { module: Module | null; joinLink?: string }
 		>([
@@ -154,10 +167,9 @@ function RouteComponent() {
 		]),
 	];
 
-	const inviteLink = createJoinLink({
+	const inviteLink = createCourseLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
 		courseId: params.id,
-		teamId: team.id,
 	});
 
 	return (
@@ -183,7 +195,7 @@ function RouteComponent() {
 						</DialogHeader>
 						<LearnersForm
 							onSubmit={(value) =>
-								createLearners.mutateAsync(
+								inviteLearners.mutateAsync(
 									{
 										data: {
 											...value,

@@ -102,6 +102,8 @@ export const createTeamFn = createServerFn({ method: "POST" })
 			userId,
 			teamId: id,
 			role: "owner",
+			connectType: "shared",
+			connectStatus: "accepted",
 		});
 
 		setCookie("teamId", id, {
@@ -197,6 +199,8 @@ export const inviteMemberFn = createServerFn({ method: "POST" })
 			userId: user.id,
 			teamId: id,
 			role,
+			connectType: "shared",
+			connectStatus: "pending",
 		});
 
 		return null;

@@ -17,7 +17,6 @@ import { sendEmail } from "../email";
 import CollectionInvite from "@/emails/CollectionInvite";
 import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { createServerFn } from "@tanstack/react-start";
-import { createJoinLink } from "@/lib/invite";
 
 export const getCollectionsFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -307,16 +306,17 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 				}
 				const id = finalLearner.id;
 
-				const href = createJoinLink({
-					domain:
-						team.domains.length > 0 ? team.domains[0] : undefined,
-					courseId: l.course.id,
-					teamId: team.id,
-					learnerId: id,
-				});
+				// TODO: Fix this
+				//const href = createJoinLink({
+				//	domain:
+				//		team.domains.length > 0 ? team.domains[0] : undefined,
+				//	courseId: l.course.id,
+				//	teamId: team.id,
+				//	learnerId: id,
+				//});
 
 				return {
-					href,
+					href: "",
 					name,
 				};
 			});

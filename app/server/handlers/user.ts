@@ -5,7 +5,12 @@ import {
 	teamMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
-import { users, usersToTeams } from "@/server/db/schema";
+import {
+	users,
+	usersToCourses,
+	usersToModules,
+	usersToTeams,
+} from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
@@ -69,7 +74,7 @@ export const getMyCoursesFn = createServerFn({ method: "GET" })
 		}
 
 		const courseList = await db.query.usersToCourses.findMany({
-			where: eq(users.email, user.email),
+			where: eq(usersToCourses.userId, user.id),
 			with: {
 				course: {
 					with: {
@@ -81,16 +86,62 @@ export const getMyCoursesFn = createServerFn({ method: "GET" })
 						translations: true,
 					},
 				},
+			},
+		});
+
+		return courseList.map(({ course, team }) => ({
+			...handleLocalization(context, course),
+			team: handleLocalization(context, team),
+		}));
+	});
+
+export const getMyCourseFn = createServerFn({ method: "GET" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.validator(z.object({ courseId: z.string() }))
+	.handler(async ({ context, data: { courseId } }) => {
+		const user = context.user;
+		const course = await db.query.usersToCourses.findFirst({
+			where: and(
+				eq(usersToCourses.userId, user.id),
+				eq(usersToCourses.courseId, courseId),
+			),
+			with: {
+				course: {
+					with: {
+						translations: true,
+					},
+				},
+				team: {
+					with: {
+						translations: true,
+					},
+				},
+			},
+		});
+
+		if (!course) {
+			return undefined;
+		}
+
+		const attempts = await db.query.usersToModules.findMany({
+			where: and(
+				eq(usersToModules.userId, user.id),
+				eq(usersToModules.courseId, courseId),
+			),
+			with: {
 				module: true,
 			},
 		});
 
-		return learnerList.map(({ course, team, module, ...learner }) => ({
-			learner: ExtendLearner(module?.type).parse(learner),
-			course: handleLocalization(context, course),
-			team: handleLocalization(context, team),
-		}));
+		return {
+			...handleLocalization(context, course.course),
+			team: handleLocalization(context, course.team),
+			attempts: attempts.map(({ module }) =>
+				ExtendLearner(module.type).parse(module),
+			),
+		};
 	});
+
 //
 //export const getMyLearnerFn = createServerFn({ method: "GET" })
 //	.middleware([authMiddleware, localeMiddleware])
