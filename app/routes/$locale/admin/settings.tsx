@@ -10,13 +10,11 @@ import { env } from "@/env";
 import {
 	createDomainFn,
 	deleteTeamDomainFn,
-	deleteTeamFn,
 	DomainFormSchema,
 	DomainFormType,
 	getTeamDomainFn,
-	getTeamFn,
-	updateTeamFn,
-} from "@/server/handlers/teams";
+} from "@/server/handlers/domains";
+import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
 import { useAppForm } from "@/components/ui/form";
 import {
 	Table,
@@ -28,6 +26,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import CopyButton from "@/components/CopyButton";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
@@ -161,7 +161,7 @@ function RouteComponent() {
 						onClick={() =>
 							deleteTeamDomain.mutate({
 								data: {
-									hostnameId: domain.hostnameId,
+									domainId: domain.id,
 								},
 							})
 						}
@@ -172,40 +172,55 @@ function RouteComponent() {
 				)}
 			</PageSubHeader>
 			{domain ? (
-				<>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Status</TableHead>
-								<TableHead>Type</TableHead>
-								<TableHead>Name</TableHead>
-								<TableHead>Value</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							<TableRow>
-								<TableCell>
-									<Badge
-										className={cn(
-											domain.cloudflare.status ===
-												"active"
-												? "bg-green-500"
-												: "bg-red-500",
-										)}
-									>
-										{domain.cloudflare.status
-											.slice(0, 1)
-											.toUpperCase() +
-											domain.cloudflare.status.slice(1)}
-									</Badge>
-								</TableCell>
-								<TableCell>CNAME</TableCell>
-								<TableCell>{domain.hostname}</TableCell>
-								<TableHead>kokobi.org</TableHead>
-							</TableRow>
-						</TableBody>
-					</Table>
-				</>
+				<div className="w-[calc(100vw-32px)] rounded-md sm:w-full">
+					<ScrollArea className="pb-2">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Status</TableHead>
+									<TableHead>Type</TableHead>
+									<TableHead>Name</TableHead>
+									<TableHead>Value</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody className="px-2">
+								{domain.records.map((record) => (
+									<TableRow key={record.value}>
+										<TableCell>
+											<Badge
+												className={cn(
+													record.status === "active"
+														? "bg-green-500"
+														: "bg-red-500",
+												)}
+											>
+												{record.status.toUpperCase()}
+											</Badge>
+										</TableCell>
+										<TableCell>{record.type}</TableCell>
+										<TableCell>
+											<span className="flex items-center">
+												<CopyButton
+													text={record.value}
+												/>
+												{record.name}
+											</span>
+										</TableCell>
+										<TableCell>
+											<span className="flex items-center">
+												<CopyButton
+													text={record.value}
+												/>
+												{record.value}
+											</span>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+						<ScrollBar orientation="horizontal" />
+					</ScrollArea>
+				</div>
 			) : (
 				<DomainForm
 					defaultValues={team}

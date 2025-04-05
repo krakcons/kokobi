@@ -99,6 +99,16 @@ export default $config({
 					dns,
 				},
 			},
+			permissions: [
+				{
+					actions: [
+						"ses:CreateEmailIdentity",
+						"ses:DeleteEmailIdentity",
+						"ses:GetEmailIdentity",
+					],
+					resources: ["*"],
+				},
+			],
 			dev: {
 				command: "bun dev",
 			},
