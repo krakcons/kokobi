@@ -1,5 +1,5 @@
 import CertificatePDF from "@/components/CertificatePDF";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { LocaleToggle } from "@/components/LocaleToggle";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { PendingComponent } from "@/components/PendingComponent";
 import { env } from "@/env";
@@ -35,7 +35,7 @@ function RouteComponent() {
 	return (
 		<FloatingPage className="items-stretch">
 			<PageHeader title={t.title} description={t.message}>
-				<LanguageToggle />
+				<LocaleToggle />
 			</PageHeader>
 			<CertificatePDF
 				certificate={{

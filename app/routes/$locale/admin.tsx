@@ -18,7 +18,7 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { LocaleToggle } from "@/components/LocaleToggle";
 import { env } from "@/env";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
@@ -99,7 +99,7 @@ function RouteComponent() {
 								))}
 							</SelectContent>
 						</Select>
-						<LanguageToggle />
+						<LocaleToggle />
 					</div>
 				</header>
 				<Outlet />

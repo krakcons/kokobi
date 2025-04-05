@@ -1,14 +1,13 @@
-import { learners } from "@/server/db/schema";
+import { usersToModules } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 import { Module } from "./module";
 import { Scorm12DataSchema } from "./scorm/versions/12";
 import { Scorm2004DataSchema } from "./scorm/versions/2004";
-import { LanguageSchema } from "./translations";
+import { LocaleSchema } from "./translations";
 
-export const BaseLearnerSchema = createSelectSchema(learners, {
+export const BaseLearnerSchema = createSelectSchema(usersToModules, {
 	data: z.record(z.string()),
-	email: z.string().email(),
 });
 export type BaseLearner = z.infer<typeof BaseLearnerSchema>;
 
@@ -77,7 +76,7 @@ export const LearnersFormSchema = z.object({
 				firstName: z.string().min(1),
 				lastName: z.string().min(1),
 				sendEmail: z.boolean().optional(),
-				inviteLanguage: LanguageSchema.optional(),
+				inviteLanguage: LocaleSchema.optional(),
 			}),
 		)
 		.min(1),

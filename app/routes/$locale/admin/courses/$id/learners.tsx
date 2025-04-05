@@ -15,7 +15,7 @@ import {
 import { Page, PageHeader } from "@/components/Page";
 import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { locales, useLocale, useTranslations } from "@/lib/locale";
@@ -31,7 +31,6 @@ import {
 	inviteLearnersToCourseFn,
 } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
-import { env } from "@/env";
 import { createJoinLink } from "@/lib/invite";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
@@ -115,11 +114,11 @@ function RouteComponent() {
 			),
 		},
 		{
-			accessorKey: "module.language",
+			accessorKey: "module.locale",
 			accessorFn: ({ module }) =>
-				locales.find((l) => l.value === module?.language)?.label,
+				locales.find((l) => l.value === module?.locale)?.label,
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Language" column={column} />
+				<DataTableColumnHeader title="Locale" column={column} />
 			),
 		},
 		{

@@ -1,9 +1,9 @@
 import { db } from "@/server/db";
 import {
-	learners,
 	teamTranslations,
 	teams,
 	users,
+	usersToCourses,
 	usersToTeams,
 } from "@/server/db/schema";
 import { s3 } from "@/server/s3";
@@ -46,8 +46,8 @@ export const getTeamStatsFn = createServerFn({ method: "GET" })
 		const learnerCount = (
 			await db
 				.select({ count: count() })
-				.from(learners)
-				.where(eq(learners.teamId, teamId))
+				.from(usersToCourses)
+				.where(eq(usersToCourses.teamId, teamId))
 		)[0].count;
 
 		return { learnerCount };
@@ -96,7 +96,7 @@ export const createTeamFn = createServerFn({ method: "POST" })
 		await db.insert(teamTranslations).values({
 			name: data.name,
 			teamId: id,
-			language: locale,
+			locale,
 		});
 		await db.insert(usersToTeams).values({
 			userId,
@@ -143,7 +143,7 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 			.insert(teamTranslations)
 			.values({
 				name: data.name,
-				language: locale,
+				locale,
 				teamId,
 			})
 			.onConflictDoUpdate({
@@ -151,7 +151,7 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 					name: data.name,
 					updatedAt: new Date(),
 				},
-				target: [teamTranslations.teamId, teamTranslations.language],
+				target: [teamTranslations.teamId, teamTranslations.locale],
 			});
 
 		return null;

@@ -112,13 +112,13 @@ function RouteComponent() {
 	});
 
 	const { data } = useQuery({
-		queryKey: ["team-logo-favicon", team.id, team.language, team.updatedAt],
+		queryKey: ["team-logo-favicon", team.id, team.locale, team.updatedAt],
 		queryFn: async () => {
 			const logo = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${team.id}/${team.language}/logo?updatedAt=${team.updatedAt}`,
+				`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team.updatedAt}`,
 			);
 			const favicon = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${team.id}/${team.language}/favicon?updatedAt=${team.updatedAt}`,
+				`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt}`,
 			);
 			return { logo, favicon };
 		},
@@ -131,7 +131,7 @@ function RouteComponent() {
 				description="Edit your team settings"
 			/>
 			<TeamForm
-				key={team.language}
+				key={team.locale}
 				defaultValues={{
 					...team,
 					...data,

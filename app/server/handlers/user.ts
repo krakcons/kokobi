@@ -1,10 +1,11 @@
 import {
 	authMiddleware,
 	localeMiddleware,
+	protectedMiddleware,
 	teamMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
-import { learners, usersToTeams } from "@/server/db/schema";
+import { users, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
@@ -58,8 +59,8 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 		return teams.map(({ team }) => handleLocalization(context, team));
 	});
 
-export const getMyLearnersFn = createServerFn({ method: "GET" })
-	.middleware([authMiddleware, localeMiddleware])
+export const getMyCoursesFn = createServerFn({ method: "GET" })
+	.middleware([protectedMiddleware, localeMiddleware])
 	.handler(async ({ context }) => {
 		const user = context.user;
 
@@ -67,8 +68,8 @@ export const getMyLearnersFn = createServerFn({ method: "GET" })
 			throw new Error("Unauthorized");
 		}
 
-		const learnerList = await db.query.learners.findMany({
-			where: eq(learners.email, user!.email),
+		const courseList = await db.query.usersToCourses.findMany({
+			where: eq(users.email, user.email),
 			with: {
 				course: {
 					with: {
@@ -90,51 +91,51 @@ export const getMyLearnersFn = createServerFn({ method: "GET" })
 			team: handleLocalization(context, team),
 		}));
 	});
-
-export const getMyLearnerFn = createServerFn({ method: "GET" })
-	.middleware([authMiddleware, localeMiddleware])
-	.validator(z.object({ learnerId: z.string() }))
-	.handler(async ({ context, data: { learnerId } }) => {
-		const user = context.user;
-
-		const learner = await db.query.learners.findFirst({
-			where: and(
-				eq(learners.email, user!.email),
-				eq(learners.id, learnerId),
-			),
-			with: {
-				course: {
-					with: {
-						translations: true,
-						team: {
-							with: {
-								translations: true,
-							},
-						},
-					},
-				},
-				team: {
-					with: {
-						translations: true,
-					},
-				},
-				module: true,
-			},
-		});
-
-		if (!learner) {
-			throw new Error("Learner not found");
-		}
-
-		return {
-			learner: ExtendLearner(learner.module?.type).parse(learner),
-			course: handleLocalization(context, {
-				...learner.course,
-				team: handleLocalization(context, learner.course.team),
-			}),
-			team: handleLocalization(context, learner.team),
-		};
-	});
+//
+//export const getMyLearnerFn = createServerFn({ method: "GET" })
+//	.middleware([authMiddleware, localeMiddleware])
+//	.validator(z.object({ learnerId: z.string() }))
+//	.handler(async ({ context, data: { learnerId } }) => {
+//		const user = context.user;
+//
+//		const learner = await db.query.learners.findFirst({
+//			where: and(
+//				eq(learners.email, user!.email),
+//				eq(learners.id, learnerId),
+//			),
+//			with: {
+//				course: {
+//					with: {
+//						translations: true,
+//						team: {
+//							with: {
+//								translations: true,
+//							},
+//						},
+//					},
+//				},
+//				team: {
+//					with: {
+//						translations: true,
+//					},
+//				},
+//				module: true,
+//			},
+//		});
+//
+//		if (!learner) {
+//			throw new Error("Learner not found");
+//		}
+//
+//		return {
+//			learner: ExtendLearner(learner.module?.type).parse(learner),
+//			course: handleLocalization(context, {
+//				...learner.course,
+//				team: handleLocalization(context, learner.course.team),
+//			}),
+//			team: handleLocalization(context, learner.team),
+//		};
+//	});
 
 export const setTeamFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])

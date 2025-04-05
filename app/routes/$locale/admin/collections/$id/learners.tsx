@@ -145,11 +145,11 @@ function RouteComponent() {
 			),
 		},
 		{
-			accessorKey: "module.language",
+			accessorKey: "module.locale",
 			accessorFn: ({ module }) =>
-				locales.find((l) => l.value === module?.language)?.label,
+				locales.find((l) => l.value === module?.locale)?.label,
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Language" column={column} />
+				<DataTableColumnHeader title="Locale" column={column} />
 			),
 		},
 		{

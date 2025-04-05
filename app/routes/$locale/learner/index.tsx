@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { env } from "@/env";
 import { useTranslations } from "@/lib/locale";
 import { cn } from "@/lib/utils";
-import { getAuthFn, getMyLearnersFn } from "@/server/handlers/user";
+import { getAuthFn, getMyCoursesFn } from "@/server/handlers/user";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Container } from "lucide-react";
 
@@ -18,11 +18,11 @@ export const Route = createFileRoute("/$locale/learner/")({
 			});
 		}
 	},
-	loader: () => getMyLearnersFn(),
+	loader: () => Promise.all([getMyCoursesFn()]),
 });
 
 function RouteComponent() {
-	const learners = Route.useLoaderData();
+	const [courses] = Route.useLoaderData();
 	const t = useTranslations("Learner");
 
 	const teams = [
@@ -43,19 +43,18 @@ function RouteComponent() {
 				/>
 				<div className="flex flex-col gap-4">
 					<h3>Courses</h3>
-					{learners?.map(({ course, learner }) => (
+					{courses?.map(({ id, name, description }) => (
 						<Link
-							key={learner.id}
-							to="/$locale/learner/$learnerId"
+							key={id}
+							to="/$locale/learner/$courseId"
 							from={Route.fullPath}
 							params={{
-								learnerId: learner.id,
+								courseId: id,
 							}}
 							className="w-full rounded-lg p-4 border flex flex-col gap-4"
 						>
-							<Badge>{t.statuses[learner.status]}</Badge>
-							<p className="text-2xl font-bold">{course.name}</p>
-							{course.description && <p>{course.description}</p>}
+							<p className="text-2xl font-bold">{name}</p>
+							{description && <p>{description}</p>}
 						</Link>
 					))}
 				</div>

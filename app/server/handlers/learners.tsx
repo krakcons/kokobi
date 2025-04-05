@@ -1,5 +1,5 @@
 import { db } from "@/server/db";
-import { courses, learners, modules } from "@/server/db/schema";
+import { courses, modules, usersToModules } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { localeMiddleware, teamMiddleware } from "../middleware";
 import { s3 } from "@/server/s3";
@@ -202,7 +202,7 @@ export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 							href={href}
 							name={name}
 							teamName={team.name}
-							logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.language}/logo?updatedAt=${team?.updatedAt.toString()}`}
+							logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
 							t={t.Email.CourseInvite}
 						/>
 					),
@@ -233,29 +233,30 @@ export const getLearnersFn = createServerFn({ method: "GET" })
 		if (!course) {
 			throw new Error("Course not found.");
 		}
-		const learnerList = await db.query.learners.findMany({
-			where: eq(learners.courseId, course.id),
+		const moduleList = await db.query.modules.findMany({
+			where: eq(modules.courseId, course.id),
 			with: {
-				module: true,
+				users: true,
 			},
 		});
-		const extendedLearnerList = learnerList.map((learner) => {
-			return {
-				...ExtendLearner(learner.module?.type).parse(learner),
-				module: learner.module,
-				joinLink:
-					teamRole === "owner"
-						? createJoinLink({
-								domain:
-									course.team.domains.length > 0
-										? course.team.domains[0]
-										: undefined,
-								courseId: course.id,
-								teamId: course.team.id,
-								learnerId: learner.id,
-							})
-						: undefined,
-			};
+		const extendedLearnerList = moduleList.flatMap(({ users, type }) => {
+			return users.map((user) => {
+				return {
+					...ExtendLearner(type).parse(user),
+					joinLink:
+						teamRole === "owner"
+							? createJoinLink({
+									domain:
+										course.team.domains.length > 0
+											? course.team.domains[0]
+											: undefined,
+									courseId: course.id,
+									teamId: course.team.id,
+									learnerId: user.id,
+								})
+							: undefined,
+				};
+			});
 		});
 		return extendedLearnerList;
 	});
@@ -301,7 +302,7 @@ export const playFn = createServerFn({ method: "GET" })
 			throw new Error("Learner not found");
 		}
 
-		const courseFileUrl = `/${learner.course.teamId}/courses/${learner.courseId}/${learner.module.language}${learner.module.versionNumber === 1 ? "" : "_" + learner.module.versionNumber}`;
+		const courseFileUrl = `/${learner.course.teamId}/courses/${learner.courseId}/${learner.module.locale}${learner.module.versionNumber === 1 ? "" : "_" + learner.module.versionNumber}`;
 
 		const imsManifest = s3.file(courseFileUrl + "/imsmanifest.xml");
 
@@ -425,11 +426,11 @@ export const updateLearnerFn = createServerFn({ method: "POST" })
 					courseId: course.id,
 					teamId: team.id,
 					learnerId: learner.id,
-					locale: course.language,
+					locale: course.locale,
 				});
 
 				const t = await createTranslator({
-					locale: learner.module?.language ?? "en",
+					locale: learner.module?.locale ?? "en",
 				});
 
 				await sendEmail({

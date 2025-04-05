@@ -54,7 +54,7 @@ function RouteComponent() {
 				description="Edit your course settings"
 			/>
 			<CourseForm
-				key={course.language}
+				key={course.locale}
 				defaultValues={course}
 				onSubmit={(values) =>
 					updateCourse.mutateAsync({

@@ -1,13 +1,13 @@
 import { JoinCourseForm } from "@/components/forms/JoinCourseForm";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useLocale } from "@/lib/locale";
 import { getModulesFn } from "@/server/handlers/modules";
-import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { getCourseFn } from "@/server/handlers/courses";
 import { getLearnerFn, joinCourseFn } from "@/server/handlers/learners";
+import { LocaleToggle } from "@/components/LocaleToggle";
 
 export const Route = createFileRoute(
 	"/$locale/play/$teamId/courses/$courseId/join",
@@ -77,7 +77,7 @@ function RouteComponent() {
 	return (
 		<FloatingPage>
 			<div className="max-w-lg w-full flex flex-col gap-4">
-				<LanguageToggle />
+				<LocaleToggle />
 				<PageHeader
 					title={course.name}
 					description={course.description}
@@ -109,7 +109,7 @@ function RouteComponent() {
 						email: "",
 						...learner,
 						moduleId:
-							moduleOptions.find((o) => o.language === locale)
+							moduleOptions.find((o) => o.locale === locale)
 								?.id ?? moduleOptions[0].id,
 					}}
 				/>
