@@ -23,7 +23,7 @@ export async function sendEmail({
 	let fromAddress = `Kokobi <noreply@${Resource.Email.sender}>`;
 	if (team && team.domains.length > 0) {
 		const domain = team.domains[0];
-		fromAddress = `${team.name} <noreply@${domain.hostname}>`;
+		fromAddress = `${team.name} <noreply@email.${domain.hostname}>`;
 	}
 	const html = await render(content);
 	const command = new SendEmailCommand({
