@@ -16,9 +16,6 @@ import {
 } from "@aws-sdk/client-sesv2";
 import { DomainFormSchema } from "@/types/domains";
 
-const getIdentity = (hostname: string) =>
-	hostname.split(".").slice(-2).join(".");
-
 export const createDomainFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.validator(DomainFormSchema)
@@ -56,10 +53,9 @@ export const createDomainFn = createServerFn({ method: "POST" })
 			throw new Error("Error creating domain in Cloudflare");
 		}
 
-		const identity = getIdentity(hostname);
 		try {
 			const command = new CreateEmailIdentityCommand({
-				EmailIdentity: identity,
+				EmailIdentity: hostname,
 			});
 			await ses.send(command);
 		} catch (e) {
@@ -72,8 +68,8 @@ export const createDomainFn = createServerFn({ method: "POST" })
 
 		try {
 			const command = new PutEmailIdentityMailFromAttributesCommand({
-				EmailIdentity: identity,
-				MailFromDomain: hostname,
+				EmailIdentity: hostname,
+				MailFromDomain: `email.${hostname}`,
 			});
 			await ses.send(command);
 		} catch (e) {
@@ -115,7 +111,7 @@ export const deleteTeamDomainFn = createServerFn({ method: "POST" })
 		});
 
 		const command = new DeleteEmailIdentityCommand({
-			EmailIdentity: getIdentity(domain.hostname),
+			EmailIdentity: domain.hostname,
 		});
 		await ses.send(command);
 
@@ -145,7 +141,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 		}
 
 		const command = new GetEmailIdentityCommand({
-			EmailIdentity: getIdentity(teamDomain.hostname),
+			EmailIdentity: teamDomain.hostname,
 		});
 		const email = await ses.send(command);
 
@@ -171,7 +167,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 							required: true,
 							status: email.DkimAttributes?.Status,
 							type: "CNAME",
-							name: `${token}._domainkey.${getIdentity(teamDomain.hostname)}`,
+							name: `${token}._domainkey.${teamDomain.hostname}`,
 							value: `${token}.dkim.amazonses.com`,
 						}))
 					: []),
@@ -202,7 +198,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 					required: false,
 					status: "optional",
 					type: "TXT",
-					name: `_dmarc.${getIdentity(teamDomain.hostname)}`,
+					name: `_dmarc.${teamDomain.hostname}`,
 					value: '"v=DMARC1; p=none;"',
 				},
 			],
