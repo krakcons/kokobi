@@ -286,8 +286,7 @@ export const playFn = createServerFn({ method: "GET" })
 
 		const { scorm, resources } = await parseIMSManifest(imsManifest);
 		return {
-			attemptId: attempt.id,
-			learner: ExtendLearner(attempt.module.type).parse(attempt),
+			attempt: ExtendLearner(attempt.module.type).parse(attempt),
 			url: `/cdn${courseFileUrl}/${resources[0].href}`,
 			type: scorm.metadata.schemaversion,
 		};

@@ -65,48 +65,44 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 
 function RouteComponent() {
 	const [certOpen, setCertOpen] = useState(false);
-	const [course, { learner, url, type, attemptId }] = Route.useLoaderData();
+	const [course, { attempt, url, type }] = Route.useLoaderData();
 	const t = useTranslations("Certificate");
 
 	const [loading, setLoading] = useState(true);
-	const [completed, setCompleted] = useState(!!learner.completedAt);
+	const [completed, setCompleted] = useState(!!attempt.completedAt);
 
 	// Update learner mutation
 	const { mutate } = useMutation({
 		mutationFn: updateAttemptFn,
+		onSuccess: (attempt) => {
+			if (!completed && attempt.completedAt) {
+				setCompleted(true);
+			}
+		},
 	});
 
 	const { isApiAvailable } = useLMS({
 		type: type,
-		data: learner.data,
+		initialData: attempt.data,
 		onDataChange: (data) => {
-			if (!learner.completedAt) {
-				mutate(
-					{
-						data: {
-							courseId: learner.courseId,
-							attemptId,
-							data,
-						},
+			if (!attempt.completedAt) {
+				mutate({
+					data: {
+						courseId: attempt.courseId,
+						attemptId: attempt.id,
+						data,
 					},
-					{
-						onSuccess: (learner) => {
-							if (!completed && learner.completedAt) {
-								setCompleted(true);
-							}
-						},
-					},
-				);
+				});
 			}
 		},
 	});
 
 	useEffect(() => {
-		const hidden = localStorage.getItem(learner.id);
+		const hidden = localStorage.getItem(attempt.id);
 		if (completed && !hidden) {
 			setCertOpen(true);
 		}
-	}, [completed, learner.id]);
+	}, [completed, attempt.id]);
 
 	if (!isApiAvailable) {
 		return <div>LMS not available. Please try again later.</div>;
@@ -134,11 +130,11 @@ function RouteComponent() {
 								onChange={(e) => {
 									if (e.target.checked) {
 										localStorage.setItem(
-											learner.id,
+											attempt.id,
 											"true",
 										);
 									} else {
-										localStorage.removeItem(learner.id);
+										localStorage.removeItem(attempt.id);
 									}
 								}}
 							/>
@@ -149,7 +145,7 @@ function RouteComponent() {
 							params={(p) => p}
 							from={Route.fullPath}
 							search={{
-								learnerId: learner.id,
+								attemptId: attempt.id,
 							}}
 							reloadDocument
 							className={buttonVariants()}
@@ -165,6 +161,7 @@ function RouteComponent() {
 						size: "icon",
 						className: "absolute right-4 bottom-4",
 					})}
+					reloadDocument
 				>
 					<LogOut />
 				</Link>
