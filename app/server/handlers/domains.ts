@@ -16,6 +16,9 @@ import {
 } from "@aws-sdk/client-sesv2";
 import { DomainFormSchema } from "@/types/domains";
 
+const getIdentity = (hostname: string) =>
+	hostname.split(".").slice(-2).join(".");
+
 export const createDomainFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.validator(DomainFormSchema)
@@ -53,9 +56,10 @@ export const createDomainFn = createServerFn({ method: "POST" })
 			throw new Error("Error creating domain in Cloudflare");
 		}
 
+		const identity = getIdentity(hostname);
 		try {
 			const command = new CreateEmailIdentityCommand({
-				EmailIdentity: hostname,
+				EmailIdentity: identity,
 			});
 			await ses.send(command);
 		} catch (e) {
@@ -68,8 +72,8 @@ export const createDomainFn = createServerFn({ method: "POST" })
 
 		try {
 			const command = new PutEmailIdentityMailFromAttributesCommand({
-				EmailIdentity: hostname,
-				MailFromDomain: `email.${hostname}`,
+				EmailIdentity: identity,
+				MailFromDomain: hostname,
 			});
 			await ses.send(command);
 		} catch (e) {
@@ -111,7 +115,7 @@ export const deleteTeamDomainFn = createServerFn({ method: "POST" })
 		});
 
 		const command = new DeleteEmailIdentityCommand({
-			EmailIdentity: domain.hostname,
+			EmailIdentity: getIdentity(domain.hostname),
 		});
 		await ses.send(command);
 
@@ -141,7 +145,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 		}
 
 		const command = new GetEmailIdentityCommand({
-			EmailIdentity: teamDomain.hostname,
+			EmailIdentity: getIdentity(teamDomain.hostname),
 		});
 		const email = await ses.send(command);
 
@@ -167,7 +171,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 							required: true,
 							status: email.DkimAttributes?.Status,
 							type: "CNAME",
-							name: `${token}._domainkey.${teamDomain.hostname}`,
+							name: `${token}._domainkey.${getIdentity(teamDomain.hostname)}`,
 							value: `${token}.dkim.amazonses.com`,
 						}))
 					: []),
@@ -180,7 +184,8 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 										.MailFromDomainStatus ?? "unknown",
 								type: "MX",
 								name: email.MailFromAttributes.MailFromDomain,
-								value: "10 feedback-smtp.ca-central-1.amazonses.com",
+								value: "feedback-smtp.ca-central-1.amazonses.com",
+								priority: 10,
 							},
 							{
 								required: true,
@@ -195,9 +200,9 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 					: []),
 				{
 					required: false,
-					status: "unknown",
+					status: "optional",
 					type: "TXT",
-					name: `_dmarc.${teamDomain.hostname}`,
+					name: `_dmarc.${getIdentity(teamDomain.hostname)}`,
 					value: '"v=DMARC1; p=none;"',
 				},
 			],
