@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { env } from "@/env";
 import { useTranslations } from "@/lib/locale";
 import { cn } from "@/lib/utils";
+import { getConnectionsFn } from "@/server/handlers/connections";
 import { getAuthFn, getMyCoursesFn } from "@/server/handlers/user";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Container } from "lucide-react";
@@ -19,23 +20,26 @@ export const Route = createFileRoute("/$locale/learner/")({
 			});
 		}
 	},
-	loader: () => Promise.all([getMyCoursesFn()]),
+	loader: () =>
+		Promise.all([
+			getConnectionsFn({
+				data: {
+					type: "course",
+				},
+			}),
+			getConnectionsFn({
+				data: {
+					type: "collection",
+				},
+			}),
+		]),
 });
 
 function RouteComponent() {
-	const [courses] = Route.useLoaderData();
+	const [courses, collections] = Route.useLoaderData();
 	const t = useTranslations("Learner");
 
-	console.log(courses);
-
-	const teams = [
-		{
-			name: "CompanionLink",
-		},
-		{
-			name: "Krak",
-		},
-	];
+	console.log(courses, collections);
 
 	return (
 		<FloatingPage>
@@ -46,7 +50,7 @@ function RouteComponent() {
 				/>
 				<div className="flex flex-col gap-4">
 					<h3>Courses</h3>
-					{courses?.map(({ id, name, description }) => (
+					{courses?.map(({ course: { id, name, description } }) => (
 						<Link
 							key={id}
 							to="/$locale/learner/courses/$courseId"
@@ -64,27 +68,22 @@ function RouteComponent() {
 				<div className="flex flex-col gap-4">
 					<h3>Collections</h3>
 					<div className="flex flex-row gap-4">
-						{teams.map(({ name }) => (
-							<div
-								key={name}
-								className="p-4 gap-4 flex-col flex border rounded-lg flex-1"
-							>
-								<Container />
-								<p className="font-medium">{name}</p>
-								<div className="flex gap-1 items-center">
-									{Array.from({ length: 5 }).map((_, i) => (
-										<div
-											key={i}
-											className={cn(
-												"rounded-full h-2 flex-1 bg-secondary",
-												name.length % 2 &&
-													"bg-green-300",
-											)}
-										/>
-									))}
-								</div>
-							</div>
-						))}
+						{collections?.map(
+							({ collection: { id, name, description } }) => (
+								<Link
+									key={id}
+									to="/$locale/learner/collections/$collectionId"
+									params={{
+										collectionId: id,
+									}}
+									className="p-4 gap-4 flex-col flex border rounded-lg flex-1"
+								>
+									<Container />
+									<p className="text-2xl font-bold">{name}</p>
+									{description && <p>{description}</p>}
+								</Link>
+							),
+						)}
 					</div>
 				</div>
 			</div>

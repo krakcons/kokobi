@@ -460,6 +460,10 @@ export const usersToCollectionsRelations = relations(
 			fields: [usersToCollections.userId],
 			references: [users.id],
 		}),
+		team: one(teams, {
+			fields: [usersToCollections.teamId],
+			references: [teams.id],
+		}),
 		collection: one(collections, {
 			fields: [usersToCollections.collectionId],
 			references: [collections.id],

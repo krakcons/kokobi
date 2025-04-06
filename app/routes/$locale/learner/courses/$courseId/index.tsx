@@ -10,30 +10,27 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
+import { getCollectionFn } from "@/server/handlers/collections";
 import { getAttemptsFn, getConnectionFn } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
 import { createAttemptFn } from "@/server/handlers/learners";
 import { getTeamByIdFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Container } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const [course, connection] = await Promise.all([
-			getCourseFn({ data: { courseId: params.courseId } }),
-			getConnectionFn({ data: { type: "course", id: params.courseId } }),
-		]);
+		const connection = await getConnectionFn({
+			data: { type: "course", id: params.courseId },
+		});
 
 		if (!connection) {
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/request",
 				params: {
 					courseId: params.courseId,
-				},
-				search: {
-					teamId: course.teamId,
 				},
 			});
 		}
@@ -62,24 +59,27 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			});
 		}
 
-		const team = await getTeamByIdFn({
-			data: {
-				teamId: connection.teamId,
-			},
-		});
-		const attempts = await getAttemptsFn({
-			data: {
-				courseId: params.courseId,
-				teamId: connection.teamId,
-			},
-		});
-
-		return [course, team, attempts];
+		return Promise.all([
+			getCourseFn({ data: { courseId: params.courseId } }),
+			getTeamByIdFn({
+				data: {
+					teamId: connection.teamId,
+				},
+			}),
+			getAttemptsFn({
+				data: {
+					courseId: params.courseId,
+					teamId: connection.teamId,
+				},
+			}),
+			connection.collection &&
+				getCollectionFn({ data: { id: connection.collectionId } }),
+		]);
 	},
 });
 
 function RouteComponent() {
-	const [course, team, attempts] = Route.useLoaderData();
+	const [course, team, attempts, collection] = Route.useLoaderData();
 	const t = useTranslations("Learner");
 	const locale = useLocale();
 	const navigate = Route.useNavigate();
@@ -203,6 +203,27 @@ function RouteComponent() {
 					>
 						Start Course
 					</Button>
+				)}
+				{collection && (
+					<>
+						<h3>Collection</h3>
+						<Link
+							key={collection.id}
+							to="/$locale/learner/collections/$collectionId"
+							params={{
+								collectionId: collection.id,
+							}}
+							className="p-4 gap-4 flex-col flex border rounded-lg"
+						>
+							<Container />
+							<p className="text-2xl font-bold">
+								{collection.name}
+							</p>
+							{collection.description && (
+								<p>{collection.description}</p>
+							)}
+						</Link>
+					</>
 				)}
 			</div>
 		</FloatingPage>

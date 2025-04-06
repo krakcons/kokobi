@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -15,11 +15,7 @@ import { Link } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Loader2, LogOut } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
-import {
-	createAttemptFn,
-	playFn,
-	updateAttemptFn,
-} from "@/server/handlers/learners";
+import { playFn, updateAttemptFn } from "@/server/handlers/learners";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 	{

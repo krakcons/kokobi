@@ -13,28 +13,22 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { Learner } from "@/types/learner";
-import { Module } from "@/types/module";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { locales, useLocale, useTranslations } from "@/lib/locale";
-import { formatDate } from "@/lib/date";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { useState } from "react";
-import { LearnersForm } from "@/components/forms/LearnersForm";
+import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import {
-	getLearnersFn,
-	inviteLearnersToCourseFn,
-	removeCourseUserFn,
-} from "@/server/handlers/learners";
+import { getLearnersFn } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
 import { createCourseLink } from "@/lib/invite";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
+	inviteConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
@@ -70,8 +64,8 @@ function RouteComponent() {
 			router.invalidate();
 		},
 	});
-	const inviteLearners = useMutation({
-		mutationFn: inviteLearnersToCourseFn,
+	const inviteConnection = useMutation({
+		mutationFn: inviteConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -245,21 +239,22 @@ function RouteComponent() {
 							Create
 						</Button>
 					</DialogTrigger>
-					<DialogContent className="sm:max-w-3xl w-full">
+					<DialogContent className="sm:max-w-xl w-full">
 						<DialogHeader>
 							<DialogTitle>Invite Learners</DialogTitle>
 							<DialogDescription>
-								Enter learners below to invite them to the
-								course.
+								Enter emails below and submit to invite them to
+								the course.
 							</DialogDescription>
 						</DialogHeader>
-						<LearnersForm
+						<EmailsForm
 							onSubmit={(value) =>
-								inviteLearners.mutateAsync(
+								inviteConnection.mutateAsync(
 									{
 										data: {
 											...value,
-											courseId: params.id,
+											id: params.id,
+											type: "course",
 										},
 									},
 									{

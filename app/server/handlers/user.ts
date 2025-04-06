@@ -58,37 +58,6 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 		return teams.map(({ team }) => handleLocalization(context, team));
 	});
 
-export const getMyCoursesFn = createServerFn({ method: "GET" })
-	.middleware([protectedMiddleware, localeMiddleware])
-	.handler(async ({ context }) => {
-		const user = context.user;
-
-		if (!user) {
-			throw new Error("Unauthorized");
-		}
-
-		const courseList = await db.query.usersToCourses.findMany({
-			where: eq(usersToCourses.userId, user.id),
-			with: {
-				course: {
-					with: {
-						translations: true,
-					},
-				},
-				team: {
-					with: {
-						translations: true,
-					},
-				},
-			},
-		});
-
-		return courseList.map(({ course, team }) => ({
-			...handleLocalization(context, course),
-			team: handleLocalization(context, team),
-		}));
-	});
-
 export const setTeamFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
 	.validator(
