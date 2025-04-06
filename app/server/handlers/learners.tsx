@@ -79,55 +79,6 @@ const parseIMSManifest = async (file: S3File) => {
 	};
 };
 
-export const joinCourseFn = createServerFn({ method: "POST" })
-	.validator(JoinCourseFormSchema.extend({ courseId: z.string() }))
-	.handler(async ({ data }) => {
-		const courseModule = await db.query.modules.findFirst({
-			where: and(
-				eq(modules.id, data.moduleId),
-				eq(modules.courseId, data.courseId),
-			),
-			with: {
-				course: true,
-			},
-		});
-		if (!courseModule) {
-			throw new Error("Course module not found");
-		}
-
-		const existingLearner = await db.query.learners.findFirst({
-			where: and(
-				eq(learners.email, data.email),
-				eq(learners.courseId, data.courseId),
-			),
-		});
-		if (existingLearner && existingLearner.moduleId) {
-			return { learnerId: existingLearner.id };
-		}
-
-		const learnerId = data.id ?? Bun.randomUUIDv7();
-		const learner = await db
-			.insert(learners)
-			.values({
-				id: learnerId,
-				...data,
-				teamId: courseModule.course.teamId,
-				data: getInitialScormData(courseModule.type),
-				startedAt: new Date(),
-			})
-			.onConflictDoUpdate({
-				target: [learners.id],
-				set: {
-					startedAt: new Date(),
-					data: getInitialScormData(courseModule.type),
-					moduleId: data.moduleId,
-				},
-			})
-			.returning();
-
-		return { learnerId: learner[0].id };
-	});
-
 export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
 	.validator(LearnersFormSchema.extend({ courseId: z.string() }))
@@ -181,7 +132,7 @@ export const inviteLearnersToCourseFn = createServerFn({ method: "POST" })
 					userId: u.id,
 					teamId,
 					courseId: data.courseId,
-					connectType: "shared" as UserToCourseType["connectType"],
+					connectType: "invite" as UserToCourseType["connectType"],
 					connectStatus:
 						"pending" as UserToCourseType["connectStatus"],
 				})),
@@ -269,104 +220,78 @@ export const getLearnersFn = createServerFn({ method: "GET" })
 		return learnerList;
 	});
 
-export const getLearnerFn = createServerFn({ method: "GET" })
-	.validator(z.object({ courseId: z.string(), learnerId: z.string() }))
-	.handler(async ({ data: { courseId, learnerId } }) => {
-		const learner = await db.query.learners.findFirst({
+export const createAttemptFn = createServerFn({ method: "POST" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.validator(z.object({ courseId: z.string() }))
+	.handler(async ({ context, data: { courseId } }) => {
+		const user = context.user;
+
+		const connection = await db.query.usersToCourses.findFirst({
 			where: and(
-				eq(learners.courseId, courseId),
-				eq(learners.id, learnerId),
+				eq(usersToCourses.courseId, courseId),
+				eq(usersToCourses.userId, user.id),
 			),
 			with: {
-				module: true,
+				course: {
+					with: {
+						modules: true,
+					},
+				},
 			},
 		});
 
-		if (!learner) {
-			throw new Error("Learner not found");
+		if (!connection) {
+			throw new Error("Course not found");
 		}
 
-		return {
-			...ExtendLearner(learner.module?.type).parse(learner),
-			module: learner.module,
-		};
+		const id = Bun.randomUUIDv7();
+		await db.insert(usersToModules).values({
+			id,
+			userId: context.user.id,
+			teamId: connection.teamId,
+			moduleId: connection.course.modules[0].id,
+			courseId,
+			data: getInitialScormData(connection.course.modules[0].type),
+		});
+
+		return id;
 	});
 
 export const playFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware])
-	.validator(
-		z.object({ courseId: z.string(), attemptId: z.string().optional() }),
-	)
-	.handler(
-		async ({ context, data: { courseId, attemptId: customAttemptId } }) => {
-			let attemptId = customAttemptId;
-			if (!attemptId) {
-				const courseConnection =
-					await db.query.usersToCourses.findFirst({
-						where: and(
-							eq(usersToCourses.courseId, courseId),
-							eq(usersToCourses.userId, context.user.id),
-						),
-						with: {
-							course: {
-								with: {
-									modules: true,
-								},
-							},
-						},
-					});
-
-				if (!courseConnection) {
-					throw new Error("Course not found");
-				}
-
-				const attempt = await db
-					.insert(usersToModules)
-					.values({
-						id: Bun.randomUUIDv7(),
-						userId: context.user.id,
-						moduleId: courseConnection.course.modules[0].id,
-						courseId,
-						data: getInitialScormData(
-							courseConnection.course.modules[0].type,
-						),
-					})
-					.returning();
-				attemptId = attempt[0].id;
-			}
-
-			const attempt = await db.query.usersToModules.findFirst({
-				where: and(
-					eq(usersToModules.courseId, courseId),
-					eq(usersToModules.id, attemptId),
-					eq(usersToModules.userId, context.user.id),
-				),
-				with: {
-					module: {
-						with: {
-							course: true,
-						},
+	.validator(z.object({ courseId: z.string(), attemptId: z.string() }))
+	.handler(async ({ context, data: { courseId, attemptId } }) => {
+		const attempt = await db.query.usersToModules.findFirst({
+			where: and(
+				eq(usersToModules.courseId, courseId),
+				eq(usersToModules.id, attemptId),
+				eq(usersToModules.userId, context.user.id),
+			),
+			with: {
+				module: {
+					with: {
+						course: true,
 					},
 				},
-			});
+			},
+		});
 
-			if (!attempt) {
-				throw new Error("Attempt not found");
-			}
+		if (!attempt) {
+			throw new Error("Attempt not found");
+		}
 
-			const courseFileUrl = `/${attempt.module.course.teamId}/courses/${attempt.courseId}/${attempt.module.locale}${attempt.module.versionNumber === 1 ? "" : "_" + attempt.module.versionNumber}`;
+		const courseFileUrl = `/${attempt.module.course.teamId}/courses/${attempt.courseId}/${attempt.module.locale}${attempt.module.versionNumber === 1 ? "" : "_" + attempt.module.versionNumber}`;
 
-			const imsManifest = s3.file(courseFileUrl + "/imsmanifest.xml");
+		const imsManifest = s3.file(courseFileUrl + "/imsmanifest.xml");
 
-			const { scorm, resources } = await parseIMSManifest(imsManifest);
-			return {
-				attemptId: attempt.id,
-				learner: ExtendLearner(attempt.module.type).parse(attempt),
-				url: `/cdn${courseFileUrl}/${resources[0].href}`,
-				type: scorm.metadata.schemaversion,
-			};
-		},
-	);
+		const { scorm, resources } = await parseIMSManifest(imsManifest);
+		return {
+			attemptId: attempt.id,
+			learner: ExtendLearner(attempt.module.type).parse(attempt),
+			url: `/cdn${courseFileUrl}/${resources[0].href}`,
+			type: scorm.metadata.schemaversion,
+		};
+	});
 
 export const getLearnerCertificateFn = createServerFn({ method: "GET" })
 	.middleware([localeMiddleware])
@@ -438,6 +363,25 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 			throw new Error("Learner has already completed the course.");
 		}
 
+		const courseConnection = await db.query.usersToCourses.findFirst({
+			where: and(
+				eq(usersToCourses.courseId, attempt.module.courseId),
+				eq(usersToCourses.userId, context.user.id),
+			),
+			with: {
+				team: {
+					with: {
+						translations: true,
+						domains: true,
+					},
+				},
+			},
+		});
+
+		if (!courseConnection) {
+			throw new Error("Course not found");
+		}
+
 		// UPDATE LEARNER
 		let completedAt = undefined;
 		if (data.data) {
@@ -460,27 +404,6 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 					: attempt.completedAt;
 
 			if (justCompleted) {
-				const courseConnection =
-					await db.query.usersToCourses.findFirst({
-						where: and(
-							eq(
-								usersToCourses.courseId,
-								attempt.module.courseId,
-							),
-							eq(usersToCourses.userId, context.user.id),
-						),
-						with: {
-							team: {
-								with: {
-									translations: true,
-									domains: true,
-								},
-							},
-						},
-					});
-				if (!courseConnection) {
-					throw new Error("Course not found");
-				}
 				const team = handleLocalization(context, courseConnection.team);
 				const course = handleLocalization(context, attempt.course);
 
@@ -523,25 +446,10 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 					eq(usersToModules.courseId, data.courseId),
 					eq(usersToModules.id, data.attemptId),
 					eq(usersToModules.userId, context.user.id),
+					eq(usersToModules.teamId, courseConnection.teamId),
 				),
 			)
 			.returning();
 
 		return ExtendLearner(attempt.module.type).parse(newAttempt[0]);
-	});
-
-export const removeCourseUserFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware()])
-	.validator(z.object({ courseId: z.string(), userId: z.string() }))
-	.handler(async ({ data: { courseId, userId } }) => {
-		await db
-			.delete(usersToCourses)
-			.where(
-				and(
-					eq(usersToCourses.courseId, courseId),
-					eq(usersToCourses.userId, userId),
-				),
-			);
-
-		return null;
 	});

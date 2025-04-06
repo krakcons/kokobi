@@ -1,28 +1,44 @@
 import { FloatingPage } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { connectToCourseFn, getMyCourseFn } from "@/server/handlers/user";
+import {
+	getConnectionFn,
+	userConnectionResponseFn,
+} from "@/server/handlers/connections";
+import { getCourseFn } from "@/server/handlers/courses";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
 	"/$locale/learner/courses/$courseId/invite",
 )({
 	component: RouteComponent,
-	loader: ({ params }) =>
-		getMyCourseFn({
-			data: {
-				courseId: params.courseId,
-			},
-		}),
+	loader: async ({ params }) => {
+		const [course, connection] = await Promise.all([
+			getCourseFn({ data: { courseId: params.courseId } }),
+			getConnectionFn({ data: { type: "course", id: params.courseId } }),
+		]);
+		if (connection?.connectType === "request") {
+			throw redirect({
+				to: `/$locale/learner/courses/$courseId/request`,
+				params: {
+					courseId: params.courseId,
+				},
+				search: {
+					teamId: connection.teamId,
+				},
+			});
+		}
+		return [course, connection];
+	},
 });
 
 function RouteComponent() {
-	const course = Route.useLoaderData();
+	const [course, connection] = Route.useLoaderData();
 	const navigate = Route.useNavigate();
 
-	const connectCourse = useMutation({
-		mutationFn: connectToCourseFn,
+	const connectionResponse = useMutation({
+		mutationFn: userConnectionResponseFn,
 	});
 
 	return (
@@ -34,10 +50,12 @@ function RouteComponent() {
 			<div className="flex gap-4">
 				<Button
 					onClick={() =>
-						connectCourse.mutate(
+						connectionResponse.mutate(
 							{
 								data: {
-									courseId: course.id,
+									type: "course",
+									teamId: connection.teamId,
+									id: course.id,
 									connectStatus: "accepted",
 								},
 							},
@@ -59,10 +77,12 @@ function RouteComponent() {
 				<Button
 					variant="outline"
 					onClick={() =>
-						connectCourse.mutate(
+						connectionResponse.mutate(
 							{
 								data: {
-									courseId: course.id,
+									type: "course",
+									teamId: connection.teamId,
+									id: course.id,
 									connectStatus: "rejected",
 								},
 							},

@@ -1,5 +1,5 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -10,18 +10,19 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { getMyCourseFn } from "@/server/handlers/user";
+import { getAttemptsFn, getConnectionFn } from "@/server/handlers/connections";
+import { getCourseFn } from "@/server/handlers/courses";
+import { getTeamByIdFn } from "@/server/handlers/teams";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
 	loader: async ({ params }) => {
-		const course = await getMyCourseFn({
-			data: {
-				courseId: params.courseId,
-			},
-		});
-		console.log(course);
+		const [course, connection] = await Promise.all([
+			getCourseFn({ data: { courseId: params.courseId } }),
+			getConnectionFn({ data: { type: "course", id: params.courseId } }),
+		]);
 
 		if (!course) {
 			throw redirect({
@@ -32,7 +33,16 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			});
 		}
 
-		if (course.connectStatus === "pending") {
+		if (!connection) {
+			throw redirect({
+				to: "/$locale/learner/courses/$courseId/request",
+				params: {
+					courseId: params.courseId,
+				},
+			});
+		}
+
+		if (connection?.connectStatus === "pending") {
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/invite",
 				params: {
@@ -41,20 +51,40 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			});
 		}
 
-		return course;
+		const team = await getTeamByIdFn({
+			data: {
+				teamId: connection.teamId,
+			},
+		});
+		const attempts = await getAttemptsFn({
+			data: {
+				courseId: params.courseId,
+				teamId: connection.teamId,
+			},
+		});
+
+		return [course, team, attempts];
 	},
 });
 
 function RouteComponent() {
-	const course = Route.useLoaderData();
+	const [course, team, attempts] = Route.useLoaderData();
 	const t = useTranslations("Learner");
 	const locale = useLocale();
-
-	console.log(course);
 
 	return (
 		<FloatingPage>
 			<div className="flex flex-col gap-8 w-full">
+				<Link
+					to="/$locale/learner"
+					className={buttonVariants({
+						variant: "link",
+						className: "self-start",
+					})}
+				>
+					<ArrowLeft />
+					Dashboard
+				</Link>
 				<div className="flex gap-4 items-center">
 					<img
 						src="/favicon.ico"
@@ -62,14 +92,14 @@ function RouteComponent() {
 						className="w-10 h-10"
 					/>
 					<p>
-						Created by <strong>{course.team.name}</strong>
+						Delivered by <strong>{team.name}</strong>
 					</p>
 				</div>
 				<PageHeader
 					title={course.name}
 					description={course.description}
 				/>
-				{course.attempts.length > 0 ? (
+				{attempts.length > 0 ? (
 					<div className="flex flex-col gap-4">
 						<h3>Attempts</h3>
 						<Table>
@@ -83,7 +113,7 @@ function RouteComponent() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{course.attempts.map((attempt) => (
+								{attempts.map((attempt) => (
 									<TableRow key={attempt.id}>
 										<TableCell>
 											{t.statuses[attempt.status]}

@@ -73,6 +73,25 @@ export const getTeamFn = createServerFn({ method: "GET" })
 		return handleLocalization(context, team);
 	});
 
+export const getTeamByIdFn = createServerFn({ method: "GET" })
+	.middleware([localeMiddleware])
+	.validator(z.object({ teamId: z.string() }))
+	.handler(async ({ context, data: { teamId } }) => {
+		const team = await db.query.teams.findFirst({
+			where: eq(teams.id, teamId),
+			with: {
+				translations: true,
+				domains: true,
+			},
+		});
+
+		if (!team) {
+			throw new Error("Team not found.");
+		}
+
+		return handleLocalization(context, team);
+	});
+
 export const createTeamFn = createServerFn({ method: "POST" })
 	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(z.instanceof(FormData))
@@ -102,7 +121,7 @@ export const createTeamFn = createServerFn({ method: "POST" })
 			userId,
 			teamId: id,
 			role: "owner",
-			connectType: "shared",
+			connectType: "invite",
 			connectStatus: "accepted",
 		});
 
@@ -199,7 +218,7 @@ export const inviteMemberFn = createServerFn({ method: "POST" })
 			userId: user.id,
 			teamId: id,
 			role,
-			connectType: "shared",
+			connectType: "invite",
 			connectStatus: "pending",
 		});
 

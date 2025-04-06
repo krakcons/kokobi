@@ -28,8 +28,10 @@ const dates = {
 };
 
 const sharing = {
-	connectType: text("type", { enum: ["shared", "requested"] }).notNull(),
-	connectStatus: text("status", {
+	connectType: text("connect-type", {
+		enum: ["invite", "request"],
+	}).notNull(),
+	connectStatus: text("connect-status", {
 		enum: ["pending", "accepted", "rejected"],
 	}).notNull(),
 };
@@ -222,6 +224,11 @@ export const usersToModules = pgTable("users_to_modules", {
 		.references(() => users.id, {
 			onDelete: "cascade",
 		}),
+	teamId: text("teamId")
+		.notNull()
+		.references(() => teams.id, {
+			onDelete: "cascade",
+		}),
 	moduleId: text("moduleId")
 		.notNull()
 		.references(() => modules.id, {
@@ -264,6 +271,7 @@ export const usersToCollections = pgTable(
 			.references(() => collections.id, {
 				onDelete: "cascade",
 			}),
+		...sharing,
 	},
 	(t) => [primaryKey({ columns: [t.userId, t.collectionId] })],
 );

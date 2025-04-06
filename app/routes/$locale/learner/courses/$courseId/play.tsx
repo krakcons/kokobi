@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -15,7 +15,11 @@ import { Link } from "@tanstack/react-router";
 import { useTranslations } from "@/lib/locale";
 import { Loader2, LogOut } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
-import { playFn, updateAttemptFn } from "@/server/handlers/learners";
+import {
+	createAttemptFn,
+	playFn,
+	updateAttemptFn,
+} from "@/server/handlers/learners";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 	{
@@ -25,8 +29,24 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 		}),
 		ssr: false,
 		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
-		loader: async ({ params, deps }) =>
-			Promise.all([
+		loader: async ({ params, deps }) => {
+			if (!deps.attemptId) {
+				const attemptId = await createAttemptFn({
+					data: {
+						courseId: params.courseId,
+					},
+				});
+				throw redirect({
+					to: `/$locale/learner/courses/$courseId/play`,
+					params: {
+						courseId: params.courseId,
+					},
+					search: {
+						attemptId,
+					},
+				});
+			}
+			return Promise.all([
 				getCourseFn({
 					data: {
 						courseId: params.courseId,
@@ -38,7 +58,8 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 						attemptId: deps.attemptId,
 					},
 				}),
-			]),
+			]);
+		},
 	},
 );
 

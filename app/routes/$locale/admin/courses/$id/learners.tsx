@@ -34,6 +34,10 @@ import { getTeamFn } from "@/server/handlers/teams";
 import { createCourseLink } from "@/lib/invite";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
+import {
+	removeConnectionFn,
+	teamConnectionResponseFn,
+} from "@/server/handlers/connections";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -60,22 +64,92 @@ function RouteComponent() {
 	const [learners, team] = Route.useLoaderData();
 	const router = useRouter();
 
-	console.log("LEARNERS", learners);
-
+	const connectionResponse = useMutation({
+		mutationFn: teamConnectionResponseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
 	const inviteLearners = useMutation({
 		mutationFn: inviteLearnersToCourseFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
 	});
-	const removeCourseUser = useMutation({
-		mutationFn: removeCourseUserFn,
+	const removeConnection = useMutation({
+		mutationFn: removeConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
 	});
 
 	const columns: ColumnDef<UserToCourseType & { user: User }>[] = [
+		{
+			accessorKey: "user.email",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Email" column={column} />
+			),
+		},
+		{
+			accessorKey: "connectType",
+			accessorFn: ({ connectType }) =>
+				connectType.slice(0, 1).toUpperCase() + connectType.slice(1),
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Type" column={column} />
+			),
+		},
+		{
+			accessorKey: "connectStatus",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Status" column={column} />
+			),
+			cell: ({ row: { original } }) => {
+				const connectStatus = original.connectStatus;
+				const connectType = original.connectType;
+				return (
+					<div className="flex items-center gap-2">
+						<div>
+							{connectStatus.slice(0, 1).toUpperCase() +
+								connectStatus.slice(1)}
+						</div>
+						{connectStatus === "pending" &&
+							connectType === "request" && (
+								<>
+									<Button
+										onClick={() =>
+											connectionResponse.mutate({
+												data: {
+													id: params.id,
+													type: "course",
+													userId: original.userId,
+													connectStatus: "accepted",
+												},
+											})
+										}
+									>
+										Accept
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() =>
+											connectionResponse.mutate({
+												data: {
+													id: params.id,
+													type: "course",
+													userId: original.userId,
+													connectStatus: "rejected",
+												},
+											})
+										}
+									>
+										Reject
+									</Button>
+								</>
+							)}
+					</div>
+				);
+			},
+		},
 		{
 			accessorKey: "user.firstName",
 			header: ({ column }) => (
@@ -86,21 +160,6 @@ function RouteComponent() {
 			accessorKey: "user.lastName",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Last Name" column={column} />
-			),
-		},
-		{
-			accessorKey: "user.email",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Email" column={column} />
-			),
-		},
-		{
-			accessorKey: "connectStatus",
-			accessorFn: ({ connectStatus }) =>
-				connectStatus.slice(0, 1).toUpperCase() +
-				connectStatus.slice(1),
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Status" column={column} />
 			),
 		},
 		//{
@@ -155,9 +214,10 @@ function RouteComponent() {
 			{
 				name: "Delete",
 				onClick: ({ userId }) =>
-					removeCourseUser.mutate({
+					removeConnection.mutate({
 						data: {
-							courseId: params.id,
+							id: params.id,
+							type: "course",
 							userId,
 						},
 					}),
@@ -168,6 +228,8 @@ function RouteComponent() {
 	const inviteLink = createCourseLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
 		courseId: params.id,
+		teamId: team.id,
+		path: "request",
 	});
 
 	return (

@@ -5,11 +5,7 @@ import {
 	teamMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
-import {
-	usersToCourses,
-	usersToModules,
-	usersToTeams,
-} from "@/server/db/schema";
+import { usersToCourses, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
@@ -17,7 +13,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { LocaleSchema } from "@/lib/locale";
 import { setCookie } from "@tanstack/react-start/server";
-import { ExtendLearner } from "@/types/learner";
 
 export const updateI18nFn = createServerFn({ method: "POST" })
 	.validator(z.object({ locale: LocaleSchema }))
@@ -93,126 +88,6 @@ export const getMyCoursesFn = createServerFn({ method: "GET" })
 			team: handleLocalization(context, team),
 		}));
 	});
-
-export const connectToCourseFn = createServerFn({ method: "POST" })
-	.middleware([protectedMiddleware, localeMiddleware])
-	.validator(
-		z.object({
-			courseId: z.string(),
-			connectStatus: z.enum(["accepted", "rejected"]),
-		}),
-	)
-	.handler(async ({ context, data: { courseId, connectStatus } }) => {
-		const user = context.user;
-
-		await db
-			.update(usersToCourses)
-			.set({
-				connectStatus,
-			})
-			.where(
-				and(
-					eq(usersToCourses.userId, user.id),
-					eq(usersToCourses.courseId, courseId),
-				),
-			);
-
-		return null;
-	});
-
-export const getMyCourseFn = createServerFn({ method: "GET" })
-	.middleware([protectedMiddleware, localeMiddleware])
-	.validator(z.object({ courseId: z.string() }))
-	.handler(async ({ context, data: { courseId } }) => {
-		const user = context.user;
-		const course = await db.query.usersToCourses.findFirst({
-			where: and(
-				eq(usersToCourses.userId, user.id),
-				eq(usersToCourses.courseId, courseId),
-			),
-			with: {
-				course: {
-					with: {
-						translations: true,
-					},
-				},
-				team: {
-					with: {
-						translations: true,
-					},
-				},
-			},
-		});
-
-		if (!course) {
-			return undefined;
-		}
-
-		const attempts = await db.query.usersToModules.findMany({
-			where: and(
-				eq(usersToModules.userId, user.id),
-				eq(usersToModules.courseId, courseId),
-			),
-			with: {
-				module: true,
-			},
-		});
-
-		return {
-			...course,
-			...handleLocalization(context, course.course),
-			team: handleLocalization(context, course.team),
-			attempts: attempts.map((attempt) =>
-				ExtendLearner(attempt.module.type).parse(attempt),
-			),
-		};
-	});
-
-//
-//export const getMyLearnerFn = createServerFn({ method: "GET" })
-//	.middleware([authMiddleware, localeMiddleware])
-//	.validator(z.object({ learnerId: z.string() }))
-//	.handler(async ({ context, data: { learnerId } }) => {
-//		const user = context.user;
-//
-//		const learner = await db.query.learners.findFirst({
-//			where: and(
-//				eq(learners.email, user!.email),
-//				eq(learners.id, learnerId),
-//			),
-//			with: {
-//				course: {
-//					with: {
-//						translations: true,
-//						team: {
-//							with: {
-//								translations: true,
-//							},
-//						},
-//					},
-//				},
-//				team: {
-//					with: {
-//						translations: true,
-//					},
-//				},
-//				module: true,
-//			},
-//		});
-//
-//		if (!learner) {
-//			throw new Error("Learner not found");
-//		}
-//
-//		return {
-//			learner: ExtendLearner(learner.module?.type).parse(learner),
-//			course: handleLocalization(context, {
-//				...learner.course,
-//				team: handleLocalization(context, learner.course.team),
-//			}),
-//			team: handleLocalization(context, learner.team),
-//		};
-//	});
 
 export const setTeamFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
