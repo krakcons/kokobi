@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
 import { useNavigate } from "@tanstack/react-router";
 
-export const LanguageToggle = () => {
+export const LocaleToggle = () => {
 	const navigate = useNavigate();
 	const locale = useLocale();
 

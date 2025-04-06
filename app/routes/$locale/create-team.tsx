@@ -40,7 +40,7 @@ function RouteComponent() {
 						for (const [key, value] of Object.entries(values)) {
 							formData.append(key, value);
 						}
-						createTeam.mutateAsync({ data: formData });
+						return createTeam.mutateAsync({ data: formData });
 					}}
 				/>
 			</div>

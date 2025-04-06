@@ -33,7 +33,7 @@ export const JoinCourseForm = ({
 							label={tJoin.language}
 							options={moduleOptions.map((m) => ({
 								label: locales.find(
-									(l) => l.value === m.language,
+									(l) => l.value === m.locale,
 								)!.label,
 								value: m.id,
 							}))}

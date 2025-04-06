@@ -318,7 +318,7 @@ export const AdminSidebar = ({
 								>
 									<Avatar className="rounded-lg size-8">
 										<AvatarImage
-											src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.language}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+											src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
 											className="rounded-lg"
 										/>
 										<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
@@ -358,7 +358,7 @@ export const AdminSidebar = ({
 									>
 										<Avatar className="rounded-md size-6">
 											<AvatarImage
-												src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.language}/favicon?updatedAt=${team.updatedAt.toString()}`}
+												src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
 												className="rounded-md"
 											/>
 											<AvatarFallback className="rounded-md">

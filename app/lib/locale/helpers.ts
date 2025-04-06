@@ -10,7 +10,7 @@ export const getLocalizedField = <T>(
 };
 
 export const handleLocalization = <
-	TBase extends { translations: Array<{ language: string }> },
+	TBase extends { translations: Array<{ locale: string }> },
 	TTranslation = TBase["translations"][number],
 	TResult = Omit<TBase & TTranslation, "translations">,
 	TVariables extends LocalizedInputType = LocalizedInputType,
@@ -27,17 +27,17 @@ export const handleLocalization = <
 	switch (fallbackLocale) {
 		case "none":
 			translation = obj.translations.find(
-				(item) => item.language === locale,
+				(item) => item.locale === locale,
 			);
 			break;
 		default:
 			translation = obj.translations.find(
-				(item) => item.language === locale,
+				(item) => item.locale === locale,
 			);
 			if (!translation) {
 				if (fallbackLocale) {
 					translation = obj.translations.find(
-						(item) => item.language === fallbackLocale,
+						(item) => item.locale === fallbackLocale,
 					);
 				} else {
 					translation = obj.translations[0];

@@ -1,9 +1,9 @@
 import { db } from "@/server/db";
 import {
-	learners,
 	teamTranslations,
 	teams,
 	users,
+	usersToCourses,
 	usersToTeams,
 } from "@/server/db/schema";
 import { s3 } from "@/server/s3";
@@ -46,8 +46,8 @@ export const getTeamStatsFn = createServerFn({ method: "GET" })
 		const learnerCount = (
 			await db
 				.select({ count: count() })
-				.from(learners)
-				.where(eq(learners.teamId, teamId))
+				.from(usersToCourses)
+				.where(eq(usersToCourses.teamId, teamId))
 		)[0].count;
 
 		return { learnerCount };
@@ -58,6 +58,25 @@ export const getTeamFn = createServerFn({ method: "GET" })
 	.handler(async ({ context }) => {
 		const teamId = context.teamId;
 
+		const team = await db.query.teams.findFirst({
+			where: eq(teams.id, teamId),
+			with: {
+				translations: true,
+				domains: true,
+			},
+		});
+
+		if (!team) {
+			throw new Error("Team not found.");
+		}
+
+		return handleLocalization(context, team);
+	});
+
+export const getTeamByIdFn = createServerFn({ method: "GET" })
+	.middleware([localeMiddleware])
+	.validator(z.object({ teamId: z.string() }))
+	.handler(async ({ context, data: { teamId } }) => {
 		const team = await db.query.teams.findFirst({
 			where: eq(teams.id, teamId),
 			with: {
@@ -96,12 +115,14 @@ export const createTeamFn = createServerFn({ method: "POST" })
 		await db.insert(teamTranslations).values({
 			name: data.name,
 			teamId: id,
-			language: locale,
+			locale,
 		});
 		await db.insert(usersToTeams).values({
 			userId,
 			teamId: id,
 			role: "owner",
+			connectType: "invite",
+			connectStatus: "accepted",
 		});
 
 		setCookie("teamId", id, {
@@ -143,7 +164,7 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 			.insert(teamTranslations)
 			.values({
 				name: data.name,
-				language: locale,
+				locale,
 				teamId,
 			})
 			.onConflictDoUpdate({
@@ -151,7 +172,7 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 					name: data.name,
 					updatedAt: new Date(),
 				},
-				target: [teamTranslations.teamId, teamTranslations.language],
+				target: [teamTranslations.teamId, teamTranslations.locale],
 			});
 
 		return null;
@@ -197,6 +218,8 @@ export const inviteMemberFn = createServerFn({ method: "POST" })
 			userId: user.id,
 			teamId: id,
 			role,
+			connectType: "invite",
+			connectStatus: "pending",
 		});
 
 		return null;

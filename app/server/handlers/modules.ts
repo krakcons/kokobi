@@ -56,7 +56,7 @@ export const createModuleFn = createServerFn({ method: "POST" })
 			.where(
 				and(
 					eq(modules.courseId, data.courseId),
-					eq(modules.language, locale),
+					eq(modules.locale, locale),
 				),
 			);
 
@@ -70,7 +70,7 @@ export const createModuleFn = createServerFn({ method: "POST" })
 			id: insertId,
 			courseId: data.courseId,
 			type,
-			language: locale,
+			locale,
 			versionNumber,
 		});
 

@@ -3,21 +3,20 @@ import {
 	collectionTranslations,
 	collections,
 	collectionsToCourses,
-	learners,
+	usersToCollections,
 } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { localeMiddleware, teamMiddleware } from "../middleware";
 import { CollectionFormSchema } from "@/types/collections";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { ExtendLearner, LearnersFormSchema } from "@/types/learner";
+import { LearnersFormSchema } from "@/types/learner";
 import { env } from "../env";
 import { createTranslator } from "@/lib/locale/actions";
 import { sendEmail } from "../email";
 import CollectionInvite from "@/emails/CollectionInvite";
 import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { createServerFn } from "@tanstack/react-start";
-import { createJoinLink } from "@/lib/invite";
 
 export const getCollectionsFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -39,10 +38,7 @@ export const getCollectionsFn = createServerFn({ method: "GET" })
 export const createCollectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(CollectionFormSchema)
-	.handler(async ({ context, data }) => {
-		const teamId = context.teamId;
-		const language = context.locale;
-
+	.handler(async ({ context: { locale, teamId }, data }) => {
 		const collectionId = Bun.randomUUIDv7();
 
 		await db.insert(collections).values({
@@ -53,7 +49,7 @@ export const createCollectionFn = createServerFn({ method: "POST" })
 		await db.insert(collectionTranslations).values({
 			...data,
 			collectionId,
-			language,
+			locale,
 		});
 
 		return { id: collectionId };
@@ -62,10 +58,8 @@ export const createCollectionFn = createServerFn({ method: "POST" })
 export const updateCollectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(CollectionFormSchema.extend({ id: z.string() }))
-	.handler(async ({ context, data }) => {
+	.handler(async ({ context: { teamId, locale }, data }) => {
 		const id = data.id;
-		const teamId = context.teamId;
-		const language = context.locale;
 
 		const collection = await db.query.collections.findFirst({
 			where: and(eq(collections.id, id), eq(collections.teamId, teamId)),
@@ -87,7 +81,7 @@ export const updateCollectionFn = createServerFn({ method: "POST" })
 			.values({
 				...data,
 				collectionId: id,
-				language,
+				locale,
 			})
 			.onConflictDoUpdate({
 				set: {
@@ -96,7 +90,7 @@ export const updateCollectionFn = createServerFn({ method: "POST" })
 				},
 				target: [
 					collectionTranslations.collectionId,
-					collectionTranslations.language,
+					collectionTranslations.locale,
 				],
 			});
 
@@ -136,42 +130,16 @@ export const getCollectionLearnersFn = createServerFn({ method: "GET" })
 			throw new Error("Course not found.");
 		}
 
-		const learnerList = await db.query.learners.findMany({
-			where: eq(learners.collectionId, id),
+		const learnerList = await db.query.usersToCollections.findMany({
+			where: eq(usersToCollections.collectionId, id),
 			with: {
-				module: true,
-				course: {
-					with: {
-						team: {
-							with: {
-								domains: true,
-							},
-						},
-					},
-				},
+				user: true,
 			},
 		});
 
-		const extendedLearnerList = learnerList.map((learner) => {
-			return {
-				...ExtendLearner(learner.module?.type).parse(learner),
-				module: learner.module,
-				joinLink:
-					context.role === "owner"
-						? createJoinLink({
-								domain:
-									learner.course.team.domains.length > 0
-										? learner.course.team.domains[0]
-										: undefined,
-								courseId: learner.course.id,
-								teamId: learner.course.team.id,
-								learnerId: learner.id,
-							})
-						: undefined,
-			};
-		});
+		// TODO: Break down progress in multiple courses
 
-		return extendedLearnerList;
+		return learnerList;
 	});
 
 export const getCollectionCoursesFn = createServerFn({ method: "GET" })
@@ -223,18 +191,13 @@ export const createCollectionCourseFn = createServerFn({ method: "POST" })
 export const deleteCollectionCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(z.object({ id: z.string(), courseId: z.string() }))
-	.handler(async ({ context, data: { id, courseId } }) => {
-		const learnerList = await db.query.learners.findMany({
-			where: and(
-				eq(learners.collectionId, id),
-				eq(learners.courseId, courseId),
-			),
+	.handler(async ({ context: { teamId }, data: { id, courseId } }) => {
+		const collection = await db.query.collections.findFirst({
+			where: and(eq(collections.id, id), eq(collections.teamId, teamId)),
 		});
 
-		if (learnerList.length > 0) {
-			throw new Error(
-				"Cannot delete course while learners exist. Delete learners first.",
-			);
+		if (!collection) {
+			throw new Error("Collection not found.");
 		}
 
 		await db
@@ -343,16 +306,17 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 				}
 				const id = finalLearner.id;
 
-				const href = createJoinLink({
-					domain:
-						team.domains.length > 0 ? team.domains[0] : undefined,
-					courseId: l.course.id,
-					teamId: team.id,
-					learnerId: id,
-				});
+				// TODO: Fix this
+				//const href = createJoinLink({
+				//	domain:
+				//		team.domains.length > 0 ? team.domains[0] : undefined,
+				//	courseId: l.course.id,
+				//	teamId: team.id,
+				//	learnerId: id,
+				//});
 
 				return {
-					href,
+					href: "",
 					name,
 				};
 			});
@@ -367,7 +331,7 @@ export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
 						name={collectionName}
 						courses={courses}
 						teamName={team.name}
-						logo={`${env.VITE_SITE_URL}/cdn/${collection.team.id}/${team.language}/logo?updatedAt=${team?.updatedAt.toString()}`}
+						logo={`${env.VITE_SITE_URL}/cdn/${collection.team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
 						t={t.Email.CollectionInvite}
 					/>
 				),

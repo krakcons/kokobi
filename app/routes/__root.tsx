@@ -34,10 +34,6 @@ const getTenant = createServerFn({ method: "GET" }).handler(async () => {
 	return domain ? domain.teamId : null;
 });
 
-// http://localhost:3000/courses/019600d9-c45e-7000-9483-7d88eb3d9ee8?learnerId=019600db-5b76-7000-a930-77de7c04eb60
-// Redirect to /en/play/019600d9-c45e-7000-9483-7d88eb3d9ee8/courses/019600d9-c45e-7000-9483-7d88eb3d9ee8
-// http://localhost:3000/en/play/0195f239-a289-7000-97df-fc9798fbf9b6/courses/019600d9-c45e-7000-9483-7d88eb3d9ee8/join
-
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
 		beforeLoad: async ({ location }) => {

@@ -43,10 +43,7 @@ export const getCourseFn = createServerFn({ method: "GET" })
 export const createCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(CourseFormSchema)
-	.handler(async ({ context, data }) => {
-		const teamId = context.teamId;
-		const language = context.locale;
-
+	.handler(async ({ context: { teamId, locale }, data }) => {
 		const courseId = Bun.randomUUIDv7();
 
 		await db.insert(courses).values({
@@ -59,7 +56,7 @@ export const createCourseFn = createServerFn({ method: "POST" })
 			courseId,
 			name: data.name,
 			description: data.description,
-			language,
+			locale,
 		});
 
 		return { id: courseId };
@@ -68,10 +65,8 @@ export const createCourseFn = createServerFn({ method: "POST" })
 export const updateCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(CourseFormSchema.extend({ id: z.string() }))
-	.handler(async ({ context, data }) => {
+	.handler(async ({ context: { teamId, locale }, data }) => {
 		const id = data.id;
-		const teamId = context.teamId;
-		const language = context.locale;
 
 		const course = await db.query.courses.findFirst({
 			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
@@ -94,7 +89,7 @@ export const updateCourseFn = createServerFn({ method: "POST" })
 				courseId: id,
 				name: data.name,
 				description: data.description,
-				language,
+				locale,
 			})
 			.onConflictDoUpdate({
 				set: {
@@ -103,7 +98,7 @@ export const updateCourseFn = createServerFn({ method: "POST" })
 				},
 				target: [
 					courseTranslations.courseId,
-					courseTranslations.language,
+					courseTranslations.locale,
 				],
 			});
 

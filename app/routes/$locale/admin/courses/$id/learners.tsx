@@ -13,26 +13,25 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { Learner } from "@/types/learner";
-import { Module } from "@/types/module";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { locales, useLocale, useTranslations } from "@/lib/locale";
-import { formatDate } from "@/lib/date";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { useState } from "react";
-import { LearnersForm } from "@/components/forms/LearnersForm";
+import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import {
-	deleteLearnerFn,
-	getLearnersFn,
-	inviteLearnersToCourseFn,
-} from "@/server/handlers/learners";
+import { getLearnersFn } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
-import { env } from "@/env";
-import { createJoinLink } from "@/lib/invite";
+import { createCourseLink } from "@/lib/invite";
+import { User } from "@/types/users";
+import { UserToCourseType } from "@/types/connections";
+import {
+	inviteConnectionFn,
+	removeConnectionFn,
+	teamConnectionResponseFn,
+} from "@/server/handlers/connections";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -59,106 +58,172 @@ function RouteComponent() {
 	const [learners, team] = Route.useLoaderData();
 	const router = useRouter();
 
-	const createLearners = useMutation({
-		mutationFn: inviteLearnersToCourseFn,
+	const connectionResponse = useMutation({
+		mutationFn: teamConnectionResponseFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
 	});
-	const deleteLearner = useMutation({
-		mutationFn: deleteLearnerFn,
+	const inviteConnection = useMutation({
+		mutationFn: inviteConnectionFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
+	const removeConnection = useMutation({
+		mutationFn: removeConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
 	});
 
-	const columns: ColumnDef<Learner & { module: Module | null }>[] = [
+	const columns: ColumnDef<UserToCourseType & { user: User }>[] = [
 		{
-			accessorKey: "firstName",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="First Name" column={column} />
-			),
-		},
-		{
-			accessorKey: "lastName",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Last Name" column={column} />
-			),
-		},
-		{
-			accessorKey: "email",
+			accessorKey: "user.email",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Email" column={column} />
 			),
 		},
 		{
-			accessorKey: "startedAt",
-			accessorFn: ({ startedAt }) =>
-				formatDate({ date: startedAt, locale, type: "detailed" }),
+			accessorKey: "connectType",
+			accessorFn: ({ connectType }) =>
+				connectType.slice(0, 1).toUpperCase() + connectType.slice(1),
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Started At" column={column} />
+				<DataTableColumnHeader title="Type" column={column} />
 			),
 		},
 		{
-			accessorKey: "completedAt",
-			accessorFn: ({ completedAt }) =>
-				formatDate({ date: completedAt, locale, type: "detailed" }),
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Completed At" column={column} />
-			),
-		},
-		{
-			accessorKey: "status",
-			accessorFn: ({ status }) => t.statuses[status],
+			accessorKey: "connectStatus",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
 			),
-		},
-		{
-			accessorKey: "module.language",
-			accessorFn: ({ module }) =>
-				locales.find((l) => l.value === module?.language)?.label,
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Language" column={column} />
-			),
-		},
-		{
-			accessorKey: "module.versionNumber",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Version" column={column} />
-			),
-		},
-		{
-			accessorKey: "score",
-			accessorFn: ({ score }) => {
-				if (score && score.raw && score.max) {
-					return `${score.raw} / ${score.max}`;
-				}
+			cell: ({ row: { original } }) => {
+				const connectStatus = original.connectStatus;
+				const connectType = original.connectType;
+				return (
+					<div className="flex items-center gap-2">
+						<div>
+							{connectStatus.slice(0, 1).toUpperCase() +
+								connectStatus.slice(1)}
+						</div>
+						{connectStatus === "pending" &&
+							connectType === "request" && (
+								<>
+									<Button
+										onClick={() =>
+											connectionResponse.mutate({
+												data: {
+													id: params.id,
+													type: "course",
+													userId: original.userId,
+													connectStatus: "accepted",
+												},
+											})
+										}
+									>
+										Accept
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() =>
+											connectionResponse.mutate({
+												data: {
+													id: params.id,
+													type: "course",
+													userId: original.userId,
+													connectStatus: "rejected",
+												},
+											})
+										}
+									>
+										Reject
+									</Button>
+								</>
+							)}
+					</div>
+				);
 			},
+		},
+		{
+			accessorKey: "user.firstName",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Score" column={column} />
+				<DataTableColumnHeader title="First Name" column={column} />
 			),
 		},
-		createDataTableActionsColumn<
-			Learner & { module: Module | null; joinLink?: string }
-		>([
+		{
+			accessorKey: "user.lastName",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Last Name" column={column} />
+			),
+		},
+		//{
+		//	accessorKey: "startedAt",
+		//	accessorFn: ({ startedAt }) =>
+		//		formatDate({ date: startedAt, locale, type: "detailed" }),
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Started At" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "completedAt",
+		//	accessorFn: ({ completedAt }) =>
+		//		formatDate({ date: completedAt, locale, type: "detailed" }),
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Completed At" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "status",
+		//	accessorFn: ({ status }) => t.statuses[status],
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Status" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "module.locale",
+		//	accessorFn: ({ module }) =>
+		//		locales.find((l) => l.value === module?.locale)?.label,
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Locale" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "module.versionNumber",
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Version" column={column} />
+		//	),
+		//},
+		//{
+		//	accessorKey: "score",
+		//	accessorFn: ({ score }) => {
+		//		if (score && score.raw && score.max) {
+		//			return `${score.raw} / ${score.max}`;
+		//		}
+		//	},
+		//	header: ({ column }) => (
+		//		<DataTableColumnHeader title="Score" column={column} />
+		//	),
+		//},
+		createDataTableActionsColumn<UserToCourseType & { user: User }>([
 			{
 				name: "Delete",
-				onClick: ({ id }) =>
-					deleteLearner.mutate({
+				onClick: ({ userId }) =>
+					removeConnection.mutate({
 						data: {
-							courseId: params.id,
-							learnerId: id,
+							id: params.id,
+							type: "course",
+							userId,
 						},
 					}),
 			},
 		]),
 	];
 
-	const inviteLink = createJoinLink({
+	const inviteLink = createCourseLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
 		courseId: params.id,
 		teamId: team.id,
+		path: "request",
 	});
 
 	return (
@@ -174,21 +239,22 @@ function RouteComponent() {
 							Create
 						</Button>
 					</DialogTrigger>
-					<DialogContent className="sm:max-w-3xl w-full">
+					<DialogContent className="sm:max-w-xl w-full">
 						<DialogHeader>
 							<DialogTitle>Invite Learners</DialogTitle>
 							<DialogDescription>
-								Enter learners below to invite them to the
-								course.
+								Enter emails below and submit to invite them to
+								the course.
 							</DialogDescription>
 						</DialogHeader>
-						<LearnersForm
+						<EmailsForm
 							onSubmit={(value) =>
-								createLearners.mutateAsync(
+								inviteConnection.mutateAsync(
 									{
 										data: {
 											...value,
-											courseId: params.id,
+											id: params.id,
+											type: "course",
 										},
 									},
 									{

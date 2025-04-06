@@ -1,9 +1,5 @@
 import { useLocale, locales, useTranslations } from "@/lib/locale";
-import {
-	useMutation,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
 	Dialog,
@@ -25,15 +21,20 @@ import { Module } from "@/types/module";
 import type { ColumnDef } from "@tanstack/react-table";
 import { formatDate } from "@/lib/date";
 import { useState } from "react";
-import { LearnersForm } from "@/components/forms/LearnersForm";
+import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
 	getCollectionCoursesFn,
 	getCollectionLearnersFn,
-	inviteLearnerToCollectionFn,
 } from "@/server/handlers/collections";
-import { deleteLearnerFn } from "@/server/handlers/learners";
+import {
+	inviteConnectionFn,
+	removeConnectionFn,
+	teamConnectionResponseFn,
+} from "@/server/handlers/connections";
+import { UserToCollectionType } from "@/types/connections";
+import { User } from "@/types/users";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
@@ -64,14 +65,20 @@ function RouteComponent() {
 	const locale = useLocale();
 	const router = useRouter();
 
-	const createLearners = useMutation({
-		mutationFn: inviteLearnerToCollectionFn,
+	const createConnection = useMutation({
+		mutationFn: inviteConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
 	});
-	const deleteLearner = useMutation({
-		mutationFn: deleteLearnerFn,
+	const connectionResponse = useMutation({
+		mutationFn: teamConnectionResponseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
+	const removeConnection = useMutation({
+		mutationFn: removeConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -79,107 +86,95 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const queryClient = useQueryClient();
 
-	const columns: ColumnDef<Learner & { module: Module }>[] = [
+	const columns: ColumnDef<UserToCollectionType & { user: User }>[] = [
 		{
-			accessorKey: "courseId",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Course" column={column} />
-			),
-			cell: ({ cell }) => (
-				<Link
-					to="/$locale/admin/courses/$id/settings"
-					params={(p) => ({
-						...p,
-						id: cell.row.original.courseId,
-					})}
-					from={Route.fullPath}
-					className={buttonVariants()}
-				>
-					{
-						courses.find(
-							(c) => c.id === cell.row.original.courseId,
-						)!.name
-					}
-				</Link>
-			),
-		},
-		{
-			accessorKey: "firstName",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="First Name" column={column} />
-			),
-		},
-		{
-			accessorKey: "lastName",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Last Name" column={column} />
-			),
-		},
-		{
-			accessorKey: "email",
+			accessorKey: "user.email",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Email" column={column} />
 			),
 		},
 		{
-			accessorKey: "startedAt",
-			accessorFn: ({ startedAt }) =>
-				formatDate({ date: startedAt, locale, type: "detailed" }),
+			accessorKey: "connectType",
+			accessorFn: ({ connectType }) =>
+				connectType.slice(0, 1).toUpperCase() + connectType.slice(1),
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Started At" column={column} />
+				<DataTableColumnHeader title="Type" column={column} />
 			),
 		},
 		{
-			accessorKey: "completedAt",
-			accessorFn: ({ completedAt }) =>
-				formatDate({ date: completedAt, locale, type: "detailed" }),
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Completed At" column={column} />
-			),
-		},
-		{
-			accessorKey: "status",
-			accessorFn: ({ status }) => t.statuses[status],
+			accessorKey: "connectStatus",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
 			),
-		},
-		{
-			accessorKey: "module.language",
-			accessorFn: ({ module }) =>
-				locales.find((l) => l.value === module?.language)?.label,
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Language" column={column} />
-			),
-		},
-		{
-			accessorKey: "module.versionNumber",
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Version" column={column} />
-			),
-		},
-		{
-			accessorKey: "score",
-			accessorFn: ({ score }) => {
-				if (score && score.raw && score.max) {
-					return `${score.raw} / ${score.max}`;
-				}
+			cell: ({ row: { original } }) => {
+				const connectStatus = original.connectStatus;
+				const connectType = original.connectType;
+				return (
+					<div className="flex items-center gap-2">
+						<div>
+							{connectStatus.slice(0, 1).toUpperCase() +
+								connectStatus.slice(1)}
+						</div>
+						{connectStatus === "pending" &&
+							connectType === "request" && (
+								<>
+									<Button
+										onClick={() =>
+											connectionResponse.mutate({
+												data: {
+													id: params.id,
+													type: "collection",
+													userId: original.userId,
+													connectStatus: "accepted",
+												},
+											})
+										}
+									>
+										Accept
+									</Button>
+									<Button
+										variant="outline"
+										onClick={() =>
+											connectionResponse.mutate({
+												data: {
+													id: params.id,
+													type: "collection",
+													userId: original.userId,
+													connectStatus: "rejected",
+												},
+											})
+										}
+									>
+										Reject
+									</Button>
+								</>
+							)}
+					</div>
+				);
 			},
+		},
+		{
+			accessorKey: "user.firstName",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Score" column={column} />
+				<DataTableColumnHeader title="First Name" column={column} />
 			),
 		},
-		createDataTableActionsColumn<
-			Learner & { module: Module | null; joinLink?: string }
-		>([
+		{
+			accessorKey: "user.lastName",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Last Name" column={column} />
+			),
+		},
+		createDataTableActionsColumn<UserToCollectionType & { user: User }>([
 			{
 				name: "Delete",
-				onClick: ({ id, courseId }) =>
-					deleteLearner.mutate(
+				onClick: ({ collectionId, user }) =>
+					removeConnection.mutate(
 						{
 							data: {
-								courseId,
-								learnerId: id,
+								type: "collection",
+								id: collectionId,
+								userId: user.id,
 							},
 						},
 						{
@@ -209,21 +204,22 @@ function RouteComponent() {
 							Create
 						</Button>
 					</DialogTrigger>
-					<DialogContent className="sm:max-w-3xl w-full">
+					<DialogContent className="sm:max-w-xl w-full">
 						<DialogHeader>
 							<DialogTitle>Invite Learners</DialogTitle>
 							<DialogDescription>
-								Enter learners below to invite them to the
+								Enter emails below to invite them to the
 								collection.
 							</DialogDescription>
 						</DialogHeader>
-						<LearnersForm
+						<EmailsForm
 							onSubmit={(value) =>
-								createLearners.mutateAsync(
+								createConnection.mutateAsync(
 									{
 										data: {
-											...value,
+											type: "collection",
 											id: params.id,
+											...value,
 										},
 									},
 									{

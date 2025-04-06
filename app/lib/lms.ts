@@ -18,13 +18,14 @@ declare global {
 
 export const useLMS = ({
 	type,
-	data,
+	initialData,
 	onDataChange,
 }: {
 	type: Module["type"];
-	data: Record<string, string>;
+	initialData: Record<string, string>;
 	onDataChange: (data: Record<string, string>) => void;
 }) => {
+	const [data, setData] = useState(initialData);
 	const error = useRef<number | null>(null);
 	const initialized = useRef<boolean>(false);
 	const [isApiAvailable, setIsApiAvailable] = useState(false);
@@ -95,9 +96,13 @@ export const useLMS = ({
 					return "false";
 				}
 
-				onDataChange({
-					...data,
-					[key]: `${value}`,
+				setData((oldData) => {
+					const newData = {
+						...oldData,
+						[key]: `${value}`,
+					};
+					onDataChange(newData);
+					return newData;
 				});
 
 				return "true";
@@ -172,9 +177,13 @@ export const useLMS = ({
 					return "false";
 				}
 
-				onDataChange({
-					...data,
-					[key]: `${value}`,
+				setData((oldData) => {
+					const newData = {
+						...oldData,
+						[key]: `${value}`,
+					};
+					onDataChange(newData);
+					return newData;
 				});
 
 				return "true";
@@ -210,5 +219,5 @@ export const useLMS = ({
 		};
 	}
 
-	return { isApiAvailable };
+	return { isApiAvailable, data };
 };

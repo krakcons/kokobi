@@ -12,79 +12,77 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Link } from "@tanstack/react-router";
-import { useTranslations } from "@/lib/locale";
-import { Loader2 } from "lucide-react";
+import { useLocale, useTranslations } from "@/lib/locale";
+import { Loader2, LogOut } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
-import { playFn, updateLearnerFn } from "@/server/handlers/learners";
+import { playFn, updateAttemptFn } from "@/server/handlers/learners";
 
-export const Route = createFileRoute(
-	"/$locale/play/$teamId/courses/$courseId/",
-)({
-	component: RouteComponent,
-	validateSearch: z.object({
-		learnerId: z.string(),
-	}),
-	loaderDeps: ({ search: { learnerId } }) => ({ learnerId }),
-	loader: async ({ params, deps }) =>
-		Promise.all([
-			getCourseFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
-			playFn({
-				data: {
-					courseId: params.courseId,
-					learnerId: deps.learnerId,
-				},
-			}),
-		]),
-});
+export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
+	{
+		component: RouteComponent,
+		validateSearch: z.object({
+			attemptId: z.string(),
+		}),
+		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
+		loader: ({ params, deps }) =>
+			Promise.all([
+				getCourseFn({
+					data: {
+						courseId: params.courseId,
+					},
+				}),
+				playFn({
+					data: {
+						courseId: params.courseId,
+						attemptId: deps.attemptId,
+					},
+				}),
+			]),
+	},
+);
 
 function RouteComponent() {
 	const [certOpen, setCertOpen] = useState(false);
-	const [course, { learner, url, type }] = Route.useLoaderData();
+	const [course, { attempt, url, type }] = Route.useLoaderData();
+	const locale = useLocale();
 	const t = useTranslations("Certificate");
 
 	const [loading, setLoading] = useState(true);
-	const [completed, setCompleted] = useState(!!learner.completedAt);
+	const [completed, setCompleted] = useState(!!attempt.completedAt);
 
 	// Update learner mutation
 	const { mutate } = useMutation({
-		mutationFn: updateLearnerFn,
+		mutationFn: updateAttemptFn,
+		onSuccess: (attempt) => {
+			if (!completed && attempt.completedAt) {
+				setCompleted(true);
+			}
+		},
 	});
 
 	const { isApiAvailable } = useLMS({
-		type: type,
-		data: learner.data,
+		type,
+		initialData: attempt.data,
 		onDataChange: (data) => {
-			if (!learner.completedAt) {
-				mutate(
-					{
-						data: {
-							courseId: learner.courseId,
-							learnerId: learner.id,
-							data,
-						},
+			console.log("Data changed", data);
+			if (!attempt.completedAt) {
+				mutate({
+					data: {
+						courseId: attempt.courseId,
+						attemptId: attempt.id,
+						data,
 					},
-					{
-						onSuccess: (learner) => {
-							if (!completed && learner.completedAt) {
-								setCompleted(true);
-							}
-						},
-					},
-				);
+				});
 			}
 		},
 	});
 
 	useEffect(() => {
-		const hidden = localStorage.getItem(learner.id);
+		const hidden = localStorage.getItem(attempt.id);
 		if (completed && !hidden) {
 			setCertOpen(true);
 		}
-	}, [completed, learner.id]);
+	}, [completed, attempt.id]);
 
 	if (!isApiAvailable) {
 		return <div>LMS not available. Please try again later.</div>;
@@ -112,11 +110,11 @@ function RouteComponent() {
 								onChange={(e) => {
 									if (e.target.checked) {
 										localStorage.setItem(
-											learner.id,
+											attempt.id,
 											"true",
 										);
 									} else {
-										localStorage.removeItem(learner.id);
+										localStorage.removeItem(attempt.id);
 									}
 								}}
 							/>
@@ -127,7 +125,7 @@ function RouteComponent() {
 							params={(p) => p}
 							from={Route.fullPath}
 							search={{
-								learnerId: learner.id,
+								attemptId: attempt.id,
 							}}
 							reloadDocument
 							className={buttonVariants()}
@@ -136,6 +134,17 @@ function RouteComponent() {
 						</Link>
 					</DialogContent>
 				</Dialog>
+				<Link
+					to="/$locale/learner/courses/$courseId"
+					params={{ courseId: course.id, locale }}
+					className={buttonVariants({
+						size: "icon",
+						className: "absolute right-4 bottom-4",
+					})}
+					reloadDocument
+				>
+					<LogOut />
+				</Link>
 				{loading && (
 					<div className="absolute flex h-screen w-screen items-center justify-center bg-background">
 						<Loader2 size={48} className="animate-spin" />
