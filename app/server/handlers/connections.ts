@@ -34,10 +34,6 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 				),
 			});
 
-			if (!connection) {
-				throw new Error("Course not found");
-			}
-
 			return connection;
 		}
 
@@ -48,10 +44,6 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 					eq(usersToCollections.collectionId, id),
 				),
 			});
-
-			if (!connection) {
-				throw new Error("Collection not found");
-			}
 
 			return connection;
 		}

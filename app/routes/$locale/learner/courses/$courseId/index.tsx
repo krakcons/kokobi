@@ -1,5 +1,5 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -12,7 +12,9 @@ import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { getAttemptsFn, getConnectionFn } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
+import { createAttemptFn } from "@/server/handlers/learners";
 import { getTeamByIdFn } from "@/server/handlers/teams";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
@@ -24,27 +26,36 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			getConnectionFn({ data: { type: "course", id: params.courseId } }),
 		]);
 
-		if (!course) {
-			throw redirect({
-				to: "/$locale/learner/courses/$courseId/request",
-				params: {
-					courseId: params.courseId,
-				},
-			});
-		}
-
 		if (!connection) {
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/request",
 				params: {
 					courseId: params.courseId,
 				},
+				search: {
+					teamId: course.teamId,
+				},
 			});
 		}
 
-		if (connection?.connectStatus === "pending") {
+		if (
+			connection.connectType === "invite" &&
+			connection.connectStatus === "pending"
+		) {
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/invite",
+				params: {
+					courseId: params.courseId,
+				},
+			});
+		}
+
+		if (
+			connection.connectType === "request" &&
+			connection.connectStatus === "pending"
+		) {
+			throw redirect({
+				to: "/$locale/learner/courses/$courseId/request",
 				params: {
 					courseId: params.courseId,
 				},
@@ -71,6 +82,23 @@ function RouteComponent() {
 	const [course, team, attempts] = Route.useLoaderData();
 	const t = useTranslations("Learner");
 	const locale = useLocale();
+	const navigate = Route.useNavigate();
+	const params = Route.useParams();
+
+	const createAttempt = useMutation({
+		mutationFn: createAttemptFn,
+		onSuccess: (attemptId) => {
+			navigate({
+				to: `/$locale/learner/courses/$courseId/play`,
+				params: {
+					courseId: params.courseId,
+				},
+				search: {
+					attemptId,
+				},
+			});
+		},
+	});
 
 	return (
 		<FloatingPage>
@@ -164,13 +192,17 @@ function RouteComponent() {
 						</Table>
 					</div>
 				) : (
-					<Link
-						to="/$locale/learner/courses/$courseId/play"
-						params={{ courseId: course.id, locale }}
-						className={buttonVariants()}
+					<Button
+						onClick={() =>
+							createAttempt.mutate({
+								data: {
+									courseId: course.id,
+								},
+							})
+						}
 					>
 						Start Course
-					</Link>
+					</Button>
 				)}
 			</div>
 		</FloatingPage>

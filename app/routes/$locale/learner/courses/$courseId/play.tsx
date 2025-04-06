@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -25,28 +25,11 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 	{
 		component: RouteComponent,
 		validateSearch: z.object({
-			attemptId: z.string().optional(),
+			attemptId: z.string(),
 		}),
-		ssr: false,
 		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
-		loader: async ({ params, deps }) => {
-			if (!deps.attemptId) {
-				const attemptId = await createAttemptFn({
-					data: {
-						courseId: params.courseId,
-					},
-				});
-				throw redirect({
-					to: `/$locale/learner/courses/$courseId/play`,
-					params: {
-						courseId: params.courseId,
-					},
-					search: {
-						attemptId,
-					},
-				});
-			}
-			return Promise.all([
+		loader: ({ params, deps }) =>
+			Promise.all([
 				getCourseFn({
 					data: {
 						courseId: params.courseId,
@@ -58,8 +41,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 						attemptId: deps.attemptId,
 					},
 				}),
-			]);
-		},
+			]),
 	},
 );
 
