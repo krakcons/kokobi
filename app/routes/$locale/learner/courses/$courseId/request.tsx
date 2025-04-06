@@ -7,7 +7,7 @@ import {
 } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
 export const Route = createFileRoute(
@@ -33,15 +33,19 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const [course, myCourse] = Route.useLoaderData();
+	const [course, connection] = Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const router = useRouter();
 
 	const connectCourse = useMutation({
 		mutationFn: requestConnectionFn,
 		onSuccess: () => {
-			router.invalidate();
+			navigate({
+				to: "/$locale/learner/courses/$courseId",
+				params: {
+					courseId: course.id,
+				},
+			});
 		},
 	});
 
@@ -50,7 +54,7 @@ function RouteComponent() {
 			<h1>{course.name}</h1>
 			<p>{course.description}</p>
 			<Separator className="my-4" />
-			{myCourse ? (
+			{connection ? (
 				<p className="text-center">
 					Requested to join the course "{course.name}", please wait
 					for an admin to approve.
@@ -64,25 +68,13 @@ function RouteComponent() {
 					<div className="flex gap-4">
 						<Button
 							onClick={() =>
-								connectCourse.mutate(
-									{
-										data: {
-											type: "course",
-											id: course.id,
-											teamId: search.teamId,
-										},
+								connectCourse.mutate({
+									data: {
+										type: "course",
+										id: course.id,
+										teamId: search.teamId,
 									},
-									{
-										onSuccess: () => {
-											navigate({
-												to: "/$locale/learner/courses/$courseId",
-												params: {
-													courseId: course.id,
-												},
-											});
-										},
-									},
-								)
+								})
 							}
 						>
 							Request Access

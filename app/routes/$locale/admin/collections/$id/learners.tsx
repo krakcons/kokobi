@@ -35,6 +35,9 @@ import {
 } from "@/server/handlers/connections";
 import { UserToCollectionType } from "@/types/connections";
 import { User } from "@/types/users";
+import { createCollectionLink } from "@/lib/invite";
+import { getTeamFn } from "@/server/handlers/teams";
+import CopyButton from "@/components/CopyButton";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
@@ -47,11 +50,7 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 						id: params.id,
 					},
 				}),
-				getCollectionCoursesFn({
-					data: {
-						id: params.id,
-					},
-				}),
+				getTeamFn(),
 			]),
 	},
 );
@@ -59,7 +58,7 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 function RouteComponent() {
 	const search = Route.useSearch();
 	const params = Route.useParams();
-	const [learners, courses] = Route.useLoaderData();
+	const [learners, team] = Route.useLoaderData();
 	const [open, setOpen] = useState(false);
 	const t = useTranslations("Learner");
 	const locale = useLocale();
@@ -191,6 +190,13 @@ function RouteComponent() {
 		]),
 	];
 
+	const inviteLink = createCollectionLink({
+		domain: team.domains.length > 0 ? team.domains[0] : undefined,
+		collectionId: params.id,
+		teamId: team.id,
+		path: "request",
+	});
+
 	return (
 		<Page>
 			<PageHeader
@@ -208,8 +214,8 @@ function RouteComponent() {
 						<DialogHeader>
 							<DialogTitle>Invite Learners</DialogTitle>
 							<DialogDescription>
-								Enter emails below to invite them to the
-								collection.
+								Enter emails and submit below to invite them to
+								the collection.
 							</DialogDescription>
 						</DialogHeader>
 						<EmailsForm
@@ -231,6 +237,12 @@ function RouteComponent() {
 					</DialogContent>
 				</Dialog>
 			</PageHeader>
+			<div className="bg-secondary rounded flex gap-2 items-center px-3 py-2 overflow-x-auto">
+				<p className="truncate text-sm text-muted-foreground">
+					{inviteLink}
+				</p>
+				<CopyButton text={inviteLink} />
+			</div>
 			<DataTable
 				data={learners}
 				columns={columns}

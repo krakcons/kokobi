@@ -64,9 +64,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				const teamId = await getTenant();
 				if (teamId) {
 					if (
-						!location.pathname.startsWith(
-							`/${pathLocale}/learner/${teamId}`,
-						)
+						!location.pathname.startsWith(`/${pathLocale}/learner`)
 					) {
 						throw notFound();
 					}
