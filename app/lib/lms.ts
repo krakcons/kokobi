@@ -132,8 +132,6 @@ export const useLMS = ({
 			LMSFinish: (): boolean => {
 				console.log("LMSFinish");
 
-				onDataChange(initialData);
-
 				return true;
 			},
 		};
@@ -215,8 +213,6 @@ export const useLMS = ({
 			},
 			Terminate: (): boolean => {
 				console.log("Terminate");
-
-				onDataChange(initialData);
 
 				return true;
 			},

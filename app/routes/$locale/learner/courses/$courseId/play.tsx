@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
@@ -12,7 +12,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Link } from "@tanstack/react-router";
-import { useTranslations } from "@/lib/locale";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { Loader2, LogOut } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
 import {
@@ -66,6 +66,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 function RouteComponent() {
 	const [certOpen, setCertOpen] = useState(false);
 	const [course, { attempt, url, type }] = Route.useLoaderData();
+	const locale = useLocale();
 	const t = useTranslations("Certificate");
 
 	const [loading, setLoading] = useState(true);
@@ -82,9 +83,10 @@ function RouteComponent() {
 	});
 
 	const { isApiAvailable } = useLMS({
-		type: type,
+		type,
 		initialData: attempt.data,
 		onDataChange: (data) => {
+			console.log("Data changed", data);
 			if (!attempt.completedAt) {
 				mutate({
 					data: {
@@ -156,7 +158,7 @@ function RouteComponent() {
 				</Dialog>
 				<Link
 					to="/$locale/learner/courses/$courseId"
-					params={{ courseId: course.id }}
+					params={{ courseId: course.id, locale }}
 					className={buttonVariants({
 						size: "icon",
 						className: "absolute right-4 bottom-4",
