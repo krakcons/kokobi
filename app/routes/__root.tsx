@@ -65,7 +65,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				if (teamId) {
 					if (
 						!location.pathname.startsWith(
-							`/${pathLocale}/play/${teamId}`,
+							`/${pathLocale}/learner/${teamId}`,
 						)
 					) {
 						throw notFound();
