@@ -28,7 +28,7 @@ import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
 	getTeamConnectionsFn,
-	inviteConnectionFn,
+	inviteUsersConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
@@ -66,7 +66,7 @@ function RouteComponent() {
 		},
 	});
 	const inviteConnection = useMutation({
-		mutationFn: inviteConnectionFn,
+		mutationFn: inviteUsersConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},

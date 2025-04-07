@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
 	getTeamConnectionsFn,
-	inviteConnectionFn,
+	inviteUsersConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
@@ -60,7 +60,7 @@ function RouteComponent() {
 	const tConnect = useTranslations("ConnectionActions");
 
 	const createConnection = useMutation({
-		mutationFn: inviteConnectionFn,
+		mutationFn: inviteUsersConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},

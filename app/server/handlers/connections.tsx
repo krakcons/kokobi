@@ -167,11 +167,11 @@ export const getAttemptsFn = createServerFn({ method: "GET" })
 		);
 	});
 
-export const inviteConnectionFn = createServerFn({ method: "POST" })
+export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(
 		z.object({
-			type: z.enum(["course", "collection"]),
+			type: z.enum(["course", "collection", "from-team"]),
 			id: z.string(),
 			emails: z.string().email().array(),
 		}),
@@ -282,7 +282,7 @@ export const inviteConnectionFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
-export const inviteTeamConnectionFn = createServerFn({ method: "POST" })
+export const inviteTeamsConnectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(
 		z.object({
@@ -305,6 +305,10 @@ export const inviteTeamConnectionFn = createServerFn({ method: "POST" })
 
 			if (!course) {
 				throw new Error("Course not found");
+			}
+
+			if (teamIds.includes(context.teamId)) {
+				throw new Error("You cannot invite yourself");
 			}
 
 			await db.insert(teamsToCourses).values(

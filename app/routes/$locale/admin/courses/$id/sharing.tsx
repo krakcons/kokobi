@@ -9,7 +9,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
 import {
 	getTeamConnectionsFn,
-	inviteTeamConnectionFn,
+	inviteTeamsConnectionFn,
 	removeConnectionFn,
 } from "@/server/handlers/connections";
 import { Team, TeamTranslation } from "@/types/team";
@@ -51,7 +51,7 @@ function RouteComponent() {
 	const params = Route.useParams();
 
 	const inviteConnection = useMutation({
-		mutationFn: inviteTeamConnectionFn,
+		mutationFn: inviteTeamsConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
