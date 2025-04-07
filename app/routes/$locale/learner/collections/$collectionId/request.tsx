@@ -52,14 +52,23 @@ function RouteComponent() {
 			<p>{collection.description}</p>
 			<Separator className="my-4" />
 			{connection ? (
-				<p className="text-center">
-					Requested to join the course "{collection.name}", please
-					wait for an admin to approve.
-				</p>
+				<>
+					{connection.connectStatus === "rejected" ? (
+						<p className="text-center">
+							An admin has rejected your request to join the
+							collection "{collection.name}".
+						</p>
+					) : (
+						<p className="text-center">
+							Requested to join the collection "{collection.name}
+							", please wait for an admin to approve.
+						</p>
+					)}
+				</>
 			) : (
 				<>
 					<p>
-						This course is private. Would you like to request to
+						This collection is private. Would you like to request to
 						join?
 					</p>
 					<div className="flex gap-4">

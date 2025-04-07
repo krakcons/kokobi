@@ -1,10 +1,11 @@
+import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Badge } from "@/components/ui/badge";
 import { env } from "@/env";
 import { useTranslations } from "@/lib/locale";
-import { cn } from "@/lib/utils";
 import { getConnectionsFn } from "@/server/handlers/connections";
-import { getAuthFn, getMyCoursesFn } from "@/server/handlers/user";
+import { getAuthFn } from "@/server/handlers/user";
+import { ConnectionType } from "@/types/connections";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Container } from "lucide-react";
 
@@ -37,9 +38,6 @@ export const Route = createFileRoute("/$locale/learner/")({
 
 function RouteComponent() {
 	const [courses, collections] = Route.useLoaderData();
-	const t = useTranslations("Learner");
-
-	console.log(courses, collections);
 
 	return (
 		<FloatingPage>
@@ -50,26 +48,40 @@ function RouteComponent() {
 				/>
 				<div className="flex flex-col gap-4">
 					<h3>Courses</h3>
-					{courses?.map(({ course: { id, name, description } }) => (
-						<Link
-							key={id}
-							to="/$locale/learner/courses/$courseId"
-							from={Route.fullPath}
-							params={{
-								courseId: id,
-							}}
-							className="w-full rounded-lg p-4 border flex flex-col gap-4"
-						>
-							<p className="text-2xl font-bold">{name}</p>
-							{description && <p>{description}</p>}
-						</Link>
-					))}
+					{courses?.map(
+						({
+							connectStatus,
+							connectType,
+							course: { id, name, description },
+						}) => (
+							<Link
+								key={id}
+								to="/$locale/learner/courses/$courseId"
+								from={Route.fullPath}
+								params={{
+									courseId: id,
+								}}
+								className="w-full rounded-lg p-4 border flex flex-col gap-4"
+							>
+								<p className="text-2xl font-bold">{name}</p>
+								{description && <p>{description}</p>}
+								<ConnectionStatusBadge
+									connectStatus={connectStatus}
+									connectType={connectType}
+								/>
+							</Link>
+						),
+					)}
 				</div>
 				<div className="flex flex-col gap-4">
 					<h3>Collections</h3>
 					<div className="flex flex-row gap-4">
 						{collections?.map(
-							({ collection: { id, name, description } }) => (
+							({
+								connectType,
+								connectStatus,
+								collection: { id, name, description },
+							}) => (
 								<Link
 									key={id}
 									to="/$locale/learner/collections/$collectionId"
@@ -81,6 +93,10 @@ function RouteComponent() {
 									<Container />
 									<p className="text-2xl font-bold">{name}</p>
 									{description && <p>{description}</p>}
+									<ConnectionStatusBadge
+										connectStatus={connectStatus}
+										connectType={connectType}
+									/>
 								</Link>
 							),
 						)}

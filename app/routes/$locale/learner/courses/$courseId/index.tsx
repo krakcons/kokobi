@@ -52,12 +52,15 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 
 		if (
 			connection.connectType === "request" &&
-			connection.connectStatus === "pending"
+			connection.connectStatus !== "accepted"
 		) {
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/request",
 				params: {
 					courseId: params.courseId,
+				},
+				search: {
+					teamId: connection.teamId,
 				},
 			});
 		}

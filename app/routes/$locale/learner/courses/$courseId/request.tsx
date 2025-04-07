@@ -7,7 +7,7 @@ import {
 } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
 
 export const Route = createFileRoute(
@@ -35,17 +35,12 @@ export const Route = createFileRoute(
 function RouteComponent() {
 	const [course, connection] = Route.useLoaderData();
 	const search = Route.useSearch();
-	const navigate = Route.useNavigate();
+	const router = useRouter();
 
 	const connectCourse = useMutation({
 		mutationFn: requestConnectionFn,
 		onSuccess: () => {
-			navigate({
-				to: "/$locale/learner/courses/$courseId",
-				params: {
-					courseId: course.id,
-				},
-			});
+			router.invalidate();
 		},
 	});
 
@@ -55,10 +50,19 @@ function RouteComponent() {
 			<p>{course.description}</p>
 			<Separator className="my-4" />
 			{connection ? (
-				<p className="text-center">
-					Requested to join the course "{course.name}", please wait
-					for an admin to approve.
-				</p>
+				<>
+					{connection.connectStatus === "rejected" ? (
+						<p className="text-center">
+							An admin has rejected your request to join the
+							course "{course.name}".
+						</p>
+					) : (
+						<p className="text-center">
+							Requested to join the course "{course.name}
+							", please wait for an admin to approve.
+						</p>
+					)}
+				</>
 			) : (
 				<>
 					<p>

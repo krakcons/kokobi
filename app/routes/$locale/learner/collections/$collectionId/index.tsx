@@ -41,12 +41,15 @@ export const Route = createFileRoute(
 
 		if (
 			connection.connectType === "request" &&
-			connection.connectStatus === "pending"
+			connection.connectStatus !== "accepted"
 		) {
 			throw redirect({
 				to: "/$locale/learner/collections/$collectionId/request",
 				params: {
 					collectionId: params.collectionId,
+				},
+				search: {
+					teamId: connection.teamId,
 				},
 			});
 		}

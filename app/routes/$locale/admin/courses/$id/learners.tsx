@@ -32,6 +32,7 @@ import {
 	removeConnectionFn,
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
+import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	component: RouteComponent,
@@ -53,10 +54,9 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const t = useTranslations("Learner");
-	const locale = useLocale();
 	const [learners, team] = Route.useLoaderData();
 	const router = useRouter();
+	const tConnect = useTranslations("ConnectionActions");
 
 	const connectionResponse = useMutation({
 		mutationFn: teamConnectionResponseFn,
@@ -85,14 +85,6 @@ function RouteComponent() {
 			),
 		},
 		{
-			accessorKey: "connectType",
-			accessorFn: ({ connectType }) =>
-				connectType.slice(0, 1).toUpperCase() + connectType.slice(1),
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Type" column={column} />
-			),
-		},
-		{
 			accessorKey: "connectStatus",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
@@ -102,10 +94,10 @@ function RouteComponent() {
 				const connectType = original.connectType;
 				return (
 					<div className="flex items-center gap-2">
-						<div>
-							{connectStatus.slice(0, 1).toUpperCase() +
-								connectStatus.slice(1)}
-						</div>
+						<ConnectionStatusBadge
+							connectStatus={connectStatus}
+							connectType={connectType}
+						/>
 						{connectStatus === "pending" &&
 							connectType === "request" && (
 								<>
@@ -121,7 +113,7 @@ function RouteComponent() {
 											})
 										}
 									>
-										Accept
+										{tConnect.accept}
 									</Button>
 									<Button
 										variant="outline"
@@ -136,7 +128,7 @@ function RouteComponent() {
 											})
 										}
 									>
-										Reject
+										{tConnect.reject}
 									</Button>
 								</>
 							)}
@@ -156,54 +148,6 @@ function RouteComponent() {
 				<DataTableColumnHeader title="Last Name" column={column} />
 			),
 		},
-		//{
-		//	accessorKey: "startedAt",
-		//	accessorFn: ({ startedAt }) =>
-		//		formatDate({ date: startedAt, locale, type: "detailed" }),
-		//	header: ({ column }) => (
-		//		<DataTableColumnHeader title="Started At" column={column} />
-		//	),
-		//},
-		//{
-		//	accessorKey: "completedAt",
-		//	accessorFn: ({ completedAt }) =>
-		//		formatDate({ date: completedAt, locale, type: "detailed" }),
-		//	header: ({ column }) => (
-		//		<DataTableColumnHeader title="Completed At" column={column} />
-		//	),
-		//},
-		//{
-		//	accessorKey: "status",
-		//	accessorFn: ({ status }) => t.statuses[status],
-		//	header: ({ column }) => (
-		//		<DataTableColumnHeader title="Status" column={column} />
-		//	),
-		//},
-		//{
-		//	accessorKey: "module.locale",
-		//	accessorFn: ({ module }) =>
-		//		locales.find((l) => l.value === module?.locale)?.label,
-		//	header: ({ column }) => (
-		//		<DataTableColumnHeader title="Locale" column={column} />
-		//	),
-		//},
-		//{
-		//	accessorKey: "module.versionNumber",
-		//	header: ({ column }) => (
-		//		<DataTableColumnHeader title="Version" column={column} />
-		//	),
-		//},
-		//{
-		//	accessorKey: "score",
-		//	accessorFn: ({ score }) => {
-		//		if (score && score.raw && score.max) {
-		//			return `${score.raw} / ${score.max}`;
-		//		}
-		//	},
-		//	header: ({ column }) => (
-		//		<DataTableColumnHeader title="Score" column={column} />
-		//	),
-		//},
 		createDataTableActionsColumn<UserToCourseType & { user: User }>([
 			{
 				name: "Delete",

@@ -1,6 +1,6 @@
-import { useLocale, locales, useTranslations } from "@/lib/locale";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	Dialog,
 	DialogContent,
@@ -16,18 +16,12 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { Learner } from "@/types/learner";
-import { Module } from "@/types/module";
 import type { ColumnDef } from "@tanstack/react-table";
-import { formatDate } from "@/lib/date";
 import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import {
-	getCollectionCoursesFn,
-	getCollectionLearnersFn,
-} from "@/server/handlers/collections";
+import { getCollectionLearnersFn } from "@/server/handlers/collections";
 import {
 	inviteConnectionFn,
 	removeConnectionFn,
@@ -38,6 +32,7 @@ import { User } from "@/types/users";
 import { createCollectionLink } from "@/lib/invite";
 import { getTeamFn } from "@/server/handlers/teams";
 import CopyButton from "@/components/CopyButton";
+import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
@@ -60,9 +55,8 @@ function RouteComponent() {
 	const params = Route.useParams();
 	const [learners, team] = Route.useLoaderData();
 	const [open, setOpen] = useState(false);
-	const t = useTranslations("Learner");
-	const locale = useLocale();
 	const router = useRouter();
+	const tConnect = useTranslations("ConnectionActions");
 
 	const createConnection = useMutation({
 		mutationFn: inviteConnectionFn,
@@ -83,21 +77,12 @@ function RouteComponent() {
 		},
 	});
 	const navigate = Route.useNavigate();
-	const queryClient = useQueryClient();
 
 	const columns: ColumnDef<UserToCollectionType & { user: User }>[] = [
 		{
 			accessorKey: "user.email",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Email" column={column} />
-			),
-		},
-		{
-			accessorKey: "connectType",
-			accessorFn: ({ connectType }) =>
-				connectType.slice(0, 1).toUpperCase() + connectType.slice(1),
-			header: ({ column }) => (
-				<DataTableColumnHeader title="Type" column={column} />
 			),
 		},
 		{
@@ -110,10 +95,10 @@ function RouteComponent() {
 				const connectType = original.connectType;
 				return (
 					<div className="flex items-center gap-2">
-						<div>
-							{connectStatus.slice(0, 1).toUpperCase() +
-								connectStatus.slice(1)}
-						</div>
+						<ConnectionStatusBadge
+							connectStatus={connectStatus}
+							connectType={connectType}
+						/>
 						{connectStatus === "pending" &&
 							connectType === "request" && (
 								<>
@@ -129,7 +114,7 @@ function RouteComponent() {
 											})
 										}
 									>
-										Accept
+										{tConnect.accept}
 									</Button>
 									<Button
 										variant="outline"
@@ -144,7 +129,7 @@ function RouteComponent() {
 											})
 										}
 									>
-										Reject
+										{tConnect.reject}
 									</Button>
 								</>
 							)}

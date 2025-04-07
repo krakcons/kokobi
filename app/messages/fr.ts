@@ -131,6 +131,19 @@ const fr: Messages = {
 		completed: "Completed",
 		either: "Either",
 	},
+	ConnectionActions: {
+		accept: "Accept",
+		reject: "Reject",
+	},
+	ConnectionStatuses: {
+		accepted: "Accepted",
+		pending: "Pending",
+		rejected: "Rejected",
+	},
+	ConnectionTypes: {
+		invite: "Invite",
+		request: "Request",
+	},
 };
 
 export default fr;
