@@ -1,5 +1,5 @@
-import { useLocale, useTranslations } from "@/lib/locale";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "@/lib/locale";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	Dialog,
@@ -21,8 +21,8 @@ import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { getCollectionLearnersFn } from "@/server/handlers/collections";
 import {
+	getTeamConnectionsFn,
 	inviteConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
@@ -40,8 +40,9 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 		validateSearch: TableSearchSchema,
 		loader: ({ params }) =>
 			Promise.all([
-				getCollectionLearnersFn({
+				getTeamConnectionsFn({
 					data: {
+						type: "collection",
 						id: params.id,
 					},
 				}),

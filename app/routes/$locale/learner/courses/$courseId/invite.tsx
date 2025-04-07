@@ -1,3 +1,4 @@
+import { ContentBranding } from "@/components/ContentBranding";
 import { FloatingPage } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -99,6 +100,7 @@ function RouteComponent() {
 					Decline
 				</Button>
 			</div>
+			<ContentBranding team={course.team} connectTeam={connection.team} />
 		</FloatingPage>
 	);
 }

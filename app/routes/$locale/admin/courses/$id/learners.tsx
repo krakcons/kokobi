@@ -16,18 +16,18 @@ import { Page, PageHeader } from "@/components/Page";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useLocale, useTranslations } from "@/lib/locale";
+import { useTranslations } from "@/lib/locale";
 import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import { getLearnersFn } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
 import { createCourseLink } from "@/lib/invite";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
+	getTeamConnectionsFn,
 	inviteConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
@@ -39,8 +39,9 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	validateSearch: TableSearchSchema,
 	loader: ({ params }) => {
 		return Promise.all([
-			getLearnersFn({
+			getTeamConnectionsFn({
 				data: {
+					type: "course",
 					id: params.id,
 				},
 			}),

@@ -30,6 +30,11 @@ export const getCourseFn = createServerFn({ method: "GET" })
 			where: and(eq(courses.id, courseId)),
 			with: {
 				translations: true,
+				team: {
+					with: {
+						translations: true,
+					},
+				},
 			},
 		});
 
@@ -37,7 +42,10 @@ export const getCourseFn = createServerFn({ method: "GET" })
 			throw new Error("Course not found");
 		}
 
-		return handleLocalization(context, course);
+		return {
+			...handleLocalization(context, course),
+			team: handleLocalization(context, course.team),
+		};
 	});
 
 export const createCourseFn = createServerFn({ method: "POST" })

@@ -52,6 +52,7 @@ import {
 	Moon,
 	Sun,
 	SunMoon,
+	Share,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Theme, useTheme } from "@/lib/theme";
@@ -62,11 +63,14 @@ import { Collection, CollectionTranslation } from "@/types/collections";
 import { setTeamFn, signOutFn } from "@/server/handlers/user";
 import { Team, TeamTranslation } from "@/types/team";
 import { useServerFn } from "@tanstack/react-start";
+import { TeamToCourseType } from "@/types/connections";
 
 const CourseCollapsible = ({
 	course,
+	shared,
 }: {
 	course: Course & CourseTranslation;
+	shared?: boolean;
 }) => {
 	const { setOpenMobile } = useSidebar();
 	const [open, setOpen] = useState(false);
@@ -128,46 +132,82 @@ const CourseCollapsible = ({
 								)}
 							</Link>
 						</SidebarMenuSubItem>
-						<SidebarMenuSubItem>
-							<Link
-								to={"/$locale/admin/courses/$id/modules"}
-								params={{
-									locale,
-									id: course.id,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								{({ isActive }) => (
-									<SidebarMenuSubButton isActive={isActive}>
-										<Files />
-										Modules
-									</SidebarMenuSubButton>
-								)}
-							</Link>
-						</SidebarMenuSubItem>
-						<SidebarMenuSubItem>
-							<Link
-								to={"/$locale/admin/courses/$id/settings"}
-								params={{
-									locale,
-									id: course.id,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								{({ isActive }) => (
-									<SidebarMenuSubButton isActive={isActive}>
-										<Settings />
-										Settings
-									</SidebarMenuSubButton>
-								)}
-							</Link>
-						</SidebarMenuSubItem>
+						{!shared && (
+							<>
+								<SidebarMenuSubItem>
+									<Link
+										to={
+											"/$locale/admin/courses/$id/modules"
+										}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuSubButton
+												isActive={isActive}
+											>
+												<Files />
+												Modules
+											</SidebarMenuSubButton>
+										)}
+									</Link>
+								</SidebarMenuSubItem>
+								<SidebarMenuSubItem>
+									<Link
+										to={
+											"/$locale/admin/courses/$id/sharing"
+										}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuSubButton
+												isActive={isActive}
+											>
+												<Share />
+												Sharing
+											</SidebarMenuSubButton>
+										)}
+									</Link>
+								</SidebarMenuSubItem>
+								<SidebarMenuSubItem>
+									<Link
+										to={
+											"/$locale/admin/courses/$id/settings"
+										}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuSubButton
+												isActive={isActive}
+											>
+												<Settings />
+												Settings
+											</SidebarMenuSubButton>
+										)}
+									</Link>
+								</SidebarMenuSubItem>
+							</>
+						)}
 					</SidebarMenuSub>
 				</CollapsibleContent>
 			</SidebarMenuItem>
@@ -292,11 +332,16 @@ export const AdminSidebar = ({
 	teams,
 	courses,
 	collections,
+	connections,
 }: {
 	teamId: string;
 	teams: (Team & TeamTranslation)[];
 	courses: (Course & CourseTranslation)[];
 	collections: (Collection & CollectionTranslation)[];
+	connections: (TeamToCourseType & {
+		course: Course & CourseTranslation;
+		team: Team & TeamTranslation;
+	})[];
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { setOpenMobile, isMobile } = useSidebar();
@@ -441,6 +486,18 @@ export const AdminSidebar = ({
 							<CourseCollapsible
 								course={course}
 								key={course.id}
+							/>
+						))}
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup>
+					<SidebarGroupContent>
+						<SidebarGroupLabel>Shared Courses</SidebarGroupLabel>
+						{connections.map(({ course }) => (
+							<CourseCollapsible
+								course={course}
+								key={course.id}
+								shared
 							/>
 						))}
 					</SidebarGroupContent>

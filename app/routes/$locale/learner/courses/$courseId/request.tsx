@@ -1,3 +1,4 @@
+import { ContentBranding } from "@/components/ContentBranding";
 import { FloatingPage } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -6,6 +7,7 @@ import {
 	requestConnectionFn,
 } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
+import { getTeamByIdFn, getTeamFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
@@ -15,10 +17,13 @@ export const Route = createFileRoute(
 )({
 	component: RouteComponent,
 	validateSearch: z.object({ teamId: z.string() }),
-	loader: async ({ params }) => {
-		const [course, connection] = await Promise.all([
+	loaderDeps: ({ search: { teamId } }) => ({ teamId }),
+	loader: async ({ params, deps }) => {
+		console.log(deps);
+		const [course, connection, team] = await Promise.all([
 			getCourseFn({ data: { courseId: params.courseId } }),
 			getConnectionFn({ data: { type: "course", id: params.courseId } }),
+			getTeamByIdFn({ data: { teamId: deps.teamId } }),
 		]);
 		if (connection?.connectStatus === "accepted") {
 			throw redirect({
@@ -28,12 +33,13 @@ export const Route = createFileRoute(
 				},
 			});
 		}
-		return [course, connection];
+		console.log(team);
+		return [course, connection, team];
 	},
 });
 
 function RouteComponent() {
-	const [course, connection] = Route.useLoaderData();
+	const [course, connection, team] = Route.useLoaderData();
 	const search = Route.useSearch();
 	const router = useRouter();
 
@@ -86,6 +92,7 @@ function RouteComponent() {
 					</div>
 				</>
 			)}
+			<ContentBranding team={course.team} connectTeam={team} />
 		</FloatingPage>
 	);
 }

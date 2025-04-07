@@ -66,36 +66,6 @@ const parseIMSManifest = async (file: S3File) => {
 	};
 };
 
-export const getLearnersFn = createServerFn({ method: "GET" })
-	.middleware([teamMiddleware({ role: "owner" })])
-	.validator(z.object({ id: z.string() }))
-	.handler(async ({ context, data: { id } }) => {
-		const { teamId } = context;
-		const course = await db.query.courses.findFirst({
-			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
-			with: {
-				translations: true,
-				team: {
-					with: {
-						domains: true,
-					},
-				},
-			},
-		});
-		if (!course) {
-			throw new Error("Course not found.");
-		}
-
-		const learnerList = await db.query.usersToCourses.findMany({
-			where: eq(modules.courseId, course.id),
-			with: {
-				user: true,
-			},
-		});
-
-		return learnerList;
-	});
-
 export const playFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware])
 	.validator(z.object({ courseId: z.string(), attemptId: z.string() }))

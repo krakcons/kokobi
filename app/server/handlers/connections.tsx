@@ -7,8 +7,8 @@ import {
 import { db } from "@/server/db";
 import {
 	courses,
-	modules,
 	teams,
+	teamsToCourses,
 	users,
 	usersToCollections,
 	usersToCourses,
@@ -24,8 +24,6 @@ import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
-import { getInitialScormData } from "@/lib/scorm";
-import { getCourseConnectionHelper } from "../helpers";
 
 export const getConnectionFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware, localeMiddleware])
@@ -284,6 +282,43 @@ export const inviteConnectionFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
+export const inviteTeamConnectionFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware(), localeMiddleware])
+	.validator(
+		z.object({
+			type: z.enum(["course"]),
+			id: z.string(),
+			teamIds: z.string().array(),
+		}),
+	)
+	.handler(async ({ context, data: { type, id, teamIds } }) => {
+		if (type === "course") {
+			const course = await db.query.courses.findFirst({
+				where: and(
+					eq(courses.id, id),
+					eq(courses.teamId, context.teamId),
+				),
+				with: {
+					translations: true,
+				},
+			});
+
+			if (!course) {
+				throw new Error("Course not found");
+			}
+
+			await db.insert(teamsToCourses).values(
+				teamIds.map((teamId) => ({
+					fromTeamId: context.teamId,
+					teamId,
+					courseId: id,
+					connectType: "invite" as ConnectionType["connectType"],
+					connectStatus: "pending" as ConnectionType["connectStatus"],
+				})),
+			);
+		}
+	});
+
 export const requestConnectionFn = createServerFn({ method: "POST" })
 	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(
@@ -454,4 +489,74 @@ export const removeConnectionFn = createServerFn({ method: "POST" })
 		}
 
 		return null;
+	});
+
+export const getTeamConnectionsFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware(), localeMiddleware])
+	.validator(
+		z.object({
+			type: z.enum(["course", "collection", "from-team", "to-team"]),
+			id: z.string().optional(),
+		}),
+	)
+	.handler(async ({ context, data: { type, id } }) => {
+		const user = context.user;
+
+		if (type === "course") {
+			const connections = await db.query.usersToCourses.findMany({
+				where: and(
+					eq(usersToCourses.userId, user.id),
+					eq(usersToCourses.teamId, context.teamId),
+					id ? eq(usersToCourses.courseId, id) : undefined,
+				),
+				with: {
+					user: true,
+				},
+			});
+
+			return connections;
+		}
+
+		if (type === "collection") {
+			const connections = await db.query.usersToCollections.findMany({
+				where: and(
+					eq(usersToCollections.userId, user.id),
+					id ? eq(usersToCollections.collectionId, id) : undefined,
+				),
+				with: {
+					user: true,
+				},
+			});
+
+			return connections;
+		}
+
+		if (type === "from-team" || type === "to-team") {
+			const connections = await db.query.teamsToCourses.findMany({
+				where: and(
+					type === "from-team"
+						? eq(teamsToCourses.fromTeamId, context.teamId)
+						: eq(teamsToCourses.teamId, context.teamId),
+					id ? eq(teamsToCourses.courseId, id) : undefined,
+				),
+				with: {
+					course: {
+						with: {
+							translations: true,
+						},
+					},
+					team: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
+
+			return connections.map((connect) => ({
+				...connect,
+				team: handleLocalization(context, connect.team),
+				course: handleLocalization(context, connect.course),
+			}));
+		}
 	});
