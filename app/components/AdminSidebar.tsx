@@ -59,8 +59,9 @@ import { env } from "@/env";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
-import { setTeamFn } from "@/server/handlers/user";
+import { setTeamFn, signOutFn } from "@/server/handlers/user";
 import { Team, TeamTranslation } from "@/types/team";
+import { useServerFn } from "@tanstack/react-start";
 
 const CourseCollapsible = ({
 	course,
@@ -300,6 +301,7 @@ export const AdminSidebar = ({
 	const { theme, setTheme } = useTheme();
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
+	const signOut = useServerFn(signOutFn);
 	const locale = useLocale();
 	const navigate = useNavigate();
 
@@ -584,12 +586,10 @@ export const AdminSidebar = ({
 					</SidebarMenuButton>
 				</SidebarMenuItem>
 				<SidebarMenuItem>
-					<a href={env.VITE_SITE_URL + "/api/auth/signout"}>
-						<SidebarMenuButton>
-							<LogOut />
-							Sign out
-						</SidebarMenuButton>
-					</a>
+					<SidebarMenuButton onClick={() => signOut()}>
+						<LogOut />
+						Sign out
+					</SidebarMenuButton>
 				</SidebarMenuItem>
 			</SidebarFooter>
 		</Sidebar>

@@ -1,18 +1,20 @@
 import {
 	authMiddleware,
 	localeMiddleware,
-	protectedMiddleware,
 	teamMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
-import { usersToCourses, usersToTeams } from "@/server/db/schema";
+import { usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { LocaleSchema } from "@/lib/locale";
 import { setCookie } from "@tanstack/react-start/server";
+import { invalidateSession } from "@/server/auth";
+import { createServerFn } from "@tanstack/react-start";
+import { deleteCookie } from "@tanstack/react-start/server";
+import { redirect } from "@tanstack/react-router";
 
 export const updateI18nFn = createServerFn({ method: "POST" })
 	.validator(z.object({ locale: LocaleSchema }))
@@ -82,4 +84,14 @@ export const setTeamFn = createServerFn({ method: "POST" })
 		}
 
 		setCookie("teamId", data.teamId);
+	});
+
+export const signOutFn = createServerFn()
+	.middleware([authMiddleware, localeMiddleware])
+	.handler(async ({ context }) => {
+		if (!context.user || !context.session) return;
+		deleteCookie("auth_session");
+		deleteCookie("teamId");
+		invalidateSession(context.session.id);
+		throw redirect({ to: "/$locale", params: { locale: context.locale } });
 	});
