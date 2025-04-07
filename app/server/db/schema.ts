@@ -266,6 +266,7 @@ export const usersToCollections = pgTable(
 			.references(() => collections.id, {
 				onDelete: "cascade",
 			}),
+		...dates,
 		...sharing,
 	},
 	(t) => [primaryKey({ columns: [t.userId, t.collectionId] })],
@@ -286,6 +287,28 @@ export const usersToTeams = pgTable(
 	},
 	(t) => [primaryKey({ columns: [t.userId, t.teamId] })],
 );
+
+// CONNECTIONS (TEAM)
+
+export const teamsToCourses = pgTable("teams_to_courses", {
+	fromTeamId: text("fromTeamId")
+		.notNull()
+		.references(() => teams.id, {
+			onDelete: "cascade",
+		}),
+	teamId: text("teamId")
+		.notNull()
+		.references(() => teams.id, {
+			onDelete: "cascade",
+		}),
+	courseId: text("courseId")
+		.notNull()
+		.references(() => courses.id, {
+			onDelete: "cascade",
+		}),
+	...dates,
+	...sharing,
+});
 
 // Relations
 
@@ -405,7 +428,7 @@ export const collectionTranslationsRelations = relations(
 	}),
 );
 
-// CONNECTIONS
+// CONNECTIONS (USER)
 
 export const usersToTeamsRelations = relations(usersToTeams, ({ one }) => ({
 	user: one(users, {
@@ -466,6 +489,23 @@ export const usersToCollectionsRelations = relations(
 	}),
 );
 
+// CONNECTIONS (TEAM)
+
+export const teamsToCoursesRelations = relations(teamsToCourses, ({ one }) => ({
+	fromTeamId: one(teams, {
+		fields: [teamsToCourses.fromTeamId],
+		references: [teams.id],
+	}),
+	team: one(teams, {
+		fields: [teamsToCourses.teamId],
+		references: [teams.id],
+	}),
+	course: one(courses, {
+		fields: [teamsToCourses.courseId],
+		references: [courses.id],
+	}),
+}));
+
 export const tableSchemas = {
 	// USERS
 	users,
@@ -483,11 +523,13 @@ export const tableSchemas = {
 	collections,
 	collectionTranslations,
 	collectionsToCourses,
-	// CONNECTIONS
+	// CONNECTIONS (USER)
 	usersToModules,
 	usersToCollections,
 	usersToCourses,
 	usersToTeams,
+	// CONNECTIONS (TEAM)
+	teamsToCourses,
 };
 
 export const relationSchemas = {
@@ -512,6 +554,8 @@ export const relationSchemas = {
 	usersToCoursesRelations,
 	usersToModulesRelations,
 	usersToCollectionsRelations,
+	// CONNECTIONS (TEAM)
+	teamsToCoursesRelations,
 };
 
 export type User = InferSelectModel<typeof users>;

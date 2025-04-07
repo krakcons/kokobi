@@ -1,4 +1,5 @@
 import { Certificate } from "@/components/Certificate";
+import { ContentBranding } from "@/components/ContentBranding";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -122,16 +123,7 @@ function RouteComponent() {
 					<ArrowLeft />
 					Dashboard
 				</Link>
-				<div className="flex gap-4 items-center">
-					<img
-						src="/favicon.ico"
-						alt="favicon"
-						className="w-10 h-10"
-					/>
-					<p>
-						Delivered by <strong>{team.name}</strong>
-					</p>
-				</div>
+				<ContentBranding team={course.team} connectTeam={team} />
 				<PageHeader
 					title={course.name}
 					description={course.description}

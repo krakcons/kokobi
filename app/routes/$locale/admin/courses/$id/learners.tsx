@@ -16,19 +16,19 @@ import { Page, PageHeader } from "@/components/Page";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useLocale, useTranslations } from "@/lib/locale";
+import { useTranslations } from "@/lib/locale";
 import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import { getLearnersFn } from "@/server/handlers/learners";
 import { getTeamFn } from "@/server/handlers/teams";
 import { createCourseLink } from "@/lib/invite";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
-	inviteConnectionFn,
+	getTeamConnectionsFn,
+	inviteUsersConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
@@ -39,8 +39,9 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 	validateSearch: TableSearchSchema,
 	loader: ({ params }) => {
 		return Promise.all([
-			getLearnersFn({
+			getTeamConnectionsFn({
 				data: {
+					type: "course",
 					id: params.id,
 				},
 			}),
@@ -65,7 +66,7 @@ function RouteComponent() {
 		},
 	});
 	const inviteConnection = useMutation({
-		mutationFn: inviteConnectionFn,
+		mutationFn: inviteUsersConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -107,7 +108,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "course",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "accepted",
 												},
 											})
@@ -122,7 +123,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "course",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "rejected",
 												},
 											})
@@ -156,7 +157,7 @@ function RouteComponent() {
 						data: {
 							id: params.id,
 							type: "course",
-							userId,
+							toId: userId,
 						},
 					}),
 			},

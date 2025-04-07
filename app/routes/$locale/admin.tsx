@@ -25,6 +25,7 @@ import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { EditingLocaleSchema } from "@/types/router";
+import { getTeamConnectionsFn } from "@/server/handlers/connections";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -50,6 +51,11 @@ export const Route = createFileRoute("/$locale/admin")({
 			getTeamsFn(),
 			getCoursesFn(),
 			getCollectionsFn(),
+			getTeamConnectionsFn({
+				data: {
+					type: "to-team",
+				},
+			}),
 		]),
 });
 
@@ -59,7 +65,8 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = useNavigate();
 	const editingLocale = search.locale ?? locale;
-	const [auth, teams, courses, collections] = Route.useLoaderData();
+	const [auth, teams, courses, collections, connections] =
+		Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
@@ -68,6 +75,7 @@ function RouteComponent() {
 				teams={teams}
 				courses={courses}
 				collections={collections}
+				connections={connections}
 			/>
 			<SidebarInset>
 				<header className="p-4 flex flex-row items-center justify-between">

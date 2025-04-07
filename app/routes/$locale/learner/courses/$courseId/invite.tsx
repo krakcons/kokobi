@@ -1,3 +1,4 @@
+import { ContentBranding } from "@/components/ContentBranding";
 import { FloatingPage } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -6,17 +7,24 @@ import {
 	userConnectionResponseFn,
 } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
+import { getTeamByIdFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 
 export const Route = createFileRoute(
 	"/$locale/learner/courses/$courseId/invite",
 )({
 	component: RouteComponent,
-	loader: async ({ params }) => {
-		const [course, connection] = await Promise.all([
+	validateSearch: z.object({
+		teamId: z.string(),
+	}),
+	loaderDeps: ({ search: { teamId } }) => ({ teamId }),
+	loader: async ({ params, deps }) => {
+		const [course, connection, team] = await Promise.all([
 			getCourseFn({ data: { courseId: params.courseId } }),
 			getConnectionFn({ data: { type: "course", id: params.courseId } }),
+			getTeamByIdFn({ data: { teamId: deps.teamId } }),
 		]);
 		if (connection?.connectType === "request") {
 			throw redirect({
@@ -25,16 +33,16 @@ export const Route = createFileRoute(
 					courseId: params.courseId,
 				},
 				search: {
-					teamId: connection.teamId,
+					teamId: deps.teamId,
 				},
 			});
 		}
-		return [course, connection];
+		return [course, connection, team];
 	},
 });
 
 function RouteComponent() {
-	const [course, connection] = Route.useLoaderData();
+	const [course, connection, team] = Route.useLoaderData();
 	const navigate = Route.useNavigate();
 
 	const connectionResponse = useMutation({
@@ -99,6 +107,7 @@ function RouteComponent() {
 					Decline
 				</Button>
 			</div>
+			<ContentBranding team={course.team} connectTeam={team} />
 		</FloatingPage>
 	);
 }

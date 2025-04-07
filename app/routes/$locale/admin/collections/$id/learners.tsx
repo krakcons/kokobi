@@ -1,5 +1,5 @@
-import { useLocale, useTranslations } from "@/lib/locale";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "@/lib/locale";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	Dialog,
@@ -21,9 +21,9 @@ import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { getCollectionLearnersFn } from "@/server/handlers/collections";
 import {
-	inviteConnectionFn,
+	getTeamConnectionsFn,
+	inviteUsersConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
@@ -40,8 +40,9 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 		validateSearch: TableSearchSchema,
 		loader: ({ params }) =>
 			Promise.all([
-				getCollectionLearnersFn({
+				getTeamConnectionsFn({
 					data: {
+						type: "collection",
 						id: params.id,
 					},
 				}),
@@ -59,7 +60,7 @@ function RouteComponent() {
 	const tConnect = useTranslations("ConnectionActions");
 
 	const createConnection = useMutation({
-		mutationFn: inviteConnectionFn,
+		mutationFn: inviteUsersConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -108,7 +109,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "collection",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "accepted",
 												},
 											})
@@ -123,7 +124,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "collection",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "rejected",
 												},
 											})
@@ -157,7 +158,7 @@ function RouteComponent() {
 						data: {
 							type: "collection",
 							id: collectionId,
-							userId: user.id,
+							toId: user.id,
 						},
 					}),
 			},

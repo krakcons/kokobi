@@ -126,10 +126,12 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Settings"
-				description="Edit your team settings"
-			/>
+			<PageHeader title="Settings" description="Edit your team settings">
+				<Badge variant="secondary">
+					<p>{team.id}</p>
+					<CopyButton text={team.id} />
+				</Badge>
+			</PageHeader>
 			<TeamForm
 				key={team.locale}
 				defaultValues={{

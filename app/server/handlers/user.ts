@@ -61,7 +61,7 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 	});
 
 export const setTeamFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware()])
+	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(
 		z.object({
 			teamId: z.string(),
@@ -84,6 +84,12 @@ export const setTeamFn = createServerFn({ method: "POST" })
 		}
 
 		setCookie("teamId", data.teamId);
+
+		throw redirect({
+			to: "/$locale/admin",
+			params: { locale: context.locale },
+			reloadDocument: true,
+		});
 	});
 
 export const signOutFn = createServerFn()

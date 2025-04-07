@@ -11,6 +11,13 @@ export const BaseLearnerSchema = createSelectSchema(usersToModules, {
 });
 export type BaseLearner = z.infer<typeof BaseLearnerSchema>;
 
+export const learnerStatuses = [
+	"completed",
+	"passed",
+	"failed",
+	"in-progress",
+	"not-started",
+];
 export const LearnerSchema = BaseLearnerSchema.extend({
 	status: z.enum([
 		"completed",

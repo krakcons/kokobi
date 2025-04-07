@@ -22,7 +22,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useMatch, useNavigate } from "@tanstack/react-router";
+import { Link, useMatch, useNavigate, useRouter } from "@tanstack/react-router";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -52,6 +52,11 @@ import {
 	Moon,
 	Sun,
 	SunMoon,
+	Share,
+	Check,
+	X,
+	ChartBar,
+	ChartNoAxesColumn,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Theme, useTheme } from "@/lib/theme";
@@ -62,6 +67,11 @@ import { Collection, CollectionTranslation } from "@/types/collections";
 import { setTeamFn, signOutFn } from "@/server/handlers/user";
 import { Team, TeamTranslation } from "@/types/team";
 import { useServerFn } from "@tanstack/react-start";
+import { TeamToCourseType } from "@/types/connections";
+import { Button } from "./ui/button";
+import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
+import { teamConnectionResponseFn } from "@/server/handlers/connections";
+import { useMutation } from "@tanstack/react-query";
 
 const CourseCollapsible = ({
 	course,
@@ -81,16 +91,25 @@ const CourseCollapsible = ({
 		from: "/$locale/admin/courses/$id/modules",
 		shouldThrow: false,
 	});
+	const matchStatistics = useMatch({
+		from: "/$locale/admin/courses/$id/statistics",
+		shouldThrow: false,
+	});
 	const matchSettings = useMatch({
 		from: "/$locale/admin/courses/$id/settings",
 		shouldThrow: false,
 	});
 	useEffect(() => {
-		const matches = [matchLearners, matchModules, matchSettings];
+		const matches = [
+			matchLearners,
+			matchModules,
+			matchSettings,
+			matchStatistics,
+		];
 		if (matches.some((match) => match && match.params.id === course.id)) {
 			setOpen(true);
 		}
-	}, [matchLearners, matchModules, matchSettings]);
+	}, [matchLearners, matchModules, matchSettings, matchStatistics]);
 
 	return (
 		<Collapsible
@@ -150,6 +169,46 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
+								to={"/$locale/admin/courses/$id/statistics"}
+								params={{
+									locale,
+									id: course.id,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuSubButton isActive={isActive}>
+										<ChartNoAxesColumn />
+										Statistics
+									</SidebarMenuSubButton>
+								)}
+							</Link>
+						</SidebarMenuSubItem>
+						<SidebarMenuSubItem>
+							<Link
+								to={"/$locale/admin/courses/$id/sharing"}
+								params={{
+									locale,
+									id: course.id,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuSubButton isActive={isActive}>
+										<Share />
+										Sharing
+									</SidebarMenuSubButton>
+								)}
+							</Link>
+						</SidebarMenuSubItem>
+						<SidebarMenuSubItem>
+							<Link
 								to={"/$locale/admin/courses/$id/settings"}
 								params={{
 									locale,
@@ -168,6 +227,158 @@ const CourseCollapsible = ({
 								)}
 							</Link>
 						</SidebarMenuSubItem>
+					</SidebarMenuSub>
+				</CollapsibleContent>
+			</SidebarMenuItem>
+		</Collapsible>
+	);
+};
+
+const SharedCourseCollapsible = ({
+	connection,
+}: {
+	connection: TeamToCourseType & { course: Course & CourseTranslation };
+}) => {
+	const { setOpenMobile } = useSidebar();
+	const [open, setOpen] = useState(false);
+	const locale = useLocale();
+	const course = connection.course;
+	const router = useRouter();
+
+	// Match sub routes and open the collapsible if the route matches.
+	const matchLearners = useMatch({
+		from: "/$locale/admin/courses/$id/learners",
+		shouldThrow: false,
+	});
+	const matchStatistics = useMatch({
+		from: "/$locale/admin/courses/$id/statistics",
+		shouldThrow: false,
+	});
+
+	useEffect(() => {
+		const matches = [matchLearners, matchStatistics];
+		if (matches.some((match) => match && match.params.id === course.id)) {
+			setOpen(true);
+		}
+	}, [matchLearners, matchStatistics]);
+
+	const connectionResponse = useMutation({
+		mutationFn: teamConnectionResponseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
+
+	return (
+		<Collapsible
+			key={course.id}
+			asChild
+			className="group/collapsible"
+			open={open}
+		>
+			<SidebarMenuItem>
+				<CollapsibleTrigger asChild>
+					<SidebarMenuButton
+						onClick={() => setOpen(!open)}
+						className="h-auto"
+					>
+						<div className="flex gap-2 justify-between items-center flex-wrap w-full">
+							<p className="truncate">{course.name}</p>
+							<ConnectionStatusBadge
+								connectStatus={connection.connectStatus}
+								connectType={connection.connectType}
+							/>
+						</div>
+						<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+					</SidebarMenuButton>
+				</CollapsibleTrigger>
+				<CollapsibleContent>
+					<SidebarMenuSub>
+						{connection.connectStatus === "accepted" ? (
+							<>
+								<SidebarMenuSubItem>
+									<Link
+										to={
+											"/$locale/admin/courses/$id/learners"
+										}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuSubButton
+												isActive={isActive}
+											>
+												<Users />
+												Learners
+											</SidebarMenuSubButton>
+										)}
+									</Link>
+								</SidebarMenuSubItem>
+								<SidebarMenuSubItem>
+									<Link
+										to={
+											"/$locale/admin/courses/$id/statistics"
+										}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuSubButton
+												isActive={isActive}
+											>
+												<ChartNoAxesColumn />
+												Statistics
+											</SidebarMenuSubButton>
+										)}
+									</Link>
+								</SidebarMenuSubItem>
+							</>
+						) : (
+							<>
+								<SidebarMenuSubButton
+									onClick={() => {
+										connectionResponse.mutate({
+											data: {
+												type: "to-team",
+												id: course.id,
+												toId: connection.fromTeamId,
+												connectStatus: "accepted",
+											},
+										});
+									}}
+								>
+									<Check />
+									Accept
+								</SidebarMenuSubButton>
+								<SidebarMenuSubButton
+									onClick={() => {
+										connectionResponse.mutate({
+											data: {
+												type: "to-team",
+												id: course.id,
+												toId: connection.fromTeamId,
+												connectStatus: "rejected",
+											},
+										});
+									}}
+								>
+									<X />
+									Reject
+								</SidebarMenuSubButton>
+							</>
+						)}
 					</SidebarMenuSub>
 				</CollapsibleContent>
 			</SidebarMenuItem>
@@ -292,18 +503,23 @@ export const AdminSidebar = ({
 	teams,
 	courses,
 	collections,
+	connections,
 }: {
 	teamId: string;
 	teams: (Team & TeamTranslation)[];
 	courses: (Course & CourseTranslation)[];
 	collections: (Collection & CollectionTranslation)[];
+	connections: (TeamToCourseType & {
+		course: Course & CourseTranslation;
+		team: Team & TeamTranslation;
+	})[];
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const signOut = useServerFn(signOutFn);
 	const locale = useLocale();
-	const navigate = useNavigate();
+	const setTeam = useServerFn(setTeamFn);
 
 	const activeTeam = teams.find((t) => t.id === teamId);
 
@@ -345,15 +561,11 @@ export const AdminSidebar = ({
 								{teams.map((team) => (
 									<DropdownMenuItem
 										key={team.id}
-										onClick={async () => {
-											await setTeamFn({
+										onClick={() => {
+											setTeam({
 												data: {
 													teamId: team.id,
 												},
-											});
-											navigate({
-												to: "/$locale/admin",
-												params: { locale },
 											});
 										}}
 										className="gap-2 p-2"
@@ -441,6 +653,17 @@ export const AdminSidebar = ({
 							<CourseCollapsible
 								course={course}
 								key={course.id}
+							/>
+						))}
+					</SidebarGroupContent>
+				</SidebarGroup>
+				<SidebarGroup>
+					<SidebarGroupContent>
+						<SidebarGroupLabel>Shared Courses</SidebarGroupLabel>
+						{connections.map((connection) => (
+							<SharedCourseCollapsible
+								connection={connection}
+								key={connection.courseId}
 							/>
 						))}
 					</SidebarGroupContent>
