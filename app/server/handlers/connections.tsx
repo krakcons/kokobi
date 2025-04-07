@@ -410,13 +410,13 @@ export const teamConnectionResponseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
 	.validator(
 		z.object({
-			type: z.enum(["course", "collection"]),
+			type: z.enum(["course", "collection", "from-team", "to-team"]),
 			id: z.string(),
-			userId: z.string(),
+			toId: z.string(),
 			connectStatus: z.enum(["accepted", "rejected"]),
 		}),
 	)
-	.handler(async ({ context, data: { type, id, userId, connectStatus } }) => {
+	.handler(async ({ context, data: { type, id, toId, connectStatus } }) => {
 		const teamId = context.teamId;
 
 		if (type === "course") {
@@ -429,7 +429,7 @@ export const teamConnectionResponseFn = createServerFn({ method: "POST" })
 					and(
 						eq(usersToCourses.teamId, teamId),
 						eq(usersToCourses.courseId, id),
-						eq(usersToCourses.userId, userId),
+						eq(usersToCourses.userId, toId),
 					),
 				);
 		}
@@ -444,7 +444,29 @@ export const teamConnectionResponseFn = createServerFn({ method: "POST" })
 					and(
 						eq(usersToCollections.teamId, teamId),
 						eq(usersToCollections.collectionId, id),
-						eq(usersToCollections.userId, userId),
+						eq(usersToCollections.userId, toId),
+					),
+				);
+		}
+
+		if (type === "from-team" || type === "to-team") {
+			await db
+				.update(teamsToCourses)
+				.set({
+					connectStatus,
+				})
+				.where(
+					and(
+						type === "from-team"
+							? and(
+									eq(teamsToCourses.fromTeamId, teamId),
+									eq(teamsToCourses.teamId, toId),
+								)
+							: and(
+									eq(teamsToCourses.fromTeamId, toId),
+									eq(teamsToCourses.teamId, teamId),
+								),
+						eq(teamsToCourses.courseId, id),
 					),
 				);
 		}
@@ -456,12 +478,12 @@ export const removeConnectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
 	.validator(
 		z.object({
-			type: z.enum(["course", "collection"]),
+			type: z.enum(["course", "collection", "from-team"]),
 			id: z.string(),
-			userId: z.string(),
+			toId: z.string(),
 		}),
 	)
-	.handler(async ({ context, data: { type, id, userId } }) => {
+	.handler(async ({ context, data: { type, id, toId } }) => {
 		const teamId = context.teamId;
 
 		if (type === "course") {
@@ -471,7 +493,7 @@ export const removeConnectionFn = createServerFn({ method: "POST" })
 					and(
 						eq(usersToCourses.courseId, id),
 						eq(usersToCourses.teamId, teamId),
-						eq(usersToCourses.userId, userId),
+						eq(usersToCourses.userId, toId),
 					),
 				);
 		}
@@ -483,7 +505,19 @@ export const removeConnectionFn = createServerFn({ method: "POST" })
 					and(
 						eq(usersToCollections.collectionId, id),
 						eq(usersToCollections.teamId, teamId),
-						eq(usersToCollections.userId, userId),
+						eq(usersToCollections.userId, toId),
+					),
+				);
+		}
+
+		if (type === "from-team") {
+			await db
+				.delete(teamsToCourses)
+				.where(
+					and(
+						eq(teamsToCourses.fromTeamId, teamId),
+						eq(teamsToCourses.courseId, id),
+						eq(teamsToCourses.teamId, toId),
 					),
 				);
 		}
@@ -500,12 +534,9 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 		}),
 	)
 	.handler(async ({ context, data: { type, id } }) => {
-		const user = context.user;
-
 		if (type === "course") {
 			const connections = await db.query.usersToCourses.findMany({
 				where: and(
-					eq(usersToCourses.userId, user.id),
 					eq(usersToCourses.teamId, context.teamId),
 					id ? eq(usersToCourses.courseId, id) : undefined,
 				),
@@ -520,7 +551,7 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 		if (type === "collection") {
 			const connections = await db.query.usersToCollections.findMany({
 				where: and(
-					eq(usersToCollections.userId, user.id),
+					eq(usersToCollections.teamId, context.teamId),
 					id ? eq(usersToCollections.collectionId, id) : undefined,
 				),
 				with: {

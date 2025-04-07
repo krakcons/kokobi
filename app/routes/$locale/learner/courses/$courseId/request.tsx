@@ -19,7 +19,6 @@ export const Route = createFileRoute(
 	validateSearch: z.object({ teamId: z.string() }),
 	loaderDeps: ({ search: { teamId } }) => ({ teamId }),
 	loader: async ({ params, deps }) => {
-		console.log(deps);
 		const [course, connection, team] = await Promise.all([
 			getCourseFn({ data: { courseId: params.courseId } }),
 			getConnectionFn({ data: { type: "course", id: params.courseId } }),
@@ -33,7 +32,6 @@ export const Route = createFileRoute(
 				},
 			});
 		}
-		console.log(team);
 		return [course, connection, team];
 	},
 });

@@ -1,4 +1,5 @@
 import {
+	createDataTableActionsColumn,
 	DataTable,
 	DataTableColumnHeader,
 	TableSearchSchema,
@@ -9,6 +10,7 @@ import { Page, PageHeader } from "@/components/Page";
 import {
 	getTeamConnectionsFn,
 	inviteTeamConnectionFn,
+	removeConnectionFn,
 } from "@/server/handlers/connections";
 import { Team, TeamTranslation } from "@/types/team";
 import { TeamToCourseType } from "@/types/connections";
@@ -54,6 +56,12 @@ function RouteComponent() {
 			router.invalidate();
 		},
 	});
+	const removeConnection = useMutation({
+		mutationFn: removeConnectionFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
 
 	const columns: ColumnDef<
 		TeamToCourseType & { team: Team & TeamTranslation }
@@ -82,6 +90,21 @@ function RouteComponent() {
 				);
 			},
 		},
+		createDataTableActionsColumn<
+			TeamToCourseType & { team: Team & TeamTranslation }
+		>([
+			{
+				name: "Delete",
+				onClick: ({ teamId }) =>
+					removeConnection.mutate({
+						data: {
+							id: params.id,
+							type: "from-team",
+							toId: teamId,
+						},
+					}),
+			},
+		]),
 	];
 
 	return (

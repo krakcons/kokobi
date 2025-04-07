@@ -109,7 +109,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "collection",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "accepted",
 												},
 											})
@@ -124,7 +124,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "collection",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "rejected",
 												},
 											})

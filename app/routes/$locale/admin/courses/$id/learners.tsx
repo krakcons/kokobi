@@ -108,7 +108,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "course",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "accepted",
 												},
 											})
@@ -123,7 +123,7 @@ function RouteComponent() {
 												data: {
 													id: params.id,
 													type: "course",
-													userId: original.userId,
+													toId: original.userId,
 													connectStatus: "rejected",
 												},
 											})
@@ -157,7 +157,7 @@ function RouteComponent() {
 						data: {
 							id: params.id,
 							type: "course",
-							userId,
+							toId: userId,
 						},
 					}),
 			},
