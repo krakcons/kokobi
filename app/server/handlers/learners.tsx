@@ -1,11 +1,7 @@
 import { db } from "@/server/db";
-import { courses, modules, teams, usersToModules } from "@/server/db/schema";
+import { modules, teams, usersToModules } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import {
-	localeMiddleware,
-	protectedMiddleware,
-	teamMiddleware,
-} from "../middleware";
+import { localeMiddleware, protectedMiddleware } from "../middleware";
 import { s3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { handleLocalization } from "@/lib/locale/helpers";
@@ -19,7 +15,7 @@ import { getInitialScormData } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createCourseLink } from "@/lib/invite";
-import { getCourseConnectionHelper } from "../helpers";
+import { hasUserCourseAccess } from "../helpers";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,
@@ -132,7 +128,7 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 			throw new Error("Learner has already completed the course.");
 		}
 
-		const teamId = await getCourseConnectionHelper({
+		const teamId = await hasUserCourseAccess({
 			courseId: attempt.module.courseId,
 			userId: context.user.id,
 		});
@@ -222,7 +218,7 @@ export const createAttemptFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data: { courseId } }) => {
 		const user = context.user;
 
-		const teamId = await getCourseConnectionHelper({
+		const teamId = await hasUserCourseAccess({
 			courseId,
 			userId: user.id,
 		});

@@ -24,6 +24,7 @@ import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
+import { hasTeamCourseAccess } from "../helpers";
 
 export const getConnectionFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware, localeMiddleware])
@@ -171,7 +172,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(
 		z.object({
-			type: z.enum(["course", "collection", "from-team"]),
+			type: z.enum(["course", "collection"]),
 			id: z.string(),
 			emails: z.string().email().array(),
 		}),
@@ -206,6 +207,12 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			.returning();
 
 		if (type === "course") {
+			const courseBase = await hasTeamCourseAccess({
+				teamId,
+				courseId: id,
+			});
+			const course = handleLocalization(context, courseBase);
+
 			await db
 				.insert(usersToCourses)
 				.values(
@@ -220,25 +227,14 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 				)
 				.onConflictDoNothing();
 
-			const courseBase = await db.query.courses.findFirst({
-				where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
-				with: {
-					translations: true,
-				},
-			});
-
-			if (!courseBase) {
-				throw new Error("Course not found");
-			}
-
-			const course = handleLocalization(context, courseBase);
-
 			userList.forEach(async (user) => {
 				const href = createCourseLink({
 					domain:
 						team.domains.length > 0 ? team.domains[0] : undefined,
 					courseId: course.id,
 					email: user.email,
+					teamId,
+					path: "invite",
 					locale: "en",
 				});
 

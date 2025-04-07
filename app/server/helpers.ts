@@ -1,16 +1,20 @@
 import { db } from "@/server/db";
-import { usersToCollections, usersToCourses } from "@/server/db/schema";
+import {
+	courses,
+	usersToCollections,
+	usersToCourses,
+} from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 
-export const getCourseConnectionHelper = async ({
+export const hasUserCourseAccess = async ({
 	courseId,
 	userId,
 }: {
 	courseId: string;
 	userId: string;
 }) => {
-	let teamId;
-	const connection = await db.query.usersToCourses.findFirst({
+	// 1: Direct connection to the course
+	const courseConnection = await db.query.usersToCourses.findFirst({
 		where: and(
 			eq(usersToCourses.courseId, courseId),
 			eq(usersToCourses.userId, userId),
@@ -18,39 +22,75 @@ export const getCourseConnectionHelper = async ({
 		),
 	});
 
-	if (!connection) {
-		const connection = await db.query.usersToCollections.findFirst({
-			where: and(
-				eq(usersToCollections.userId, userId),
-				eq(usersToCollections.connectStatus, "accepted"),
-			),
-			with: {
-				collection: {
-					with: {
-						collectionsToCourses: true,
-					},
+	if (courseConnection) {
+		return courseConnection.teamId;
+	}
+
+	// 2: Connection to a collection with the course
+	const collectionConnection = await db.query.usersToCollections.findMany({
+		where: and(
+			eq(usersToCollections.userId, userId),
+			eq(usersToCollections.connectStatus, "accepted"),
+		),
+		with: {
+			collection: {
+				with: {
+					collectionsToCourses: true,
 				},
 			},
-		});
+		},
+	});
+	const collectionWithCourse = collectionConnection.find((connection) =>
+		connection.collection.collectionsToCourses.find(
+			(c) => c.courseId === courseId,
+		),
+	);
 
-		if (!connection) {
-			throw new Error("Connection not found");
-		}
-
-		if (
-			connection.collection?.collectionsToCourses.find(
-				(c) => c.courseId === courseId,
-			)
-		) {
-			teamId = connection.collection.teamId;
-		}
-	} else {
-		teamId = connection.teamId;
+	if (collectionConnection && collectionWithCourse) {
+		return collectionWithCourse.teamId;
 	}
 
-	if (!teamId) {
-		throw new Error("Connection not found");
+	throw new Error("No access to course");
+};
+
+export const hasTeamCourseAccess = async ({
+	teamId,
+	courseId,
+}: {
+	teamId: string;
+	courseId: string;
+}) => {
+	// 1: Own the course
+	const course = await db.query.courses.findFirst({
+		where: and(eq(courses.id, courseId), eq(courses.teamId, teamId)),
+		with: {
+			translations: true,
+		},
+	});
+
+	if (course) {
+		return course;
 	}
 
-	return teamId;
+	// 2: Course is shared with the team and accepted
+	const connection = await db.query.teamsToCourses.findFirst({
+		where: and(
+			eq(usersToCourses.courseId, courseId),
+			eq(usersToCourses.teamId, teamId),
+			eq(usersToCourses.connectStatus, "accepted"),
+		),
+		with: {
+			course: {
+				with: {
+					translations: true,
+				},
+			},
+		},
+	});
+
+	if (connection) {
+		return connection.course;
+	}
+
+	throw new Error("No access to course");
 };
