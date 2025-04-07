@@ -158,7 +158,7 @@ function RouteComponent() {
 						data: {
 							type: "collection",
 							id: collectionId,
-							userId: user.id,
+							toId: user.id,
 						},
 					}),
 			},

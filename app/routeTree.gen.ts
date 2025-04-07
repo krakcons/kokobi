@@ -32,6 +32,7 @@ import { Route as LocaleLearnerCoursesCourseIdInviteImport } from './routes/$loc
 import { Route as LocaleLearnerCollectionsCollectionIdRequestImport } from './routes/$locale/learner/collections/$collectionId/request'
 import { Route as LocaleLearnerCollectionsCollectionIdInviteImport } from './routes/$locale/learner/collections/$collectionId/invite'
 import { Route as LocaleAdminCoursesIdWebhooksImport } from './routes/$locale/admin/courses/$id/webhooks'
+import { Route as LocaleAdminCoursesIdStatisticsImport } from './routes/$locale/admin/courses/$id/statistics'
 import { Route as LocaleAdminCoursesIdSharingImport } from './routes/$locale/admin/courses/$id/sharing'
 import { Route as LocaleAdminCoursesIdSettingsImport } from './routes/$locale/admin/courses/$id/settings'
 import { Route as LocaleAdminCoursesIdModulesImport } from './routes/$locale/admin/courses/$id/modules'
@@ -174,6 +175,13 @@ const LocaleAdminCoursesIdWebhooksRoute =
   LocaleAdminCoursesIdWebhooksImport.update({
     id: '/courses/$id/webhooks',
     path: '/courses/$id/webhooks',
+    getParentRoute: () => LocaleAdminRoute,
+  } as any)
+
+const LocaleAdminCoursesIdStatisticsRoute =
+  LocaleAdminCoursesIdStatisticsImport.update({
+    id: '/courses/$id/statistics',
+    path: '/courses/$id/statistics',
     getParentRoute: () => LocaleAdminRoute,
   } as any)
 
@@ -370,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminCoursesIdSharingImport
       parentRoute: typeof LocaleAdminImport
     }
+    '/$locale/admin/courses/$id/statistics': {
+      id: '/$locale/admin/courses/$id/statistics'
+      path: '/courses/$id/statistics'
+      fullPath: '/$locale/admin/courses/$id/statistics'
+      preLoaderRoute: typeof LocaleAdminCoursesIdStatisticsImport
+      parentRoute: typeof LocaleAdminImport
+    }
     '/$locale/admin/courses/$id/webhooks': {
       id: '/$locale/admin/courses/$id/webhooks'
       path: '/courses/$id/webhooks'
@@ -447,6 +462,7 @@ interface LocaleAdminRouteChildren {
   LocaleAdminCoursesIdModulesRoute: typeof LocaleAdminCoursesIdModulesRoute
   LocaleAdminCoursesIdSettingsRoute: typeof LocaleAdminCoursesIdSettingsRoute
   LocaleAdminCoursesIdSharingRoute: typeof LocaleAdminCoursesIdSharingRoute
+  LocaleAdminCoursesIdStatisticsRoute: typeof LocaleAdminCoursesIdStatisticsRoute
   LocaleAdminCoursesIdWebhooksRoute: typeof LocaleAdminCoursesIdWebhooksRoute
 }
 
@@ -466,6 +482,7 @@ const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
   LocaleAdminCoursesIdModulesRoute: LocaleAdminCoursesIdModulesRoute,
   LocaleAdminCoursesIdSettingsRoute: LocaleAdminCoursesIdSettingsRoute,
   LocaleAdminCoursesIdSharingRoute: LocaleAdminCoursesIdSharingRoute,
+  LocaleAdminCoursesIdStatisticsRoute: LocaleAdminCoursesIdStatisticsRoute,
   LocaleAdminCoursesIdWebhooksRoute: LocaleAdminCoursesIdWebhooksRoute,
 }
 
@@ -494,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/courses/$id/modules': typeof LocaleAdminCoursesIdModulesRoute
   '/$locale/admin/courses/$id/settings': typeof LocaleAdminCoursesIdSettingsRoute
   '/$locale/admin/courses/$id/sharing': typeof LocaleAdminCoursesIdSharingRoute
+  '/$locale/admin/courses/$id/statistics': typeof LocaleAdminCoursesIdStatisticsRoute
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/collections/$collectionId/invite': typeof LocaleLearnerCollectionsCollectionIdInviteRoute
   '/$locale/learner/collections/$collectionId/request': typeof LocaleLearnerCollectionsCollectionIdRequestRoute
@@ -524,6 +542,7 @@ export interface FileRoutesByTo {
   '/$locale/admin/courses/$id/modules': typeof LocaleAdminCoursesIdModulesRoute
   '/$locale/admin/courses/$id/settings': typeof LocaleAdminCoursesIdSettingsRoute
   '/$locale/admin/courses/$id/sharing': typeof LocaleAdminCoursesIdSharingRoute
+  '/$locale/admin/courses/$id/statistics': typeof LocaleAdminCoursesIdStatisticsRoute
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/collections/$collectionId/invite': typeof LocaleLearnerCollectionsCollectionIdInviteRoute
   '/$locale/learner/collections/$collectionId/request': typeof LocaleLearnerCollectionsCollectionIdRequestRoute
@@ -556,6 +575,7 @@ export interface FileRoutesById {
   '/$locale/admin/courses/$id/modules': typeof LocaleAdminCoursesIdModulesRoute
   '/$locale/admin/courses/$id/settings': typeof LocaleAdminCoursesIdSettingsRoute
   '/$locale/admin/courses/$id/sharing': typeof LocaleAdminCoursesIdSharingRoute
+  '/$locale/admin/courses/$id/statistics': typeof LocaleAdminCoursesIdStatisticsRoute
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/collections/$collectionId/invite': typeof LocaleLearnerCollectionsCollectionIdInviteRoute
   '/$locale/learner/collections/$collectionId/request': typeof LocaleLearnerCollectionsCollectionIdRequestRoute
@@ -589,6 +609,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/modules'
     | '/$locale/admin/courses/$id/settings'
     | '/$locale/admin/courses/$id/sharing'
+    | '/$locale/admin/courses/$id/statistics'
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/collections/$collectionId/invite'
     | '/$locale/learner/collections/$collectionId/request'
@@ -618,6 +639,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/modules'
     | '/$locale/admin/courses/$id/settings'
     | '/$locale/admin/courses/$id/sharing'
+    | '/$locale/admin/courses/$id/statistics'
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/collections/$collectionId/invite'
     | '/$locale/learner/collections/$collectionId/request'
@@ -648,6 +670,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/modules'
     | '/$locale/admin/courses/$id/settings'
     | '/$locale/admin/courses/$id/sharing'
+    | '/$locale/admin/courses/$id/statistics'
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/collections/$collectionId/invite'
     | '/$locale/learner/collections/$collectionId/request'
@@ -737,6 +760,7 @@ export const routeTree = rootRoute
         "/$locale/admin/courses/$id/modules",
         "/$locale/admin/courses/$id/settings",
         "/$locale/admin/courses/$id/sharing",
+        "/$locale/admin/courses/$id/statistics",
         "/$locale/admin/courses/$id/webhooks"
       ]
     },
@@ -810,6 +834,10 @@ export const routeTree = rootRoute
     },
     "/$locale/admin/courses/$id/sharing": {
       "filePath": "$locale/admin/courses/$id/sharing.tsx",
+      "parent": "/$locale/admin"
+    },
+    "/$locale/admin/courses/$id/statistics": {
+      "filePath": "$locale/admin/courses/$id/statistics.tsx",
       "parent": "/$locale/admin"
     },
     "/$locale/admin/courses/$id/webhooks": {

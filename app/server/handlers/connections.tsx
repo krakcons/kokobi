@@ -207,7 +207,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			.returning();
 
 		if (type === "course") {
-			const courseBase = await hasTeamCourseAccess({
+			const { course: courseBase } = await hasTeamCourseAccess({
 				teamId,
 				courseId: id,
 			});

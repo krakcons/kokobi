@@ -55,6 +55,8 @@ import {
 	Share,
 	Check,
 	X,
+	ChartBar,
+	ChartNoAxesColumn,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Theme, useTheme } from "@/lib/theme";
@@ -89,16 +91,25 @@ const CourseCollapsible = ({
 		from: "/$locale/admin/courses/$id/modules",
 		shouldThrow: false,
 	});
+	const matchStatistics = useMatch({
+		from: "/$locale/admin/courses/$id/statistics",
+		shouldThrow: false,
+	});
 	const matchSettings = useMatch({
 		from: "/$locale/admin/courses/$id/settings",
 		shouldThrow: false,
 	});
 	useEffect(() => {
-		const matches = [matchLearners, matchModules, matchSettings];
+		const matches = [
+			matchLearners,
+			matchModules,
+			matchSettings,
+			matchStatistics,
+		];
 		if (matches.some((match) => match && match.params.id === course.id)) {
 			setOpen(true);
 		}
-	}, [matchLearners, matchModules, matchSettings]);
+	}, [matchLearners, matchModules, matchSettings, matchStatistics]);
 
 	return (
 		<Collapsible
@@ -152,6 +163,26 @@ const CourseCollapsible = ({
 									<SidebarMenuSubButton isActive={isActive}>
 										<Files />
 										Modules
+									</SidebarMenuSubButton>
+								)}
+							</Link>
+						</SidebarMenuSubItem>
+						<SidebarMenuSubItem>
+							<Link
+								to={"/$locale/admin/courses/$id/statistics"}
+								params={{
+									locale,
+									id: course.id,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuSubButton isActive={isActive}>
+										<ChartNoAxesColumn />
+										Statistics
 									</SidebarMenuSubButton>
 								)}
 							</Link>
@@ -219,13 +250,17 @@ const SharedCourseCollapsible = ({
 		from: "/$locale/admin/courses/$id/learners",
 		shouldThrow: false,
 	});
+	const matchStatistics = useMatch({
+		from: "/$locale/admin/courses/$id/statistics",
+		shouldThrow: false,
+	});
 
 	useEffect(() => {
-		const matches = [matchLearners];
+		const matches = [matchLearners, matchStatistics];
 		if (matches.some((match) => match && match.params.id === course.id)) {
 			setOpen(true);
 		}
-	}, [matchLearners]);
+	}, [matchLearners, matchStatistics]);
 
 	const connectionResponse = useMutation({
 		mutationFn: teamConnectionResponseFn,
@@ -260,28 +295,56 @@ const SharedCourseCollapsible = ({
 				<CollapsibleContent>
 					<SidebarMenuSub>
 						{connection.connectStatus === "accepted" ? (
-							<SidebarMenuSubItem>
-								<Link
-									to={"/$locale/admin/courses/$id/learners"}
-									params={{
-										locale,
-										id: course.id,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									{({ isActive }) => (
-										<SidebarMenuSubButton
-											isActive={isActive}
-										>
-											<Users />
-											Learners
-										</SidebarMenuSubButton>
-									)}
-								</Link>
-							</SidebarMenuSubItem>
+							<>
+								<SidebarMenuSubItem>
+									<Link
+										to={
+											"/$locale/admin/courses/$id/learners"
+										}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuSubButton
+												isActive={isActive}
+											>
+												<Users />
+												Learners
+											</SidebarMenuSubButton>
+										)}
+									</Link>
+								</SidebarMenuSubItem>
+								<SidebarMenuSubItem>
+									<Link
+										to={
+											"/$locale/admin/courses/$id/statistics"
+										}
+										params={{
+											locale,
+											id: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuSubButton
+												isActive={isActive}
+											>
+												<ChartNoAxesColumn />
+												Statistics
+											</SidebarMenuSubButton>
+										)}
+									</Link>
+								</SidebarMenuSubItem>
+							</>
 						) : (
 							<>
 								<SidebarMenuSubButton

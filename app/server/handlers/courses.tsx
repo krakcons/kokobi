@@ -1,11 +1,18 @@
 import { db } from "@/server/db";
-import { courseTranslations, courses } from "@/server/db/schema";
+import {
+	courseTranslations,
+	courses,
+	usersToCourses,
+	usersToModules,
+} from "@/server/db/schema";
 import { CourseFormSchema } from "@/types/course";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { createServerFn } from "@tanstack/react-start";
 import { localeMiddleware, teamMiddleware } from "../middleware";
 import { z } from "zod";
+import { hasTeamCourseAccess } from "../helpers";
+import { ExtendLearner } from "@/types/learner";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -126,4 +133,42 @@ export const deleteCourseFn = createServerFn({ method: "POST" })
 		// TODO: DELETE full course (waiting on bun s3 list function)
 
 		return null;
+	});
+
+export const getCourseStatisticsFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware(), localeMiddleware])
+	.validator(z.object({ courseId: z.string() }))
+	.handler(async ({ context, data: { courseId } }) => {
+		const { access } = await hasTeamCourseAccess({
+			courseId,
+			teamId: context.teamId,
+		});
+
+		const connections = await db.query.usersToCourses.findMany({
+			where: and(
+				eq(usersToCourses.courseId, courseId),
+				access === "shared"
+					? eq(usersToCourses.teamId, context.teamId)
+					: undefined,
+			),
+		});
+
+		const learners = await db.query.usersToModules.findMany({
+			where: and(
+				eq(usersToModules.courseId, courseId),
+				access === "shared"
+					? eq(usersToModules.teamId, context.teamId)
+					: undefined,
+			),
+			with: {
+				module: true,
+			},
+		});
+
+		return {
+			connections,
+			learners: learners.map((learner) =>
+				ExtendLearner(learner.module.type).parse(learner),
+			),
+		};
 	});

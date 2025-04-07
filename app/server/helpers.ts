@@ -69,7 +69,7 @@ export const hasTeamCourseAccess = async ({
 	});
 
 	if (course) {
-		return course;
+		return { course, access: "root" };
 	}
 
 	// 2: Course is shared with the team and accepted
@@ -89,7 +89,7 @@ export const hasTeamCourseAccess = async ({
 	});
 
 	if (connection) {
-		return connection.course;
+		return { course: connection.course, access: "shared" };
 	}
 
 	throw new Error("No access to course");
