@@ -51,7 +51,7 @@ export const ExtendLearner = (type?: Module["type"]) => {
 						},
 					};
 	}).refine((learner) => {
-		if (learner.status === "not-started" && learner.startedAt) {
+		if (learner.status === "not-started" && learner.completedAt) {
 			learner.status = "in-progress";
 		}
 		return learner;

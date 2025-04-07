@@ -62,13 +62,10 @@ export type CertificateProps = {
 };
 
 export const Certificate = ({
-	name,
-	course,
-	completedAt,
-	teamName,
-	t,
-	logo,
-}: CertificateProps) => {
+	certificate: { name, course, completedAt, teamName, t, logo },
+}: {
+	certificate: CertificateProps;
+}) => {
 	return (
 		<Document>
 			<PDFPage size="A4" orientation="landscape" style={styles.page}>

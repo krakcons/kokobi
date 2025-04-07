@@ -1,3 +1,4 @@
+import { Certificate } from "@/components/Certificate";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -15,6 +16,8 @@ import { getAttemptsFn, getConnectionFn } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
 import { createAttemptFn } from "@/server/handlers/learners";
 import { getTeamByIdFn } from "@/server/handlers/teams";
+import { getAuthFn } from "@/server/handlers/user";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowLeft, Container } from "lucide-react";
@@ -74,13 +77,16 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			}),
 			connection.collection &&
 				getCollectionFn({ data: { id: connection.collectionId } }),
+			getAuthFn(),
 		]);
 	},
 });
 
 function RouteComponent() {
-	const [course, team, attempts, collection] = Route.useLoaderData();
+	const [course, team, attempts, collection, { user }] =
+		Route.useLoaderData();
 	const t = useTranslations("Learner");
+	const tCert = useTranslations("Certificate");
 	const locale = useLocale();
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
@@ -152,10 +158,10 @@ function RouteComponent() {
 												attempt.score.max}
 										</TableCell>
 										<TableCell>
-											{attempt.startedAt &&
+											{attempt.createdAt &&
 												formatDate({
 													date: new Date(
-														attempt.startedAt,
+														attempt.createdAt,
 													),
 													locale,
 													type: "detailed",
@@ -171,7 +177,7 @@ function RouteComponent() {
 													type: "detailed",
 												})}
 										</TableCell>
-										<TableCell>
+										<TableCell className="flex gap-2">
 											<Link
 												to="/$locale/learner/courses/$courseId/play"
 												params={{
@@ -185,6 +191,39 @@ function RouteComponent() {
 											>
 												Continue
 											</Link>
+											{attempt.completedAt && (
+												<PDFDownloadLink
+													fileName="certificate.pdf"
+													document={
+														<Certificate
+															certificate={{
+																name:
+																	user.firstName +
+																	" " +
+																	user.lastName,
+																teamName:
+																	team.name,
+																course: course.name,
+																completedAt:
+																	attempt.completedAt &&
+																	formatDate({
+																		date: new Date(
+																			attempt.completedAt,
+																		),
+																		locale,
+																		type: "readable",
+																	}),
+																t: tCert.pdf,
+															}}
+														/>
+													}
+													className={buttonVariants({
+														variant: "outline",
+													})}
+												>
+													Download Certificate
+												</PDFDownloadLink>
+											)}
 										</TableCell>
 									</TableRow>
 								))}

@@ -253,7 +253,6 @@ function RouteComponent() {
 					deleteTeam.mutate(undefined, {
 						onSuccess: (data) => {
 							if (data.teamId) {
-								queryClient.invalidateQueries();
 								navigate({ to: "/$locale/admin" });
 							} else {
 								navigate({ to: "/$locale/create-team" });

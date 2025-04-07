@@ -439,15 +439,6 @@ export const removeConnectionFn = createServerFn({ method: "POST" })
 						eq(usersToCourses.userId, userId),
 					),
 				);
-			await db
-				.delete(usersToModules)
-				.where(
-					and(
-						eq(usersToModules.courseId, id),
-						eq(usersToModules.teamId, teamId),
-						eq(usersToModules.userId, userId),
-					),
-				);
 		}
 
 		if (type === "collection") {

@@ -168,24 +168,13 @@ function RouteComponent() {
 			{
 				name: "Delete",
 				onClick: ({ collectionId, user }) =>
-					removeConnection.mutate(
-						{
-							data: {
-								type: "collection",
-								id: collectionId,
-								userId: user.id,
-							},
+					removeConnection.mutate({
+						data: {
+							type: "collection",
+							id: collectionId,
+							userId: user.id,
 						},
-						{
-							onSuccess: () =>
-								queryClient.invalidateQueries({
-									queryKey: [
-										getCollectionLearnersFn.url,
-										params.id,
-									],
-								}),
-						},
-					),
+					}),
 			},
 		]),
 	];
