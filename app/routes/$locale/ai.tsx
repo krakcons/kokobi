@@ -100,7 +100,7 @@ const genAIResponse = createServerFn({ method: "POST", response: "raw" })
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const { options } = Route.useSearch();
-	const { append, messages } = useChat({
+	const { append, status, messages } = useChat({
 		initialMessages: [],
 		fetch: (_, options) => {
 			const body = JSON.parse(options!.body! as string);
@@ -246,7 +246,8 @@ function RouteComponent() {
 									onKeyDown={(e) => {
 										if (e.key === "Enter") {
 											e.preventDefault();
-											form.handleSubmit();
+											if (status === "ready")
+												form.handleSubmit();
 										}
 									}}
 								/>
