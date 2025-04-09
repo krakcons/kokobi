@@ -7,14 +7,8 @@ import {
 	AssistantInputType,
 	AssistantResponseSchema,
 	AssistantResponseType,
-	MessageSchema,
 } from "@/types/ai";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { ChevronRight, Filter, Sliders } from "lucide-react";
+import { Sliders } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { z } from "zod";
 import { streamText, Output, coreMessageSchema } from "ai";
@@ -71,7 +65,7 @@ const genAIResponse = createServerFn({ method: "POST", response: "raw" })
 				// STATS
 				`You should maintain personal stats here: ${JSON.stringify(stats)}. Use previous messages to see where your stats are and adjust them according to new messages (ex: Mood could be a stat and if the user says something to offend you, you can lower mood)`,
 				// EVALUATIONS
-				`Separately from your character you should analyze the incoming messages: ${JSON.stringify(evaluations)}. (ex. Politness, if the user says something rude you can evaluate their politness low)`,
+				`Separately from your character you should analyze the incoming messages: ${JSON.stringify(evaluations)}. A type of message means the evaluation is for each user message (ex. Politness, Tone, etc). A type of session means the evaluation is for the session as a whole. (ex. Does the user reach a specific goal, say something specific, etc).`,
 			];
 			try {
 				const result = streamText({
@@ -128,11 +122,9 @@ function RouteComponent() {
 						age: "52",
 						gender: "Woman",
 						pronouns: "She/Her",
-						sexuality: "Hetero",
 						education: "Highschool",
 						country: "Canada",
 						location: "Toronto",
-						ethnicity: "White",
 					},
 					user: "A call center user picking up the phone",
 					description:
@@ -144,18 +136,21 @@ function RouteComponent() {
 						description:
 							"Measure of how polite the user message is",
 						value: "1-100: 1 is very rude and 100 being super nice.",
+						type: "message",
 					},
 					{
 						name: "Address",
 						description:
 							"Measure whether the user asked for the address",
 						value: "1-100: 1 is no address and 100 is a full address is given",
+						type: "session",
 					},
 					{
 						name: "Age",
 						description:
 							"Did the user ask about the age of the caller",
 						value: "1-100: 1 is not asking and 100 is asking",
+						type: "session",
 					},
 				],
 				stats: [
@@ -245,14 +240,18 @@ function RouteComponent() {
 						<form.AppField
 							name="content"
 							children={(field) => (
-								<field.TextField
+								<field.TextAreaField
 									placeholder="Enter your response"
 									label=""
-									className="h-14"
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											e.preventDefault();
+											form.handleSubmit();
+										}
+									}}
 								/>
 							)}
 						/>
-						<button type="submit" className="hidden" />
 					</div>
 					<Dialog>
 						<DialogTrigger
@@ -343,15 +342,6 @@ function RouteComponent() {
 								)}
 							/>
 							<form.AppField
-								name="scenario.character.sexuality"
-								children={(field) => (
-									<field.TextField
-										label="Sexuality"
-										optional
-									/>
-								)}
-							/>
-							<form.AppField
 								name="scenario.character.country"
 								children={(field) => (
 									<field.TextField label="Country" optional />
@@ -371,15 +361,6 @@ function RouteComponent() {
 								children={(field) => (
 									<field.TextField
 										label="Education"
-										optional
-									/>
-								)}
-							/>
-							<form.AppField
-								name="scenario.character.ethnicity"
-								children={(field) => (
-									<field.TextField
-										label="Ethnicity"
 										optional
 									/>
 								)}
@@ -422,6 +403,15 @@ function RouteComponent() {
 														/>
 													)}
 												/>
+												<Button
+													onClick={(e) => {
+														e.preventDefault();
+														field.removeValue(i);
+													}}
+													variant="secondary"
+												>
+													Remove
+												</Button>
 											</div>
 										))}
 										<Button
@@ -477,6 +467,34 @@ function RouteComponent() {
 														/>
 													)}
 												/>
+												<form.AppField
+													name={`evaluations[${i}].type`}
+													children={(subField) => (
+														<subField.SelectField
+															label="Type"
+															options={[
+																{
+																	label: "Message",
+																	value: "message",
+																},
+																{
+																	label: "Session",
+																	value: "session",
+																},
+															]}
+															description="Message: the evaluation is for each user message, Session: the evaluation is for the session as a whole"
+														/>
+													)}
+												/>
+												<Button
+													onClick={(e) => {
+														e.preventDefault();
+														field.removeValue(i);
+													}}
+													variant="secondary"
+												>
+													Remove
+												</Button>
 											</div>
 										))}
 										<Button
@@ -486,6 +504,7 @@ function RouteComponent() {
 													name: "",
 													description: "",
 													value: "",
+													type: "message",
 												});
 											}}
 										>

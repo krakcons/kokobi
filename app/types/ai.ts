@@ -44,7 +44,9 @@ export const AssistantInputSchema = z.object({
 	model: z.enum(["gpt-4o", "gpt-4o-mini"]),
 	scenario: ScenarioSchema,
 	stats: DataSchema.array(),
-	evaluations: DataSchema.array(),
+	evaluations: DataSchema.extend({
+		type: z.enum(["session", "message"]),
+	}).array(),
 });
 export type AssistantInputType = z.infer<typeof AssistantInputSchema>;
 

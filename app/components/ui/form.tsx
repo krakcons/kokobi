@@ -106,7 +106,9 @@ const TextField = (props: React.ComponentProps<"input"> & DefaultOptions) => {
 	);
 };
 
-const TextAreaField = (props: DefaultOptions) => {
+const TextAreaField = (
+	props: React.ComponentProps<"textarea"> & DefaultOptions,
+) => {
 	const field = useFieldContext<string>();
 	return (
 		<Label>
@@ -114,6 +116,7 @@ const TextAreaField = (props: DefaultOptions) => {
 			<Textarea
 				value={field.state.value}
 				onChange={(e) => field.handleChange(e.target.value)}
+				{...props}
 			/>
 			<Description {...props} />
 			<Error errors={field.getMeta().errors} />
