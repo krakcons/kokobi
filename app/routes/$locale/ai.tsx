@@ -191,7 +191,7 @@ function RouteComponent() {
 	const reversedMessages = messages.slice().reverse();
 
 	return (
-		<div className="w-screen flex h-[100svh] justify-start p-4 gap-8 overflow-y-scroll scroll-p-8 flex-col-reverse">
+		<div className="w-screen flex h-[100svh] justify-start p-4 gap-8 overflow-y-auto scroll-p-8 flex-col-reverse">
 			<form.AppForm>
 				<form
 					onSubmit={(e) => {
