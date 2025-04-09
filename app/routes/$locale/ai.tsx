@@ -53,7 +53,6 @@ const genAIResponse = createServerFn({ method: "POST", response: "raw" })
 	)
 	.handler(
 		async ({ data: { model, scenario, messages, stats, evaluations } }) => {
-			console.log(messages);
 			const system = [
 				// INTRO
 				`You are a specific CHARACTER ${JSON.stringify(scenario.character)}.`,
@@ -192,16 +191,16 @@ function RouteComponent() {
 	const reversedMessages = messages.slice().reverse();
 
 	return (
-		<div className="max-w-2xl mx-auto w-full flex min-h-[100svh] justify-start p-4 gap-8 overflow-y-auto flex-col-reverse">
+		<div className="w-screen flex h-[100svh] justify-start p-4 gap-8 overflow-y-scroll scroll-p-8 flex-col-reverse">
 			<form.AppForm>
 				<form
 					onSubmit={(e) => {
 						e.preventDefault();
 						form.handleSubmit();
 					}}
-					className="flex flex-row justify-between gap-2"
+					className="flex flex-row justify-between items-end gap-2 max-w-2xl mx-auto w-full"
 				>
-					<div className="flex-1">
+					<div className="flex-1 flex-col-reverse">
 						<form.AppField
 							name="content"
 							children={(field) => (
@@ -484,43 +483,50 @@ function RouteComponent() {
 					</Dialog>
 				</form>
 			</form.AppForm>
-			{reversedMessages.map((m) => {
-				if (m.role === "user") {
+			<div className="flex max-w-2xl mx-auto w-full flex-col-reverse gap-8">
+				{reversedMessages.map((m) => {
+					if (m.role === "user") {
+						return (
+							<div
+								key={m.id}
+								className="self-end bg-blue-500 text-white px-3 py-2 rounded sm:max-w-[70%] max-w-[90%] whitespace-pre-line"
+							>
+								{m.content}
+							</div>
+						);
+					}
+
+					const json = parseAssistantMessage(m);
+					if (!json) return null;
+
 					return (
 						<div
 							key={m.id}
-							className="self-end bg-blue-500 text-white px-3 py-2 rounded max-w-[70%]"
+							className="self-start flex-col flex gap-2"
 						>
-							{m.content}
+							<p className="whitespace-pre-line">
+								{json?.content}
+							</p>
+							{(json.stats || json.evaluations) && (
+								<div className="border px-3 py-2 rounded flex flex-col gap-2">
+									{json.stats &&
+										json.stats.map((s) => (
+											<p key={s.name}>
+												{s.name} ({s.value})
+											</p>
+										))}
+									{json.evaluations &&
+										json.evaluations.map((s) => (
+											<p key={s.name}>
+												{s.name} ({s.value})
+											</p>
+										))}
+								</div>
+							)}
 						</div>
 					);
-				}
-
-				const json = parseAssistantMessage(m);
-				if (!json) return null;
-
-				return (
-					<div key={m.id} className="self-start flex-col flex gap-2">
-						<p>{json?.content}</p>
-						{(json.stats || json.evaluations) && (
-							<div className="border px-3 py-2 rounded flex flex-col gap-2">
-								{json.stats &&
-									json.stats.map((s) => (
-										<p key={s.name}>
-											{s.name} ({s.value})
-										</p>
-									))}
-								{json.evaluations &&
-									json.evaluations.map((s) => (
-										<p key={s.name}>
-											{s.name} ({s.value})
-										</p>
-									))}
-							</div>
-						)}
-					</div>
-				);
-			})}
+				})}
+			</div>
 		</div>
 	);
 }
