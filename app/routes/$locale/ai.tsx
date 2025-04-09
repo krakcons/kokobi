@@ -53,6 +53,7 @@ const genAIResponse = createServerFn({ method: "POST", response: "raw" })
 	)
 	.handler(
 		async ({ data: { model, scenario, messages, stats, evaluations } }) => {
+			console.log(messages);
 			const system = [
 				// INTRO
 				`You are a specific CHARACTER ${JSON.stringify(scenario.character)}.`,
@@ -65,7 +66,7 @@ const genAIResponse = createServerFn({ method: "POST", response: "raw" })
 				// STATS
 				`You should maintain personal stats here: ${JSON.stringify(stats)}. Use previous messages to see where your stats are and adjust them according to new messages (ex: Mood could be a stat and if the user says something to offend you, you can lower mood)`,
 				// EVALUATIONS
-				`Separately from your character you should analyze the incoming messages: ${JSON.stringify(evaluations)}. A type of message means the evaluation is for each user message (ex. Politness, Tone, etc). A type of session means the evaluation is for the session as a whole. (ex. Does the user reach a specific goal, say something specific, etc).`,
+				`Separately from your character you should analyze the messages based on these evaluations: ${JSON.stringify(evaluations)}. A type of message means the evaluation should be calculated for each user message (example. Politness, Tone, etc). A type of session should be calculated based on the newest user message, should be stateful, and therefore maintained in responses after completion. (example. Has the user asked for X, once it is true, keep it as that etc). Do not duplicate evaluations in response.`,
 			];
 			try {
 				const result = streamText({
@@ -115,7 +116,7 @@ function RouteComponent() {
 		defaultValues: {
 			content: "",
 			...(options ?? {
-				model: "gpt-4o-mini",
+				model: "gpt-4o",
 				scenario: {
 					character: {
 						name: "Sara",
@@ -188,46 +189,10 @@ function RouteComponent() {
 		},
 	});
 
+	const reversedMessages = messages.slice().reverse();
+
 	return (
-		<div className="max-w-2xl mx-auto w-full flex flex-col min-h-[100svh] justify-end p-4 gap-8">
-			{messages.map((m) => {
-				console.log("MESSAGE", m);
-				if (m.role === "user") {
-					return (
-						<div
-							key={m.id}
-							className="self-end bg-blue-500 text-white px-3 py-2 rounded max-w-[70%]"
-						>
-							{m.content}
-						</div>
-					);
-				}
-
-				const json = parseAssistantMessage(m);
-				if (!json) return null;
-
-				return (
-					<div key={m.id} className="self-start flex-col flex gap-2">
-						<p>{json?.content}</p>
-						{(json.stats || json.evaluations) && (
-							<div className="border px-3 py-2 rounded flex flex-col gap-2">
-								{json.stats &&
-									json.stats.map((s) => (
-										<p key={s.name}>
-											{s.name} ({s.value})
-										</p>
-									))}
-								{json.evaluations &&
-									json.evaluations.map((s) => (
-										<p key={s.name}>
-											{s.name} ({s.value})
-										</p>
-									))}
-							</div>
-						)}
-					</div>
-				);
-			})}
+		<div className="max-w-2xl mx-auto w-full flex min-h-[100svh] justify-start p-4 gap-8 overflow-y-auto flex-col-reverse">
 			<form.AppForm>
 				<form
 					onSubmit={(e) => {
@@ -243,8 +208,9 @@ function RouteComponent() {
 								<field.TextAreaField
 									placeholder="Enter your response"
 									label=""
+									className="resize-none"
 									onKeyDown={(e) => {
-										if (e.key === "Enter") {
+										if (e.key === "Enter" && !e.shiftKey) {
 											e.preventDefault();
 											if (status === "ready")
 												form.handleSubmit();
@@ -258,7 +224,7 @@ function RouteComponent() {
 						<DialogTrigger
 							className={buttonVariants({
 								variant: "secondary",
-								className: "h-14",
+								className: "h-16",
 							})}
 							aria-label="Customize"
 						>
@@ -295,7 +261,7 @@ function RouteComponent() {
 							<form.AppField
 								name="scenario.description"
 								children={(field) => (
-									<field.TextField
+									<field.TextAreaField
 										label="Description"
 										description="Describe the scenario"
 									/>
@@ -304,7 +270,7 @@ function RouteComponent() {
 							<form.AppField
 								name="scenario.user"
 								children={(field) => (
-									<field.TextField
+									<field.TextAreaField
 										label="User"
 										description="Describe the users role in the scenario"
 									/>
@@ -389,7 +355,7 @@ function RouteComponent() {
 												<form.AppField
 													name={`stats[${i}].description`}
 													children={(subField) => (
-														<subField.TextField
+														<subField.TextAreaField
 															label="Description"
 															description="Describe the stat"
 														/>
@@ -453,7 +419,7 @@ function RouteComponent() {
 												<form.AppField
 													name={`evaluations[${i}].description`}
 													children={(subField) => (
-														<subField.TextField
+														<subField.TextAreaField
 															label="Description"
 															description="Describe the evaluation"
 														/>
@@ -518,6 +484,43 @@ function RouteComponent() {
 					</Dialog>
 				</form>
 			</form.AppForm>
+			{reversedMessages.map((m) => {
+				if (m.role === "user") {
+					return (
+						<div
+							key={m.id}
+							className="self-end bg-blue-500 text-white px-3 py-2 rounded max-w-[70%]"
+						>
+							{m.content}
+						</div>
+					);
+				}
+
+				const json = parseAssistantMessage(m);
+				if (!json) return null;
+
+				return (
+					<div key={m.id} className="self-start flex-col flex gap-2">
+						<p>{json?.content}</p>
+						{(json.stats || json.evaluations) && (
+							<div className="border px-3 py-2 rounded flex flex-col gap-2">
+								{json.stats &&
+									json.stats.map((s) => (
+										<p key={s.name}>
+											{s.name} ({s.value})
+										</p>
+									))}
+								{json.evaluations &&
+									json.evaluations.map((s) => (
+										<p key={s.name}>
+											{s.name} ({s.value})
+										</p>
+									))}
+							</div>
+						)}
+					</div>
+				);
+			})}
 		</div>
 	);
 }

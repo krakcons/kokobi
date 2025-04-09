@@ -9,14 +9,8 @@ export const DataSchema = z.object({
 export const DataOutputSchema = z.object({
 	name: z.string(),
 	value: z.string(),
+	type: z.enum(["message", "session", "stat"]),
 });
-
-//const EvaluationSchema = z.object({
-//	explanation: z.string(),
-//	completion: z.string(),
-//});
-// Character goal
-//
 
 export const ScenarioSchema = z.object({
 	character: z.object({
