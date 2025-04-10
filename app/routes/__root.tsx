@@ -13,26 +13,7 @@ import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
 import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
 import appCss from "@/index.css?url";
-import { createServerFn } from "@tanstack/react-start";
-import { getRequestHost } from "vinxi/http";
-import { env } from "@/server/env";
-import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
-import { domains } from "@/server/db/schema";
-
-const getTenant = createServerFn({ method: "GET" }).handler(async () => {
-	const hostname = getRequestHost();
-
-	if (hostname === env.VITE_ROOT_DOMAIN) {
-		return null;
-	}
-
-	const domain = await db.query.domains.findFirst({
-		where: eq(domains.hostname, hostname),
-	});
-
-	return domain ? domain.teamId : null;
-});
+import { getTenantActive } from "@/server/handlers/teams";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -61,14 +42,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					});
 				}
 
-				const teamId = await getTenant();
-				if (teamId) {
-					if (
-						!location.pathname.startsWith(`/${pathLocale}/learner`)
-					) {
-						throw notFound();
-					}
-				}
+				//const active = await getTenantActive();
+				//if (active) {
+				//	const validRoutes = [
+				//		`/${pathLocale}/learner`,
+				//		`/${pathLocale}/admin`,
+				//	];
+				//	if (!validRoutes.includes(location.pathname)) {
+				//		throw notFound();
+				//	}
+				//}
 			}
 
 			return { locale };

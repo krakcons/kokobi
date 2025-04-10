@@ -22,7 +22,13 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useMatch, useNavigate, useRouter } from "@tanstack/react-router";
+import {
+	Link,
+	useMatch,
+	useNavigate,
+	useParams,
+	useRouter,
+} from "@tanstack/react-router";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -75,8 +81,10 @@ import { useMutation } from "@tanstack/react-query";
 
 const CourseCollapsible = ({
 	course,
+	teamId,
 }: {
 	course: Course & CourseTranslation;
+	teamId: string;
 }) => {
 	const { setOpenMobile } = useSidebar();
 	const [open, setOpen] = useState(false);
@@ -84,19 +92,19 @@ const CourseCollapsible = ({
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
-		from: "/$locale/admin/courses/$id/learners",
+		from: "/$locale/$teamId/admin/courses/$id/learners",
 		shouldThrow: false,
 	});
 	const matchModules = useMatch({
-		from: "/$locale/admin/courses/$id/modules",
+		from: "/$locale/$teamId/admin/courses/$id/modules",
 		shouldThrow: false,
 	});
 	const matchStatistics = useMatch({
-		from: "/$locale/admin/courses/$id/statistics",
+		from: "/$locale/$teamId/admin/courses/$id/statistics",
 		shouldThrow: false,
 	});
 	const matchSettings = useMatch({
-		from: "/$locale/admin/courses/$id/settings",
+		from: "/$locale/$teamId/admin/courses/$id/settings",
 		shouldThrow: false,
 	});
 	useEffect(() => {
@@ -129,9 +137,12 @@ const CourseCollapsible = ({
 					<SidebarMenuSub>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/learners"}
+								to={
+									"/$locale/$teamId/admin/courses/$id/learners"
+								}
 								params={{
 									locale,
+									teamId,
 									id: course.id,
 								}}
 								search={(p) => p}
@@ -149,9 +160,12 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/modules"}
+								to={
+									"/$locale/$teamId/admin/courses/$id/modules"
+								}
 								params={{
 									locale,
+									teamId,
 									id: course.id,
 								}}
 								search={(p) => p}
@@ -169,9 +183,12 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/statistics"}
+								to={
+									"/$locale/$teamId/admin/courses/$id/statistics"
+								}
 								params={{
 									locale,
+									teamId,
 									id: course.id,
 								}}
 								search={(p) => p}
@@ -189,9 +206,12 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/sharing"}
+								to={
+									"/$locale/$teamId/admin/courses/$id/sharing"
+								}
 								params={{
 									locale,
+									teamId,
 									id: course.id,
 								}}
 								search={(p) => p}
@@ -209,9 +229,12 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/settings"}
+								to={
+									"/$locale/$teamId/admin/courses/$id/settings"
+								}
 								params={{
 									locale,
+									teamId,
 									id: course.id,
 								}}
 								search={(p) => p}
@@ -236,7 +259,9 @@ const CourseCollapsible = ({
 
 const SharedCourseCollapsible = ({
 	connection,
+	teamId,
 }: {
+	teamId: string;
 	connection: TeamToCourseType & { course: Course & CourseTranslation };
 }) => {
 	const { setOpenMobile } = useSidebar();
@@ -247,11 +272,11 @@ const SharedCourseCollapsible = ({
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
-		from: "/$locale/admin/courses/$id/learners",
+		from: "/$locale/$teamId/admin/courses/$id/learners",
 		shouldThrow: false,
 	});
 	const matchStatistics = useMatch({
-		from: "/$locale/admin/courses/$id/statistics",
+		from: "/$locale/$teamId/admin/courses/$id/statistics",
 		shouldThrow: false,
 	});
 
@@ -299,10 +324,11 @@ const SharedCourseCollapsible = ({
 								<SidebarMenuSubItem>
 									<Link
 										to={
-											"/$locale/admin/courses/$id/learners"
+											"/$locale/$teamId/admin/courses/$id/learners"
 										}
 										params={{
 											locale,
+											teamId,
 											id: course.id,
 										}}
 										search={(p) => p}
@@ -323,10 +349,11 @@ const SharedCourseCollapsible = ({
 								<SidebarMenuSubItem>
 									<Link
 										to={
-											"/$locale/admin/courses/$id/statistics"
+											"/$locale/$teamId/admin/courses/$id/statistics"
 										}
 										params={{
 											locale,
+											teamId,
 											id: course.id,
 										}}
 										search={(p) => p}
@@ -387,8 +414,10 @@ const SharedCourseCollapsible = ({
 };
 
 const CollectionCollapsible = ({
+	teamId,
 	collection,
 }: {
+	teamId: string;
 	collection: Collection & CollectionTranslation;
 }) => {
 	const [open, setOpen] = useState(false);
@@ -397,15 +426,15 @@ const CollectionCollapsible = ({
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
-		from: "/$locale/admin/collections/$id/learners",
+		from: "/$locale/$teamId/admin/collections/$id/learners",
 		shouldThrow: false,
 	});
 	const matchCourses = useMatch({
-		from: "/$locale/admin/collections/$id/courses",
+		from: "/$locale/$teamId/admin/collections/$id/courses",
 		shouldThrow: false,
 	});
 	const matchSettings = useMatch({
-		from: "/$locale/admin/collections/$id/settings",
+		from: "/$locale/$teamId/admin/collections/$id/settings",
 		shouldThrow: false,
 	});
 	useEffect(() => {
@@ -434,9 +463,12 @@ const CollectionCollapsible = ({
 				<CollapsibleContent>
 					<SidebarMenuSub>
 						<Link
-							to={"/$locale/admin/collections/$id/learners"}
+							to={
+								"/$locale/$teamId/admin/collections/$id/learners"
+							}
 							params={{
 								locale,
+								teamId,
 								id: collection.id,
 							}}
 							search={(p) => p}
@@ -453,9 +485,12 @@ const CollectionCollapsible = ({
 						</Link>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/collections/$id/courses"}
+								to={
+									"/$locale/$teamId/admin/collections/$id/courses"
+								}
 								params={{
 									locale,
+									teamId,
 									id: collection.id,
 								}}
 								search={(p) => p}
@@ -473,9 +508,12 @@ const CollectionCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/collections/$id/settings"}
+								to={
+									"/$locale/$teamId/admin/collections/$id/settings"
+								}
 								params={{
 									locale,
+									teamId,
 									id: collection.id,
 								}}
 								search={(p) => p}
@@ -499,12 +537,14 @@ const CollectionCollapsible = ({
 };
 
 export const AdminSidebar = ({
+	tenantActive,
 	teamId,
 	teams,
 	courses,
 	collections,
 	connections,
 }: {
+	tenantActive: boolean;
 	teamId: string;
 	teams: (Team & TeamTranslation)[];
 	courses: (Course & CourseTranslation)[];
@@ -525,84 +565,91 @@ export const AdminSidebar = ({
 
 	return (
 		<Sidebar className="list-none">
-			<SidebarHeader className="flex flex-row items-center justify-between border-b">
-				<SidebarMenu>
-					<SidebarMenuItem>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<SidebarMenuButton
-									size="lg"
-									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-								>
-									<Avatar className="rounded-lg size-8">
-										<AvatarImage
-											src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
-											className="rounded-lg"
-										/>
-										<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-											{activeTeam?.name.toUpperCase()[0]}
-										</AvatarFallback>
-									</Avatar>
-									<div className="grid flex-1 text-left text-sm leading-tight">
-										{activeTeam?.name}
-									</div>
-									<ChevronsUpDown className="ml-auto" />
-								</SidebarMenuButton>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent
-								className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-								align="start"
-								side={isMobile ? "bottom" : "right"}
-								sideOffset={4}
-							>
-								<DropdownMenuLabel className="text-xs text-muted-foreground">
-									Teams
-								</DropdownMenuLabel>
-								{teams.map((team) => (
-									<DropdownMenuItem
-										key={team.id}
-										onClick={() => {
-											setTeam({
-												data: {
-													teamId: team.id,
-												},
-											});
-										}}
-										className="gap-2 p-2"
+			{!tenantActive && (
+				<SidebarHeader className="flex flex-row items-center justify-between border-b">
+					<SidebarMenu>
+						<SidebarMenuItem>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<SidebarMenuButton
+										size="lg"
+										className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 									>
-										<Avatar className="rounded-md size-6">
+										<Avatar className="rounded-lg size-8">
 											<AvatarImage
-												src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
-												className="rounded-md"
+												src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+												className="rounded-lg"
 											/>
-											<AvatarFallback className="rounded-md">
+											<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
 												{
 													activeTeam?.name.toUpperCase()[0]
 												}
 											</AvatarFallback>
 										</Avatar>
-										{team.name}
-									</DropdownMenuItem>
-								))}
-								<DropdownMenuSeparator />
-								<DropdownMenuItem className="gap-2 p-2" asChild>
-									<Link
-										to="/$locale/create-team"
-										params={{ locale }}
+										<div className="grid flex-1 text-left text-sm leading-tight">
+											{activeTeam?.name}
+										</div>
+										<ChevronsUpDown className="ml-auto" />
+									</SidebarMenuButton>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent
+									className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+									align="start"
+									side={isMobile ? "bottom" : "right"}
+									sideOffset={4}
+								>
+									<DropdownMenuLabel className="text-xs text-muted-foreground">
+										Teams
+									</DropdownMenuLabel>
+									{teams.map((team) => (
+										<DropdownMenuItem
+											key={team.id}
+											onClick={() => {
+												setTeam({
+													data: {
+														teamId: team.id,
+													},
+												});
+											}}
+											className="gap-2 p-2"
+										>
+											<Avatar className="rounded-md size-6">
+												<AvatarImage
+													src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
+													className="rounded-md"
+												/>
+												<AvatarFallback className="rounded-md">
+													{
+														activeTeam?.name.toUpperCase()[0]
+													}
+												</AvatarFallback>
+											</Avatar>
+											{team.name}
+										</DropdownMenuItem>
+									))}
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										className="gap-2 p-2"
+										asChild
 									>
-										<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-											<Plus className="size-4" />
-										</div>
-										<div className="font-medium text-muted-foreground">
-											Create team
-										</div>
-									</Link>
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</SidebarMenuItem>
-				</SidebarMenu>
-			</SidebarHeader>
+										<Link
+											to="/$locale/create-team"
+											params={{ locale }}
+										>
+											<div className="flex size-6 items-center justify-center rounded-md border bg-background">
+												<Plus className="size-4" />
+											</div>
+											<div className="font-medium text-muted-foreground">
+												Create team
+											</div>
+										</Link>
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</SidebarMenuItem>
+					</SidebarMenu>
+				</SidebarHeader>
+			)}
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupContent>
@@ -611,9 +658,10 @@ export const AdminSidebar = ({
 						</SidebarGroupLabel>
 						<SidebarMenuItem>
 							<Link
-								to="/$locale/admin"
+								to="/$locale/$teamId/admin"
 								params={{
 									locale,
+									teamId,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -636,9 +684,10 @@ export const AdminSidebar = ({
 						<SidebarGroupLabel>Courses</SidebarGroupLabel>
 						<SidebarGroupAction title="Create Course" asChild>
 							<Link
-								to="/$locale/admin/courses/create"
+								to="/$locale/$teamId/admin/courses/create"
 								params={{
 									locale,
+									teamId,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -653,6 +702,7 @@ export const AdminSidebar = ({
 							<CourseCollapsible
 								course={course}
 								key={course.id}
+								teamId={teamId}
 							/>
 						))}
 					</SidebarGroupContent>
@@ -664,6 +714,7 @@ export const AdminSidebar = ({
 							<SharedCourseCollapsible
 								connection={connection}
 								key={connection.courseId}
+								teamId={teamId}
 							/>
 						))}
 					</SidebarGroupContent>
@@ -673,9 +724,10 @@ export const AdminSidebar = ({
 						<SidebarGroupLabel>Collections</SidebarGroupLabel>
 						<SidebarGroupAction title="Create Collection" asChild>
 							<Link
-								to="/$locale/admin/collections/create"
+								to="/$locale/$teamId/admin/collections/create"
 								params={{
 									locale,
+									teamId,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -690,6 +742,7 @@ export const AdminSidebar = ({
 						</SidebarGroupAction>
 						{collections.map((collection) => (
 							<CollectionCollapsible
+								teamId={teamId}
 								collection={collection}
 								key={collection.id}
 							/>
@@ -701,9 +754,10 @@ export const AdminSidebar = ({
 						<SidebarGroupLabel>{t.sidebar.team}</SidebarGroupLabel>
 						<SidebarMenuItem>
 							<Link
-								to="/$locale/admin/keys"
+								to="/$locale/$teamId/admin/keys"
 								params={{
 									locale,
+									teamId,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -720,9 +774,10 @@ export const AdminSidebar = ({
 						</SidebarMenuItem>
 						<SidebarMenuItem>
 							<Link
-								to="/$locale/admin/certificate"
+								to="/$locale/$teamId/admin/certificate"
 								params={{
 									locale,
+									teamId,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -739,8 +794,9 @@ export const AdminSidebar = ({
 						</SidebarMenuItem>
 						<SidebarMenuItem>
 							<Link
-								to="/$locale/admin/members"
+								to="/$locale/$teamId/admin/members"
 								params={{
+									teamId,
 									locale,
 								}}
 								search={(p) => p}
@@ -758,9 +814,10 @@ export const AdminSidebar = ({
 						</SidebarMenuItem>
 						<SidebarMenuItem>
 							<Link
-								to="/$locale/admin/settings"
+								to="/$locale/$teamId/admin/settings"
 								params={{
 									locale,
+									teamId,
 								}}
 								search={(p) => p}
 								onClick={() => {

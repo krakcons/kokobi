@@ -19,6 +19,13 @@ import { handleLocalization } from "@/lib/locale/helpers";
 import { locales } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, setCookie } from "@tanstack/react-start/server";
+import { getCookie } from "vinxi/http";
+
+export const getTenantActive = createServerFn({ method: "GET" }).handler(() => {
+	const hostname = getCookie("customHostname");
+
+	return !!hostname;
+});
 
 export const getTeamMembersFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware({ role: "owner" })])

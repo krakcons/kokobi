@@ -174,7 +174,7 @@ export const getCollectionCoursesFn = createServerFn({ method: "GET" })
 export const createCollectionCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(CoursesFormSchema.extend({ id: z.string() }))
-	.handler(async ({ context, data }) => {
+	.handler(async ({ data }) => {
 		await db
 			.insert(collectionsToCourses)
 			.values(
