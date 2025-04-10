@@ -59,7 +59,7 @@ export const verifyOTPFn = createServerFn({ method: "POST" })
 	.handler(async ({ data, context }) => {
 		const verificationCookie = getCookie("email_verification");
 		if (!verificationCookie)
-			return { error: "Invalid verification session. Please try again." };
+			throw new Error("Invalid verification session. Please try again.");
 
 		const emailVerification = await db.query.emailVerifications.findFirst({
 			where: and(
@@ -71,7 +71,10 @@ export const verifyOTPFn = createServerFn({ method: "POST" })
 			},
 		});
 		if (!emailVerification)
-			return { error: "Invalid code. Please try again." };
+			throw new Error("Invalid code. Please try again.");
+		if (emailVerification.expiresAt < new Date()) {
+			throw new Error("The verification code was expired.");
+		}
 
 		const token = Bun.randomUUIDv7();
 		await createSession(token, emailVerification.user.id);
