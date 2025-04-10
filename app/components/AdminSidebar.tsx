@@ -499,12 +499,14 @@ const CollectionCollapsible = ({
 };
 
 export const AdminSidebar = ({
+	tenantId,
 	teamId,
 	teams,
 	courses,
 	collections,
 	connections,
 }: {
+	tenantId?: string;
 	teamId: string;
 	teams: (Team & TeamTranslation)[];
 	courses: (Course & CourseTranslation)[];
@@ -526,82 +528,104 @@ export const AdminSidebar = ({
 	return (
 		<Sidebar className="list-none">
 			<SidebarHeader className="flex flex-row items-center justify-between border-b">
-				<SidebarMenu>
-					<SidebarMenuItem>
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<SidebarMenuButton
-									size="lg"
-									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-								>
-									<Avatar className="rounded-lg size-8">
-										<AvatarImage
-											src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
-											className="rounded-lg"
-										/>
-										<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-											{activeTeam?.name.toUpperCase()[0]}
-										</AvatarFallback>
-									</Avatar>
-									<div className="grid flex-1 text-left text-sm leading-tight">
-										{activeTeam?.name}
-									</div>
-									<ChevronsUpDown className="ml-auto" />
-								</SidebarMenuButton>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent
-								className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-								align="start"
-								side={isMobile ? "bottom" : "right"}
-								sideOffset={4}
-							>
-								<DropdownMenuLabel className="text-xs text-muted-foreground">
-									Teams
-								</DropdownMenuLabel>
-								{teams.map((team) => (
-									<DropdownMenuItem
-										key={team.id}
-										onClick={() => {
-											setTeam({
-												data: {
-													teamId: team.id,
-												},
-											});
-										}}
-										className="gap-2 p-2"
+				{tenantId ? (
+					<div className="flex gap-2 justify-between items-center flex-wrap w-full p-2">
+						<Avatar className="rounded-lg size-8">
+							<AvatarImage
+								src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+								className="rounded-lg"
+							/>
+							<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
+								{activeTeam?.name.toUpperCase()[0]}
+							</AvatarFallback>
+						</Avatar>
+						<div className="flex-1 text-left text-sm leading-tight">
+							{activeTeam?.name}
+						</div>
+					</div>
+				) : (
+					<SidebarMenu>
+						<SidebarMenuItem>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<SidebarMenuButton
+										size="lg"
+										className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 									>
-										<Avatar className="rounded-md size-6">
+										<Avatar className="rounded-lg size-8">
 											<AvatarImage
-												src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
-												className="rounded-md"
+												src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+												className="rounded-lg"
 											/>
-											<AvatarFallback className="rounded-md">
+											<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
 												{
 													activeTeam?.name.toUpperCase()[0]
 												}
 											</AvatarFallback>
 										</Avatar>
-										{team.name}
-									</DropdownMenuItem>
-								))}
-								<DropdownMenuSeparator />
-								<DropdownMenuItem className="gap-2 p-2" asChild>
-									<Link
-										to="/$locale/create-team"
-										params={{ locale }}
+										<div className="flex-1 text-left text-sm leading-tight">
+											{activeTeam?.name}
+										</div>
+										<ChevronsUpDown className="ml-auto" />
+									</SidebarMenuButton>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent
+									className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+									align="start"
+									side={isMobile ? "bottom" : "right"}
+									sideOffset={4}
+								>
+									<DropdownMenuLabel className="text-xs text-muted-foreground">
+										Teams
+									</DropdownMenuLabel>
+									{teams.map((team) => (
+										<DropdownMenuItem
+											key={team.id}
+											onClick={() => {
+												setTeam({
+													data: {
+														teamId: team.id,
+													},
+												});
+											}}
+											className="gap-2 p-2"
+										>
+											<Avatar className="rounded-md size-6">
+												<AvatarImage
+													src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
+													className="rounded-md"
+												/>
+												<AvatarFallback className="rounded-md">
+													{
+														activeTeam?.name.toUpperCase()[0]
+													}
+												</AvatarFallback>
+											</Avatar>
+											{team.name}
+										</DropdownMenuItem>
+									))}
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										className="gap-2 p-2"
+										asChild
 									>
-										<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-											<Plus className="size-4" />
-										</div>
-										<div className="font-medium text-muted-foreground">
-											Create team
-										</div>
-									</Link>
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					</SidebarMenuItem>
-				</SidebarMenu>
+										<Link
+											to="/$locale/create-team"
+											params={{ locale }}
+										>
+											<div className="flex size-6 items-center justify-center rounded-md border bg-background">
+												<Plus className="size-4" />
+											</div>
+											<div className="font-medium text-muted-foreground">
+												Create team
+											</div>
+										</Link>
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						</SidebarMenuItem>
+					</SidebarMenu>
+				)}
 			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>

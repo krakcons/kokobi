@@ -1,5 +1,6 @@
 import { db } from "@/server/db";
 import {
+	domains,
 	teamTranslations,
 	teams,
 	users,
@@ -19,6 +20,8 @@ import { handleLocalization } from "@/lib/locale/helpers";
 import { locales } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, setCookie } from "@tanstack/react-start/server";
+import { getRequestHost } from "vinxi/http";
+import { env } from "../env";
 
 export const getTeamMembersFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware({ role: "owner" })])
@@ -282,3 +285,19 @@ export const deleteTeamFn = createServerFn({ method: "POST" })
 			};
 		}
 	});
+
+export const getTenantFn = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const hostname = getRequestHost();
+
+		if (hostname === env.VITE_ROOT_DOMAIN) {
+			return null;
+		}
+
+		const domain = await db.query.domains.findFirst({
+			where: eq(domains.hostname, hostname),
+		});
+
+		return domain ? domain.teamId : null;
+	},
+);
