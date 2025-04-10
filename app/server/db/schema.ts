@@ -41,7 +41,6 @@ const sharing = {
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
 	email: text("email").unique().notNull(),
-	googleId: text("googleId").unique("googleId", { nulls: "not distinct" }),
 	firstName: text("firstName"),
 	lastName: text("lastName"),
 	...dates,
@@ -57,6 +56,21 @@ export const sessions = pgTable("sessions", {
 		withTimezone: true,
 		mode: "date",
 	}).notNull(),
+});
+export const emailVerifications = pgTable("email_verifications", {
+	id: text("id").primaryKey(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, {
+			onDelete: "cascade",
+		}),
+	code: text("code").notNull(),
+	expiresAt: timestamp("expires_at", {
+		withTimezone: true,
+		mode: "date",
+	})
+		.$default(() => new Date(Date.now() + 1000 * 60 * 15))
+		.notNull(),
 });
 
 // TEAMS //
@@ -329,6 +343,16 @@ export const sessionRelations = relations(sessions, ({ one }) => ({
 	}),
 }));
 
+export const emailVerificationsRelations = relations(
+	emailVerifications,
+	({ one }) => ({
+		user: one(users, {
+			fields: [emailVerifications.userId],
+			references: [users.id],
+		}),
+	}),
+);
+
 // TEAMS
 
 export const teamRelations = relations(teams, ({ many }) => ({
@@ -510,6 +534,7 @@ export const tableSchemas = {
 	// USERS
 	users,
 	sessions,
+	emailVerifications,
 	// TEAMS
 	teams,
 	teamTranslations,
@@ -536,6 +561,7 @@ export const relationSchemas = {
 	// USERS
 	usersRelations,
 	sessionRelations,
+	emailVerificationsRelations,
 	// TEAMS
 	teamRelations,
 	teamTranslationsRelations,

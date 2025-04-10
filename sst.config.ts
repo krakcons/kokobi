@@ -48,8 +48,6 @@ export default $config({
 		const environment = {
 			CLOUDFLARE_API_TOKEN: new sst.Secret("CLOUDFLARE_API_TOKEN").value,
 			CLOUDFLARE_ZONE_ID: cloudflareZone.id,
-			GOOGLE_CLIENT_SECRET: new sst.Secret("GOOGLE_CLIENT_SECRET").value,
-			GOOGLE_CLIENT_ID: new sst.Secret("GOOGLE_CLIENT_ID").value,
 			OPENAI_API_KEY: new sst.Secret("OPENAI_API_KEY").value,
 			// Bun adapters
 			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-${$app.stage}`,

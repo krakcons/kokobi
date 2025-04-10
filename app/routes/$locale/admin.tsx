@@ -19,7 +19,6 @@ import {
 } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import { env } from "@/env";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
 import { getCollectionsFn } from "@/server/handlers/collections";
@@ -36,7 +35,8 @@ export const Route = createFileRoute("/$locale/admin")({
 
 		if (!auth.user) {
 			throw redirect({
-				href: env.VITE_SITE_URL + "/api/auth/google",
+				to: "/$locale/auth/login",
+				params,
 			});
 		}
 

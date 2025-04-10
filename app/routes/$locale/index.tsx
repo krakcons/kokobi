@@ -1,7 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslations } from "@/lib/locale";
-import { env } from "@/env";
 
 export const Route = createFileRoute("/$locale/")({
 	component: Home,
@@ -14,14 +13,15 @@ function Home() {
 		<>
 			<header className="border-b-elevation-4 flex h-14 w-full items-center justify-center border-b px-6">
 				<nav className="flex w-full max-w-screen-lg items-center justify-end">
-					<a
-						href={env.VITE_SITE_URL + "/api/auth/google"}
+					<Link
+						to="/$locale/auth/login"
+						from={Route.fullPath}
 						className={buttonVariants({
 							className: "mr-4",
 						})}
 					>
 						{t["get-started"]}
-					</a>
+					</Link>
 				</nav>
 			</header>
 			<main className="mx-auto w-full max-w-screen-xl">
@@ -35,14 +35,15 @@ function Home() {
 					<div className="mt-6 flex sm:mt-12">
 						<p>{t.description}</p>
 					</div>
-					<a
-						href={env.VITE_SITE_URL + "/api/auth/google"}
+					<Link
+						to="/$locale/auth/login"
+						from={Route.fullPath}
 						className={buttonVariants({
 							className: "mt-8 sm:mt-12",
 						})}
 					>
 						{t["get-started"]}
-					</a>
+					</Link>
 				</div>
 			</main>
 		</>
