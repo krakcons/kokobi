@@ -1,7 +1,14 @@
 // Based on: https://thecopenhagenbook.com
 import { and, eq } from "drizzle-orm";
 import { db } from "./db";
-import { Session, sessions, User, users, usersToTeams } from "./db/schema";
+import {
+	emailVerifications,
+	Session,
+	sessions,
+	User,
+	users,
+	usersToTeams,
+} from "./db/schema";
 import {
 	deleteCookie,
 	getCookie,
@@ -9,6 +16,8 @@ import {
 } from "@tanstack/react-start/server";
 import { env } from "./env";
 import { Role } from "@/types/users";
+import { generateRandomString } from "./random";
+import { sendEmail } from "./email";
 
 export type AuthResult =
 	| { session: Session; user: User; teamId: string | null; role: Role | null }
@@ -102,52 +111,3 @@ export async function invalidateSession(token: string): Promise<void> {
 	const sessionId = hash(token);
 	await db.delete(sessions).where(eq(sessions.id, sessionId));
 }
-
-export const handleUser = async ({
-	googleId,
-	email,
-}: {
-	googleId: string;
-	email: string;
-}) => {
-	let userId: string;
-	const existingUser = await db.query.users.findFirst({
-		where: eq(users.googleId, googleId),
-	});
-
-	if (!existingUser) {
-		userId = Bun.randomUUIDv7();
-		await db.insert(users).values({
-			id: userId,
-			email,
-			googleId,
-		});
-	} else {
-		userId = existingUser.id;
-	}
-
-	const token = Bun.randomUUIDv7();
-	await createSession(token, userId);
-
-	setCookie("auth_session", token, {
-		secure: process.env.NODE_ENV === "production",
-		httpOnly: true,
-		sameSite: "lax",
-		path: "/",
-	});
-
-	const team = await db.query.usersToTeams.findFirst({
-		where: eq(usersToTeams.userId, userId),
-	});
-
-	if (team) {
-		setCookie("teamId", team.teamId, {
-			path: "/",
-			secure: true,
-			httpOnly: true,
-			sameSite: "lax",
-		});
-	}
-
-	return env.VITE_SITE_URL + "/admin";
-};

@@ -1,23 +1,19 @@
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { Badge } from "@/components/ui/badge";
-import { env } from "@/env";
-import { useTranslations } from "@/lib/locale";
 import { getConnectionsFn } from "@/server/handlers/connections";
 import { getAuthFn } from "@/server/handlers/user";
-import { ConnectionType } from "@/types/connections";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Container } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
-	beforeLoad: async () => {
+	beforeLoad: async ({ params }) => {
 		const { user } = await getAuthFn();
-		console.log(user);
 
 		if (!user) {
 			throw redirect({
-				href: env.VITE_SITE_URL + "/api/auth/google",
+				to: "/$locale/auth/login",
+				params,
 			});
 		}
 	},

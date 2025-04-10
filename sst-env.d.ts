@@ -29,14 +29,6 @@ declare module "sst" {
       "sender": string
       "type": "sst.aws.Email"
     }
-    "GOOGLE_CLIENT_ID": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
-    "GOOGLE_CLIENT_SECRET": {
-      "type": "sst.sst.Secret"
-      "value": string
-    }
     "OPENAI_API_KEY": {
       "type": "sst.sst.Secret"
       "value": string
