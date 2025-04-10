@@ -559,7 +559,6 @@ export const AdminSidebar = ({
 	const t = useTranslations("Nav");
 	const signOut = useServerFn(signOutFn);
 	const locale = useLocale();
-	const setTeam = useServerFn(setTeamFn);
 
 	const activeTeam = teams.find((t) => t.id === teamId);
 
@@ -602,29 +601,29 @@ export const AdminSidebar = ({
 										Teams
 									</DropdownMenuLabel>
 									{teams.map((team) => (
-										<DropdownMenuItem
-											key={team.id}
-											onClick={() => {
-												setTeam({
-													data: {
-														teamId: team.id,
-													},
-												});
-											}}
-											className="gap-2 p-2"
-										>
-											<Avatar className="rounded-md size-6">
-												<AvatarImage
-													src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
-													className="rounded-md"
-												/>
-												<AvatarFallback className="rounded-md">
-													{
-														activeTeam?.name.toUpperCase()[0]
-													}
-												</AvatarFallback>
-											</Avatar>
-											{team.name}
+										<DropdownMenuItem key={team.id} asChild>
+											<Link
+												to="/$locale/$teamId/admin"
+												reloadDocument
+												params={{
+													locale,
+													teamId: team.id,
+												}}
+												className="gap-2 p-2"
+											>
+												<Avatar className="rounded-md size-6">
+													<AvatarImage
+														src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
+														className="rounded-md"
+													/>
+													<AvatarFallback className="rounded-md">
+														{
+															activeTeam?.name.toUpperCase()[0]
+														}
+													</AvatarFallback>
+												</Avatar>
+												{team.name}
+											</Link>
 										</DropdownMenuItem>
 									))}
 									<DropdownMenuSeparator />

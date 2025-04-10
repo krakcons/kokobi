@@ -77,7 +77,7 @@ function RouteComponent() {
 		<SidebarProvider>
 			<AdminSidebar
 				tenantActive={tenantActive}
-				teamId={auth.teamId}
+				teamId={auth.teamId!}
 				teams={teams}
 				courses={courses}
 				collections={collections}

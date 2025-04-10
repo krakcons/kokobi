@@ -1,11 +1,13 @@
 import { getTeamFn } from "@/server/handlers/teams";
+import { setTeamFn } from "@/server/handlers/user";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/$teamId")({
 	component: RouteComponent,
 	beforeLoad: async ({ params, location }) => {
+		const team = await getTeamFn();
+
 		if (location.pathname.startsWith(`/${params.locale}/admin`)) {
-			const team = await getTeamFn();
 			if (!team) {
 				throw redirect({
 					to: "/$locale/create-team",
@@ -17,6 +19,14 @@ export const Route = createFileRoute("/$locale/$teamId")({
 					params: { locale: params.locale, teamId: team.id },
 				});
 			}
+		}
+
+		if (team && team.id !== params.teamId) {
+			await setTeamFn({
+				data: {
+					teamId: params.teamId,
+				},
+			});
 		}
 	},
 });
