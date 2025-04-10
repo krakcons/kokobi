@@ -26,11 +26,12 @@ import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { EditingLocaleSchema } from "@/types/router";
 import { getTeamConnectionsFn } from "@/server/handlers/connections";
+import { getTenantFn } from "@/server/handlers/teams";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
 	validateSearch: EditingLocaleSchema,
-	beforeLoad: async () => {
+	beforeLoad: async ({ params }) => {
 		const auth = await getAuthFn();
 
 		if (!auth.user) {
@@ -42,6 +43,9 @@ export const Route = createFileRoute("/$locale/admin")({
 		if (!auth.teamId) {
 			throw redirect({
 				to: "/$locale/create-team",
+				params: {
+					locale: params.locale,
+				},
 			});
 		}
 	},
@@ -56,6 +60,7 @@ export const Route = createFileRoute("/$locale/admin")({
 					type: "to-team",
 				},
 			}),
+			getTenantFn(),
 		]),
 });
 
@@ -65,13 +70,14 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = useNavigate();
 	const editingLocale = search.locale ?? locale;
-	const [auth, teams, courses, collections, connections] =
+	const [auth, teams, courses, collections, connections, tenantId] =
 		Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
 			<AdminSidebar
-				teamId={auth.teamId}
+				tenantId={tenantId}
+				teamId={auth.teamId!}
 				teams={teams}
 				courses={courses}
 				collections={collections}

@@ -11,28 +11,9 @@ import {
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
-import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
+import { getI18nFn, setTeamFn, updateI18nFn } from "@/server/handlers/user";
 import appCss from "@/index.css?url";
-import { createServerFn } from "@tanstack/react-start";
-import { getRequestHost } from "vinxi/http";
-import { env } from "@/server/env";
-import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
-import { domains } from "@/server/db/schema";
-
-const getTenant = createServerFn({ method: "GET" }).handler(async () => {
-	const hostname = getRequestHost();
-
-	if (hostname === env.VITE_ROOT_DOMAIN) {
-		return null;
-	}
-
-	const domain = await db.query.domains.findFirst({
-		where: eq(domains.hostname, hostname),
-	});
-
-	return domain ? domain.teamId : null;
-});
+import { getTenantFn } from "@/server/handlers/teams";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -43,7 +24,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			// Handle locale
 			let pathLocale = location.pathname.split("/")[1];
 			if (!["api", "cdn"].includes(pathLocale)) {
-				console.log(pathLocale);
 				if (!locales.some(({ value }) => value === pathLocale)) {
 					throw redirect({
 						replace: true,
@@ -61,11 +41,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					});
 				}
 
-				const teamId = await getTenant();
-				if (teamId) {
-					if (
-						!location.pathname.startsWith(`/${pathLocale}/learner`)
-					) {
+				const tenantId = await getTenantFn();
+				if (tenantId) {
+					const validRoutes = [
+						`/${pathLocale}/learner`,
+						`/${pathLocale}/admin`,
+					];
+					// Force tenant to be teamId
+					await setTeamFn({
+						data: {
+							teamId: tenantId,
+						},
+					});
+					if (!validRoutes.includes(location.pathname)) {
 						throw notFound();
 					}
 				}
