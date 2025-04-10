@@ -1,6 +1,7 @@
 import {
 	authMiddleware,
 	localeMiddleware,
+	protectedMiddleware,
 	teamMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
@@ -61,7 +62,7 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 	});
 
 export const setTeamFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware(), localeMiddleware])
+	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(
 		z.object({
 			teamId: z.string(),

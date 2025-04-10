@@ -3,6 +3,7 @@ import { useAppForm } from "@/components/ui/form";
 import { db } from "@/server/db";
 import { emailVerifications, users } from "@/server/db/schema";
 import { sendEmail } from "@/server/email";
+import { getTenantFn } from "@/server/handlers/teams";
 import { getAuthFn } from "@/server/handlers/user";
 import { localeMiddleware } from "@/server/middleware";
 import { generateRandomString } from "@/server/random";
@@ -18,6 +19,18 @@ export const Route = createFileRoute("/$locale/auth/login")({
 	beforeLoad: async ({ params }) => {
 		const auth = await getAuthFn();
 		if (auth.session) throw redirect({ to: "/$locale/admin", params });
+	},
+	loader: async ({ params }) => {
+		const tenantId = await getTenantFn();
+		if (tenantId) {
+			return {
+				logo: `/cdn/${tenantId}/${params.locale}/logo`,
+			};
+		} else {
+			return {
+				logo: null,
+			};
+		}
 	},
 });
 
@@ -133,10 +146,18 @@ function RouteComponent() {
 	const requestMutation = useMutation({
 		mutationFn: request,
 	});
+	const { logo } = Route.useLoaderData();
 
 	return (
 		<FloatingPage>
-			<div className="max-w-md w-full">
+			<div className="max-w-md w-full flex flex-col">
+				{logo && (
+					<img
+						src={logo}
+						alt="Team Logo"
+						className="max-h-24 w-min text-[0px] mb-8"
+					/>
+				)}
 				<PageHeader
 					title="Login"
 					description="Enter your email below and submit to login"
