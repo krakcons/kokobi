@@ -1,6 +1,6 @@
 import { Certificate } from "@/components/Certificate";
 import { ContentBranding } from "@/components/ContentBranding";
-import { FloatingPage, PageHeader } from "@/components/Page";
+import { FloatingPage, Page, PageHeader } from "@/components/Page";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Table,
@@ -16,12 +16,12 @@ import { getCollectionFn } from "@/server/handlers/collections";
 import { getAttemptsFn, getConnectionFn } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
 import { createAttemptFn } from "@/server/handlers/learners";
-import { getTeamByIdFn } from "@/server/handlers/teams";
+import { getTeamByIdFn, getTeamFn } from "@/server/handlers/teams";
 import { getAuthFn } from "@/server/handlers/user";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { ArrowLeft, Container } from "lucide-react";
+import { Container } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
@@ -31,22 +31,12 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 		});
 
 		if (!connection) {
+			const team = await getTeamFn();
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/request",
-				params: {
-					courseId: params.courseId,
-				},
-			});
-		}
-
-		if (
-			connection.connectType === "invite" &&
-			connection.connectStatus === "pending"
-		) {
-			throw redirect({
-				to: "/$locale/learner/courses/$courseId/invite",
-				params: {
-					courseId: params.courseId,
+				params,
+				search: {
+					teamId: team.id,
 				},
 			});
 		}
@@ -57,9 +47,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 		) {
 			throw redirect({
 				to: "/$locale/learner/courses/$courseId/request",
-				params: {
-					courseId: params.courseId,
-				},
+				params,
 				search: {
 					teamId: connection.teamId,
 				},
@@ -111,18 +99,8 @@ function RouteComponent() {
 	});
 
 	return (
-		<FloatingPage>
+		<Page>
 			<div className="flex flex-col gap-8 w-full">
-				<Link
-					to="/$locale/learner"
-					className={buttonVariants({
-						variant: "link",
-						className: "self-start",
-					})}
-				>
-					<ArrowLeft />
-					Dashboard
-				</Link>
 				<ContentBranding team={course.team} connectTeam={team} />
 				<PageHeader
 					title={course.name}
@@ -244,6 +222,7 @@ function RouteComponent() {
 						<Link
 							key={collection.id}
 							to="/$locale/learner/collections/$collectionId"
+							from={Route.fullPath}
 							params={{
 								collectionId: collection.id,
 							}}
@@ -260,6 +239,6 @@ function RouteComponent() {
 					</>
 				)}
 			</div>
-		</FloatingPage>
+		</Page>
 	);
 }

@@ -123,6 +123,15 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 					collection: {
 						with: {
 							translations: true,
+							collectionsToCourses: {
+								with: {
+									course: {
+										with: {
+											translations: true,
+										},
+									},
+								},
+							},
 						},
 					},
 					team: {
@@ -135,7 +144,12 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 
 			return connections.map((connection) => ({
 				...connection,
-				collection: handleLocalization(context, connection.collection),
+				collection: handleLocalization(context, {
+					...connection.collection,
+					courses: connection.collection.collectionsToCourses.map(
+						(c) => handleLocalization(context, c.course),
+					),
+				}),
 				team: handleLocalization(context, connection.team),
 			}));
 		}

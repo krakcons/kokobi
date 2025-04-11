@@ -19,7 +19,7 @@ import {
 } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import { AdminSidebar } from "@/components/AdminSidebar";
+import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
 import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";

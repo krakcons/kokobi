@@ -22,7 +22,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useMatch, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useMatch, useRouter } from "@tanstack/react-router";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -55,7 +55,6 @@ import {
 	Share,
 	Check,
 	X,
-	ChartBar,
 	ChartNoAxesColumn,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,8 +67,7 @@ import { setTeamFn, signOutFn } from "@/server/handlers/user";
 import { Team, TeamTranslation } from "@/types/team";
 import { useServerFn } from "@tanstack/react-start";
 import { TeamToCourseType } from "@/types/connections";
-import { Button } from "./ui/button";
-import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
+import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { teamConnectionResponseFn } from "@/server/handlers/connections";
 import { useMutation } from "@tanstack/react-query";
 

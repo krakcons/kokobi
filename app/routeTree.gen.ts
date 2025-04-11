@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as LocaleIndexImport } from './routes/$locale/index'
+import { Route as LocaleLearnerImport } from './routes/$locale/learner'
 import { Route as LocaleCreateTeamImport } from './routes/$locale/create-team'
 import { Route as LocaleAiImport } from './routes/$locale/ai'
 import { Route as LocaleAdminImport } from './routes/$locale/admin'
@@ -30,7 +31,6 @@ import { Route as LocaleLearnerCoursesCourseIdIndexImport } from './routes/$loca
 import { Route as LocaleLearnerCollectionsCollectionIdIndexImport } from './routes/$locale/learner/collections/$collectionId/index'
 import { Route as LocaleLearnerCoursesCourseIdRequestImport } from './routes/$locale/learner/courses/$courseId/request'
 import { Route as LocaleLearnerCoursesCourseIdPlayImport } from './routes/$locale/learner/courses/$courseId/play'
-import { Route as LocaleLearnerCoursesCourseIdInviteImport } from './routes/$locale/learner/courses/$courseId/invite'
 import { Route as LocaleLearnerCollectionsCollectionIdRequestImport } from './routes/$locale/learner/collections/$collectionId/request'
 import { Route as LocaleLearnerCollectionsCollectionIdInviteImport } from './routes/$locale/learner/collections/$collectionId/invite'
 import { Route as LocaleAdminCoursesIdWebhooksImport } from './routes/$locale/admin/courses/$id/webhooks'
@@ -48,6 +48,12 @@ import { Route as LocaleAdminCollectionsIdCoursesImport } from './routes/$locale
 const LocaleIndexRoute = LocaleIndexImport.update({
   id: '/$locale/',
   path: '/$locale/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LocaleLearnerRoute = LocaleLearnerImport.update({
+  id: '/$locale/learner',
+  path: '/$locale/learner',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -70,9 +76,9 @@ const LocaleAdminRoute = LocaleAdminImport.update({
 } as any)
 
 const LocaleLearnerIndexRoute = LocaleLearnerIndexImport.update({
-  id: '/$locale/learner/',
-  path: '/$locale/learner/',
-  getParentRoute: () => rootRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleLearnerRoute,
 } as any)
 
 const LocaleAdminIndexRoute = LocaleAdminIndexImport.update({
@@ -138,51 +144,44 @@ const LocaleAdminCollectionsCreateRoute =
 
 const LocaleLearnerCoursesCourseIdIndexRoute =
   LocaleLearnerCoursesCourseIdIndexImport.update({
-    id: '/$locale/learner/courses/$courseId/',
-    path: '/$locale/learner/courses/$courseId/',
-    getParentRoute: () => rootRoute,
+    id: '/courses/$courseId/',
+    path: '/courses/$courseId/',
+    getParentRoute: () => LocaleLearnerRoute,
   } as any)
 
 const LocaleLearnerCollectionsCollectionIdIndexRoute =
   LocaleLearnerCollectionsCollectionIdIndexImport.update({
-    id: '/$locale/learner/collections/$collectionId/',
-    path: '/$locale/learner/collections/$collectionId/',
-    getParentRoute: () => rootRoute,
+    id: '/collections/$collectionId/',
+    path: '/collections/$collectionId/',
+    getParentRoute: () => LocaleLearnerRoute,
   } as any)
 
 const LocaleLearnerCoursesCourseIdRequestRoute =
   LocaleLearnerCoursesCourseIdRequestImport.update({
-    id: '/$locale/learner/courses/$courseId/request',
-    path: '/$locale/learner/courses/$courseId/request',
-    getParentRoute: () => rootRoute,
+    id: '/courses/$courseId/request',
+    path: '/courses/$courseId/request',
+    getParentRoute: () => LocaleLearnerRoute,
   } as any)
 
 const LocaleLearnerCoursesCourseIdPlayRoute =
   LocaleLearnerCoursesCourseIdPlayImport.update({
-    id: '/$locale/learner/courses/$courseId/play',
-    path: '/$locale/learner/courses/$courseId/play',
-    getParentRoute: () => rootRoute,
-  } as any)
-
-const LocaleLearnerCoursesCourseIdInviteRoute =
-  LocaleLearnerCoursesCourseIdInviteImport.update({
-    id: '/$locale/learner/courses/$courseId/invite',
-    path: '/$locale/learner/courses/$courseId/invite',
-    getParentRoute: () => rootRoute,
+    id: '/courses/$courseId/play',
+    path: '/courses/$courseId/play',
+    getParentRoute: () => LocaleLearnerRoute,
   } as any)
 
 const LocaleLearnerCollectionsCollectionIdRequestRoute =
   LocaleLearnerCollectionsCollectionIdRequestImport.update({
-    id: '/$locale/learner/collections/$collectionId/request',
-    path: '/$locale/learner/collections/$collectionId/request',
-    getParentRoute: () => rootRoute,
+    id: '/collections/$collectionId/request',
+    path: '/collections/$collectionId/request',
+    getParentRoute: () => LocaleLearnerRoute,
   } as any)
 
 const LocaleLearnerCollectionsCollectionIdInviteRoute =
   LocaleLearnerCollectionsCollectionIdInviteImport.update({
-    id: '/$locale/learner/collections/$collectionId/invite',
-    path: '/$locale/learner/collections/$collectionId/invite',
-    getParentRoute: () => rootRoute,
+    id: '/collections/$collectionId/invite',
+    path: '/collections/$collectionId/invite',
+    getParentRoute: () => LocaleLearnerRoute,
   } as any)
 
 const LocaleAdminCoursesIdWebhooksRoute =
@@ -273,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleCreateTeamImport
       parentRoute: typeof rootRoute
     }
+    '/$locale/learner': {
+      id: '/$locale/learner'
+      path: '/$locale/learner'
+      fullPath: '/$locale/learner'
+      preLoaderRoute: typeof LocaleLearnerImport
+      parentRoute: typeof rootRoute
+    }
     '/$locale/': {
       id: '/$locale/'
       path: '/$locale'
@@ -338,10 +344,10 @@ declare module '@tanstack/react-router' {
     }
     '/$locale/learner/': {
       id: '/$locale/learner/'
-      path: '/$locale/learner'
-      fullPath: '/$locale/learner'
+      path: '/'
+      fullPath: '/$locale/learner/'
       preLoaderRoute: typeof LocaleLearnerIndexImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof LocaleLearnerImport
     }
     '/$locale/admin/collections/create': {
       id: '/$locale/admin/collections/create'
@@ -422,52 +428,45 @@ declare module '@tanstack/react-router' {
     }
     '/$locale/learner/collections/$collectionId/invite': {
       id: '/$locale/learner/collections/$collectionId/invite'
-      path: '/$locale/learner/collections/$collectionId/invite'
+      path: '/collections/$collectionId/invite'
       fullPath: '/$locale/learner/collections/$collectionId/invite'
       preLoaderRoute: typeof LocaleLearnerCollectionsCollectionIdInviteImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof LocaleLearnerImport
     }
     '/$locale/learner/collections/$collectionId/request': {
       id: '/$locale/learner/collections/$collectionId/request'
-      path: '/$locale/learner/collections/$collectionId/request'
+      path: '/collections/$collectionId/request'
       fullPath: '/$locale/learner/collections/$collectionId/request'
       preLoaderRoute: typeof LocaleLearnerCollectionsCollectionIdRequestImport
-      parentRoute: typeof rootRoute
-    }
-    '/$locale/learner/courses/$courseId/invite': {
-      id: '/$locale/learner/courses/$courseId/invite'
-      path: '/$locale/learner/courses/$courseId/invite'
-      fullPath: '/$locale/learner/courses/$courseId/invite'
-      preLoaderRoute: typeof LocaleLearnerCoursesCourseIdInviteImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof LocaleLearnerImport
     }
     '/$locale/learner/courses/$courseId/play': {
       id: '/$locale/learner/courses/$courseId/play'
-      path: '/$locale/learner/courses/$courseId/play'
+      path: '/courses/$courseId/play'
       fullPath: '/$locale/learner/courses/$courseId/play'
       preLoaderRoute: typeof LocaleLearnerCoursesCourseIdPlayImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof LocaleLearnerImport
     }
     '/$locale/learner/courses/$courseId/request': {
       id: '/$locale/learner/courses/$courseId/request'
-      path: '/$locale/learner/courses/$courseId/request'
+      path: '/courses/$courseId/request'
       fullPath: '/$locale/learner/courses/$courseId/request'
       preLoaderRoute: typeof LocaleLearnerCoursesCourseIdRequestImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof LocaleLearnerImport
     }
     '/$locale/learner/collections/$collectionId/': {
       id: '/$locale/learner/collections/$collectionId/'
-      path: '/$locale/learner/collections/$collectionId'
+      path: '/collections/$collectionId'
       fullPath: '/$locale/learner/collections/$collectionId'
       preLoaderRoute: typeof LocaleLearnerCollectionsCollectionIdIndexImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof LocaleLearnerImport
     }
     '/$locale/learner/courses/$courseId/': {
       id: '/$locale/learner/courses/$courseId/'
-      path: '/$locale/learner/courses/$courseId'
+      path: '/courses/$courseId'
       fullPath: '/$locale/learner/courses/$courseId'
       preLoaderRoute: typeof LocaleLearnerCoursesCourseIdIndexImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof LocaleLearnerImport
     }
   }
 }
@@ -518,10 +517,40 @@ const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
   LocaleAdminRouteChildren,
 )
 
+interface LocaleLearnerRouteChildren {
+  LocaleLearnerIndexRoute: typeof LocaleLearnerIndexRoute
+  LocaleLearnerCollectionsCollectionIdInviteRoute: typeof LocaleLearnerCollectionsCollectionIdInviteRoute
+  LocaleLearnerCollectionsCollectionIdRequestRoute: typeof LocaleLearnerCollectionsCollectionIdRequestRoute
+  LocaleLearnerCoursesCourseIdPlayRoute: typeof LocaleLearnerCoursesCourseIdPlayRoute
+  LocaleLearnerCoursesCourseIdRequestRoute: typeof LocaleLearnerCoursesCourseIdRequestRoute
+  LocaleLearnerCollectionsCollectionIdIndexRoute: typeof LocaleLearnerCollectionsCollectionIdIndexRoute
+  LocaleLearnerCoursesCourseIdIndexRoute: typeof LocaleLearnerCoursesCourseIdIndexRoute
+}
+
+const LocaleLearnerRouteChildren: LocaleLearnerRouteChildren = {
+  LocaleLearnerIndexRoute: LocaleLearnerIndexRoute,
+  LocaleLearnerCollectionsCollectionIdInviteRoute:
+    LocaleLearnerCollectionsCollectionIdInviteRoute,
+  LocaleLearnerCollectionsCollectionIdRequestRoute:
+    LocaleLearnerCollectionsCollectionIdRequestRoute,
+  LocaleLearnerCoursesCourseIdPlayRoute: LocaleLearnerCoursesCourseIdPlayRoute,
+  LocaleLearnerCoursesCourseIdRequestRoute:
+    LocaleLearnerCoursesCourseIdRequestRoute,
+  LocaleLearnerCollectionsCollectionIdIndexRoute:
+    LocaleLearnerCollectionsCollectionIdIndexRoute,
+  LocaleLearnerCoursesCourseIdIndexRoute:
+    LocaleLearnerCoursesCourseIdIndexRoute,
+}
+
+const LocaleLearnerRouteWithChildren = LocaleLearnerRoute._addFileChildren(
+  LocaleLearnerRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
+  '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -531,7 +560,7 @@ export interface FileRoutesByFullPath {
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
-  '/$locale/learner': typeof LocaleLearnerIndexRoute
+  '/$locale/learner/': typeof LocaleLearnerIndexRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
   '/$locale/admin/collections/$id/courses': typeof LocaleAdminCollectionsIdCoursesRoute
@@ -545,7 +574,6 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/collections/$collectionId/invite': typeof LocaleLearnerCollectionsCollectionIdInviteRoute
   '/$locale/learner/collections/$collectionId/request': typeof LocaleLearnerCollectionsCollectionIdRequestRoute
-  '/$locale/learner/courses/$courseId/invite': typeof LocaleLearnerCoursesCourseIdInviteRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
   '/$locale/learner/courses/$courseId/request': typeof LocaleLearnerCoursesCourseIdRequestRoute
   '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdIndexRoute
@@ -578,7 +606,6 @@ export interface FileRoutesByTo {
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/collections/$collectionId/invite': typeof LocaleLearnerCollectionsCollectionIdInviteRoute
   '/$locale/learner/collections/$collectionId/request': typeof LocaleLearnerCollectionsCollectionIdRequestRoute
-  '/$locale/learner/courses/$courseId/invite': typeof LocaleLearnerCoursesCourseIdInviteRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
   '/$locale/learner/courses/$courseId/request': typeof LocaleLearnerCoursesCourseIdRequestRoute
   '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdIndexRoute
@@ -590,6 +617,7 @@ export interface FileRoutesById {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
+  '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -613,7 +641,6 @@ export interface FileRoutesById {
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/collections/$collectionId/invite': typeof LocaleLearnerCollectionsCollectionIdInviteRoute
   '/$locale/learner/collections/$collectionId/request': typeof LocaleLearnerCollectionsCollectionIdRequestRoute
-  '/$locale/learner/courses/$courseId/invite': typeof LocaleLearnerCoursesCourseIdInviteRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
   '/$locale/learner/courses/$courseId/request': typeof LocaleLearnerCoursesCourseIdRequestRoute
   '/$locale/learner/collections/$collectionId/': typeof LocaleLearnerCollectionsCollectionIdIndexRoute
@@ -626,6 +653,7 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale/ai'
     | '/$locale/create-team'
+    | '/$locale/learner'
     | '/$locale'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -635,7 +663,7 @@ export interface FileRouteTypes {
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
     | '/$locale/admin/'
-    | '/$locale/learner'
+    | '/$locale/learner/'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
     | '/$locale/admin/collections/$id/courses'
@@ -649,7 +677,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/collections/$collectionId/invite'
     | '/$locale/learner/collections/$collectionId/request'
-    | '/$locale/learner/courses/$courseId/invite'
     | '/$locale/learner/courses/$courseId/play'
     | '/$locale/learner/courses/$courseId/request'
     | '/$locale/learner/collections/$collectionId'
@@ -681,7 +708,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/collections/$collectionId/invite'
     | '/$locale/learner/collections/$collectionId/request'
-    | '/$locale/learner/courses/$courseId/invite'
     | '/$locale/learner/courses/$courseId/play'
     | '/$locale/learner/courses/$courseId/request'
     | '/$locale/learner/collections/$collectionId'
@@ -691,6 +717,7 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale/ai'
     | '/$locale/create-team'
+    | '/$locale/learner'
     | '/$locale/'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -714,7 +741,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/collections/$collectionId/invite'
     | '/$locale/learner/collections/$collectionId/request'
-    | '/$locale/learner/courses/$courseId/invite'
     | '/$locale/learner/courses/$courseId/play'
     | '/$locale/learner/courses/$courseId/request'
     | '/$locale/learner/collections/$collectionId/'
@@ -726,40 +752,20 @@ export interface RootRouteChildren {
   LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
   LocaleAiRoute: typeof LocaleAiRoute
   LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
+  LocaleLearnerRoute: typeof LocaleLearnerRouteWithChildren
   LocaleIndexRoute: typeof LocaleIndexRoute
   LocaleAuthLoginRoute: typeof LocaleAuthLoginRoute
   LocaleAuthVerifyEmailRoute: typeof LocaleAuthVerifyEmailRoute
-  LocaleLearnerIndexRoute: typeof LocaleLearnerIndexRoute
-  LocaleLearnerCollectionsCollectionIdInviteRoute: typeof LocaleLearnerCollectionsCollectionIdInviteRoute
-  LocaleLearnerCollectionsCollectionIdRequestRoute: typeof LocaleLearnerCollectionsCollectionIdRequestRoute
-  LocaleLearnerCoursesCourseIdInviteRoute: typeof LocaleLearnerCoursesCourseIdInviteRoute
-  LocaleLearnerCoursesCourseIdPlayRoute: typeof LocaleLearnerCoursesCourseIdPlayRoute
-  LocaleLearnerCoursesCourseIdRequestRoute: typeof LocaleLearnerCoursesCourseIdRequestRoute
-  LocaleLearnerCollectionsCollectionIdIndexRoute: typeof LocaleLearnerCollectionsCollectionIdIndexRoute
-  LocaleLearnerCoursesCourseIdIndexRoute: typeof LocaleLearnerCoursesCourseIdIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   LocaleAdminRoute: LocaleAdminRouteWithChildren,
   LocaleAiRoute: LocaleAiRoute,
   LocaleCreateTeamRoute: LocaleCreateTeamRoute,
+  LocaleLearnerRoute: LocaleLearnerRouteWithChildren,
   LocaleIndexRoute: LocaleIndexRoute,
   LocaleAuthLoginRoute: LocaleAuthLoginRoute,
   LocaleAuthVerifyEmailRoute: LocaleAuthVerifyEmailRoute,
-  LocaleLearnerIndexRoute: LocaleLearnerIndexRoute,
-  LocaleLearnerCollectionsCollectionIdInviteRoute:
-    LocaleLearnerCollectionsCollectionIdInviteRoute,
-  LocaleLearnerCollectionsCollectionIdRequestRoute:
-    LocaleLearnerCollectionsCollectionIdRequestRoute,
-  LocaleLearnerCoursesCourseIdInviteRoute:
-    LocaleLearnerCoursesCourseIdInviteRoute,
-  LocaleLearnerCoursesCourseIdPlayRoute: LocaleLearnerCoursesCourseIdPlayRoute,
-  LocaleLearnerCoursesCourseIdRequestRoute:
-    LocaleLearnerCoursesCourseIdRequestRoute,
-  LocaleLearnerCollectionsCollectionIdIndexRoute:
-    LocaleLearnerCollectionsCollectionIdIndexRoute,
-  LocaleLearnerCoursesCourseIdIndexRoute:
-    LocaleLearnerCoursesCourseIdIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -775,17 +781,10 @@ export const routeTree = rootRoute
         "/$locale/admin",
         "/$locale/ai",
         "/$locale/create-team",
+        "/$locale/learner",
         "/$locale/",
         "/$locale/auth/login",
-        "/$locale/auth/verify-email",
-        "/$locale/learner/",
-        "/$locale/learner/collections/$collectionId/invite",
-        "/$locale/learner/collections/$collectionId/request",
-        "/$locale/learner/courses/$courseId/invite",
-        "/$locale/learner/courses/$courseId/play",
-        "/$locale/learner/courses/$courseId/request",
-        "/$locale/learner/collections/$collectionId/",
-        "/$locale/learner/courses/$courseId/"
+        "/$locale/auth/verify-email"
       ]
     },
     "/$locale/admin": {
@@ -815,6 +814,18 @@ export const routeTree = rootRoute
     },
     "/$locale/create-team": {
       "filePath": "$locale/create-team.tsx"
+    },
+    "/$locale/learner": {
+      "filePath": "$locale/learner.tsx",
+      "children": [
+        "/$locale/learner/",
+        "/$locale/learner/collections/$collectionId/invite",
+        "/$locale/learner/collections/$collectionId/request",
+        "/$locale/learner/courses/$courseId/play",
+        "/$locale/learner/courses/$courseId/request",
+        "/$locale/learner/collections/$collectionId/",
+        "/$locale/learner/courses/$courseId/"
+      ]
     },
     "/$locale/": {
       "filePath": "$locale/index.tsx"
@@ -850,7 +861,8 @@ export const routeTree = rootRoute
       "parent": "/$locale/admin"
     },
     "/$locale/learner/": {
-      "filePath": "$locale/learner/index.tsx"
+      "filePath": "$locale/learner/index.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/admin/collections/create": {
       "filePath": "$locale/admin/collections/create.tsx",
@@ -897,25 +909,28 @@ export const routeTree = rootRoute
       "parent": "/$locale/admin"
     },
     "/$locale/learner/collections/$collectionId/invite": {
-      "filePath": "$locale/learner/collections/$collectionId/invite.tsx"
+      "filePath": "$locale/learner/collections/$collectionId/invite.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/learner/collections/$collectionId/request": {
-      "filePath": "$locale/learner/collections/$collectionId/request.tsx"
-    },
-    "/$locale/learner/courses/$courseId/invite": {
-      "filePath": "$locale/learner/courses/$courseId/invite.tsx"
+      "filePath": "$locale/learner/collections/$collectionId/request.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/learner/courses/$courseId/play": {
-      "filePath": "$locale/learner/courses/$courseId/play.tsx"
+      "filePath": "$locale/learner/courses/$courseId/play.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/learner/courses/$courseId/request": {
-      "filePath": "$locale/learner/courses/$courseId/request.tsx"
+      "filePath": "$locale/learner/courses/$courseId/request.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/learner/collections/$collectionId/": {
-      "filePath": "$locale/learner/collections/$collectionId/index.tsx"
+      "filePath": "$locale/learner/collections/$collectionId/index.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/learner/courses/$courseId/": {
-      "filePath": "$locale/learner/courses/$courseId/index.tsx"
+      "filePath": "$locale/learner/courses/$courseId/index.tsx",
+      "parent": "/$locale/learner"
     }
   }
 }
