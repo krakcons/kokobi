@@ -47,6 +47,7 @@ import {
 	Moon,
 	Sun,
 	SunMoon,
+	LayoutDashboard,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Theme, useTheme } from "@/lib/theme";
@@ -222,6 +223,7 @@ export const LearnerSidebar = ({
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const signOut = useServerFn(signOutFn);
+	const locale = useLocale();
 	const router = useRouter();
 	const { mutate: setTeam } = useMutation({
 		mutationFn: setTeamFn,
@@ -316,6 +318,30 @@ export const LearnerSidebar = ({
 				)}
 			</SidebarHeader>
 			<SidebarContent>
+				<SidebarGroup>
+					<SidebarMenu>
+						<SidebarMenuItem>
+							<Link
+								to="/$locale/learner"
+								params={{
+									locale,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+								activeOptions={{ exact: true }}
+							>
+								{({ isActive }) => (
+									<SidebarMenuButton isActive={isActive}>
+										<LayoutDashboard />
+										Dashboard
+									</SidebarMenuButton>
+								)}
+							</Link>
+						</SidebarMenuItem>
+					</SidebarMenu>
+				</SidebarGroup>
 				<SidebarGroup>
 					<SidebarGroupContent>
 						<SidebarGroupLabel>Courses</SidebarGroupLabel>

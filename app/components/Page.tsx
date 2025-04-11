@@ -46,13 +46,13 @@ export const PageSubHeader = ({
 	children,
 }: {
 	title: string;
-	description: string;
+	description?: string;
 	children?: React.ReactNode;
 }) => (
 	<div className="flex items-end justify-between flex-wrap gap-2">
 		<div className="flex flex-col gap-2">
 			<h3>{title}</h3>
-			<p>{description}</p>
+			{description && <p>{description}</p>}
 		</div>
 		{children}
 	</div>
