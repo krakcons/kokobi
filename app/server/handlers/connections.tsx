@@ -94,7 +94,12 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 
 		if (type === "course") {
 			const connections = await db.query.usersToCourses.findMany({
-				where: eq(usersToCourses.userId, user.id),
+				where: and(
+					eq(usersToCourses.userId, user.id),
+					context.teamId
+						? eq(usersToCourses.teamId, context.teamId)
+						: undefined,
+				),
 				with: {
 					course: {
 						with: {
@@ -118,7 +123,12 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 
 		if (type === "collection") {
 			const connections = await db.query.usersToCollections.findMany({
-				where: eq(usersToCollections.userId, user.id),
+				where: and(
+					eq(usersToCollections.userId, user.id),
+					context.teamId
+						? eq(usersToCourses.teamId, context.teamId)
+						: undefined,
+				),
 				with: {
 					collection: {
 						with: {

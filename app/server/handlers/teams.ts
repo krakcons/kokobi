@@ -12,6 +12,7 @@ import { InviteMemberFormSchema, TeamFormSchema } from "@/types/team";
 import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
+	authMiddleware,
 	localeMiddleware,
 	protectedMiddleware,
 	teamMiddleware,
@@ -57,9 +58,15 @@ export const getTeamStatsFn = createServerFn({ method: "GET" })
 	});
 
 export const getTeamFn = createServerFn({ method: "GET" })
-	.middleware([teamMiddleware(), localeMiddleware])
-	.handler(async ({ context }) => {
-		const teamId = context.teamId;
+	.middleware([authMiddleware, localeMiddleware])
+	.validator(z.object({ type: z.enum(["learner", "admin"]) }))
+	.handler(async ({ context, data: { type } }) => {
+		const teamId =
+			type === "learner" ? context.learnerTeamId : context.teamId;
+
+		if (!teamId) {
+			throw new Error("Unauthorized");
+		}
 
 		const team = await db.query.teams.findFirst({
 			where: eq(teams.id, teamId),

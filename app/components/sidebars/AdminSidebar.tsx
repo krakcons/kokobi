@@ -518,10 +518,17 @@ export const AdminSidebar = ({
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const signOut = useServerFn(signOutFn);
+	const router = useRouter();
 	const locale = useLocale();
-	const setTeam = useServerFn(setTeamFn);
 
 	const activeTeam = teams.find((t) => t.id === teamId);
+
+	const { mutate: setTeam } = useMutation({
+		mutationFn: setTeamFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
 
 	return (
 		<Sidebar className="list-none">

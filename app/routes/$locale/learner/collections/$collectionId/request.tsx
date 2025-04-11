@@ -6,6 +6,7 @@ import {
 	getConnectionFn,
 	requestConnectionFn,
 } from "@/server/handlers/connections";
+import { getTeamFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
@@ -14,29 +15,26 @@ export const Route = createFileRoute(
 	"/$locale/learner/collections/$collectionId/request",
 )({
 	component: RouteComponent,
-	validateSearch: z.object({ teamId: z.string() }),
 	loader: async ({ params }) => {
-		const [collection, connection] = await Promise.all([
+		const [collection, connection, team] = await Promise.all([
 			getCollectionFn({ data: { id: params.collectionId } }),
 			getConnectionFn({
 				data: { type: "collection", id: params.collectionId },
 			}),
+			getTeamFn({ data: { type: "learner" } }),
 		]);
 		if (connection?.connectStatus === "accepted") {
 			throw redirect({
-				to: `/$locale/learner/collections/$collectionId`,
-				params: {
-					collectionId: params.collectionId,
-				},
+				to: `/$locale/learner`,
+				params,
 			});
 		}
-		return [collection, connection];
+		return { collection, connection, team };
 	},
 });
 
 function RouteComponent() {
-	const [collection, connection] = Route.useLoaderData();
-	const search = Route.useSearch();
+	const { collection, connection, team } = Route.useLoaderData();
 	const router = useRouter();
 
 	const requestConnection = useMutation({
@@ -78,7 +76,7 @@ function RouteComponent() {
 									data: {
 										type: "collection",
 										id: collection.id,
-										teamId: search.teamId,
+										teamId: team.id,
 									},
 								})
 							}

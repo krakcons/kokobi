@@ -20,12 +20,25 @@ import { generateRandomString } from "./random";
 import { sendEmail } from "./email";
 
 export type AuthResult =
-	| { session: Session; user: User; teamId: string | null; role: Role | null }
-	| { session: null; user: null; teamId: null; role: null };
+	| {
+			session: Session;
+			user: User;
+			learnerTeamId: string | null;
+			teamId: string | null;
+			role: Role | null;
+	  }
+	| {
+			session: null;
+			user: null;
+			learnerTeamId: null;
+			teamId: null;
+			role: null;
+	  };
 
 export const emptyAuth: AuthResult = {
 	session: null,
 	user: null,
+	learnerTeamId: null,
 	teamId: null,
 	role: null,
 };
@@ -96,15 +109,14 @@ export async function getAuth(token?: string): Promise<AuthResult> {
 			),
 		});
 
-		if (!team) {
-			deleteCookie("teamId");
-			teamId = null;
-		} else {
+		if (team) {
 			role = team.role;
 		}
 	}
 
-	return { session, user, teamId, role };
+	const learnerTeamId = getCookie("learnerTeamId") ?? null;
+
+	return { session, user, learnerTeamId, teamId, role };
 }
 
 export async function invalidateSession(token: string): Promise<void> {

@@ -46,7 +46,11 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 						id: params.id,
 					},
 				}),
-				getTeamFn(),
+				getTeamFn({
+					data: {
+						type: "learner",
+					},
+				}),
 			]),
 	},
 );

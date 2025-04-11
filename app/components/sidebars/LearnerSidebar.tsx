@@ -202,13 +202,13 @@ const CollectionCollapsible = ({
 
 export const LearnerSidebar = ({
 	tenantId,
-	teamId,
+	activeTeam,
 	teams,
 	courses,
 	collections,
 }: {
 	tenantId?: string;
-	teamId: string;
+	activeTeam: Team & TeamTranslation;
 	teams: (Team & TeamTranslation)[];
 	courses: (UserToCourseType & { course: Course & CourseTranslation })[];
 	collections: (UserToCollectionType & {
@@ -222,10 +222,13 @@ export const LearnerSidebar = ({
 	const { setOpenMobile, isMobile } = useSidebar();
 	const t = useTranslations("Nav");
 	const signOut = useServerFn(signOutFn);
-	const locale = useLocale();
-	const setTeam = useServerFn(setTeamFn);
-
-	const activeTeam = teams.find((t) => t.id === teamId);
+	const router = useRouter();
+	const { mutate: setTeam } = useMutation({
+		mutationFn: setTeamFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
 
 	return (
 		<Sidebar className="list-none">
@@ -306,23 +309,6 @@ export const LearnerSidebar = ({
 											{team.name}
 										</DropdownMenuItem>
 									))}
-									<DropdownMenuSeparator />
-									<DropdownMenuItem
-										className="gap-2 p-2"
-										asChild
-									>
-										<Link
-											to="/$locale/create-team"
-											params={{ locale }}
-										>
-											<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-												<Plus className="size-4" />
-											</div>
-											<div className="font-medium text-muted-foreground">
-												Create team
-											</div>
-										</Link>
-									</DropdownMenuItem>
 								</DropdownMenuContent>
 							</DropdownMenu>
 						</SidebarMenuItem>

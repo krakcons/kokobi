@@ -2,10 +2,9 @@ import {
 	authMiddleware,
 	localeMiddleware,
 	protectedMiddleware,
-	teamMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
-import { usersToTeams } from "@/server/db/schema";
+import { teams, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
@@ -16,6 +15,7 @@ import { invalidateSession } from "@/server/auth";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
+import { Team, TeamTranslation } from "@/types/team";
 
 export const updateI18nFn = createServerFn({ method: "POST" })
 	.validator(z.object({ locale: LocaleSchema }))
@@ -40,25 +40,67 @@ export const getAuthFn = createServerFn({ method: "GET" })
 
 export const getTeamsFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware, localeMiddleware])
-	.handler(async ({ context }) => {
+	.validator(
+		z.object({
+			type: z.enum(["learner", "admin"]),
+		}),
+	)
+	.handler(async ({ context, data: { type } }) => {
 		const user = context.user;
 
 		if (!user) {
 			throw new Error("Unauthorized");
 		}
 
-		const teams = await db.query.usersToTeams.findMany({
-			where: eq(usersToTeams.userId, user.id),
-			with: {
-				team: {
-					with: {
-						translations: true,
+		if (type === "learner") {
+			const courseTeams = await db.query.usersToCourses.findMany({
+				where: eq(usersToTeams.userId, user.id),
+				with: {
+					team: {
+						with: {
+							translations: true,
+						},
 					},
 				},
-			},
-		});
+			});
+			const collectionTeams = await db.query.usersToCollections.findMany({
+				where: eq(usersToTeams.userId, user.id),
+				with: {
+					team: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
 
-		return teams.map(({ team }) => handleLocalization(context, team));
+			return [...collectionTeams, ...courseTeams]
+				.map(({ team }) => handleLocalization(context, team))
+				.reduce(
+					(acc, team) =>
+						acc.find((t) => t.id === team.teamId)
+							? acc
+							: [...acc, team],
+					[] as (Team & TeamTranslation)[],
+				);
+		}
+
+		if (type === "admin") {
+			const teams = await db.query.usersToTeams.findMany({
+				where: eq(usersToTeams.userId, user.id),
+				with: {
+					team: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
+
+			return teams.map(({ team }) => handleLocalization(context, team));
+		}
+
+		return [];
 	});
 
 export const setTeamFn = createServerFn({ method: "POST" })
@@ -85,12 +127,21 @@ export const setTeamFn = createServerFn({ method: "POST" })
 		}
 
 		setCookie("teamId", data.teamId);
+	});
 
-		throw redirect({
-			to: "/$locale/admin",
-			params: { locale: context.locale },
-			reloadDocument: true,
-		});
+export const setLearnerTeamFn = createServerFn({ method: "POST" })
+	.middleware([authMiddleware, localeMiddleware])
+	.validator(
+		z.object({
+			teamId: z.string(),
+		}),
+	)
+	.handler(async ({ context, data }) => {
+		if (data.teamId === context.learnerTeamId) {
+			return;
+		}
+
+		setCookie("learnerTeamId", data.teamId);
 	});
 
 export const signOutFn = createServerFn()

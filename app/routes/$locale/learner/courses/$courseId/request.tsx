@@ -7,38 +7,37 @@ import {
 	requestConnectionFn,
 } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
-import { getTeamByIdFn, getTeamFn } from "@/server/handlers/teams";
+import { getTeamFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { z } from "zod";
 
 export const Route = createFileRoute(
 	"/$locale/learner/courses/$courseId/request",
 )({
 	component: RouteComponent,
-	validateSearch: z.object({ teamId: z.string() }),
 	loaderDeps: ({ search: { teamId } }) => ({ teamId }),
-	loader: async ({ params, deps }) => {
+	loader: async ({ params }) => {
 		const [course, connection, team] = await Promise.all([
 			getCourseFn({ data: { courseId: params.courseId } }),
 			getConnectionFn({ data: { type: "course", id: params.courseId } }),
-			getTeamByIdFn({ data: { teamId: deps.teamId } }),
+			getTeamFn({ data: { type: "learner" } }),
 		]);
 		if (connection?.connectStatus === "accepted") {
 			throw redirect({
 				to: `/$locale/learner/courses/$courseId`,
-				params: {
-					courseId: params.courseId,
-				},
+				params,
 			});
 		}
-		return [course, connection, team];
+		return {
+			course,
+			connection,
+			team,
+		};
 	},
 });
 
 function RouteComponent() {
-	const [course, connection, team] = Route.useLoaderData();
-	const search = Route.useSearch();
+	const { course, connection, team } = Route.useLoaderData();
 	const router = useRouter();
 
 	const connectCourse = useMutation({
@@ -80,7 +79,7 @@ function RouteComponent() {
 									data: {
 										type: "course",
 										id: course.id,
-										teamId: search.teamId,
+										teamId: team.id,
 									},
 								})
 							}

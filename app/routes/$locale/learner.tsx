@@ -5,16 +5,23 @@ import {
 } from "@/components/ui/sidebar";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
-import { EditingLocaleSchema } from "@/types/router";
+import {
+	getAuthFn,
+	getTeamsFn,
+	setLearnerTeamFn,
+	setTeamFn,
+} from "@/server/handlers/user";
 import { getConnectionsFn } from "@/server/handlers/connections";
-import { getTenantFn } from "@/server/handlers/teams";
+import { getTeamFn, getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
+import { z } from "zod";
 
 export const Route = createFileRoute("/$locale/learner")({
 	component: RouteComponent,
-	validateSearch: EditingLocaleSchema,
-	beforeLoad: async ({ params }) => {
+	validateSearch: z.object({
+		teamId: z.string().optional(),
+	}),
+	beforeLoad: async ({ params, search, location }) => {
 		const auth = await getAuthFn();
 
 		if (!auth.user) {
@@ -23,11 +30,53 @@ export const Route = createFileRoute("/$locale/learner")({
 				params,
 			});
 		}
+
+		if (search.teamId) {
+			await setLearnerTeamFn({
+				data: {
+					teamId: search.teamId,
+				},
+			});
+			throw redirect({
+				href: location.pathname,
+			});
+		}
+
+		if (!auth.learnerTeamId) {
+			const teams = await getTeamsFn({
+				data: {
+					type: "learner",
+				},
+			});
+			if (teams.length === 0) {
+				throw new Error("No learner team found");
+			} else {
+				await setLearnerTeamFn({
+					data: {
+						teamId: teams[0].id,
+					},
+				});
+				throw redirect({
+					to: "/$locale/learner",
+					params: {
+						locale: params.locale,
+					},
+				});
+			}
+		}
 	},
 	loader: () =>
 		Promise.all([
-			getAuthFn(),
-			getTeamsFn(),
+			getTeamFn({
+				data: {
+					type: "learner",
+				},
+			}),
+			getTeamsFn({
+				data: {
+					type: "learner",
+				},
+			}),
 			getConnectionsFn({
 				data: {
 					type: "course",
@@ -43,13 +92,13 @@ export const Route = createFileRoute("/$locale/learner")({
 });
 
 function RouteComponent() {
-	const [auth, teams, courses, collections, tenantId] = Route.useLoaderData();
+	const [team, teams, courses, collections, tenantId] = Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
 			<LearnerSidebar
 				tenantId={tenantId}
-				teamId={auth.teamId!}
+				activeTeam={team}
 				teams={teams}
 				courses={courses}
 				collections={collections}

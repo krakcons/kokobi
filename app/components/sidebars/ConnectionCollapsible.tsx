@@ -27,6 +27,20 @@ export const ConnectionCollapsible = ({
 }) => {
 	const [open, setOpen] = useState(false);
 
+	if (connectType === "request") {
+		return (
+			<SidebarMenuItem>
+				<SidebarMenuButton className="justify-between">
+					<p className="truncate">{name}</p>
+					<ConnectionStatusBadge
+						connectStatus={connectStatus}
+						connectType={connectType}
+					/>
+				</SidebarMenuButton>
+			</SidebarMenuItem>
+		);
+	}
+
 	return (
 		<Collapsible asChild className="group/collapsible" open={open}>
 			<SidebarMenuItem>

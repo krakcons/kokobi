@@ -34,6 +34,9 @@ export const Route = createFileRoute("/$locale/admin/settings")({
 	loader: ({ deps }) =>
 		Promise.all([
 			getTeamFn({
+				data: {
+					type: "admin",
+				},
 				headers: {
 					...(deps.locale && { locale: deps.locale }),
 					fallbackLocale: "none",

@@ -20,7 +20,7 @@ import {
 import { useLocale, useTranslations } from "@/lib/locale";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
-import { getAuthFn, getTeamsFn } from "@/server/handlers/user";
+import { getAuthFn, getTeamsFn, setTeamFn } from "@/server/handlers/user";
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { EditingLocaleSchema } from "@/types/router";
@@ -41,18 +41,41 @@ export const Route = createFileRoute("/$locale/admin")({
 		}
 
 		if (!auth.teamId) {
-			throw redirect({
-				to: "/$locale/create-team",
-				params: {
-					locale: params.locale,
+			const teams = await getTeamsFn({
+				data: {
+					type: "admin",
 				},
 			});
+			if (teams.length === 0) {
+				throw redirect({
+					to: "/$locale/create-team",
+					params: {
+						locale: params.locale,
+					},
+				});
+			} else {
+				await setTeamFn({
+					data: {
+						teamId: teams[0].id,
+					},
+				});
+				throw redirect({
+					to: "/$locale/admin",
+					params: {
+						locale: params.locale,
+					},
+				});
+			}
 		}
 	},
 	loader: () =>
 		Promise.all([
 			getAuthFn(),
-			getTeamsFn(),
+			getTeamsFn({
+				data: {
+					type: "admin",
+				},
+			}),
 			getCoursesFn(),
 			getCollectionsFn(),
 			getTeamConnectionsFn({
