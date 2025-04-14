@@ -1,7 +1,6 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
 import { env } from "@/env";
-import { fetchFile } from "@/lib/file";
 import { db } from "@/server/db";
 import { emailVerifications, users } from "@/server/db/schema";
 import { sendEmail } from "@/server/email";
@@ -15,6 +14,8 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { setCookie } from "vinxi/http";
 import { z } from "zod";
+import Image from "@/components/ui/image";
+import { TeamAvatar, TeamAvatarImage } from "@/components/ui/team-avatar";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -30,9 +31,8 @@ export const Route = createFileRoute("/$locale/auth/login")({
 	loader: async ({ params }) => {
 		const tenantId = await getTenantFn();
 		const logoUrl = `${env.VITE_SITE_URL}/cdn/${tenantId}/${params.locale}/logo`;
-		const fileExists = await fetchFile(logoUrl);
 		return {
-			logo: tenantId && !!fileExists ? logoUrl : undefined,
+			logo: tenantId ? logoUrl : undefined,
 		};
 	},
 });
@@ -156,13 +156,9 @@ function RouteComponent() {
 	return (
 		<FloatingPage>
 			<div className="max-w-md w-full flex flex-col">
-				{logo && (
-					<img
-						src={logo}
-						alt="Team Logo"
-						className="max-h-24 w-min mb-8"
-					/>
-				)}
+				<TeamAvatar className="mb-8">
+					<TeamAvatarImage src={logo} alt="Team Logo" />
+				</TeamAvatar>
 				<PageHeader
 					title="Login"
 					description="Enter your email below and submit to login"

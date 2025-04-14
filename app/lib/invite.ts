@@ -23,7 +23,7 @@ export const createCourseLink = ({
 	if (email) {
 		url.searchParams.set("email", email);
 	}
-	if (teamId) {
+	if (teamId && !domain) {
 		url.searchParams.set("teamId", teamId);
 	}
 	return url.toString();

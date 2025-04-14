@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { Team, TeamTranslation } from "@/types/team";
+import { TeamAvatar, TeamAvatarImage } from "./ui/team-avatar";
 
 export const ContentBranding = ({
 	team,
@@ -9,12 +10,14 @@ export const ContentBranding = ({
 	connectTeam: Team & TeamTranslation;
 }) => {
 	return (
-		<div className="flex gap-4 items-center">
-			<img
-				src={`${env.VITE_SITE_URL}/cdn/${connectTeam.id}/${connectTeam.locale}/logo?updatedAt=${connectTeam.updatedAt}`}
-				alt="Delivered by team logo"
-				className="max-w-10 max-h-10 text-[0px]"
-			/>
+		<div className="flex gap-2 items-center">
+			<TeamAvatar>
+				<TeamAvatarImage
+					src={`${env.VITE_SITE_URL}/cdn/${connectTeam.id}/${connectTeam.locale}/logo?updatedAt=${connectTeam.updatedAt}`}
+					alt="Delivered by team logo"
+					className="max-h-10"
+				/>
+			</TeamAvatar>
 			<p>
 				Delivered by <strong>{connectTeam.name}</strong>
 			</p>
