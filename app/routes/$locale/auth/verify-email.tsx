@@ -5,8 +5,8 @@ import { db } from "@/server/db";
 import { emailVerifications, usersToTeams } from "@/server/db/schema";
 import { localeMiddleware } from "@/server/middleware";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { getCookie, setCookie } from "vinxi/http";
 import { z } from "zod";
@@ -101,6 +101,10 @@ export const verifyOTPFn = createServerFn({ method: "POST" })
 				sameSite: "lax",
 			});
 		}
+
+		await db
+			.delete(emailVerifications)
+			.where(eq(emailVerifications.userId, emailVerification.userId));
 	});
 
 function RouteComponent() {
