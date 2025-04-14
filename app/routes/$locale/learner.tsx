@@ -15,6 +15,7 @@ import { getConnectionsFn } from "@/server/handlers/connections";
 import { getTeamFn, getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
+import { env } from "@/env";
 
 export const Route = createFileRoute("/$locale/learner")({
 	component: RouteComponent,
@@ -41,8 +42,10 @@ export const Route = createFileRoute("/$locale/learner")({
 					teamId: search.teamId,
 				},
 			});
+			const newUrl = new URL(env.VITE_SITE_URL + location.href);
+			newUrl.searchParams.delete("teamId");
 			throw redirect({
-				href: location.pathname,
+				href: newUrl.href,
 			});
 		}
 

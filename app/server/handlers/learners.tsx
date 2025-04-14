@@ -170,7 +170,6 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 						team.domains.length > 0 ? team.domains[0] : undefined,
 					courseId: course.id,
 					locale: course.locale,
-					email: context.user.email,
 				});
 
 				const t = await createTranslator({

@@ -78,20 +78,11 @@ const fr: Messages = {
 			certificate: "Téléchargez votre certificat de réussite :",
 			get: "Télécharger",
 		},
-		CourseInvite: {
-			subject: "Invitation :",
+		Invite: {
+			subject: "New Invitation",
 			title: "Invitation",
-			invite: "vous invite à vous joindre à :",
-			start: "Commencer",
-			below: "☕ Besoin de prendre une pause ? Nous avons une solution. Apprenez à votre propre rythme en cliquant sur le bouton ci-dessus pour reprendre là où vous vous êtes arrêté. \n\n Lorsque vous aurez terminé votre apprentissage, vous recevrez par courriel un certificat de réussite. \n\n Veuillez vous abstenir de répondre à ce courriel car il n'y a pas de boîte de réception prévue à cet effet. \n\n Bon apprentissage !",
-		},
-		CollectionInvite: {
-			subject: "Invitation :",
-			title: "Invitation",
-			invite: "vous invite à vous joindre à :",
-			start: "Commencer",
-			by: "offert par",
-			below: "☕ Besoin de prendre une pause ? Nous avons une solution. Apprenez à votre propre rythme en cliquant sur le bouton ci-dessus pour reprendre là où vous vous êtes arrêté. \n\n Pour chacun des cours ci-dessus que vous complétez, vous recevrez un certificat de réussite. \n\n Veuillez vous abstenir de répondre à ce courriel car il n'y a pas de boîte de réception prévue à cet effet. \n\n Bon apprentissage !",
+			invite: "invites you to join the following:",
+			action: "View Invitation",
 		},
 	},
 	Table: {

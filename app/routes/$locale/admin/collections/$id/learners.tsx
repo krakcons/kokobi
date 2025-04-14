@@ -29,10 +29,10 @@ import {
 } from "@/server/handlers/connections";
 import { UserToCollectionType } from "@/types/connections";
 import { User } from "@/types/users";
-import { createCollectionLink } from "@/lib/invite";
 import { getTeamFn } from "@/server/handlers/teams";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
+import { createRequestLink } from "@/lib/invite";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
@@ -169,11 +169,11 @@ function RouteComponent() {
 		]),
 	];
 
-	const inviteLink = createCollectionLink({
+	const inviteLink = createRequestLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
-		collectionId: params.id,
+		type: "collection",
+		id: params.id,
 		teamId: team.id,
-		path: "request",
 	});
 
 	return (

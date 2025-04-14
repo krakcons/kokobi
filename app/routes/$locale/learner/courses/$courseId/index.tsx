@@ -20,7 +20,12 @@ import { getTeamByIdFn, getTeamFn } from "@/server/handlers/teams";
 import { getAuthFn } from "@/server/handlers/user";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	notFound,
+	redirect,
+} from "@tanstack/react-router";
 import { Container } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
@@ -30,28 +35,32 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			data: { type: "course", id: params.courseId },
 		});
 
-		if (!connection) {
-			const team = await getTeamFn();
+		if (
+			!connection ||
+			(connection.connectType === "request" &&
+				connection.connectStatus !== "accepted")
+		) {
+			const team = await getTeamFn({
+				data: {
+					type: "learner",
+				},
+			});
 			throw redirect({
-				to: "/$locale/learner/courses/$courseId/request",
+				to: "/$locale/learner/request",
 				params,
 				search: {
 					teamId: team.id,
+					id: params.courseId,
+					type: "course",
 				},
 			});
 		}
 
 		if (
-			connection.connectType === "request" &&
+			connection.connectType === "invite" &&
 			connection.connectStatus !== "accepted"
 		) {
-			throw redirect({
-				to: "/$locale/learner/courses/$courseId/request",
-				params,
-				search: {
-					teamId: connection.teamId,
-				},
-			});
+			throw notFound();
 		}
 
 		return Promise.all([

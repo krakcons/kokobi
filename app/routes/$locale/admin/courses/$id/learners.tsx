@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { getTeamFn } from "@/server/handlers/teams";
-import { createCourseLink } from "@/lib/invite";
+import { createRequestLink } from "@/lib/invite";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
@@ -168,11 +168,11 @@ function RouteComponent() {
 		]),
 	];
 
-	const inviteLink = createCourseLink({
+	const inviteLink = createRequestLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
-		courseId: params.id,
+		type: "course",
+		id: params.id,
 		teamId: team.id,
-		path: "request",
 	});
 
 	return (

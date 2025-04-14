@@ -1,9 +1,19 @@
+import { ConnectionActions } from "@/components/ConnectionActions";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
-import { getConnectionsFn } from "@/server/handlers/connections";
-import { UserToCourseType } from "@/types/connections";
+import {
+	getConnectionsFn,
+	userConnectionResponseFn,
+} from "@/server/handlers/connections";
+import { ConnectionType, UserToCourseType } from "@/types/connections";
 import { Course, CourseTranslation } from "@/types/course";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import {
+	createFileRoute,
+	Link,
+	redirect,
+	useRouter,
+} from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
@@ -25,10 +35,20 @@ export const Route = createFileRoute("/$locale/learner/")({
 const CourseComponent = ({
 	course,
 	connection,
+	disabled,
 }: {
 	course: Course & CourseTranslation;
 	connection?: UserToCourseType;
+	disabled?: boolean;
 }) => {
+	const router = useRouter();
+	const { mutate: userConnectionResponse } = useMutation({
+		mutationFn: userConnectionResponseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
+
 	return (
 		<Link
 			to="/$locale/learner/courses/$courseId"
@@ -37,9 +57,29 @@ const CourseComponent = ({
 				courseId: course.id,
 			}}
 			className="w-full rounded-lg p-4 border flex flex-col gap-4"
+			disabled={disabled}
 		>
 			<PageSubHeader title={course.name} description={course.description}>
-				{connection && <ConnectionStatusBadge {...connection} />}
+				{connection && (
+					<div className="flex gap-2 items-center">
+						<ConnectionStatusBadge {...connection} />
+						{connection.connectStatus === "pending" && (
+							<ConnectionActions
+								connection={connection}
+								onSubmit={(connectStatus) => {
+									userConnectionResponse({
+										data: {
+											type: "course",
+											id: course.id,
+											teamId: connection.teamId,
+											connectStatus,
+										},
+									});
+								}}
+							/>
+						)}
+					</div>
+				)}
 			</PageSubHeader>
 		</Link>
 	);
@@ -47,6 +87,13 @@ const CourseComponent = ({
 
 function RouteComponent() {
 	const [courses, collections] = Route.useLoaderData();
+	const router = useRouter();
+	const { mutate: userConnectionResponse } = useMutation({
+		mutationFn: userConnectionResponseFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
 
 	return (
 		<Page>
@@ -61,6 +108,7 @@ function RouteComponent() {
 						key={connection.courseId}
 						course={connection.course}
 						connection={connection}
+						disabled={connection?.connectStatus !== "accepted"}
 					/>
 				))}
 			</div>
@@ -76,12 +124,33 @@ function RouteComponent() {
 								title={connection.collection.name}
 								description={connection.collection.description}
 							>
-								<ConnectionStatusBadge {...connection} />
+								<div className="flex gap-2 items-center">
+									<ConnectionStatusBadge {...connection} />
+									{connection.connectStatus === "pending" && (
+										<ConnectionActions
+											connection={connection}
+											onSubmit={(connectStatus) => {
+												userConnectionResponse({
+													data: {
+														type: "collection",
+														id: connection
+															.collection.id,
+														teamId: connection.teamId,
+														connectStatus,
+													},
+												});
+											}}
+										/>
+									)}
+								</div>
 							</PageSubHeader>
 							{connection.collection.courses.map((course) => (
 								<CourseComponent
 									key={course.id}
 									course={course}
+									disabled={
+										connection?.connectStatus !== "accepted"
+									}
 								/>
 							))}
 						</div>

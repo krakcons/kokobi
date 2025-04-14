@@ -10,11 +10,6 @@ import { z } from "zod";
 import { localeMiddleware, teamMiddleware } from "../middleware";
 import { CollectionFormSchema } from "@/types/collections";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { LearnersFormSchema } from "@/types/learner";
-import { env } from "../env";
-import { createTranslator } from "@/lib/locale/actions";
-import { sendEmail } from "../email";
-import CollectionInvite from "@/emails/CollectionInvite";
 import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -174,7 +169,7 @@ export const getCollectionCoursesFn = createServerFn({ method: "GET" })
 export const createCollectionCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(CoursesFormSchema.extend({ id: z.string() }))
-	.handler(async ({ context, data }) => {
+	.handler(async ({ data }) => {
 		await db
 			.insert(collectionsToCourses)
 			.values(
@@ -208,136 +203,6 @@ export const deleteCollectionCourseFn = createServerFn({ method: "POST" })
 					eq(collectionsToCourses.courseId, courseId),
 				),
 			);
-
-		return null;
-	});
-
-export const inviteLearnerToCollectionFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware(), localeMiddleware])
-	.validator(LearnersFormSchema.extend({ id: z.string() }))
-	.handler(async ({ context, data }) => {
-		const teamId = context.teamId;
-
-		const collection = await db.query.collections.findFirst({
-			where: and(
-				eq(collections.id, data.id),
-				eq(collections.teamId, teamId),
-			),
-			with: {
-				translations: true,
-				collectionsToCourses: {
-					with: {
-						course: {
-							with: {
-								translations: true,
-							},
-						},
-					},
-				},
-				team: {
-					with: {
-						translations: true,
-						domains: true,
-					},
-				},
-			},
-		});
-
-		if (!collection) {
-			throw new Error("Collection not found.");
-		}
-
-		if (collection.collectionsToCourses.length === 0) {
-			throw new Error(
-				"No courses found. Inviting to a collection with no courses is not allowed.",
-			);
-		}
-
-		const learnersList = data.learners.map((l) => {
-			return collection.collectionsToCourses.map(({ course }) => {
-				return {
-					...l,
-					id: Bun.randomUUIDv7(),
-					courseId: course.id,
-					collectionId: data.id,
-					teamId,
-					course,
-				};
-			});
-		});
-
-		const finalLearnersList = await db
-			.insert(learners)
-			.values(learnersList.flat())
-			.onConflictDoUpdate({
-				target: [learners.email, learners.courseId],
-				set: {
-					updatedAt: new Date(),
-				},
-			})
-			.returning();
-
-		// Email Invites
-		learnersList.forEach(async (learner) => {
-			if (learner.some((l) => !l.sendEmail)) return;
-			const locale = learner[0].inviteLanguage ?? "en";
-			const email = learner[0].email;
-
-			const collectionName = handleLocalization(
-				context,
-				collection,
-				locale,
-			).name;
-			const team = handleLocalization(context, collection.team, locale);
-
-			const courses = learner.map((l) => {
-				const { name } = handleLocalization(
-					context,
-					l.course,
-					l.inviteLanguage,
-				);
-
-				// Use the final learner to get the id since there could be a conflict
-				const finalLearner = finalLearnersList.find(
-					(fl) => fl.email === l.email && fl.courseId === l.course.id,
-				);
-				if (!finalLearner) {
-					throw new Error("Learner not found");
-				}
-				const id = finalLearner.id;
-
-				// TODO: Fix this
-				//const href = createJoinLink({
-				//	domain:
-				//		team.domains.length > 0 ? team.domains[0] : undefined,
-				//	courseId: l.course.id,
-				//	teamId: team.id,
-				//	learnerId: id,
-				//});
-
-				return {
-					href: "",
-					name,
-				};
-			});
-
-			const t = await createTranslator({ locale });
-
-			sendEmail({
-				to: [email],
-				subject: t.Email.CollectionInvite.subject,
-				content: (
-					<CollectionInvite
-						name={collectionName}
-						courses={courses}
-						teamName={team.name}
-						logo={`${env.VITE_SITE_URL}/cdn/${collection.team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
-						t={t.Email.CollectionInvite}
-					/>
-				),
-				team,
-			});
-		});
 
 		return null;
 	});

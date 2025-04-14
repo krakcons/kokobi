@@ -8,31 +8,30 @@ import {
 	Container,
 	Head,
 	Heading,
-	Hr,
 	Html,
 	Img,
 	Preview,
 	Text,
 } from "@react-email/components";
 
-export const CourseInvite = ({
-	href = "https://google.com",
-	name = "Golfing Tutorial",
+export const Invite = ({
+	name = "Volunteer Training",
 	teamName = "CompanionLink",
+	href = "https://google.com",
 	logo = "/favicon.ico",
-	t = en.Email.CourseInvite,
+	t = en.Email.Invite,
 }: {
-	href: string;
 	name?: string;
+	href?: string;
 	teamName?: string;
 	logo?: string;
-	t: Messages["Email"]["CourseInvite"];
+	t: Messages["Email"]["Invite"];
 }) => (
 	<Html lang="en">
 		<Tailwind>
 			<Head />
 			<Body className="mx-auto my-auto bg-white font-sans">
-				<Preview>{`${t.invite} ${name} by ${teamName}.`}</Preview>
+				<Preview>{`${teamName} ${t.invite} ${name}`}</Preview>
 				<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
 					<Img
 						src={logo}
@@ -42,7 +41,8 @@ export const CourseInvite = ({
 					/>
 					<Heading className={!logo ? "mt-0" : ""}>{t.title}</Heading>
 					<Text>
-						<strong>{teamName}</strong> {t.invite}{" "}
+						<strong>{teamName}</strong>
+						{` ${t.invite} `}
 						<strong>{name}</strong>
 					</Text>
 					<Button
@@ -51,22 +51,12 @@ export const CourseInvite = ({
 						})}
 						href={href}
 					>
-						{t.start}
+						{t.action}
 					</Button>
-					<Hr className="mt-6" />
-					<Text
-						style={{
-							whiteSpace: "pre-line",
-							margin: 0,
-						}}
-					>
-						{t.below}
-					</Text>
-					<Text className="mb-0">{teamName}</Text>
 				</Container>
 			</Body>
 		</Tailwind>
 	</Html>
 );
 
-export default CourseInvite;
+export default Invite;

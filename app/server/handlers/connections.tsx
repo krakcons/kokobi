@@ -1,4 +1,3 @@
-import { createCourseLink } from "@/lib/invite";
 import {
 	localeMiddleware,
 	protectedMiddleware,
@@ -6,6 +5,7 @@ import {
 } from "../middleware";
 import { db } from "@/server/db";
 import {
+	collections,
 	courses,
 	teams,
 	teamsToCourses,
@@ -19,21 +19,22 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { sendEmail } from "../email";
-import CourseInvite from "@/emails/CourseInvite";
 import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
 import { hasTeamCourseAccess } from "../helpers";
+import { createInviteLink } from "@/lib/invite";
+import Invite from "@/emails/Invite";
+
+export const GetConnectionSchema = z.object({
+	type: z.enum(["course", "collection"]),
+	id: z.string(),
+});
 
 export const getConnectionFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware, localeMiddleware])
-	.validator(
-		z.object({
-			type: z.enum(["course", "collection"]),
-			id: z.string(),
-		}),
-	)
+	.validator(GetConnectionSchema)
 	.handler(async ({ context, data: { type, id } }) => {
 		const user = context.user;
 
@@ -252,11 +253,9 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 				.onConflictDoNothing();
 
 			userList.forEach(async (user) => {
-				const href = createCourseLink({
+				const href = createInviteLink({
 					domain:
 						team.domains.length > 0 ? team.domains[0] : undefined,
-					courseId: course.id,
-					email: user.email,
 					teamId,
 					locale: "en",
 				});
@@ -267,14 +266,14 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 				await sendEmail({
 					to: [user.email],
-					subject: t.Email.CourseInvite.subject,
+					subject: t.Email.Invite.subject,
 					content: (
-						<CourseInvite
+						<Invite
 							href={href}
 							name={course.name}
 							teamName={team.name}
 							logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
-							t={t.Email.CourseInvite}
+							t={t.Email.Invite}
 						/>
 					),
 					team,
@@ -283,6 +282,17 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 		}
 
 		if (type === "collection") {
+			const collectionBase = await db.query.collections.findFirst({
+				where: and(
+					eq(collections.id, id),
+					eq(collections.teamId, teamId),
+				),
+				with: {
+					translations: true,
+				},
+			});
+			const collection = handleLocalization(context, collectionBase!);
+
 			await db
 				.insert(usersToCollections)
 				.values(
@@ -296,6 +306,34 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 					})),
 				)
 				.onConflictDoNothing();
+
+			userList.forEach(async (user) => {
+				const href = createInviteLink({
+					domain:
+						team.domains.length > 0 ? team.domains[0] : undefined,
+					teamId,
+					locale: "en",
+				});
+
+				const t = await createTranslator({
+					locale: "en",
+				});
+
+				await sendEmail({
+					to: [user.email],
+					subject: t.Email.Invite.subject,
+					content: (
+						<Invite
+							href={href}
+							name={collection.name}
+							teamName={team.name}
+							logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
+							t={t.Email.Invite}
+						/>
+					),
+					team,
+				});
+			});
 		}
 
 		return null;

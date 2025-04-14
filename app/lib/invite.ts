@@ -2,55 +2,63 @@ import { env } from "@/env";
 import { Domain } from "@/types/domains";
 import { Locale } from "./locale";
 
-export const createCourseLink = ({
+export const createRequestLink = ({
 	domain,
-	courseId,
+	type,
+	id,
 	teamId,
-	email,
 	locale,
-	path,
 }: {
 	domain?: Domain;
-	courseId: string;
+	type: "course" | "collection";
+	id: string;
 	teamId?: string;
-	email?: string;
 	locale?: Locale;
-	path?: string;
 }) => {
 	const base = domain ? `https://${domain.hostname}` : env.VITE_SITE_URL;
 	const url = new URL(base);
-	url.pathname = `${locale ? `/${locale}` : ""}/learner/courses/${courseId}${path ? `/${path}` : ""}`;
-	if (email) {
-		url.searchParams.set("email", email);
-	}
+	url.pathname = `${locale ? `/${locale}` : ""}/learner/request`;
+	url.searchParams.set("type", type);
+	url.searchParams.set("id", id);
 	if (teamId && !domain) {
 		url.searchParams.set("teamId", teamId);
 	}
 	return url.toString();
 };
 
-export const createCollectionLink = ({
+export const createCourseLink = ({
 	domain,
-	collectionId,
-	teamId,
-	email,
+	courseId,
 	locale,
-	path,
+	teamId,
 }: {
 	domain?: Domain;
-	collectionId: string;
-	teamId?: string;
-	email?: string;
+	courseId: string;
 	locale?: Locale;
-	path?: string;
+	teamId?: string;
 }) => {
 	const base = domain ? `https://${domain.hostname}` : env.VITE_SITE_URL;
 	const url = new URL(base);
-	url.pathname = `${locale ? `/${locale}` : ""}/learner/collections/${collectionId}${path ? `/${path}` : ""}`;
-	if (email) {
-		url.searchParams.set("email", email);
+	url.pathname = `${locale ? `/${locale}` : ""}/learner/courses/${courseId}`;
+	if (teamId && !domain) {
+		url.searchParams.set("teamId", teamId);
 	}
-	if (teamId) {
+	return url.toString();
+};
+
+export const createInviteLink = ({
+	domain,
+	teamId,
+	locale,
+}: {
+	domain?: Domain;
+	teamId?: string;
+	locale?: Locale;
+}) => {
+	const base = domain ? `https://${domain.hostname}` : env.VITE_SITE_URL;
+	const url = new URL(base);
+	url.pathname = `${locale ? `/${locale}` : ""}/learner`;
+	if (teamId && !domain) {
 		url.searchParams.set("teamId", teamId);
 	}
 	return url.toString();
