@@ -5,16 +5,21 @@ import { db } from "@/server/db";
 import { emailVerifications, usersToTeams } from "@/server/db/schema";
 import { localeMiddleware } from "@/server/middleware";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { getCookie, setCookie } from "vinxi/http";
 import { z } from "zod";
 import { RedirectSchema } from "./login";
+import { getAuthFn } from "@/server/handlers/user";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({
 	component: RouteComponent,
 	validateSearch: RedirectSchema,
+	beforeLoad: async ({ params }) => {
+		const auth = await getAuthFn();
+		if (auth.session) throw redirect({ to: "/$locale/admin", params });
+	},
 });
 
 const OTPFormSchema = z.object({
