@@ -258,7 +258,6 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 					courseId: course.id,
 					email: user.email,
 					teamId,
-					path: "invite",
 					locale: "en",
 				});
 

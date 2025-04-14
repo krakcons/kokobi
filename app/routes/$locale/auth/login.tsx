@@ -14,8 +14,13 @@ import { eq } from "drizzle-orm";
 import { setCookie } from "vinxi/http";
 import { z } from "zod";
 
+export const RedirectSchema = z.object({
+	redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/$locale/auth/login")({
 	component: RouteComponent,
+	validateSearch: RedirectSchema,
 	beforeLoad: async ({ params }) => {
 		const auth = await getAuthFn();
 		if (auth.session) throw redirect({ to: "/$locale/admin", params });
@@ -134,17 +139,19 @@ const requestOTPFn = createServerFn({ method: "POST" })
 			sameSite: "lax",
 			expires: emailVerification.expiresAt,
 		});
-
-		throw redirect({
-			to: "/$locale/auth/verify-email",
-			params: { locale: context.locale },
-		});
 	});
 
 function RouteComponent() {
-	const request = useServerFn(requestOTPFn);
+	const navigate = Route.useNavigate();
 	const requestMutation = useMutation({
-		mutationFn: request,
+		mutationFn: requestOTPFn,
+		onSuccess: () => {
+			navigate({
+				to: "/$locale/auth/verify-email",
+				params: (p) => p,
+				search: (s) => s,
+			});
+		},
 	});
 	const { logo } = Route.useLoaderData();
 

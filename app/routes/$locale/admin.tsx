@@ -30,12 +30,16 @@ import { getTenantFn } from "@/server/handlers/teams";
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
 	validateSearch: EditingLocaleSchema,
-	beforeLoad: async ({ params }) => {
+	beforeLoad: async ({ params, location }) => {
 		const auth = await getAuthFn();
 
 		if (!auth.user) {
 			throw redirect({
 				to: "/$locale/auth/login",
+				search: (s) => ({
+					...s,
+					redirect: location.pathname,
+				}),
 				params,
 			});
 		}

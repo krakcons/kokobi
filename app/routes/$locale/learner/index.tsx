@@ -1,29 +1,12 @@
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import {
-	FloatingPage,
-	Page,
-	PageHeader,
-	PageSubHeader,
-} from "@/components/Page";
+import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { getConnectionsFn } from "@/server/handlers/connections";
-import { getAuthFn } from "@/server/handlers/user";
 import { UserToCourseType } from "@/types/connections";
 import { Course, CourseTranslation } from "@/types/course";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { Container } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
-	beforeLoad: async ({ params }) => {
-		const { user } = await getAuthFn();
-
-		if (!user) {
-			throw redirect({
-				to: "/$locale/auth/login",
-				params,
-			});
-		}
-	},
 	loader: () =>
 		Promise.all([
 			getConnectionsFn({

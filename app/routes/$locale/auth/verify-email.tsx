@@ -10,9 +10,11 @@ import { createServerFn, useServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { getCookie, setCookie } from "vinxi/http";
 import { z } from "zod";
+import { RedirectSchema } from "./login";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({
 	component: RouteComponent,
+	validateSearch: RedirectSchema,
 });
 
 const OTPFormSchema = z.object({
@@ -34,6 +36,7 @@ const OTPForm = ({
 		},
 		onSubmit: ({ value }) => onSubmit(value),
 	});
+
 	return (
 		<form.AppForm>
 			<form
@@ -98,17 +101,18 @@ export const verifyOTPFn = createServerFn({ method: "POST" })
 				sameSite: "lax",
 			});
 		}
-
-		throw redirect({
-			to: "/$locale/admin",
-			params: { locale: context.locale },
-		});
 	});
 
 function RouteComponent() {
-	const verify = useServerFn(verifyOTPFn);
+	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const verifyMutation = useMutation({
-		mutationFn: verify,
+		mutationFn: verifyOTPFn,
+		onSuccess: () => {
+			navigate({
+				to: search.redirect,
+			});
+		},
 	});
 
 	return (

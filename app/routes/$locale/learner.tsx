@@ -27,6 +27,10 @@ export const Route = createFileRoute("/$locale/learner")({
 		if (!auth.user) {
 			throw redirect({
 				to: "/$locale/auth/login",
+				search: (s) => ({
+					...s,
+					redirect: location.pathname,
+				}),
 				params,
 			});
 		}
