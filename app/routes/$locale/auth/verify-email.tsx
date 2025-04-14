@@ -110,7 +110,7 @@ function RouteComponent() {
 		mutationFn: verifyOTPFn,
 		onSuccess: () => {
 			navigate({
-				to: search.redirect,
+				to: search.redirect ?? "/$locale/admin",
 			});
 		},
 	});

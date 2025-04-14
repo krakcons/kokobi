@@ -1,5 +1,7 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
+import { env } from "@/env";
+import { fetchFile } from "@/lib/file";
 import { db } from "@/server/db";
 import { emailVerifications, users } from "@/server/db/schema";
 import { sendEmail } from "@/server/email";
@@ -27,15 +29,11 @@ export const Route = createFileRoute("/$locale/auth/login")({
 	},
 	loader: async ({ params }) => {
 		const tenantId = await getTenantFn();
-		if (tenantId) {
-			return {
-				logo: `/cdn/${tenantId}/${params.locale}/logo`,
-			};
-		} else {
-			return {
-				logo: null,
-			};
-		}
+		const logoUrl = `${env.VITE_SITE_URL}/cdn/${tenantId}/${params.locale}/logo`;
+		const fileExists = await fetchFile(logoUrl);
+		return {
+			logo: tenantId && !!fileExists ? logoUrl : undefined,
+		};
 	},
 });
 
@@ -162,7 +160,7 @@ function RouteComponent() {
 					<img
 						src={logo}
 						alt="Team Logo"
-						className="max-h-24 w-min text-[0px] mb-8"
+						className="max-h-24 w-min mb-8"
 					/>
 				)}
 				<PageHeader
