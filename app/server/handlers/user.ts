@@ -151,5 +151,8 @@ export const signOutFn = createServerFn()
 		deleteCookie("auth_session");
 		deleteCookie("teamId");
 		invalidateSession(context.session.id);
-		throw redirect({ to: "/$locale", params: { locale: context.locale } });
+		throw redirect({
+			to: "/$locale/auth/login",
+			params: { locale: context.locale },
+		});
 	});
