@@ -81,18 +81,18 @@ function RouteComponent() {
 	});
 
 	return (
-		<FloatingPage className="flex flex-col gap-4 max-w-lg mx-auto">
+		<FloatingPage className="flex flex-col gap-4 max-w-lg mx-auto text-center">
 			<h1>{name}</h1>
 			<p>{description}</p>
 			<Separator className="my-4" />
 			{connection ? (
 				<>
 					{connection.connectStatus === "rejected" ? (
-						<p className="text-center">
+						<p>
 							An admin has rejected your request to join "{name}".
 						</p>
 					) : (
-						<p className="text-center">
+						<p>
 							Requested to join "{name}
 							", please wait for an admin to approve.
 						</p>
