@@ -295,17 +295,17 @@ export const deleteTeamFn = createServerFn({ method: "POST" })
 
 export const getTenantFn = createServerFn({ method: "GET" }).handler(
 	async () => {
-		//const hostname = getRequestHost();
-		//
-		//if (hostname === env.VITE_ROOT_DOMAIN) {
-		//	return null;
-		//}
-		//
-		//const domain = await db.query.domains.findFirst({
-		//	where: eq(domains.hostname, hostname),
-		//});
-		//
-		//return domain ? domain.teamId : null;
-		return "0196258d-b904-7000-a490-a4759ca2fd80";
+		const hostname = getRequestHost();
+
+		if (hostname === env.VITE_ROOT_DOMAIN) {
+			return null;
+		}
+
+		const domain = await db.query.domains.findFirst({
+			where: eq(domains.hostname, hostname),
+		});
+
+		return domain ? domain.teamId : null;
+		//return "0196258d-b904-7000-a490-a4759ca2fd80";
 	},
 );

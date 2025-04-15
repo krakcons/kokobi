@@ -30,7 +30,6 @@ import { Route as LocaleAdminCertificateImport } from './routes/$locale/admin/ce
 import { Route as LocaleAdminCoursesCreateImport } from './routes/$locale/admin/courses/create'
 import { Route as LocaleAdminCollectionsCreateImport } from './routes/$locale/admin/collections/create'
 import { Route as LocaleLearnerCoursesCourseIdIndexImport } from './routes/$locale/learner/courses/$courseId/index'
-import { Route as LocaleLearnerCollectionsCollectionIdIndexImport } from './routes/$locale/learner/collections/$collectionId/index'
 import { Route as LocaleLearnerCoursesCourseIdPlayImport } from './routes/$locale/learner/courses/$courseId/play'
 import { Route as LocaleAdminCoursesIdWebhooksImport } from './routes/$locale/admin/courses/$id/webhooks'
 import { Route as LocaleAdminCoursesIdStatisticsImport } from './routes/$locale/admin/courses/$id/statistics'
@@ -157,13 +156,6 @@ const LocaleLearnerCoursesCourseIdIndexRoute =
   LocaleLearnerCoursesCourseIdIndexImport.update({
     id: '/courses/$courseId/',
     path: '/courses/$courseId/',
-    getParentRoute: () => LocaleLearnerRoute,
-  } as any)
-
-const LocaleLearnerCollectionsCollectionIdIndexRoute =
-  LocaleLearnerCollectionsCollectionIdIndexImport.update({
-    id: '/collections/$collectionId/',
-    path: '/collections/$collectionId/',
     getParentRoute: () => LocaleLearnerRoute,
   } as any)
 
@@ -437,13 +429,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleLearnerCoursesCourseIdPlayImport
       parentRoute: typeof LocaleLearnerImport
     }
-    '/$locale/learner/collections/$collectionId/': {
-      id: '/$locale/learner/collections/$collectionId/'
-      path: '/collections/$collectionId'
-      fullPath: '/$locale/learner/collections/$collectionId'
-      preLoaderRoute: typeof LocaleLearnerCollectionsCollectionIdIndexImport
-      parentRoute: typeof LocaleLearnerImport
-    }
     '/$locale/learner/courses/$courseId/': {
       id: '/$locale/learner/courses/$courseId/'
       path: '/courses/$courseId'
@@ -505,7 +490,6 @@ interface LocaleLearnerRouteChildren {
   LocaleLearnerRequestRoute: typeof LocaleLearnerRequestRoute
   LocaleLearnerIndexRoute: typeof LocaleLearnerIndexRoute
   LocaleLearnerCoursesCourseIdPlayRoute: typeof LocaleLearnerCoursesCourseIdPlayRoute
-  LocaleLearnerCollectionsCollectionIdIndexRoute: typeof LocaleLearnerCollectionsCollectionIdIndexRoute
   LocaleLearnerCoursesCourseIdIndexRoute: typeof LocaleLearnerCoursesCourseIdIndexRoute
 }
 
@@ -514,8 +498,6 @@ const LocaleLearnerRouteChildren: LocaleLearnerRouteChildren = {
   LocaleLearnerRequestRoute: LocaleLearnerRequestRoute,
   LocaleLearnerIndexRoute: LocaleLearnerIndexRoute,
   LocaleLearnerCoursesCourseIdPlayRoute: LocaleLearnerCoursesCourseIdPlayRoute,
-  LocaleLearnerCollectionsCollectionIdIndexRoute:
-    LocaleLearnerCollectionsCollectionIdIndexRoute,
   LocaleLearnerCoursesCourseIdIndexRoute:
     LocaleLearnerCoursesCourseIdIndexRoute,
 }
@@ -553,7 +535,6 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/courses/$id/statistics': typeof LocaleAdminCoursesIdStatisticsRoute
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
-  '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdIndexRoute
   '/$locale/learner/courses/$courseId': typeof LocaleLearnerCoursesCourseIdIndexRoute
 }
 
@@ -584,7 +565,6 @@ export interface FileRoutesByTo {
   '/$locale/admin/courses/$id/statistics': typeof LocaleAdminCoursesIdStatisticsRoute
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
-  '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdIndexRoute
   '/$locale/learner/courses/$courseId': typeof LocaleLearnerCoursesCourseIdIndexRoute
 }
 
@@ -618,7 +598,6 @@ export interface FileRoutesById {
   '/$locale/admin/courses/$id/statistics': typeof LocaleAdminCoursesIdStatisticsRoute
   '/$locale/admin/courses/$id/webhooks': typeof LocaleAdminCoursesIdWebhooksRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
-  '/$locale/learner/collections/$collectionId/': typeof LocaleLearnerCollectionsCollectionIdIndexRoute
   '/$locale/learner/courses/$courseId/': typeof LocaleLearnerCoursesCourseIdIndexRoute
 }
 
@@ -653,7 +632,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/statistics'
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/courses/$courseId/play'
-    | '/$locale/learner/collections/$collectionId'
     | '/$locale/learner/courses/$courseId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -683,7 +661,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/statistics'
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/courses/$courseId/play'
-    | '/$locale/learner/collections/$collectionId'
     | '/$locale/learner/courses/$courseId'
   id:
     | '__root__'
@@ -715,7 +692,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$id/statistics'
     | '/$locale/admin/courses/$id/webhooks'
     | '/$locale/learner/courses/$courseId/play'
-    | '/$locale/learner/collections/$collectionId/'
     | '/$locale/learner/courses/$courseId/'
   fileRoutesById: FileRoutesById
 }
@@ -794,7 +770,6 @@ export const routeTree = rootRoute
         "/$locale/learner/request",
         "/$locale/learner/",
         "/$locale/learner/courses/$courseId/play",
-        "/$locale/learner/collections/$collectionId/",
         "/$locale/learner/courses/$courseId/"
       ]
     },
@@ -889,10 +864,6 @@ export const routeTree = rootRoute
     },
     "/$locale/learner/courses/$courseId/play": {
       "filePath": "$locale/learner/courses/$courseId/play.tsx",
-      "parent": "/$locale/learner"
-    },
-    "/$locale/learner/collections/$collectionId/": {
-      "filePath": "$locale/learner/collections/$collectionId/index.tsx",
       "parent": "/$locale/learner"
     },
     "/$locale/learner/courses/$courseId/": {

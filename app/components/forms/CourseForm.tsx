@@ -21,7 +21,7 @@ export const CourseForm = ({
 		defaultValues: {
 			name: "",
 			description: "",
-			completionStatus: "passed",
+			completionStatus: "either",
 			...defaultValues,
 		} as CourseFormType,
 		onSubmit: ({ value }) => onSubmit(value),

@@ -129,7 +129,7 @@ export const courses = pgTable("courses", {
 		enum: ["passed", "completed", "either"],
 	})
 		.notNull()
-		.default("passed"),
+		.default("either"),
 	...dates,
 });
 export const courseTranslations = pgTable(
