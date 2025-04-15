@@ -5,12 +5,7 @@ import {
 } from "@/components/ui/sidebar";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import {
-	getAuthFn,
-	getTeamsFn,
-	setLearnerTeamFn,
-	setTeamFn,
-} from "@/server/handlers/user";
+import { getAuthFn, getTeamsFn, setTeamFn } from "@/server/handlers/user";
 import { getConnectionsFn } from "@/server/handlers/connections";
 import { getTeamFn, getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
@@ -37,9 +32,10 @@ export const Route = createFileRoute("/$locale/learner")({
 		}
 
 		if (search.teamId) {
-			await setLearnerTeamFn({
+			await setTeamFn({
 				data: {
 					teamId: search.teamId,
+					type: "learner",
 				},
 			});
 			const newUrl = new URL(env.VITE_SITE_URL + location.href);
@@ -71,14 +67,11 @@ export const Route = createFileRoute("/$locale/learner")({
 				});
 			}
 		}
+
+		return { teamId: auth.learnerTeamId };
 	},
 	loader: () =>
 		Promise.all([
-			getTeamFn({
-				data: {
-					type: "learner",
-				},
-			}),
 			getTeamsFn({
 				data: {
 					type: "learner",
@@ -99,13 +92,14 @@ export const Route = createFileRoute("/$locale/learner")({
 });
 
 function RouteComponent() {
-	const [team, teams, courses, collections, tenantId] = Route.useLoaderData();
+	const { teamId } = Route.useRouteContext();
+	const [teams, courses, collections, tenantId] = Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
 			<LearnerSidebar
-				tenantId={tenantId}
-				activeTeam={team}
+				tenantId={tenantId ?? undefined}
+				teamId={teamId}
 				teams={teams}
 				courses={courses}
 				collections={collections}

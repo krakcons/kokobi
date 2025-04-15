@@ -108,40 +108,27 @@ export const setTeamFn = createServerFn({ method: "POST" })
 	.validator(
 		z.object({
 			teamId: z.string(),
+			type: z.enum(["learner", "admin"]),
 		}),
 	)
 	.handler(async ({ context, data }) => {
-		if (data.teamId === context.teamId) {
-			return;
+		if (data.type === "learner" && context.learnerTeamId !== data.teamId) {
+			setCookie("learnerTeamId", data.teamId);
 		}
+		if (data.type === "admin" && data.teamId !== context.teamId) {
+			const team = await db.query.usersToTeams.findFirst({
+				where: and(
+					eq(usersToTeams.userId, context.user.id),
+					eq(usersToTeams.teamId, data.teamId),
+				),
+			});
 
-		const team = await db.query.usersToTeams.findFirst({
-			where: and(
-				eq(usersToTeams.userId, context.user.id),
-				eq(usersToTeams.teamId, data.teamId),
-			),
-		});
+			if (!team) {
+				throw new Error("Team not found");
+			}
 
-		if (!team) {
-			throw new Error("Team not found");
+			setCookie("teamId", data.teamId);
 		}
-
-		setCookie("teamId", data.teamId);
-	});
-
-export const setLearnerTeamFn = createServerFn({ method: "POST" })
-	.middleware([authMiddleware, localeMiddleware])
-	.validator(
-		z.object({
-			teamId: z.string(),
-		}),
-	)
-	.handler(async ({ context, data }) => {
-		if (data.teamId === context.learnerTeamId) {
-			return;
-		}
-
-		setCookie("learnerTeamId", data.teamId);
 	});
 
 export const signOutFn = createServerFn()

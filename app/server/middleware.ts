@@ -51,6 +51,22 @@ export const teamMiddleware = ({ role = "member" }: { role?: Role } = {}) =>
 			});
 		});
 
+export const learnerMiddleware = createMiddleware()
+	.middleware([protectedMiddleware])
+	.server(async ({ context, next }) => {
+		const { learnerTeamId } = context;
+		if (!learnerTeamId) {
+			throw new Error("Unauthorized");
+		}
+
+		return next({
+			context: {
+				...context,
+				learnerTeamId,
+			},
+		});
+	});
+
 export const localeMiddleware = createMiddleware().server(async ({ next }) => {
 	return next({
 		context: LocalizedInputSchema.parse({

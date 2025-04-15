@@ -103,7 +103,7 @@ function RouteComponent() {
 	return (
 		<SidebarProvider>
 			<AdminSidebar
-				tenantId={tenantId}
+				tenantId={tenantId ?? undefined}
 				teamId={auth.teamId!}
 				teams={teams}
 				courses={courses}

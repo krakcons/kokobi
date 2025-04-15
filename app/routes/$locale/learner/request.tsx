@@ -47,20 +47,22 @@ export const Route = createFileRoute("/$locale/learner/request")({
 			});
 		}
 
+		const details =
+			deps.type === "course"
+				? await getCourseFn({
+						data: { courseId: deps.id },
+					})
+				: await getCollectionFn({
+						data: { id: deps.id },
+					});
+
 		return {
 			connection,
 			team,
-			connectTeam: await getTeamByIdFn({
-				data: { teamId: team.id },
+			contentTeam: await getTeamByIdFn({
+				data: { teamId: details.teamId },
 			}),
-			details:
-				deps.type === "course"
-					? await getCourseFn({
-							data: { courseId: deps.id },
-						})
-					: await getCollectionFn({
-							data: { id: deps.id },
-						}),
+			details,
 		};
 	},
 });
@@ -69,7 +71,7 @@ function RouteComponent() {
 	const {
 		details: { name, description },
 		connection,
-		connectTeam,
+		contentTeam,
 		team,
 	} = Route.useLoaderData();
 	const router = useRouter();
@@ -107,10 +109,7 @@ function RouteComponent() {
 						<Button
 							onClick={() =>
 								requestConnection.mutate({
-									data: {
-										...search,
-										teamId: team.id,
-									},
+									data: search,
 								})
 							}
 						>
@@ -119,7 +118,7 @@ function RouteComponent() {
 					</div>
 				</>
 			)}
-			<ContentBranding team={connectTeam} connectTeam={team} />
+			<ContentBranding contentTeam={contentTeam} connectTeam={team} />
 		</FloatingPage>
 	);
 }

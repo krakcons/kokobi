@@ -3,12 +3,13 @@ import { Team, TeamTranslation } from "@/types/team";
 import { TeamAvatar, TeamAvatarImage } from "./ui/team-avatar";
 
 export const ContentBranding = ({
-	team,
+	contentTeam,
 	connectTeam,
 }: {
-	team: Team & TeamTranslation;
+	contentTeam: Team & TeamTranslation;
 	connectTeam: Team & TeamTranslation;
 }) => {
+	console.log(contentTeam, connectTeam);
 	return (
 		<div className="flex items-center">
 			<TeamAvatar>
@@ -22,9 +23,9 @@ export const ContentBranding = ({
 				<p>
 					Delivered by <strong>{connectTeam.name}</strong>
 				</p>
-				{team.id !== connectTeam.id && (
+				{contentTeam.id !== connectTeam.id && (
 					<p className="text-sm text-muted-foreground">
-						Created by <strong>{team.name}</strong>
+						Created by <strong>{contentTeam.name}</strong>
 					</p>
 				)}
 			</div>

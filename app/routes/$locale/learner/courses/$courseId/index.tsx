@@ -40,16 +40,10 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			(connection.connectType === "request" &&
 				connection.connectStatus !== "accepted")
 		) {
-			const team = await getTeamFn({
-				data: {
-					type: "learner",
-				},
-			});
 			throw redirect({
 				to: "/$locale/learner/request",
 				params,
 				search: {
-					teamId: team.id,
 					id: params.courseId,
 					type: "course",
 				},
@@ -65,15 +59,14 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 
 		return Promise.all([
 			getCourseFn({ data: { courseId: params.courseId } }),
-			getTeamByIdFn({
+			getTeamFn({
 				data: {
-					teamId: connection.teamId,
+					type: "learner",
 				},
 			}),
 			getAttemptsFn({
 				data: {
 					courseId: params.courseId,
-					teamId: connection.teamId,
 				},
 			}),
 			connection.collection &&
@@ -110,7 +103,7 @@ function RouteComponent() {
 	return (
 		<Page>
 			<div className="flex flex-col gap-8 w-full">
-				<ContentBranding team={course.team} connectTeam={team} />
+				<ContentBranding contentTeam={course.team} connectTeam={team} />
 				<PageHeader
 					title={course.name}
 					description={course.description}

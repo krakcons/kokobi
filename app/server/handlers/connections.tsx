@@ -1,4 +1,5 @@
 import {
+	learnerMiddleware,
 	localeMiddleware,
 	protectedMiddleware,
 	teamMiddleware,
@@ -33,7 +34,7 @@ export const GetConnectionSchema = z.object({
 });
 
 export const getConnectionFn = createServerFn({ method: "GET" })
-	.middleware([protectedMiddleware, localeMiddleware])
+	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(GetConnectionSchema)
 	.handler(async ({ context, data: { type, id } }) => {
 		const user = context.user;
@@ -43,13 +44,17 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 				where: and(
 					eq(usersToCourses.userId, user.id),
 					eq(usersToCourses.courseId, id),
+					eq(usersToCourses.teamId, context.learnerTeamId),
 				),
 			});
 
 			// If the user is a member of the collection, they are allowed to access to the course
 			if (!connection) {
 				const connection = await db.query.usersToCollections.findFirst({
-					where: and(eq(usersToCollections.userId, user.id)),
+					where: and(
+						eq(usersToCollections.userId, user.id),
+						eq(usersToCollections.teamId, context.learnerTeamId),
+					),
 					with: {
 						collection: {
 							with: {
@@ -76,6 +81,7 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 				where: and(
 					eq(usersToCollections.userId, user.id),
 					eq(usersToCollections.collectionId, id),
+					eq(usersToCollections.teamId, context.learnerTeamId),
 				),
 			});
 
@@ -84,7 +90,7 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 	});
 
 export const getConnectionsFn = createServerFn({ method: "GET" })
-	.middleware([protectedMiddleware, localeMiddleware])
+	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(
 		z.object({
 			type: z.enum(["course", "collection"]),
@@ -97,9 +103,7 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 			const connections = await db.query.usersToCourses.findMany({
 				where: and(
 					eq(usersToCourses.userId, user.id),
-					context.teamId
-						? eq(usersToCourses.teamId, context.teamId)
-						: undefined,
+					eq(usersToCourses.teamId, context.learnerTeamId),
 				),
 				with: {
 					course: {
@@ -126,9 +130,7 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 			const connections = await db.query.usersToCollections.findMany({
 				where: and(
 					eq(usersToCollections.userId, user.id),
-					context.teamId
-						? eq(usersToCourses.teamId, context.teamId)
-						: undefined,
+					eq(usersToCollections.teamId, context.learnerTeamId),
 				),
 				with: {
 					collection: {
@@ -167,21 +169,20 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 	});
 
 export const getAttemptsFn = createServerFn({ method: "GET" })
-	.middleware([protectedMiddleware, localeMiddleware])
+	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(
 		z.object({
 			courseId: z.string(),
-			teamId: z.string(),
 		}),
 	)
-	.handler(async ({ context, data: { courseId, teamId } }) => {
+	.handler(async ({ context, data: { courseId } }) => {
 		const user = context.user;
 
 		const moduleList = await db.query.usersToModules.findMany({
 			where: and(
 				eq(usersToModules.userId, user.id),
 				eq(usersToModules.courseId, courseId),
-				eq(usersToModules.teamId, teamId),
+				eq(usersToModules.teamId, context.learnerTeamId),
 			),
 			with: {
 				module: true,
@@ -409,15 +410,14 @@ export const inviteTeamsConnectionFn = createServerFn({ method: "POST" })
 	});
 
 export const requestConnectionFn = createServerFn({ method: "POST" })
-	.middleware([protectedMiddleware, localeMiddleware])
+	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(
 		z.object({
 			type: z.enum(["course", "collection"]),
 			id: z.string(),
-			teamId: z.string(),
 		}),
 	)
-	.handler(async ({ context, data: { type, id, teamId } }) => {
+	.handler(async ({ context, data: { type, id } }) => {
 		const user = context.user;
 
 		if (type === "course") {
@@ -425,7 +425,7 @@ export const requestConnectionFn = createServerFn({ method: "POST" })
 				.insert(usersToCourses)
 				.values({
 					userId: user.id,
-					teamId,
+					teamId: context.learnerTeamId,
 					courseId: id,
 					connectType: "request",
 					connectStatus: "pending",
@@ -438,7 +438,7 @@ export const requestConnectionFn = createServerFn({ method: "POST" })
 				.insert(usersToCollections)
 				.values({
 					userId: user.id,
-					teamId,
+					teamId: context.learnerTeamId,
 					collectionId: id,
 					connectType: "request",
 					connectStatus: "pending",
@@ -450,16 +450,15 @@ export const requestConnectionFn = createServerFn({ method: "POST" })
 	});
 
 export const userConnectionResponseFn = createServerFn({ method: "POST" })
-	.middleware([protectedMiddleware, localeMiddleware])
+	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(
 		z.object({
 			type: z.enum(["course", "collection"]),
 			id: z.string(),
-			teamId: z.string(),
 			connectStatus: z.enum(["accepted", "rejected"]),
 		}),
 	)
-	.handler(async ({ context, data: { type, id, teamId, connectStatus } }) => {
+	.handler(async ({ context, data: { type, id, connectStatus } }) => {
 		const user = context.user;
 
 		if (type === "course") {
@@ -471,7 +470,7 @@ export const userConnectionResponseFn = createServerFn({ method: "POST" })
 				.where(
 					and(
 						eq(usersToCourses.userId, user.id),
-						eq(usersToCourses.teamId, teamId),
+						eq(usersToCourses.teamId, context.learnerTeamId),
 						eq(usersToCourses.courseId, id),
 					),
 				);
@@ -486,7 +485,7 @@ export const userConnectionResponseFn = createServerFn({ method: "POST" })
 				.where(
 					and(
 						eq(usersToCollections.userId, user.id),
-						eq(usersToCollections.teamId, teamId),
+						eq(usersToCollections.teamId, context.learnerTeamId),
 						eq(usersToCollections.collectionId, id),
 					),
 				);
