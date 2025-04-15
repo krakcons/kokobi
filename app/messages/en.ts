@@ -118,7 +118,7 @@ const en = {
 	CompletionStatuses: {
 		passed: "Passed",
 		completed: "Completed",
-		either: "Either",
+		either: "Passed/Completed",
 	},
 	ConnectionActions: {
 		accept: "Accept",

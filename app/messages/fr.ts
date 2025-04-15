@@ -118,9 +118,9 @@ const fr: Messages = {
 		member: "Membre",
 	},
 	CompletionStatuses: {
-		passed: "Passed",
-		completed: "Completed",
-		either: "Either",
+		passed: "Passé",
+		completed: "Complété",
+		either: "Passé/Complété",
 	},
 	ConnectionActions: {
 		accept: "Accept",
