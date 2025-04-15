@@ -11,12 +11,7 @@ import {
 import { getCourseFn } from "@/server/handlers/courses";
 import { getTeamByIdFn, getTeamFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	notFound,
-	redirect,
-	useRouter,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/learner/request")({
 	component: RouteComponent,
@@ -43,6 +38,13 @@ export const Route = createFileRoute("/$locale/learner/request")({
 					params,
 				});
 			}
+		}
+
+		if (connection?.connectType === "invite") {
+			throw redirect({
+				to: "/$locale/learner",
+				params,
+			});
 		}
 
 		return {

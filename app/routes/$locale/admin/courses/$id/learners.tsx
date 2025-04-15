@@ -95,50 +95,7 @@ function RouteComponent() {
 				<DataTableColumnHeader title="Status" column={column} />
 			),
 			cell: ({ row: { original } }) => {
-				const connectStatus = original.connectStatus;
-				const connectType = original.connectType;
-				return (
-					<div className="flex items-center gap-2">
-						<ConnectionStatusBadge
-							connectStatus={connectStatus}
-							connectType={connectType}
-						/>
-						{connectStatus === "pending" &&
-							connectType === "request" && (
-								<>
-									<Button
-										onClick={() =>
-											connectionResponse.mutate({
-												data: {
-													id: params.id,
-													type: "course",
-													toId: original.userId,
-													connectStatus: "accepted",
-												},
-											})
-										}
-									>
-										{tConnect.accept}
-									</Button>
-									<Button
-										variant="outline"
-										onClick={() =>
-											connectionResponse.mutate({
-												data: {
-													id: params.id,
-													type: "course",
-													toId: original.userId,
-													connectStatus: "rejected",
-												},
-											})
-										}
-									>
-										{tConnect.reject}
-									</Button>
-								</>
-							)}
-					</div>
-				);
+				return <ConnectionStatusBadge {...original} />;
 			},
 		},
 		{
@@ -154,6 +111,32 @@ function RouteComponent() {
 			),
 		},
 		createDataTableActionsColumn<UserToCourseType & { user: User }>([
+			{
+				name: "Accept",
+				onClick: ({ userId }) =>
+					connectionResponse.mutate({
+						data: {
+							id: params.id,
+							type: "course",
+							toId: userId,
+							connectStatus: "accepted",
+						},
+					}),
+				visible: ({ connectType }) => connectType === "request",
+			},
+			{
+				name: "Reject",
+				onClick: ({ userId }) =>
+					connectionResponse.mutate({
+						data: {
+							id: params.id,
+							type: "course",
+							toId: userId,
+							connectStatus: "rejected",
+						},
+					}),
+				visible: ({ connectType }) => connectType === "request",
+			},
 			{
 				name: "Delete",
 				onClick: ({ userId }) =>

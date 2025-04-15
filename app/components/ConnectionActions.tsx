@@ -8,16 +8,32 @@ export const ConnectionActions = ({
 	connection: ConnectionType;
 	onSubmit: (connectionStatus: "accepted" | "rejected") => void;
 }) => {
-	if (connection.connectStatus !== "pending") {
-		return null;
-	}
-
 	return (
 		<div className="flex gap-2">
-			<Button onClick={() => onSubmit("accepted")}>Accept</Button>
-			<Button variant="outline" onClick={() => onSubmit("rejected")}>
-				Reject
-			</Button>
+			{["pending", "rejected"].includes(connection.connectStatus) && (
+				<Button
+					variant="outline"
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						onSubmit("accepted");
+					}}
+				>
+					Accept
+				</Button>
+			)}
+			{["pending", "accepted"].includes(connection.connectStatus) && (
+				<Button
+					variant="outline"
+					onClick={(e) => {
+						e.preventDefault();
+						e.stopPropagation();
+						onSubmit("rejected");
+					}}
+				>
+					Reject
+				</Button>
+			)}
 		</div>
 	);
 };

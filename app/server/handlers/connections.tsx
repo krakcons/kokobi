@@ -250,7 +250,21 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 							"pending" as ConnectionType["connectStatus"],
 					})),
 				)
-				.onConflictDoNothing();
+				.onConflictDoUpdate({
+					target: [
+						usersToCourses.userId,
+						usersToCourses.courseId,
+						usersToCourses.teamId,
+					],
+					set: {
+						connectStatus: "accepted",
+						updatedAt: new Date(),
+					},
+					setWhere: and(
+						eq(usersToCourses.connectType, "request"),
+						eq(usersToCourses.connectStatus, "pending"),
+					),
+				});
 
 			userList.forEach(async (user) => {
 				const href = createInviteLink({
@@ -305,7 +319,21 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 							"pending" as ConnectionType["connectStatus"],
 					})),
 				)
-				.onConflictDoNothing();
+				.onConflictDoUpdate({
+					target: [
+						usersToCollections.userId,
+						usersToCollections.collectionId,
+						usersToCollections.teamId,
+					],
+					set: {
+						connectStatus: "accepted",
+						updatedAt: new Date(),
+					},
+					setWhere: and(
+						eq(usersToCollections.connectType, "request"),
+						eq(usersToCollections.connectStatus, "pending"),
+					),
+				});
 
 			userList.forEach(async (user) => {
 				const href = createInviteLink({

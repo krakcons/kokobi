@@ -41,14 +41,6 @@ const CourseComponent = ({
 	connection?: UserToCourseType;
 	disabled?: boolean;
 }) => {
-	const router = useRouter();
-	const { mutate: userConnectionResponse } = useMutation({
-		mutationFn: userConnectionResponseFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-
 	return (
 		<Link
 			to="/$locale/learner/courses/$courseId"
@@ -59,27 +51,12 @@ const CourseComponent = ({
 			className="w-full rounded-lg p-4 border flex flex-col gap-4"
 			disabled={disabled}
 		>
-			<PageSubHeader title={course.name} description={course.description}>
-				{connection && (
-					<div className="flex gap-2 items-center">
-						<ConnectionStatusBadge {...connection} />
-						{connection.connectStatus === "pending" && (
-							<ConnectionActions
-								connection={connection}
-								onSubmit={(connectStatus) => {
-									userConnectionResponse({
-										data: {
-											type: "course",
-											id: course.id,
-											teamId: connection.teamId,
-											connectStatus,
-										},
-									});
-								}}
-							/>
-						)}
-					</div>
-				)}
+			<PageSubHeader
+				title={course.name}
+				description={course.description}
+				className="items-start"
+			>
+				{connection && <ConnectionStatusBadge {...connection} />}
 			</PageSubHeader>
 		</Link>
 	);
@@ -87,13 +64,6 @@ const CourseComponent = ({
 
 function RouteComponent() {
 	const [courses, collections] = Route.useLoaderData();
-	const router = useRouter();
-	const { mutate: userConnectionResponse } = useMutation({
-		mutationFn: userConnectionResponseFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
 
 	return (
 		<Page>
@@ -123,25 +93,10 @@ function RouteComponent() {
 							<PageSubHeader
 								title={connection.collection.name}
 								description={connection.collection.description}
+								className="items-start"
 							>
 								<div className="flex gap-2 items-center">
 									<ConnectionStatusBadge {...connection} />
-									{connection.connectStatus === "pending" && (
-										<ConnectionActions
-											connection={connection}
-											onSubmit={(connectStatus) => {
-												userConnectionResponse({
-													data: {
-														type: "collection",
-														id: connection
-															.collection.id,
-														teamId: connection.teamId,
-														connectStatus,
-													},
-												});
-											}}
-										/>
-									)}
 								</div>
 							</PageSubHeader>
 							{connection.collection.courses.map((course) => (

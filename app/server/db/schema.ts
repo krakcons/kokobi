@@ -283,7 +283,7 @@ export const usersToCollections = pgTable(
 		...dates,
 		...sharing,
 	},
-	(t) => [primaryKey({ columns: [t.userId, t.collectionId] })],
+	(t) => [primaryKey({ columns: [t.userId, t.collectionId, t.teamId] })],
 );
 
 export const usersToTeams = pgTable(
@@ -304,25 +304,29 @@ export const usersToTeams = pgTable(
 
 // CONNECTIONS (TEAM)
 
-export const teamsToCourses = pgTable("teams_to_courses", {
-	fromTeamId: text("fromTeamId")
-		.notNull()
-		.references(() => teams.id, {
-			onDelete: "cascade",
-		}),
-	teamId: text("teamId")
-		.notNull()
-		.references(() => teams.id, {
-			onDelete: "cascade",
-		}),
-	courseId: text("courseId")
-		.notNull()
-		.references(() => courses.id, {
-			onDelete: "cascade",
-		}),
-	...dates,
-	...sharing,
-});
+export const teamsToCourses = pgTable(
+	"teams_to_courses",
+	{
+		fromTeamId: text("fromTeamId")
+			.notNull()
+			.references(() => teams.id, {
+				onDelete: "cascade",
+			}),
+		teamId: text("teamId")
+			.notNull()
+			.references(() => teams.id, {
+				onDelete: "cascade",
+			}),
+		courseId: text("courseId")
+			.notNull()
+			.references(() => courses.id, {
+				onDelete: "cascade",
+			}),
+		...dates,
+		...sharing,
+	},
+	(t) => [primaryKey({ columns: [t.fromTeamId, t.courseId, t.teamId] })],
+);
 
 // Relations
 

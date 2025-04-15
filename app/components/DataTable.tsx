@@ -387,6 +387,7 @@ export const createDataTableActionsColumn = <TData extends object>(
 	actions: {
 		name: string;
 		onClick: (data: TData) => void;
+		visible?: (data: TData) => boolean;
 	}[],
 ) => {
 	return {
@@ -404,14 +405,20 @@ export const createDataTableActionsColumn = <TData extends object>(
 				<DropdownMenuContent align="end">
 					<DropdownMenuLabel>Actions</DropdownMenuLabel>
 					<DropdownMenuSeparator />
-					{actions.map((action) => (
-						<DropdownMenuItem
-							key={action.name}
-							onClick={() => action.onClick(cell.row.original)}
-						>
-							{action.name}
-						</DropdownMenuItem>
-					))}
+					{actions.map(
+						(action) =>
+							(!action.visible ||
+								action.visible(cell.row.original)) && (
+								<DropdownMenuItem
+									key={action.name}
+									onClick={() =>
+										action.onClick(cell.row.original)
+									}
+								>
+									{action.name}
+								</DropdownMenuItem>
+							),
+					)}
 				</DropdownMenuContent>
 			</DropdownMenu>
 		),

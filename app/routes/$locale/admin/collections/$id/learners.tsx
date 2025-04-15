@@ -95,52 +95,9 @@ function RouteComponent() {
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
 			),
-			cell: ({ row: { original } }) => {
-				const connectStatus = original.connectStatus;
-				const connectType = original.connectType;
-				return (
-					<div className="flex items-center gap-2">
-						<ConnectionStatusBadge
-							connectStatus={connectStatus}
-							connectType={connectType}
-						/>
-						{connectStatus === "pending" &&
-							connectType === "request" && (
-								<>
-									<Button
-										onClick={() =>
-											connectionResponse.mutate({
-												data: {
-													id: params.id,
-													type: "collection",
-													toId: original.userId,
-													connectStatus: "accepted",
-												},
-											})
-										}
-									>
-										{tConnect.accept}
-									</Button>
-									<Button
-										variant="outline"
-										onClick={() =>
-											connectionResponse.mutate({
-												data: {
-													id: params.id,
-													type: "collection",
-													toId: original.userId,
-													connectStatus: "rejected",
-												},
-											})
-										}
-									>
-										{tConnect.reject}
-									</Button>
-								</>
-							)}
-					</div>
-				);
-			},
+			cell: ({ row: { original } }) => (
+				<ConnectionStatusBadge {...original} />
+			),
 		},
 		{
 			accessorKey: "user.firstName",
@@ -155,6 +112,32 @@ function RouteComponent() {
 			),
 		},
 		createDataTableActionsColumn<UserToCollectionType & { user: User }>([
+			{
+				name: "Accept",
+				onClick: ({ userId }) =>
+					connectionResponse.mutate({
+						data: {
+							id: params.id,
+							type: "collection",
+							toId: userId,
+							connectStatus: "accepted",
+						},
+					}),
+				visible: ({ connectType }) => connectType === "request",
+			},
+			{
+				name: "Reject",
+				onClick: ({ userId }) =>
+					connectionResponse.mutate({
+						data: {
+							id: params.id,
+							type: "collection",
+							toId: userId,
+							connectStatus: "rejected",
+						},
+					}),
+				visible: ({ connectType }) => connectType === "request",
+			},
 			{
 				name: "Delete",
 				onClick: ({ collectionId, user }) =>
