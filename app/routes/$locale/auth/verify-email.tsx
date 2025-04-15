@@ -120,6 +120,7 @@ function RouteComponent() {
 		onSuccess: () => {
 			navigate({
 				to: search.redirect ?? "/$locale/admin",
+				search: (s) => ({ ...s, redirect: undefined }),
 			});
 		},
 	});
