@@ -127,6 +127,15 @@ export const deleteTeamDomainFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
+type DomainRecord = {
+	required: boolean;
+	status: string;
+	type: string;
+	name: string;
+	value: string;
+	priority?: number;
+};
+
 export const getTeamDomainFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.handler(async ({ context }) => {
@@ -149,58 +158,65 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 			zone_id: env.CLOUDFLARE_ZONE_ID,
 		});
 
+		const records: DomainRecord[] = [
+			// Add Cloudflare CNAME record
+			{
+				required: true,
+				status:
+					cloudflare.status === "active"
+						? "success"
+						: (cloudflare.status ?? "unknown"),
+				type: "CNAME",
+				name: teamDomain.hostname,
+				value: "kokobi.org",
+			},
+			// Add dmarc record (optional)
+			{
+				required: false,
+				status: "optional",
+				type: "TXT",
+				name: `_dmarc.${teamDomain.hostname}`,
+				value: '"v=DMARC1; p=none;"',
+			},
+		];
+
+		// Add email verification records
+		email.DkimAttributes?.Tokens?.forEach((token) => {
+			records.push({
+				required: true,
+				status: email.DkimAttributes?.Status ?? "unknown",
+				type: "CNAME",
+				name: `${token}._domainkey.${teamDomain.hostname}`,
+				value: `${token}.dkim.amazonses.com`,
+			});
+		});
+
+		// Add mail from records
+		if (
+			email.MailFromAttributes &&
+			email.MailFromAttributes.MailFromDomain
+		) {
+			records.push({
+				required: true,
+				status:
+					email.MailFromAttributes.MailFromDomainStatus ?? "unknown",
+				type: "MX",
+				name: email.MailFromAttributes.MailFromDomain,
+				value: "feedback-smtp.ca-central-1.amazonses.com",
+				priority: 10,
+			});
+			records.push({
+				required: true,
+				status:
+					email.MailFromAttributes.MailFromDomainStatus ?? "unknown",
+				type: "TXT",
+				name: email.MailFromAttributes.MailFromDomain,
+				value: '"v=spf1 include:amazonses.com ~all"',
+			});
+		}
+
 		return {
 			...teamDomain,
-			records: [
-				{
-					required: true,
-					status:
-						cloudflare.status === "active"
-							? "success"
-							: cloudflare.status,
-					type: "CNAME",
-					name: teamDomain.hostname,
-					value: "kokobi.org",
-				},
-				...(email.DkimAttributes?.Tokens
-					? email.DkimAttributes.Tokens.map((token) => ({
-							required: true,
-							status: email.DkimAttributes?.Status,
-							type: "CNAME",
-							name: `${token}._domainkey.${teamDomain.hostname}`,
-							value: `${token}.dkim.amazonses.com`,
-						}))
-					: []),
-				...(email.MailFromAttributes
-					? [
-							{
-								required: true,
-								status:
-									email.MailFromAttributes
-										.MailFromDomainStatus ?? "unknown",
-								type: "MX",
-								name: email.MailFromAttributes.MailFromDomain,
-								value: "feedback-smtp.ca-central-1.amazonses.com",
-								priority: 10,
-							},
-							{
-								required: true,
-								status:
-									email.MailFromAttributes
-										.MailFromDomainStatus ?? "unknown",
-								type: "TXT",
-								name: email.MailFromAttributes.MailFromDomain,
-								value: '"v=spf1 include:amazonses.com ~all"',
-							},
-						]
-					: []),
-				{
-					required: false,
-					status: "optional",
-					type: "TXT",
-					name: `_dmarc.${teamDomain.hostname}`,
-					value: '"v=DMARC1; p=none;"',
-				},
-			],
+			records: records.sort((a) => (a.status === "optional" ? 1 : -1)),
 		};
 	});

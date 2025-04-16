@@ -2,9 +2,9 @@ import { TeamForm } from "@/components/forms/TeamForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { CheckSquare, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 import { fetchFile } from "@/lib/file";
 import { env } from "@/env";
 import {
@@ -24,7 +24,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import CopyButton from "@/components/CopyButton";
 
@@ -83,7 +82,6 @@ const DomainForm = ({
 };
 
 function RouteComponent() {
-	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
 	const [team, domain] = Route.useLoaderData();
@@ -138,6 +136,8 @@ function RouteComponent() {
 			<TeamForm
 				key={team.locale}
 				defaultValues={{
+					logo: "",
+					favicon: "",
 					...team,
 					...data,
 				}}
@@ -202,14 +202,14 @@ function RouteComponent() {
 															: "destructive"
 												}
 											>
-												{record.status.toUpperCase()}
+												{record.status?.toUpperCase()}
 											</Badge>
 										</TableCell>
 										<TableCell>{record.type}</TableCell>
 										<TableCell>
 											<span className="flex items-center">
 												<CopyButton
-													text={record.name}
+													text={record.name ?? ""}
 												/>
 												{record.name}
 											</span>
@@ -241,7 +241,6 @@ function RouteComponent() {
 				</div>
 			) : (
 				<DomainForm
-					defaultValues={team}
 					onSubmit={async (data) =>
 						createDomain.mutateAsync({ data })
 					}
