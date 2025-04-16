@@ -91,7 +91,6 @@ function RouteComponent() {
 	const createDomain = useMutation({
 		mutationFn: createDomainFn,
 		onSuccess: () => {
-			toast.success("Domain created");
 			router.invalidate();
 		},
 	});
@@ -105,14 +104,12 @@ function RouteComponent() {
 	const deleteTeam = useMutation({
 		mutationFn: deleteTeamFn,
 		onSuccess: () => {
-			toast.success("Team deleted");
 			router.invalidate();
 		},
 	});
 	const deleteTeamDomain = useMutation({
 		mutationFn: deleteTeamDomainFn,
 		onSuccess: () => {
-			toast.success("Domain deleted");
 			router.invalidate();
 		},
 	});

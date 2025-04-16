@@ -33,6 +33,7 @@ import { getTeamFn } from "@/server/handlers/teams";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { createRequestLink } from "@/lib/invite";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
@@ -61,7 +62,6 @@ function RouteComponent() {
 	const [learners, team] = Route.useLoaderData();
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
-	const tConnect = useTranslations("ConnectionActions");
 
 	const createConnection = useMutation({
 		mutationFn: inviteUsersConnectionFn,

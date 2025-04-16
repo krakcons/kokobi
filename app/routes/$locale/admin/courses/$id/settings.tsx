@@ -10,6 +10,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
 	component: RouteComponent,
@@ -36,6 +37,7 @@ function RouteComponent() {
 	const updateCourse = useMutation({
 		mutationFn: updateCourseFn,
 		onSuccess: () => {
+			toast.success("Course updated");
 			router.invalidate();
 		},
 	});

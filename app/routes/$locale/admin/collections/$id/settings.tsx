@@ -10,6 +10,7 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/settings")(
 	{
@@ -37,6 +38,7 @@ function RouteComponent() {
 	const updateCollection = useMutation({
 		mutationFn: updateCollectionFn,
 		onSuccess: () => {
+			toast.success("Collection updated successfully.");
 			router.invalidate();
 		},
 	});

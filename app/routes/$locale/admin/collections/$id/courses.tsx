@@ -27,6 +27,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/courses")({
 	component: RouteComponent,
