@@ -258,7 +258,7 @@ const ImageField = ({
 		: null;
 
 	return (
-		<div className="flex flex-col items-start gap-2">
+		<div className="flex flex-col items-start gap-2 w-full">
 			<Label>{label}</Label>
 			{imageUrl ? (
 				<img
@@ -266,11 +266,11 @@ const ImageField = ({
 					width={width}
 					height={height}
 					alt={label}
-					className="rounded"
+					className="rounded-md p-2 border"
 				/>
 			) : (
 				<div
-					className="bg-muted rounded"
+					className="bg-muted rounded-md"
 					style={{
 						width,
 						height,
@@ -278,21 +278,23 @@ const ImageField = ({
 				/>
 			)}
 			<div className="flex items-center gap-2">
-				<Label
-					htmlFor={field.name}
-					className={buttonVariants({
-						size: "sm",
-						variant: "secondary",
-						className: "cursor-pointer",
-					})}
-				>
-					Change {label}
-				</Label>
+				<Input
+					id={field.name}
+					name={field.name}
+					type="file"
+					accept="image/*"
+					onChange={(event) => {
+						field.handleChange(
+							event.target.files ? event.target.files[0] : "",
+						);
+					}}
+				/>
 				{field.state.value && (
 					<Button
-						size="sm"
+						type="button"
 						variant="secondary"
-						onClick={() => {
+						onClick={(e) => {
+							e.preventDefault();
 							field.handleChange("");
 						}}
 					>
@@ -300,19 +302,6 @@ const ImageField = ({
 					</Button>
 				)}
 			</div>
-			<Input
-				id={field.name}
-				name={field.name}
-				placeholder="Logo"
-				type="file"
-				className="hidden"
-				accept="image/*"
-				onChange={(event) => {
-					field.handleChange(
-						event.target.files ? event.target.files[0] : "",
-					);
-				}}
-			/>
 			<Description
 				description={`Suggested image size: ${suggestedWidth}px x ${suggestedHeight}px`}
 			/>

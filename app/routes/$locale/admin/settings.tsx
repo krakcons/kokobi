@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import CopyButton from "@/components/CopyButton";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
@@ -90,24 +91,28 @@ function RouteComponent() {
 	const createDomain = useMutation({
 		mutationFn: createDomainFn,
 		onSuccess: () => {
+			toast.success("Domain created");
 			router.invalidate();
 		},
 	});
 	const updateTeam = useMutation({
 		mutationFn: updateTeamFn,
 		onSuccess: () => {
+			toast.success("Team updated");
 			router.invalidate();
 		},
 	});
 	const deleteTeam = useMutation({
 		mutationFn: deleteTeamFn,
 		onSuccess: () => {
+			toast.success("Team deleted");
 			router.invalidate();
 		},
 	});
 	const deleteTeamDomain = useMutation({
 		mutationFn: deleteTeamDomainFn,
 		onSuccess: () => {
+			toast.success("Domain deleted");
 			router.invalidate();
 		},
 	});
