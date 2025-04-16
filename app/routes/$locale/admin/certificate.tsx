@@ -10,7 +10,12 @@ import { PendingComponent } from "@/components/PendingComponent";
 export const Route = createFileRoute("/$locale/admin/certificate")({
 	component: RouteComponent,
 	pendingComponent: PendingComponent,
-	loader: () => getTeamFn(),
+	loader: () =>
+		getTeamFn({
+			data: {
+				type: "admin",
+			},
+		}),
 });
 
 const CertificatePDF = lazy(() => import("@/components/CertificatePDF"));

@@ -7,7 +7,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getAuthFn, getTeamsFn, setTeamFn } from "@/server/handlers/user";
 import { getConnectionsFn } from "@/server/handlers/connections";
-import { getTeamFn, getTenantFn } from "@/server/handlers/teams";
+import { getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
 import { env } from "@/env";
@@ -54,9 +54,10 @@ export const Route = createFileRoute("/$locale/learner")({
 			if (teams.length === 0) {
 				throw new Error("No learner team found");
 			} else {
-				await setLearnerTeamFn({
+				await setTeamFn({
 					data: {
 						teamId: teams[0].id,
+						type: "learner",
 					},
 				});
 				throw redirect({
