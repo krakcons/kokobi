@@ -1,4 +1,3 @@
-import { useTranslations } from "@/lib/locale";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
@@ -33,7 +32,6 @@ import { getTeamFn } from "@/server/handlers/teams";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { createRequestLink } from "@/lib/invite";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
@@ -49,7 +47,7 @@ export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 				}),
 				getTeamFn({
 					data: {
-						type: "learner",
+						type: "admin",
 					},
 				}),
 			]),
