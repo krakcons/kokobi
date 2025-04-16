@@ -4,7 +4,7 @@ import {
 	protectedMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
-import { teams, usersToTeams } from "@/server/db/schema";
+import { teams, users, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { createI18n } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
@@ -142,4 +142,16 @@ export const signOutFn = createServerFn()
 			to: "/$locale/auth/login",
 			params: { locale: context.locale },
 		});
+	});
+
+export const UserFormSchema = z.object({
+	firstName: z.string().min(1),
+	lastName: z.string().min(1),
+});
+export type UserFormType = z.infer<typeof UserFormSchema>;
+export const updateUserFn = createServerFn({ method: "POST" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.validator(UserFormSchema)
+	.handler(async ({ context, data }) => {
+		await db.update(users).set(data).where(eq(users.id, context.user.id));
 	});

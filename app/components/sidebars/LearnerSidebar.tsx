@@ -47,6 +47,8 @@ import { useMutation } from "@tanstack/react-query";
 import { userConnectionResponseFn } from "@/server/handlers/connections";
 import { ConnectionCollapsible } from "./ConnectionCollapsible";
 import { TeamSwitcher } from "./TeamSwitcher";
+import { User } from "@/types/users";
+import { UserButton } from "./UserButton";
 
 const CourseCollapsible = ({
 	connection,
@@ -190,6 +192,7 @@ export const LearnerSidebar = ({
 	teams,
 	courses,
 	collections,
+	user,
 }: {
 	tenantId?: string;
 	teamId: string;
@@ -201,6 +204,7 @@ export const LearnerSidebar = ({
 				courses: (Course & CourseTranslation)[];
 			};
 	})[];
+	user: User;
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { setOpenMobile } = useSidebar();
@@ -263,43 +267,7 @@ export const LearnerSidebar = ({
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
-			<SidebarFooter>
-				<SidebarMenuItem>
-					<SidebarMenuButton asChild>
-						<Select
-							value={theme}
-							onValueChange={(value: Theme) => {
-								setTheme(value);
-							}}
-						>
-							<SelectTrigger>
-								<p className="font-medium">Theme</p>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="light">
-									<Sun />
-									Light
-								</SelectItem>
-								<SelectItem value="dark">
-									<Moon />
-									Dark
-								</SelectItem>
-								<SelectItem value="system">
-									<SunMoon />
-									System
-								</SelectItem>
-							</SelectContent>
-						</Select>
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-				<SidebarMenuItem>
-					<SidebarMenuButton onClick={() => signOut()}>
-						<LogOut />
-						Sign out
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-			</SidebarFooter>
+			<UserButton user={user} />
 		</Sidebar>
 	);
 };

@@ -61,6 +61,7 @@ export const Route = createFileRoute("/$locale/admin")({
 				await setTeamFn({
 					data: {
 						teamId: teams[0].id,
+						type: "admin",
 					},
 				});
 				throw redirect({
@@ -109,6 +110,7 @@ function RouteComponent() {
 				courses={courses}
 				collections={collections}
 				connections={connections}
+				user={auth.user!}
 			/>
 			<SidebarInset>
 				<header className="p-4 flex flex-row items-center justify-between">

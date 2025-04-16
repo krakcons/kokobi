@@ -1,14 +1,6 @@
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupAction,
 	SidebarGroupContent,
@@ -32,22 +24,18 @@ import {
 	ChevronRight,
 	Key,
 	LayoutDashboard,
-	LogOut,
 	Plus,
 	Settings,
 	Users,
 	Files,
 	Book,
 	FileBadge,
-	Moon,
-	Sun,
-	SunMoon,
 	Share,
 	Check,
 	X,
 	ChartNoAxesColumn,
 } from "lucide-react";
-import { Theme, useTheme } from "@/lib/theme";
+import { useTheme } from "@/lib/theme";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
@@ -59,6 +47,8 @@ import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { teamConnectionResponseFn } from "@/server/handlers/connections";
 import { useMutation } from "@tanstack/react-query";
 import { TeamSwitcher } from "./TeamSwitcher";
+import { User } from "@/types/users";
+import { UserButton } from "./UserButton";
 
 const CourseCollapsible = ({
 	course,
@@ -492,6 +482,7 @@ export const AdminSidebar = ({
 	courses,
 	collections,
 	connections,
+	user,
 }: {
 	tenantId?: string;
 	teamId: string;
@@ -502,6 +493,7 @@ export const AdminSidebar = ({
 		course: Course & CourseTranslation;
 		team: Team & TeamTranslation;
 	})[];
+	user: User;
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { setOpenMobile } = useSidebar();
@@ -692,43 +684,7 @@ export const AdminSidebar = ({
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
-			<SidebarFooter>
-				<SidebarMenuItem>
-					<SidebarMenuButton asChild>
-						<Select
-							value={theme}
-							onValueChange={(value: Theme) => {
-								setTheme(value);
-							}}
-						>
-							<SelectTrigger>
-								<p className="font-medium">Theme</p>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="light">
-									<Sun />
-									Light
-								</SelectItem>
-								<SelectItem value="dark">
-									<Moon />
-									Dark
-								</SelectItem>
-								<SelectItem value="system">
-									<SunMoon />
-									System
-								</SelectItem>
-							</SelectContent>
-						</Select>
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-				<SidebarMenuItem>
-					<SidebarMenuButton onClick={() => signOut()}>
-						<LogOut />
-						Sign out
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-			</SidebarFooter>
+			<UserButton user={user} />
 		</Sidebar>
 	);
 };

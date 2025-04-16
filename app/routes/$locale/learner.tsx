@@ -73,6 +73,7 @@ export const Route = createFileRoute("/$locale/learner")({
 	},
 	loader: () =>
 		Promise.all([
+			getAuthFn(),
 			getTeamsFn({
 				data: {
 					type: "learner",
@@ -94,7 +95,7 @@ export const Route = createFileRoute("/$locale/learner")({
 
 function RouteComponent() {
 	const { teamId } = Route.useRouteContext();
-	const [teams, courses, collections, tenantId] = Route.useLoaderData();
+	const [auth, teams, courses, collections, tenantId] = Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
@@ -104,6 +105,7 @@ function RouteComponent() {
 				teams={teams}
 				courses={courses}
 				collections={collections}
+				user={auth.user!}
 			/>
 			<SidebarInset>
 				<header className="p-4 flex flex-row items-center justify-between">
