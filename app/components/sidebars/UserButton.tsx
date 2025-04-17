@@ -9,6 +9,8 @@ import { signOutFn, updateUserFn } from "@/server/handlers/user";
 import { useServerFn } from "@tanstack/react-start";
 import type { User as UserType } from "@/types/users";
 import {
+	Blocks,
+	Book,
 	LogOutIcon,
 	Moon,
 	MoreVerticalIcon,
@@ -37,8 +39,9 @@ import {
 import { useState } from "react";
 import { UserForm } from "../forms/UserForm";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/lib/locale";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -57,6 +60,10 @@ export const UserButton = ({ user }: { user: UserType }) => {
 	const [accountOpen, setAccountOpen] = useState(false);
 	const signOut = useServerFn(signOutFn);
 	const router = useRouter();
+	const location = useLocation();
+	const locale = useLocale();
+
+	const learnerAdmin = location.pathname.startsWith(`/${locale}/learner`);
 
 	const name =
 		user.firstName && user.lastName
@@ -168,6 +175,28 @@ export const UserButton = ({ user }: { user: UserType }) => {
 								>
 									<UserCircleIcon />
 									Account
+								</DropdownMenuItem>
+								<DropdownMenuItem asChild>
+									<Link
+										to={
+											learnerAdmin
+												? "/$locale/admin"
+												: "/$locale/learner"
+										}
+										params={{ locale }}
+									>
+										{learnerAdmin ? (
+											<>
+												<Blocks />
+												Switch to Admin
+											</>
+										) : (
+											<>
+												<Book />
+												Switch to Learner
+											</>
+										)}
+									</Link>
 								</DropdownMenuItem>
 							</DropdownMenuGroup>
 							<DropdownMenuSeparator />

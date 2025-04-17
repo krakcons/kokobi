@@ -31,45 +31,50 @@ export const Route = createFileRoute("/$locale/learner")({
 			});
 		}
 
-		if (search.teamId) {
-			await setTeamFn({
-				data: {
-					teamId: search.teamId,
-					type: "learner",
-				},
-			});
-			const newUrl = new URL(env.VITE_SITE_URL + location.href);
-			newUrl.searchParams.delete("teamId");
-			throw redirect({
-				href: newUrl.href,
-			});
-		}
-
-		if (!auth.learnerTeamId) {
-			const teams = await getTeamsFn({
-				data: {
-					type: "learner",
-				},
-			});
-			if (teams.length === 0) {
-				throw new Error("No learner team found");
-			} else {
+		const tenantId = await getTenantFn();
+		if (tenantId) {
+			if (tenantId !== auth.learnerTeamId) {
 				await setTeamFn({
 					data: {
-						teamId: teams[0].id,
+						teamId: tenantId,
 						type: "learner",
 					},
 				});
-				throw redirect({
-					to: "/$locale/learner",
-					params: {
-						locale: params.locale,
+				throw redirect({ href: location.href });
+			}
+		} else {
+			if (search.teamId) {
+				await setTeamFn({
+					data: {
+						teamId: search.teamId,
+						type: "learner",
 					},
 				});
+				const newUrl = new URL(env.VITE_SITE_URL + location.href);
+				newUrl.searchParams.delete("teamId");
+				throw redirect({
+					href: newUrl.href,
+				});
+			}
+			if (!auth.learnerTeamId) {
+				const teams = await getTeamsFn({
+					data: {
+						type: "learner",
+					},
+				});
+				if (teams.length === 0) {
+					throw new Error("No learner team found");
+				} else {
+					await setTeamFn({
+						data: {
+							teamId: teams[0].id,
+							type: "learner",
+						},
+					});
+					throw redirect({ href: location.href });
+				}
 			}
 		}
-
-		return { teamId: auth.learnerTeamId };
 	},
 	loader: () =>
 		Promise.all([
@@ -94,14 +99,13 @@ export const Route = createFileRoute("/$locale/learner")({
 });
 
 function RouteComponent() {
-	const { teamId } = Route.useRouteContext();
 	const [auth, teams, courses, collections, tenantId] = Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
 			<LearnerSidebar
 				tenantId={tenantId ?? undefined}
-				teamId={teamId}
+				teamId={auth.learnerTeamId!}
 				teams={teams}
 				courses={courses}
 				collections={collections}

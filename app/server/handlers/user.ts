@@ -52,7 +52,13 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 			throw new Error("Unauthorized");
 		}
 
-		if (type === "learner") {
+		if (type === "learner" && context.learnerTeamId) {
+			const learnerTeam = await db.query.teams.findFirst({
+				where: eq(teams.id, context.learnerTeamId),
+				with: {
+					translations: true,
+				},
+			});
 			const courseTeams = await db.query.usersToCourses.findMany({
 				where: eq(usersToTeams.userId, user.id),
 				with: {
@@ -74,8 +80,12 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 				},
 			});
 
-			return [...collectionTeams, ...courseTeams]
-				.map(({ team }) => handleLocalization(context, team))
+			return [
+				...(learnerTeam ? [learnerTeam] : []),
+				...collectionTeams.map(({ team }) => team),
+				...courseTeams.map(({ team }) => team),
+			]
+				.map((team) => handleLocalization(context, team))
 				.reduce(
 					(acc, team) =>
 						acc.find((t) => t.id === team.teamId)
@@ -108,14 +118,14 @@ export const setTeamFn = createServerFn({ method: "POST" })
 	.validator(
 		z.object({
 			teamId: z.string(),
-			type: z.enum(["learner", "admin", "both"]),
+			type: z.enum(["learner", "admin"]),
 		}),
 	)
 	.handler(async ({ context, data }) => {
-		if (data.type !== "admin" && context.learnerTeamId !== data.teamId) {
+		if (data.type === "learner" && context.learnerTeamId !== data.teamId) {
 			setCookie("learnerTeamId", data.teamId);
 		}
-		if (data.type !== "learner" && data.teamId !== context.teamId) {
+		if (data.type === "admin" && data.teamId !== context.teamId) {
 			const team = await db.query.usersToTeams.findFirst({
 				where: and(
 					eq(usersToTeams.userId, context.user.id),
@@ -124,7 +134,7 @@ export const setTeamFn = createServerFn({ method: "POST" })
 			});
 
 			if (!team) {
-				throw new Error("Team not found");
+				throw new Error("You are not a member of this team");
 			}
 
 			setCookie("teamId", data.teamId);

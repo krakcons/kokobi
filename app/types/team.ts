@@ -12,9 +12,7 @@ export const validDomainSchema = z
 		"Invalid domain format, use format (example.com)",
 	);
 
-export const TeamSchema = createSelectSchema(teams, {
-	customDomain: validDomainSchema,
-});
+export const TeamSchema = createSelectSchema(teams);
 export type Team = z.infer<typeof TeamSchema>;
 
 export const TeamTranslationSchema = createSelectSchema(teamTranslations);

@@ -44,32 +44,41 @@ export const Route = createFileRoute("/$locale/admin")({
 			});
 		}
 
-		if (!auth.teamId) {
-			const teams = await getTeamsFn({
-				data: {
-					type: "admin",
-				},
-			});
-			if (teams.length === 0) {
-				throw redirect({
-					to: "/$locale/create-team",
-					params: {
-						locale: params.locale,
-					},
-				});
-			} else {
+		const tenantId = await getTenantFn();
+		if (tenantId) {
+			if (tenantId !== auth.teamId) {
 				await setTeamFn({
 					data: {
-						teamId: teams[0].id,
+						teamId: tenantId,
 						type: "admin",
 					},
 				});
-				throw redirect({
-					to: "/$locale/admin",
-					params: {
-						locale: params.locale,
+			}
+		} else {
+			if (!auth.teamId) {
+				const teams = await getTeamsFn({
+					data: {
+						type: "admin",
 					},
 				});
+				if (teams.length === 0) {
+					throw redirect({
+						to: "/$locale/create-team",
+						params: {
+							locale: params.locale,
+						},
+					});
+				} else {
+					await setTeamFn({
+						data: {
+							teamId: teams[0].id,
+							type: "admin",
+						},
+					});
+					throw redirect({
+						href: location.href,
+					});
+				}
 			}
 		}
 	},

@@ -6,19 +6,12 @@ import {
 	HeadContent,
 	redirect,
 	Scripts,
-	notFound,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
-import {
-	getAuthFn,
-	getI18nFn,
-	setTeamFn,
-	updateI18nFn,
-} from "@/server/handlers/user";
+import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
 import appCss from "@/index.css?url";
-import { getTenantFn } from "@/server/handlers/teams";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -44,32 +37,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 							locale,
 						},
 					});
-				}
-
-				const auth = await getAuthFn();
-				const tenantId = await getTenantFn();
-				if (tenantId) {
-					const validRoutes = [
-						`/${pathLocale}/learner`,
-						`/${pathLocale}/admin`,
-						`/${pathLocale}/auth`,
-					];
-					if (auth.session) {
-						// Force tenant to be teamId
-						await setTeamFn({
-							data: {
-								teamId: tenantId,
-								type: "both",
-							},
-						});
-					}
-					if (
-						!validRoutes.some((route) =>
-							location.pathname.startsWith(route),
-						)
-					) {
-						throw notFound();
-					}
 				}
 			}
 

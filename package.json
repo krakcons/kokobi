@@ -11,6 +11,7 @@
 		"email": "email dev --dir app/emails --port 3001",
 		"db": "sst shell drizzle-kit --target=Studio",
 		"sso": "aws sso login --sso-session=krak",
+		"typecheck": "tsc --noEmit",
 		"deploy:dev": "bun sst shell bun run build --stage dev && bun sst deploy --stage dev",
 		"deploy:prod": "bun sst shell bun run build --stage prod && bun sst deploy --stage prod"
 	},
