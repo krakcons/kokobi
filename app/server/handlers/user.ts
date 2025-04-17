@@ -108,14 +108,14 @@ export const setTeamFn = createServerFn({ method: "POST" })
 	.validator(
 		z.object({
 			teamId: z.string(),
-			type: z.enum(["learner", "admin"]),
+			type: z.enum(["learner", "admin", "both"]),
 		}),
 	)
 	.handler(async ({ context, data }) => {
-		if (data.type === "learner" && context.learnerTeamId !== data.teamId) {
+		if (data.type !== "admin" && context.learnerTeamId !== data.teamId) {
 			setCookie("learnerTeamId", data.teamId);
 		}
-		if (data.type === "admin" && data.teamId !== context.teamId) {
+		if (data.type !== "learner" && data.teamId !== context.teamId) {
 			const team = await db.query.usersToTeams.findFirst({
 				where: and(
 					eq(usersToTeams.userId, context.user.id),
@@ -137,6 +137,7 @@ export const signOutFn = createServerFn()
 		if (!context.user || !context.session) return;
 		deleteCookie("auth_session");
 		deleteCookie("teamId");
+		deleteCookie("learnerTeamId");
 		invalidateSession(context.session.id);
 		throw redirect({
 			to: "/$locale/auth/login",

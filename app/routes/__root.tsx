@@ -59,6 +59,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 						await setTeamFn({
 							data: {
 								teamId: tenantId,
+								type: "both",
 							},
 						});
 					}

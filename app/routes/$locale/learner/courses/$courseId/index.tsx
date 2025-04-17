@@ -1,6 +1,6 @@
 import { Certificate } from "@/components/Certificate";
 import { ContentBranding } from "@/components/ContentBranding";
-import { FloatingPage, Page, PageHeader } from "@/components/Page";
+import { Page, PageHeader } from "@/components/Page";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Table,
@@ -16,7 +16,7 @@ import { getCollectionFn } from "@/server/handlers/collections";
 import { getAttemptsFn, getConnectionFn } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
 import { createAttemptFn } from "@/server/handlers/learners";
-import { getTeamByIdFn, getTeamFn } from "@/server/handlers/teams";
+import { getTeamFn } from "@/server/handlers/teams";
 import { getAuthFn } from "@/server/handlers/user";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
