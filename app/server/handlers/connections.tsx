@@ -24,7 +24,7 @@ import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
 import { hasTeamCourseAccess } from "../helpers";
-import { createInviteLink } from "@/lib/invite";
+import { createConnectionLink } from "@/lib/invite";
 import Invite from "@/emails/Invite";
 
 export const GetConnectionSchema = z.object({
@@ -270,12 +270,14 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 			await Promise.all(
 				userList.map(async (user) => {
-					const href = createInviteLink({
+					const href = createConnectionLink({
 						domain:
 							team.domains.length > 0
 								? team.domains[0]
 								: undefined,
 						teamId,
+						type: "course",
+						id: course.id,
 						locale: "en",
 					});
 
@@ -345,12 +347,14 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 			await Promise.all([
 				userList.map(async (user) => {
-					const href = createInviteLink({
+					const href = createConnectionLink({
 						domain:
 							team.domains.length > 0
 								? team.domains[0]
 								: undefined,
 						teamId,
+						type: "collection",
+						id: collection.id,
 						locale: "en",
 					});
 

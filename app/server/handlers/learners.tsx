@@ -14,7 +14,7 @@ import CourseCompletion from "@/emails/CourseCompletion";
 import { getInitialScormData } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createCourseLink } from "@/lib/invite";
+import { createConnectionLink } from "@/lib/invite";
 import { hasUserCourseAccess } from "../helpers";
 
 const parser = new XMLParser({
@@ -165,10 +165,11 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 				const team = handleLocalization(context, teamBase!);
 				const course = handleLocalization(context, attempt.course);
 
-				const href = createCourseLink({
+				const href = createConnectionLink({
 					domain:
 						team.domains.length > 0 ? team.domains[0] : undefined,
-					courseId: course.id,
+					id: course.id,
+					type: "course",
 					locale: course.locale,
 				});
 

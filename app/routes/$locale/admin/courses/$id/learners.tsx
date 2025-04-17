@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { getTeamFn } from "@/server/handlers/teams";
-import { createRequestLink } from "@/lib/invite";
+import { createConnectionLink } from "@/lib/invite";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
@@ -61,7 +61,6 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const [learners, team] = Route.useLoaderData();
 	const router = useRouter();
-	const tConnect = useTranslations("ConnectionActions");
 
 	const connectionResponse = useMutation({
 		mutationFn: teamConnectionResponseFn,
@@ -151,7 +150,7 @@ function RouteComponent() {
 		]),
 	];
 
-	const inviteLink = createRequestLink({
+	const inviteLink = createConnectionLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
 		type: "course",
 		id: params.id,

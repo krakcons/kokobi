@@ -100,12 +100,22 @@ export const getCollectionFn = createServerFn({ method: "GET" })
 			where: and(eq(collections.id, id)),
 			with: {
 				translations: true,
+				team: {
+					with: {
+						translations: true,
+					},
+				},
 			},
 		});
+
 		if (!collection) {
 			throw new Error("Collection not found");
 		}
-		return handleLocalization(context, collection);
+
+		return {
+			...handleLocalization(context, collection),
+			team: handleLocalization(context, collection.team),
+		};
 	});
 
 export const getCollectionLearnersFn = createServerFn({ method: "GET" })

@@ -5,10 +5,15 @@ import { ConnectionType } from "@/types/connections";
 export const ConnectionStatusBadge = ({
 	connectStatus,
 	connectType,
-}: ConnectionType) => {
+	hideOnSuccess = false,
+}: ConnectionType & { hideOnSuccess?: boolean }) => {
 	const t = useTranslations("ConnectionStatuses");
 	const tType = useTranslations("ConnectionTypes");
 	const text = tType[connectType] + " " + t[connectStatus];
+
+	if (hideOnSuccess && connectStatus === "accepted") {
+		return null;
+	}
 
 	return (
 		<Badge

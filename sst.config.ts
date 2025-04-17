@@ -66,25 +66,25 @@ export default $config({
 			sender: domain,
 			dns,
 		});
-		//if (email) {
-		//	new aws.ses.MailFrom("MailFrom", {
-		//		mailFromDomain: emailDomain,
-		//		domain,
-		//	});
-		//	new cloudflare.Record("MX", {
-		//		zoneId: cloudflareZone.id,
-		//		name: emailDomain,
-		//		type: "MX",
-		//		priority: 10,
-		//		value: "feedback-smtp.ca-central-1.amazonses.com",
-		//	});
-		//	new cloudflare.Record("TXT", {
-		//		zoneId: cloudflareZone.id,
-		//		name: emailDomain,
-		//		type: "TXT",
-		//		value: '"v=spf1 include:amazonses.com ~all"',
-		//	});
-		//}
+		if (email) {
+			new aws.ses.MailFrom("MailFrom", {
+				mailFromDomain: emailDomain,
+				domain,
+			});
+			new cloudflare.Record("MX", {
+				zoneId: cloudflareZone.id,
+				name: emailDomain,
+				type: "MX",
+				priority: 10,
+				value: "feedback-smtp.ca-central-1.amazonses.com",
+			});
+			new cloudflare.Record("TXT", {
+				zoneId: cloudflareZone.id,
+				name: emailDomain,
+				type: "TXT",
+				value: '"v=spf1 include:amazonses.com ~all"',
+			});
+		}
 
 		const cluster = new sst.aws.Cluster("Cluster", { vpc });
 		new sst.aws.Service("TSS", {

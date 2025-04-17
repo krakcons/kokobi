@@ -1,19 +1,8 @@
-import { ConnectionActions } from "@/components/ConnectionActions";
-import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { Page, PageHeader, PageSubHeader } from "@/components/Page";
-import {
-	getConnectionsFn,
-	userConnectionResponseFn,
-} from "@/server/handlers/connections";
-import { ConnectionType, UserToCourseType } from "@/types/connections";
-import { Course, CourseTranslation } from "@/types/course";
-import { useMutation } from "@tanstack/react-query";
-import {
-	createFileRoute,
-	Link,
-	redirect,
-	useRouter,
-} from "@tanstack/react-router";
+import { ConnectionComponent } from "@/components/ConnectionComponent";
+import { Page, PageHeader } from "@/components/Page";
+import { getConnectionsFn } from "@/server/handlers/connections";
+import { UserToCourseType } from "@/types/connections";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
@@ -32,36 +21,6 @@ export const Route = createFileRoute("/$locale/learner/")({
 		]),
 });
 
-const CourseComponent = ({
-	course,
-	connection,
-	disabled,
-}: {
-	course: Course & CourseTranslation;
-	connection?: UserToCourseType;
-	disabled?: boolean;
-}) => {
-	return (
-		<Link
-			to="/$locale/learner/courses/$courseId"
-			from={Route.fullPath}
-			params={{
-				courseId: course.id,
-			}}
-			className="w-full rounded-lg p-4 border flex flex-col gap-4"
-			disabled={disabled}
-		>
-			<PageSubHeader
-				title={course.name}
-				description={course.description}
-				className="items-start"
-			>
-				{connection && <ConnectionStatusBadge {...connection} />}
-			</PageSubHeader>
-		</Link>
-	);
-};
-
 function RouteComponent() {
 	const [courses, collections] = Route.useLoaderData();
 
@@ -74,11 +33,11 @@ function RouteComponent() {
 			<div className="flex flex-col gap-4">
 				<h3>Courses</h3>
 				{courses?.map((connection) => (
-					<CourseComponent
+					<ConnectionComponent
 						key={connection.courseId}
-						course={connection.course}
+						{...connection.course}
+						type="course"
 						connection={connection}
-						disabled={connection?.connectStatus !== "accepted"}
 					/>
 				))}
 			</div>
@@ -86,29 +45,12 @@ function RouteComponent() {
 				<h3>Collections</h3>
 				<div className="flex flex-row gap-4">
 					{collections?.map((connection) => (
-						<div
+						<ConnectionComponent
 							key={connection.collectionId}
-							className="w-full rounded-lg p-4 border flex flex-col gap-4"
-						>
-							<PageSubHeader
-								title={connection.collection.name}
-								description={connection.collection.description}
-								className="items-start"
-							>
-								<div className="flex gap-2 items-center">
-									<ConnectionStatusBadge {...connection} />
-								</div>
-							</PageSubHeader>
-							{connection.collection.courses.map((course) => (
-								<CourseComponent
-									key={course.id}
-									course={course}
-									disabled={
-										connection?.connectStatus !== "accepted"
-									}
-								/>
-							))}
-						</div>
+							{...connection.collection}
+							type="collection"
+							connection={connection}
+						/>
 					))}
 				</div>
 			</div>

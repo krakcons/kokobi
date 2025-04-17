@@ -31,7 +31,7 @@ import { User } from "@/types/users";
 import { getTeamFn } from "@/server/handlers/teams";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { createRequestLink } from "@/lib/invite";
+import { createConnectionLink } from "@/lib/invite";
 
 export const Route = createFileRoute("/$locale/admin/collections/$id/learners")(
 	{
@@ -150,7 +150,7 @@ function RouteComponent() {
 		]),
 	];
 
-	const inviteLink = createRequestLink({
+	const inviteLink = createConnectionLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
 		type: "collection",
 		id: params.id,

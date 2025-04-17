@@ -27,6 +27,7 @@ import { Route as LocaleAdminOnboardImport } from './routes/$locale/admin/onboar
 import { Route as LocaleAdminMembersImport } from './routes/$locale/admin/members'
 import { Route as LocaleAdminKeysImport } from './routes/$locale/admin/keys'
 import { Route as LocaleAdminCertificateImport } from './routes/$locale/admin/certificate'
+import { Route as LocaleLearnerCollectionsCollectionIdImport } from './routes/$locale/learner/collections/$collectionId'
 import { Route as LocaleAdminCoursesCreateImport } from './routes/$locale/admin/courses/create'
 import { Route as LocaleAdminCollectionsCreateImport } from './routes/$locale/admin/collections/create'
 import { Route as LocaleLearnerCoursesCourseIdIndexImport } from './routes/$locale/learner/courses/$courseId/index'
@@ -138,6 +139,13 @@ const LocaleAdminCertificateRoute = LocaleAdminCertificateImport.update({
   path: '/certificate',
   getParentRoute: () => LocaleAdminRoute,
 } as any)
+
+const LocaleLearnerCollectionsCollectionIdRoute =
+  LocaleLearnerCollectionsCollectionIdImport.update({
+    id: '/collections/$collectionId',
+    path: '/collections/$collectionId',
+    getParentRoute: () => LocaleLearnerRoute,
+  } as any)
 
 const LocaleAdminCoursesCreateRoute = LocaleAdminCoursesCreateImport.update({
   id: '/courses/create',
@@ -359,6 +367,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminCoursesCreateImport
       parentRoute: typeof LocaleAdminImport
     }
+    '/$locale/learner/collections/$collectionId': {
+      id: '/$locale/learner/collections/$collectionId'
+      path: '/collections/$collectionId'
+      fullPath: '/$locale/learner/collections/$collectionId'
+      preLoaderRoute: typeof LocaleLearnerCollectionsCollectionIdImport
+      parentRoute: typeof LocaleLearnerImport
+    }
     '/$locale/admin/collections/$id/courses': {
       id: '/$locale/admin/collections/$id/courses'
       path: '/collections/$id/courses'
@@ -489,6 +504,7 @@ interface LocaleLearnerRouteChildren {
   LocaleLearnerInviteRoute: typeof LocaleLearnerInviteRoute
   LocaleLearnerRequestRoute: typeof LocaleLearnerRequestRoute
   LocaleLearnerIndexRoute: typeof LocaleLearnerIndexRoute
+  LocaleLearnerCollectionsCollectionIdRoute: typeof LocaleLearnerCollectionsCollectionIdRoute
   LocaleLearnerCoursesCourseIdPlayRoute: typeof LocaleLearnerCoursesCourseIdPlayRoute
   LocaleLearnerCoursesCourseIdIndexRoute: typeof LocaleLearnerCoursesCourseIdIndexRoute
 }
@@ -497,6 +513,8 @@ const LocaleLearnerRouteChildren: LocaleLearnerRouteChildren = {
   LocaleLearnerInviteRoute: LocaleLearnerInviteRoute,
   LocaleLearnerRequestRoute: LocaleLearnerRequestRoute,
   LocaleLearnerIndexRoute: LocaleLearnerIndexRoute,
+  LocaleLearnerCollectionsCollectionIdRoute:
+    LocaleLearnerCollectionsCollectionIdRoute,
   LocaleLearnerCoursesCourseIdPlayRoute: LocaleLearnerCoursesCourseIdPlayRoute,
   LocaleLearnerCoursesCourseIdIndexRoute:
     LocaleLearnerCoursesCourseIdIndexRoute,
@@ -525,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/$locale/learner/': typeof LocaleLearnerIndexRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
+  '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdRoute
   '/$locale/admin/collections/$id/courses': typeof LocaleAdminCollectionsIdCoursesRoute
   '/$locale/admin/collections/$id/learners': typeof LocaleAdminCollectionsIdLearnersRoute
   '/$locale/admin/collections/$id/settings': typeof LocaleAdminCollectionsIdSettingsRoute
@@ -555,6 +574,7 @@ export interface FileRoutesByTo {
   '/$locale/learner': typeof LocaleLearnerIndexRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
+  '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdRoute
   '/$locale/admin/collections/$id/courses': typeof LocaleAdminCollectionsIdCoursesRoute
   '/$locale/admin/collections/$id/learners': typeof LocaleAdminCollectionsIdLearnersRoute
   '/$locale/admin/collections/$id/settings': typeof LocaleAdminCollectionsIdSettingsRoute
@@ -588,6 +608,7 @@ export interface FileRoutesById {
   '/$locale/learner/': typeof LocaleLearnerIndexRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
+  '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdRoute
   '/$locale/admin/collections/$id/courses': typeof LocaleAdminCollectionsIdCoursesRoute
   '/$locale/admin/collections/$id/learners': typeof LocaleAdminCollectionsIdLearnersRoute
   '/$locale/admin/collections/$id/settings': typeof LocaleAdminCollectionsIdSettingsRoute
@@ -622,6 +643,7 @@ export interface FileRouteTypes {
     | '/$locale/learner/'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
+    | '/$locale/learner/collections/$collectionId'
     | '/$locale/admin/collections/$id/courses'
     | '/$locale/admin/collections/$id/learners'
     | '/$locale/admin/collections/$id/settings'
@@ -651,6 +673,7 @@ export interface FileRouteTypes {
     | '/$locale/learner'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
+    | '/$locale/learner/collections/$collectionId'
     | '/$locale/admin/collections/$id/courses'
     | '/$locale/admin/collections/$id/learners'
     | '/$locale/admin/collections/$id/settings'
@@ -682,6 +705,7 @@ export interface FileRouteTypes {
     | '/$locale/learner/'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
+    | '/$locale/learner/collections/$collectionId'
     | '/$locale/admin/collections/$id/courses'
     | '/$locale/admin/collections/$id/learners'
     | '/$locale/admin/collections/$id/settings'
@@ -769,6 +793,7 @@ export const routeTree = rootRoute
         "/$locale/learner/invite",
         "/$locale/learner/request",
         "/$locale/learner/",
+        "/$locale/learner/collections/$collectionId",
         "/$locale/learner/courses/$courseId/play",
         "/$locale/learner/courses/$courseId/"
       ]
@@ -825,6 +850,10 @@ export const routeTree = rootRoute
     "/$locale/admin/courses/create": {
       "filePath": "$locale/admin/courses/create.tsx",
       "parent": "/$locale/admin"
+    },
+    "/$locale/learner/collections/$collectionId": {
+      "filePath": "$locale/learner/collections/$collectionId.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/admin/collections/$id/courses": {
       "filePath": "$locale/admin/collections/$id/courses.tsx",

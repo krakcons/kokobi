@@ -1,14 +1,6 @@
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
 	Sidebar,
 	SidebarContent,
-	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
@@ -27,15 +19,8 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useLocale } from "@/lib/locale";
-import {
-	ChevronRight,
-	LogOut,
-	Moon,
-	Sun,
-	SunMoon,
-	LayoutDashboard,
-} from "lucide-react";
-import { Theme, useTheme } from "@/lib/theme";
+import { ChevronRight, LayoutDashboard } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 import { Course, CourseTranslation } from "@/types/course";
 import { useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
@@ -49,142 +34,7 @@ import { ConnectionCollapsible } from "./ConnectionCollapsible";
 import { TeamSwitcher } from "./TeamSwitcher";
 import { User } from "@/types/users";
 import { UserButton } from "./UserButton";
-
-const CourseCollapsible = ({
-	connection,
-}: {
-	connection: UserToCourseType & { course: Course & CourseTranslation };
-}) => {
-	const { setOpenMobile } = useSidebar();
-	const locale = useLocale();
-	const course = connection.course;
-	const router = useRouter();
-
-	const connectionResponse = useMutation({
-		mutationFn: userConnectionResponseFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-
-	if (connection.connectStatus !== "accepted") {
-		return (
-			<ConnectionCollapsible
-				name={course.name}
-				{...connection}
-				onSubmit={(connectStatus) => {
-					connectionResponse.mutate({
-						data: {
-							type: "course",
-							id: course.id,
-							connectStatus,
-						},
-					});
-				}}
-			/>
-		);
-	}
-
-	return (
-		<SidebarMenuItem>
-			<Link
-				to="/$locale/learner/courses/$courseId"
-				params={{
-					locale,
-					courseId: course.id,
-				}}
-				search={(p) => p}
-				onClick={() => {
-					setOpenMobile(false);
-				}}
-			>
-				{({ isActive }) => (
-					<SidebarMenuButton isActive={isActive}>
-						{course.name}
-					</SidebarMenuButton>
-				)}
-			</Link>
-		</SidebarMenuItem>
-	);
-};
-
-const CollectionCollapsible = ({
-	connection,
-}: {
-	connection: UserToCollectionType & {
-		collection: Collection &
-			CollectionTranslation & {
-				courses: (Course & CourseTranslation)[];
-			};
-	};
-}) => {
-	const [open, setOpen] = useState(false);
-	const locale = useLocale();
-	const collection = connection.collection;
-	const { setOpenMobile } = useSidebar();
-	const router = useRouter();
-
-	const connectionResponse = useMutation({
-		mutationFn: userConnectionResponseFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-
-	if (connection.connectStatus !== "accepted") {
-		return (
-			<ConnectionCollapsible
-				name={collection.name}
-				{...connection}
-				onSubmit={(connectStatus) => {
-					connectionResponse.mutate({
-						data: {
-							type: "collection",
-							id: collection.id,
-							connectStatus,
-						},
-					});
-				}}
-			/>
-		);
-	}
-
-	return (
-		<Collapsible asChild className="group/collapsible" open={open}>
-			<SidebarMenuItem>
-				<CollapsibleTrigger asChild>
-					<SidebarMenuButton onClick={() => setOpen(!open)}>
-						{collection.name}
-						<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-					</SidebarMenuButton>
-				</CollapsibleTrigger>
-				<CollapsibleContent>
-					<SidebarMenuSub>
-						{collection.courses.map((course) => (
-							<Link
-								to={"/$locale/learner/courses/$courseId"}
-								params={{
-									locale,
-									courseId: course.id,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								{({ isActive }) => (
-									<SidebarMenuSubButton isActive={isActive}>
-										{course.name}
-									</SidebarMenuSubButton>
-								)}
-							</Link>
-						))}
-					</SidebarMenuSub>
-				</CollapsibleContent>
-			</SidebarMenuItem>
-		</Collapsible>
-	);
-};
+import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
 
 export const LearnerSidebar = ({
 	tenantId,
@@ -206,9 +56,7 @@ export const LearnerSidebar = ({
 	})[];
 	user: User;
 }) => {
-	const { theme, setTheme } = useTheme();
 	const { setOpenMobile } = useSidebar();
-	const signOut = useServerFn(signOutFn);
 	const locale = useLocale();
 
 	return (
@@ -248,10 +96,32 @@ export const LearnerSidebar = ({
 					<SidebarGroupContent>
 						<SidebarGroupLabel>Courses</SidebarGroupLabel>
 						{courses.map((connection) => (
-							<CourseCollapsible
-								connection={connection}
-								key={connection.courseId}
-							/>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/learner/courses/$courseId"
+									params={{
+										locale,
+										courseId: connection.course.id,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton
+											isActive={isActive}
+											className="justify-between"
+										>
+											{connection.course.name}
+											<ConnectionStatusBadge
+												hideOnSuccess
+												{...connection}
+											/>
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
 						))}
 					</SidebarGroupContent>
 				</SidebarGroup>
@@ -259,10 +129,32 @@ export const LearnerSidebar = ({
 					<SidebarGroupContent>
 						<SidebarGroupLabel>Collections</SidebarGroupLabel>
 						{collections.map((connection) => (
-							<CollectionCollapsible
-								connection={connection}
-								key={connection.collectionId}
-							/>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/learner/collections/$collectionId"
+									params={{
+										locale,
+										collectionId: connection.collectionId,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton
+											isActive={isActive}
+											className="justify-between"
+										>
+											{connection.collection.name}
+											<ConnectionStatusBadge
+												hideOnSuccess
+												{...connection}
+											/>
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
 						))}
 					</SidebarGroupContent>
 				</SidebarGroup>
