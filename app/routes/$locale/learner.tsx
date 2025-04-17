@@ -19,6 +19,7 @@ export const Route = createFileRoute("/$locale/learner")({
 	}),
 	beforeLoad: async ({ params, search, location }) => {
 		const auth = await getAuthFn();
+		throw new Error("Not implemented");
 
 		if (!auth.user) {
 			throw redirect({

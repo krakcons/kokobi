@@ -6,12 +6,19 @@ import {
 	HeadContent,
 	redirect,
 	Scripts,
+	notFound,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
-import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
+import {
+	getAuthFn,
+	getI18nFn,
+	setTeamFn,
+	updateI18nFn,
+} from "@/server/handlers/user";
 import appCss from "@/index.css?url";
+import { getTenantFn } from "@/server/handlers/teams";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -37,6 +44,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 							locale,
 						},
 					});
+				}
+
+				const validRoutes = [
+					`/${pathLocale}/admin`,
+					`/${pathLocale}/learner`,
+					`/${pathLocale}/auth`,
+				];
+
+				if (
+					!validRoutes.some((route) =>
+						location.pathname.startsWith(route),
+					)
+				) {
+					throw notFound();
 				}
 			}
 
