@@ -7,30 +7,15 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarMenuSub,
-	SidebarMenuSubButton,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useRouter } from "@tanstack/react-router";
-
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Link } from "@tanstack/react-router";
 import { useLocale } from "@/lib/locale";
-import { ChevronRight, LayoutDashboard } from "lucide-react";
-import { useTheme } from "@/lib/theme";
+import { LayoutDashboard } from "lucide-react";
 import { Course, CourseTranslation } from "@/types/course";
-import { useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
-import { signOutFn } from "@/server/handlers/user";
 import { Team, TeamTranslation } from "@/types/team";
-import { useServerFn } from "@tanstack/react-start";
 import { UserToCollectionType, UserToCourseType } from "@/types/connections";
-import { useMutation } from "@tanstack/react-query";
-import { userConnectionResponseFn } from "@/server/handlers/connections";
-import { ConnectionCollapsible } from "./ConnectionCollapsible";
 import { TeamSwitcher } from "./TeamSwitcher";
 import { User } from "@/types/users";
 import { UserButton } from "./UserButton";
@@ -96,7 +81,7 @@ export const LearnerSidebar = ({
 					<SidebarGroupContent>
 						<SidebarGroupLabel>Courses</SidebarGroupLabel>
 						{courses.map((connection) => (
-							<SidebarMenuItem>
+							<SidebarMenuItem key={connection.courseId}>
 								<Link
 									to="/$locale/learner/courses/$courseId"
 									params={{
@@ -129,7 +114,7 @@ export const LearnerSidebar = ({
 					<SidebarGroupContent>
 						<SidebarGroupLabel>Collections</SidebarGroupLabel>
 						{collections.map((connection) => (
-							<SidebarMenuItem>
+							<SidebarMenuItem key={connection.collectionId}>
 								<Link
 									to="/$locale/learner/collections/$collectionId"
 									params={{

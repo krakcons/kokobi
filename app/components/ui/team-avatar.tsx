@@ -40,7 +40,7 @@ function TeamAvatarFallback({
 		<AvatarPrimitive.Fallback
 			data-slot="avatar-fallback"
 			className={cn(
-				"border flex size-full items-center justify-center rounded-full",
+				"border flex size-full items-center justify-center rounded-md",
 				className,
 			)}
 			{...props}

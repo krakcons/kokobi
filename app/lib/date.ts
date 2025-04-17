@@ -1,19 +1,32 @@
 import { Locale } from "./locale";
 
-const dateTypes: Record<"readable" | "detailed", Intl.DateTimeFormatOptions> = {
+const dateTypes: Record<
+	"readable" | "detailed",
+	{
+		date: Intl.DateTimeFormatOptions;
+		time: Intl.DateTimeFormatOptions;
+	}
+> = {
 	readable: {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
+		date: {
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		},
+		time: {},
 	},
 	detailed: {
-		day: "numeric",
-		month: "short",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-		hour12: false,
+		date: {
+			day: "numeric",
+			month: "short",
+			year: "numeric",
+		},
+		time: {
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+			hour12: false,
+		},
 	},
 };
 
@@ -27,5 +40,10 @@ export const formatDate = ({
 	type?: keyof typeof dateTypes;
 }): string => {
 	if (!date) return "";
-	return new Intl.DateTimeFormat(locale, dateTypes[type]).format(date);
+
+	const dateType = dateTypes[type];
+	const dateFormatter = new Intl.DateTimeFormat(locale, dateType.date);
+	const timeFormatter = new Intl.DateTimeFormat(locale, dateType.time);
+
+	return `${dateFormatter.format(date)} ${timeFormatter.format(date)}`;
 };

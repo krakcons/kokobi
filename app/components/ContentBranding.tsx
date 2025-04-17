@@ -1,6 +1,11 @@
 import { env } from "@/env";
 import { Team, TeamTranslation } from "@/types/team";
-import { TeamAvatar, TeamAvatarImage } from "./ui/team-avatar";
+import {
+	TeamAvatar,
+	TeamAvatarFallback,
+	TeamAvatarImage,
+} from "./ui/team-avatar";
+import { Package } from "lucide-react";
 
 export const ContentBranding = ({
 	contentTeam,
@@ -12,12 +17,15 @@ export const ContentBranding = ({
 	console.log(contentTeam, connectTeam);
 	return (
 		<div className="flex items-center">
-			<TeamAvatar>
+			<TeamAvatar className="mr-2">
 				<TeamAvatarImage
 					src={`${env.VITE_SITE_URL}/cdn/${connectTeam.id}/${connectTeam.locale}/logo?updatedAt=${connectTeam.updatedAt}`}
 					alt="Delivered by team logo"
-					className="max-h-10 mr-2"
+					className="max-h-10"
 				/>
+				<TeamAvatarFallback className="h-10 w-10">
+					<Package className="size-5" />
+				</TeamAvatarFallback>
 			</TeamAvatar>
 			<div className="flex gap-2 items-center">
 				<p>
