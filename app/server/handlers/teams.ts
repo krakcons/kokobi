@@ -260,14 +260,16 @@ export const deleteTeamFn = createServerFn({ method: "POST" })
 		const teamId = context.teamId;
 
 		// TODO: DELETE full team data w/courses (waiting on bun s3 list function)
-		locales.forEach(async (locale) => {
-			await s3.delete(`/${teamId}/${locale.value}/logo`);
-			await s3.delete(
-				`/${teamId}/${locale.value
-					.toLowerCase()
-					.replaceAll("-", "_")}/favicon`,
-			);
-		});
+		await Promise.all([
+			locales.map(async (locale) => {
+				await s3.delete(`/${teamId}/${locale.value}/logo`);
+				await s3.delete(
+					`/${teamId}/${locale.value
+						.toLowerCase()
+						.replaceAll("-", "_")}/favicon`,
+				);
+			}),
+		]);
 		await db.delete(teams).where(eq(teams.id, teamId));
 
 		// Find next best team or redirect to create team

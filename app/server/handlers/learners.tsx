@@ -5,7 +5,7 @@ import { localeMiddleware, protectedMiddleware } from "../middleware";
 import { s3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { sendEmail } from "../email";
+import { sendEmail, verifyEmail } from "../email";
 import { createTranslator } from "@/lib/locale/actions";
 import { XMLParser } from "fast-xml-parser";
 import { IMSManifestSchema, Resource } from "@/types/scorm/content";
@@ -176,6 +176,8 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 					locale: attempt.module?.locale ?? "en",
 				});
 
+				const emailVerified = await verifyEmail(team.domains);
+
 				await sendEmail({
 					to: [context.user.email],
 					subject: t.Email.CourseCompletion.subject,
@@ -187,7 +189,7 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 							t={t.Email.CourseCompletion}
 						/>
 					),
-					team,
+					team: emailVerified ? team : undefined,
 				});
 			}
 		}

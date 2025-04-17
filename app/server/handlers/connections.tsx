@@ -1,7 +1,6 @@
 import {
 	learnerMiddleware,
 	localeMiddleware,
-	protectedMiddleware,
 	teamMiddleware,
 } from "../middleware";
 import { db } from "@/server/db";
@@ -19,7 +18,7 @@ import { ExtendLearner } from "@/types/learner";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { sendEmail } from "../email";
+import { sendEmail, verifyEmail } from "../email";
 import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
@@ -267,33 +266,39 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 					),
 				});
 
-			userList.forEach(async (user) => {
-				const href = createInviteLink({
-					domain:
-						team.domains.length > 0 ? team.domains[0] : undefined,
-					teamId,
-					locale: "en",
-				});
+			const emailVerified = await verifyEmail(team.domains);
 
-				const t = await createTranslator({
-					locale: "en",
-				});
+			await Promise.all(
+				userList.map(async (user) => {
+					const href = createInviteLink({
+						domain:
+							team.domains.length > 0
+								? team.domains[0]
+								: undefined,
+						teamId,
+						locale: "en",
+					});
 
-				await sendEmail({
-					to: [user.email],
-					subject: t.Email.Invite.subject,
-					content: (
-						<Invite
-							href={href}
-							name={course.name}
-							teamName={team.name}
-							logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
-							t={t.Email.Invite}
-						/>
-					),
-					team,
-				});
-			});
+					const t = await createTranslator({
+						locale: "en",
+					});
+
+					await sendEmail({
+						to: [user.email],
+						subject: t.Email.Invite.subject,
+						content: (
+							<Invite
+								href={href}
+								name={course.name}
+								teamName={team.name}
+								logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
+								t={t.Email.Invite}
+							/>
+						),
+						team: emailVerified ? team : undefined,
+					});
+				}),
+			);
 		}
 
 		if (type === "collection") {
@@ -336,33 +341,39 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 					),
 				});
 
-			userList.forEach(async (user) => {
-				const href = createInviteLink({
-					domain:
-						team.domains.length > 0 ? team.domains[0] : undefined,
-					teamId,
-					locale: "en",
-				});
+			const emailVerified = await verifyEmail(team.domains);
 
-				const t = await createTranslator({
-					locale: "en",
-				});
+			await Promise.all([
+				userList.map(async (user) => {
+					const href = createInviteLink({
+						domain:
+							team.domains.length > 0
+								? team.domains[0]
+								: undefined,
+						teamId,
+						locale: "en",
+					});
 
-				await sendEmail({
-					to: [user.email],
-					subject: t.Email.Invite.subject,
-					content: (
-						<Invite
-							href={href}
-							name={collection.name}
-							teamName={team.name}
-							logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
-							t={t.Email.Invite}
-						/>
-					),
-					team,
-				});
-			});
+					const t = await createTranslator({
+						locale: "en",
+					});
+
+					await sendEmail({
+						to: [user.email],
+						subject: t.Email.Invite.subject,
+						content: (
+							<Invite
+								href={href}
+								name={collection.name}
+								teamName={team.name}
+								logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
+								t={t.Email.Invite}
+							/>
+						),
+						team: emailVerified ? team : undefined,
+					});
+				}),
+			]);
 		}
 
 		return null;

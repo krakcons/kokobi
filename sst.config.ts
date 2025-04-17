@@ -63,7 +63,7 @@ export default $config({
 
 		// EMAIL //
 		const email = new sst.aws.Email("Email", {
-			sender: emailDomain,
+			sender: domain,
 			dns,
 		});
 		//if (email) {

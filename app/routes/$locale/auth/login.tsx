@@ -2,20 +2,20 @@ import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
 import { env } from "@/env";
 import { db } from "@/server/db";
-import { emailVerifications, users } from "@/server/db/schema";
-import { sendEmail } from "@/server/email";
+import { emailVerifications, teams, users } from "@/server/db/schema";
+import { sendEmail, verifyEmail } from "@/server/email";
 import { getTenantFn } from "@/server/handlers/teams";
 import { getAuthFn } from "@/server/handlers/user";
 import { localeMiddleware } from "@/server/middleware";
 import { generateRandomString } from "@/server/random";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createServerFn, useServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { setCookie } from "vinxi/http";
 import { z } from "zod";
-import Image from "@/components/ui/image";
 import { TeamAvatar, TeamAvatarImage } from "@/components/ui/team-avatar";
+import { handleLocalization } from "@/lib/locale/helpers";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -117,10 +117,29 @@ const requestOTPFn = createServerFn({ method: "POST" })
 			})
 			.returning();
 
+		// If on a tenant, get the team, and send email from the tenant
+		let team = undefined;
+		const tenantId = await getTenantFn();
+		if (tenantId) {
+			const teamBase = await db.query.teams.findFirst({
+				where: eq(teams.id, tenantId),
+				with: {
+					translations: true,
+					domains: true,
+				},
+			});
+			if (teamBase) {
+				team = handleLocalization(context, teamBase);
+			}
+		}
+
+		const emailVerified = team && (await verifyEmail(team.domains));
+
 		// Send verification email
 		await sendEmail({
 			to: [data.email],
 			subject: "Email Verification Code",
+			team: emailVerified ? team : undefined,
 			content: (
 				<div>
 					Here is your verification code:{" "}
