@@ -1,12 +1,8 @@
-import { Link } from "@tanstack/react-router";
 import { FloatingPage } from "./Page";
-import { buttonVariants } from "./ui/button";
-import { useLocale } from "@/lib/locale";
+import { Button, buttonVariants } from "./ui/button";
 import { ArrowLeft, Blocks, Book } from "lucide-react";
 
 export function NotFound({ children }: { children?: any }) {
-	const locale = useLocale();
-
 	return (
 		<FloatingPage className="gap-8 text-center">
 			<h1 className="text-7xl font-black">404</h1>
@@ -16,9 +12,7 @@ export function NotFound({ children }: { children?: any }) {
 				)}
 			</p>
 			<div className="flex sm:justify-center gap-2 flex-wrap flex-col sm:flex-row w-full">
-				<Link
-					to="/$locale"
-					params={{ locale }}
+				<Button
 					className={buttonVariants()}
 					onClick={(e) => {
 						e.preventDefault();
@@ -27,27 +21,21 @@ export function NotFound({ children }: { children?: any }) {
 				>
 					<ArrowLeft />
 					Go Back
-				</Link>
-				<Link
-					to="/$locale/learner"
-					params={{
-						locale,
-					}}
+				</Button>
+				<a
+					href="/learner"
 					className={buttonVariants({ variant: "outline" })}
 				>
 					<Book />
 					Learner
-				</Link>
-				<Link
-					to="/$locale/admin"
-					params={{
-						locale,
-					}}
+				</a>
+				<a
+					href="/admin"
 					className={buttonVariants({ variant: "outline" })}
 				>
 					<Blocks />
 					Admin
-				</Link>
+				</a>
 			</div>
 		</FloatingPage>
 	);

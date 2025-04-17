@@ -11,12 +11,7 @@ import {
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
-import {
-	getAuthFn,
-	getI18nFn,
-	setTeamFn,
-	updateI18nFn,
-} from "@/server/handlers/user";
+import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
 import appCss from "@/index.css?url";
 import { getTenantFn } from "@/server/handlers/teams";
 
@@ -46,18 +41,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					});
 				}
 
-				const validRoutes = [
-					`/${pathLocale}/admin`,
-					`/${pathLocale}/learner`,
-					`/${pathLocale}/auth`,
-				];
+				const tenant = await getTenantFn();
+				if (tenant) {
+					const validRoutes = [
+						`/${pathLocale}/admin`,
+						`/${pathLocale}/learner`,
+						`/${pathLocale}/auth`,
+					];
 
-				if (
-					!validRoutes.some((route) =>
-						location.pathname.startsWith(route),
-					)
-				) {
-					throw notFound();
+					if (
+						!validRoutes.some((route) =>
+							location.pathname.startsWith(route),
+						)
+					) {
+						throw notFound();
+					}
 				}
 			}
 

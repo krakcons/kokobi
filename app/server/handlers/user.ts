@@ -52,13 +52,16 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 			throw new Error("Unauthorized");
 		}
 
-		if (type === "learner" && context.learnerTeamId) {
-			const learnerTeam = await db.query.teams.findFirst({
-				where: eq(teams.id, context.learnerTeamId),
-				with: {
-					translations: true,
-				},
-			});
+		if (type === "learner") {
+			let learnerTeam = undefined;
+			if (context.learnerTeamId) {
+				learnerTeam = await db.query.teams.findFirst({
+					where: eq(teams.id, context.learnerTeamId),
+					with: {
+						translations: true,
+					},
+				});
+			}
 			const courseTeams = await db.query.usersToCourses.findMany({
 				where: eq(usersToTeams.userId, user.id),
 				with: {

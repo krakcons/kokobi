@@ -62,6 +62,7 @@ export const Route = createFileRoute("/$locale/learner")({
 						type: "learner",
 					},
 				});
+				console.log(teams);
 				if (teams.length === 0) {
 					throw new Error("No learner team found");
 				} else {
