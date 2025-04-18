@@ -27,16 +27,17 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 
-export const Route = createFileRoute("/$locale/admin/collections/$id/courses")({
+export const Route = createFileRoute(
+	"/$locale/admin/collections/$collectionId/courses",
+)({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: ({ params }) =>
 		Promise.all([
 			getCollectionCoursesFn({
 				data: {
-					id: params.id,
+					id: params.collectionId,
 				},
 			}),
 			getCoursesFn(),
@@ -88,7 +89,7 @@ function RouteComponent() {
 				onClick: ({ id }) =>
 					deleteCourse.mutate({
 						data: {
-							id: params.id,
+							id: params.collectionId,
 							courseId: id,
 						},
 					}),
@@ -144,7 +145,7 @@ function RouteComponent() {
 									createCourses.mutateAsync(
 										{
 											data: {
-												id: params.id,
+												id: params.collectionId,
 												...value,
 											},
 										},

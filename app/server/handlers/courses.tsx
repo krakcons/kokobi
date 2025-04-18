@@ -74,7 +74,7 @@ export const createCourseFn = createServerFn({ method: "POST" })
 			locale,
 		});
 
-		return { id: courseId };
+		return { courseId };
 	});
 
 export const updateCourseFn = createServerFn({ method: "POST" })

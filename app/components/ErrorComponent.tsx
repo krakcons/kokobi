@@ -2,16 +2,16 @@ import { useRouter } from "@tanstack/react-router";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Button, buttonVariants } from "./ui/button";
 import { FloatingPage } from "./Page";
-import { ArrowLeft, Blocks, Book, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 
-export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
+export const ErrorComponent = ({ error }: ErrorComponentProps) => {
 	const router = useRouter();
 
 	return (
 		<FloatingPage className="gap-8 text-center">
 			<h1>Something went wrong!</h1>
 			<p>{error.message}</p>
-			<div className="flex sm:justify-center gap-2 flex-wrap flex-col sm:flex-row w-full">
+			<div className="flex flex-row gap-2">
 				<Button
 					className={buttonVariants()}
 					onClick={(e) => {
@@ -31,21 +31,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 					<RefreshCw />
 					Try Again
 				</Button>
-				<a
-					href="/learner"
-					className={buttonVariants({ variant: "outline" })}
-				>
-					<Book />
-					Learner
-				</a>
-				<a
-					href="/admin"
-					className={buttonVariants({ variant: "outline" })}
-				>
-					<Blocks />
-					Admin
-				</a>
 			</div>
 		</FloatingPage>
 	);
-}
+};

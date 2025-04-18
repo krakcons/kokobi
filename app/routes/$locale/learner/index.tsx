@@ -1,7 +1,6 @@
 import { ConnectionComponent } from "@/components/ConnectionComponent";
 import { Page, PageHeader } from "@/components/Page";
 import { getConnectionsFn } from "@/server/handlers/connections";
-import { UserToCourseType } from "@/types/connections";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/learner/")({
@@ -34,8 +33,8 @@ function RouteComponent() {
 				<h3>Courses</h3>
 				{courses?.map((connection) => (
 					<ConnectionComponent
-						key={connection.courseId}
-						{...connection.course}
+						key={connection.course!.id}
+						{...connection.course!}
 						type="course"
 						connection={connection}
 					/>
@@ -46,8 +45,8 @@ function RouteComponent() {
 				<div className="flex flex-row gap-4">
 					{collections?.map((connection) => (
 						<ConnectionComponent
-							key={connection.collectionId}
-							{...connection.collection}
+							key={connection.collection!.id}
+							{...connection.collection!}
 							type="collection"
 							connection={connection}
 						/>

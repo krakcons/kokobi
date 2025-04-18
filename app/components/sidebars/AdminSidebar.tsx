@@ -13,7 +13,6 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { Link, useMatch, useRouter } from "@tanstack/react-router";
-
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -35,13 +34,10 @@ import {
 	X,
 	ChartNoAxesColumn,
 } from "lucide-react";
-import { useTheme } from "@/lib/theme";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
-import { signOutFn } from "@/server/handlers/user";
 import { Team, TeamTranslation } from "@/types/team";
-import { useServerFn } from "@tanstack/react-start";
 import { TeamToCourseType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { teamConnectionResponseFn } from "@/server/handlers/connections";
@@ -61,19 +57,19 @@ const CourseCollapsible = ({
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
-		from: "/$locale/admin/courses/$id/learners",
+		from: "/$locale/admin/courses/$courseId/learners",
 		shouldThrow: false,
 	});
 	const matchModules = useMatch({
-		from: "/$locale/admin/courses/$id/modules",
+		from: "/$locale/admin/courses/$courseId/modules",
 		shouldThrow: false,
 	});
 	const matchStatistics = useMatch({
-		from: "/$locale/admin/courses/$id/statistics",
+		from: "/$locale/admin/courses/$courseId/statistics",
 		shouldThrow: false,
 	});
 	const matchSettings = useMatch({
-		from: "/$locale/admin/courses/$id/settings",
+		from: "/$locale/admin/courses/$courseId/settings",
 		shouldThrow: false,
 	});
 	useEffect(() => {
@@ -83,7 +79,11 @@ const CourseCollapsible = ({
 			matchSettings,
 			matchStatistics,
 		];
-		if (matches.some((match) => match && match.params.id === course.id)) {
+		if (
+			matches.some(
+				(match) => match && match.params.courseId === course.id,
+			)
+		) {
 			setOpen(true);
 		}
 	}, [matchLearners, matchModules, matchSettings, matchStatistics]);
@@ -106,10 +106,10 @@ const CourseCollapsible = ({
 					<SidebarMenuSub>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/learners"}
+								to={"/$locale/admin/courses/$courseId/learners"}
 								params={{
 									locale,
-									id: course.id,
+									courseId: course.id,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -126,10 +126,10 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/modules"}
+								to={"/$locale/admin/courses/$courseId/modules"}
 								params={{
 									locale,
-									id: course.id,
+									courseId: course.id,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -146,10 +146,12 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/statistics"}
+								to={
+									"/$locale/admin/courses/$courseId/statistics"
+								}
 								params={{
 									locale,
-									id: course.id,
+									courseId: course.id,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -166,10 +168,10 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/sharing"}
+								to={"/$locale/admin/courses/$courseId/sharing"}
 								params={{
 									locale,
-									id: course.id,
+									courseId: course.id,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -186,10 +188,10 @@ const CourseCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$id/settings"}
+								to={"/$locale/admin/courses/$courseId/settings"}
 								params={{
 									locale,
-									id: course.id,
+									courseId: course.id,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -224,17 +226,21 @@ const SharedCourseCollapsible = ({
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
-		from: "/$locale/admin/courses/$id/learners",
+		from: "/$locale/admin/courses/$courseId/learners",
 		shouldThrow: false,
 	});
 	const matchStatistics = useMatch({
-		from: "/$locale/admin/courses/$id/statistics",
+		from: "/$locale/admin/courses/$courseId/statistics",
 		shouldThrow: false,
 	});
 
 	useEffect(() => {
 		const matches = [matchLearners, matchStatistics];
-		if (matches.some((match) => match && match.params.id === course.id)) {
+		if (
+			matches.some(
+				(match) => match && match.params.courseId === course.id,
+			)
+		) {
 			setOpen(true);
 		}
 	}, [matchLearners, matchStatistics]);
@@ -276,11 +282,11 @@ const SharedCourseCollapsible = ({
 								<SidebarMenuSubItem>
 									<Link
 										to={
-											"/$locale/admin/courses/$id/learners"
+											"/$locale/admin/courses/$courseId/learners"
 										}
 										params={{
 											locale,
-											id: course.id,
+											courseId: course.id,
 										}}
 										search={(p) => p}
 										onClick={() => {
@@ -300,11 +306,11 @@ const SharedCourseCollapsible = ({
 								<SidebarMenuSubItem>
 									<Link
 										to={
-											"/$locale/admin/courses/$id/statistics"
+											"/$locale/admin/courses/$courseId/statistics"
 										}
 										params={{
 											locale,
-											id: course.id,
+											courseId: course.id,
 										}}
 										search={(p) => p}
 										onClick={() => {
@@ -374,21 +380,23 @@ const CollectionCollapsible = ({
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
-		from: "/$locale/admin/collections/$id/learners",
+		from: "/$locale/admin/collections/$collectionId/learners",
 		shouldThrow: false,
 	});
 	const matchCourses = useMatch({
-		from: "/$locale/admin/collections/$id/courses",
+		from: "/$locale/admin/collections/$collectionId/courses",
 		shouldThrow: false,
 	});
 	const matchSettings = useMatch({
-		from: "/$locale/admin/collections/$id/settings",
+		from: "/$locale/admin/collections/$collectionId/settings",
 		shouldThrow: false,
 	});
 	useEffect(() => {
 		const matches = [matchLearners, matchCourses, matchSettings];
 		if (
-			matches.some((match) => match && match.params.id === collection.id)
+			matches.some(
+				(match) => match && match.params.collectionId === collection.id,
+			)
 		) {
 			setOpen(true);
 		}
@@ -411,10 +419,12 @@ const CollectionCollapsible = ({
 				<CollapsibleContent>
 					<SidebarMenuSub>
 						<Link
-							to={"/$locale/admin/collections/$id/learners"}
+							to={
+								"/$locale/admin/collections/$collectionId/learners"
+							}
 							params={{
 								locale,
-								id: collection.id,
+								collectionId: collection.id,
 							}}
 							search={(p) => p}
 							onClick={() => {
@@ -430,10 +440,12 @@ const CollectionCollapsible = ({
 						</Link>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/collections/$id/courses"}
+								to={
+									"/$locale/admin/collections/$collectionId/courses"
+								}
 								params={{
 									locale,
-									id: collection.id,
+									collectionId: collection.id,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -450,10 +462,12 @@ const CollectionCollapsible = ({
 						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/collections/$id/settings"}
+								to={
+									"/$locale/admin/collections/$collectionId/settings"
+								}
 								params={{
 									locale,
-									id: collection.id,
+									collectionId: collection.id,
 								}}
 								search={(p) => p}
 								onClick={() => {
@@ -495,10 +509,8 @@ export const AdminSidebar = ({
 	})[];
 	user: User;
 }) => {
-	const { theme, setTheme } = useTheme();
 	const { setOpenMobile } = useSidebar();
 	const t = useTranslations("Nav");
-	const signOut = useServerFn(signOutFn);
 	const locale = useLocale();
 
 	return (

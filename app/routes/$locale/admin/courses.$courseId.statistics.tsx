@@ -1,7 +1,6 @@
 import { Page, PageHeader } from "@/components/Page";
 import { getCourseStatisticsFn } from "@/server/handlers/courses";
 import { createFileRoute } from "@tanstack/react-router";
-import { Badge } from "@/components/ui/badge";
 import {
 	Card,
 	CardContent,
@@ -10,14 +9,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import {
-	CheckCircle,
-	CircleEllipsis,
-	Clock,
-	TrendingUpIcon,
-	Users,
-} from "lucide-react";
-import { Learner, learnerStatuses } from "@/types/learner";
+import { CheckCircle, CircleEllipsis, Clock, Users } from "lucide-react";
+import { learnerStatuses } from "@/types/learner";
 import {
 	ChartConfig,
 	ChartContainer,
@@ -25,15 +18,16 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Pie, PieChart } from "recharts";
-import { completionStatuses } from "@/types/course";
 
-export const Route = createFileRoute("/$locale/admin/courses/$id/statistics")({
+export const Route = createFileRoute(
+	"/$locale/admin/courses/$courseId/statistics",
+)({
 	component: RouteComponent,
 	loader: ({ params }) => {
 		return Promise.all([
 			getCourseStatisticsFn({
 				data: {
-					courseId: params.id,
+					courseId: params.courseId,
 				},
 			}),
 		]);

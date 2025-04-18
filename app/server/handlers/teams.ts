@@ -308,6 +308,6 @@ export const getTenantFn = createServerFn({ method: "GET" }).handler(
 		});
 
 		return domain ? domain.teamId : null;
-		//return "0196258d-b904-7000-a490-a4759ca2fd80";
+		//return "019607db-ab52-7000-ac06-35a72c879880";
 	},
 );

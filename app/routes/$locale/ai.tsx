@@ -102,6 +102,7 @@ function RouteComponent() {
 	const { options } = Route.useSearch();
 	const { append, status, messages } = useChat({
 		initialMessages: [],
+		// @ts-ignore
 		fetch: (_, options) => {
 			const body = JSON.parse(options!.body! as string);
 			console.log("BODY", body);

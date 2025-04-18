@@ -18,7 +18,10 @@ const en = {
 		title: { "1": "Modern Learning", "2": "For Less" },
 		description:
 			"Discover modern, affordable, and easy learning management for an empowering educational experience.",
-		"get-started": "Get Started",
+		"team-description":
+			"Visit either the learning or admin portal to get started.",
+		"go-to-admin": "Go to Admin",
+		"go-to-learning": "Go to Learning",
 	},
 	Join: {
 		"0": { title: "Join" },

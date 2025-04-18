@@ -1,20 +1,8 @@
-import { Certificate } from "@/components/Certificate";
 import { ConnectionComponent } from "@/components/ConnectionComponent";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { ContentBranding } from "@/components/ContentBranding";
 import { Page, PageHeader } from "@/components/Page";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
-import { formatDate } from "@/lib/date";
-import { useLocale, useTranslations } from "@/lib/locale";
 import {
 	getCollectionCoursesFn,
 	getCollectionFn,
@@ -25,10 +13,8 @@ import {
 	userConnectionResponseFn,
 } from "@/server/handlers/connections";
 import { getTeamFn } from "@/server/handlers/teams";
-import { getAuthFn } from "@/server/handlers/user";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
 	"/$locale/learner/collections/$collectionId",
@@ -50,14 +36,12 @@ export const Route = createFileRoute(
 			getConnectionFn({
 				data: { type: "collection", id: params.collectionId },
 			}),
-			getAuthFn(),
 		]);
 	},
 });
 
 function RouteComponent() {
-	const [collection, team, courses, connection, { user }] =
-		Route.useLoaderData();
+	const [collection, team, courses, connection] = Route.useLoaderData();
 	const router = useRouter();
 
 	const requestConnection = useMutation({

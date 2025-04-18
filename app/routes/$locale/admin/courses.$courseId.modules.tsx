@@ -28,14 +28,16 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/$locale/admin/courses/$id/modules")({
+export const Route = createFileRoute(
+	"/$locale/admin/courses/$courseId/modules",
+)({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: ({ params: param, deps }) =>
 		getModulesFn({
 			data: {
-				courseId: param.id,
+				courseId: param.courseId,
 			},
 			headers: {
 				...(deps.locale && { locale: deps.locale }),
@@ -124,7 +126,7 @@ function RouteComponent() {
 							onSubmit={(values) => {
 								const formData = new FormData();
 								formData.append("file", values.file);
-								formData.append("courseId", param.id);
+								formData.append("courseId", param.courseId);
 								return createModule.mutateAsync(
 									{
 										data: formData,

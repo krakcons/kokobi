@@ -12,22 +12,22 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/$locale/admin/collections/$id/settings")(
-	{
-		component: RouteComponent,
-		loaderDeps: ({ search: { locale } }) => ({ locale }),
-		loader: ({ params, deps }) =>
-			getCollectionFn({
-				data: {
-					id: params.id,
-				},
-				headers: {
-					...(deps.locale && { locale: deps.locale }),
-					fallbackLocale: "none",
-				},
-			}),
-	},
-);
+export const Route = createFileRoute(
+	"/$locale/admin/collections/$collectionId/settings",
+)({
+	component: RouteComponent,
+	loaderDeps: ({ search: { locale } }) => ({ locale }),
+	loader: ({ params, deps }) =>
+		getCollectionFn({
+			data: {
+				id: params.collectionId,
+			},
+			headers: {
+				...(deps.locale && { locale: deps.locale }),
+				fallbackLocale: "none",
+			},
+		}),
+});
 function RouteComponent() {
 	const params = Route.useParams();
 	const search = Route.useSearch();
@@ -62,7 +62,7 @@ function RouteComponent() {
 					updateCollection.mutateAsync({
 						data: {
 							...value,
-							id: params.id,
+							id: params.collectionId,
 						},
 						headers: {
 							...(search.locale && { locale: search.locale }),
@@ -82,7 +82,7 @@ function RouteComponent() {
 				variant="destructive"
 				onClick={() => {
 					deleteCollection.mutate({
-						data: { id: params.id },
+						data: { id: params.collectionId },
 					});
 				}}
 				className="self-start"

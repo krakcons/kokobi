@@ -12,13 +12,15 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/$locale/admin/courses/$id/settings")({
+export const Route = createFileRoute(
+	"/$locale/admin/courses/$courseId/settings",
+)({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: ({ params, deps }) =>
 		getCourseFn({
 			data: {
-				courseId: params.id,
+				courseId: params.courseId,
 			},
 			headers: {
 				...(deps.locale && { locale: deps.locale }),
@@ -62,7 +64,7 @@ function RouteComponent() {
 					updateCourse.mutateAsync({
 						data: {
 							...values,
-							id: params.id,
+							id: params.courseId,
 						},
 						headers: {
 							...(search.locale && { locale: search.locale }),
@@ -79,7 +81,7 @@ function RouteComponent() {
 				variant="destructive"
 				onClick={() => {
 					deleteCourse.mutate({
-						data: { id: params.id },
+						data: { id: params.courseId },
 					});
 				}}
 				className="self-start"

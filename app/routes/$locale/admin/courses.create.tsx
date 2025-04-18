@@ -14,9 +14,9 @@ function RouteComponent() {
 		mutationFn: createCourseFn,
 		onSuccess: (data) => {
 			navigate({
-				to: "/$locale/admin/courses/$id/learners",
+				to: "/$locale/admin/courses/$courseId/learners",
 				params: {
-					id: data.id,
+					courseId: data.courseId,
 				},
 				search: (s) => s,
 			});

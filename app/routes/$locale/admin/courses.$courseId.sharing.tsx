@@ -28,14 +28,16 @@ import { useState } from "react";
 import { TeamsForm } from "@/components/forms/TeamsForm";
 import { useMutation } from "@tanstack/react-query";
 
-export const Route = createFileRoute("/$locale/admin/courses/$id/sharing")({
+export const Route = createFileRoute(
+	"/$locale/admin/courses/$courseId/sharing",
+)({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ params }) =>
 		Promise.all([
 			getTeamConnectionsFn({
 				data: {
-					id: params.id,
+					id: params.courseId,
 					type: "from-team",
 				},
 			}),
@@ -98,7 +100,7 @@ function RouteComponent() {
 				onClick: ({ teamId }) =>
 					removeConnection.mutate({
 						data: {
-							id: params.id,
+							id: params.courseId,
 							type: "from-team",
 							toId: teamId,
 						},
@@ -131,7 +133,7 @@ function RouteComponent() {
 									{
 										data: {
 											...value,
-											id: params.id,
+											id: params.courseId,
 											type: "course",
 										},
 									},

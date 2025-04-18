@@ -65,13 +65,6 @@ export const ExtendLearner = (type?: Module["type"]) => {
 	});
 };
 
-export const JoinCourseFormSchema = z.object({
-	id: z.string().optional(),
-	email: z.string().email(),
-	moduleId: z.string(),
-});
-export type JoinCourseFormType = z.infer<typeof JoinCourseFormSchema>;
-
 export const LearnersFormSchema = z.object({
 	learners: z
 		.array(

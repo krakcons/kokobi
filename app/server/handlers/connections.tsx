@@ -120,6 +120,7 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 
 			return connections.map((connection) => ({
 				...connection,
+				collection: undefined,
 				course: handleLocalization(context, connection.course),
 				team: handleLocalization(context, connection.team),
 			}));
@@ -162,6 +163,7 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 						(c) => handleLocalization(context, c.course),
 					),
 				}),
+				course: undefined,
 				team: handleLocalization(context, connection.team),
 			}));
 		}

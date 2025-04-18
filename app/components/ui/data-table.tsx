@@ -65,7 +65,7 @@ const flattenObject = (obj: any, prefix = ""): Record<string, any> => {
 			}
 			return acc;
 		},
-		{} as Record<string, any>
+		{} as Record<string, any>,
 	);
 };
 
@@ -76,7 +76,6 @@ export const DataTable = <TData, TValue>({
 	onRowClick,
 	name,
 	deleteMultiple,
-	deleteMultiplePending,
 }: DataTableProps<TData, TValue> & {
 	filter: {
 		column: string;
@@ -138,10 +137,9 @@ export const DataTable = <TData, TValue>({
 									deleteMultiple(
 										table
 											.getFilteredSelectedRowModel()
-											.rows.map((row) => row.original)
+											.rows.map((row) => row.original),
 									);
 							}}
-							isPending={deleteMultiplePending}
 						>
 							Delete{" "}
 							{table.getFilteredSelectedRowModel().rows.length}{" "}
@@ -199,7 +197,7 @@ export const DataTable = <TData, TValue>({
 															header.column
 																.columnDef
 																.header,
-															header.getContext()
+															header.getContext(),
 														)}
 											</TableHead>
 										);
@@ -232,7 +230,7 @@ export const DataTable = <TData, TValue>({
 											>
 												{flexRender(
 													cell.column.columnDef.cell,
-													cell.getContext()
+													cell.getContext(),
 												)}
 											</TableCell>
 										))}

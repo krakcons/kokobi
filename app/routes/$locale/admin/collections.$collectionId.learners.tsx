@@ -1,3 +1,5 @@
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	Dialog,
 	DialogContent,
@@ -13,36 +15,35 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useTranslations } from "@/lib/locale";
 import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import CopyButton from "@/components/CopyButton";
-import { getTeamFn } from "@/server/handlers/teams";
-import { createConnectionLink } from "@/lib/invite";
-import { User } from "@/types/users";
-import { UserToCourseType } from "@/types/connections";
 import {
 	getTeamConnectionsFn,
 	inviteUsersConnectionFn,
 	removeConnectionFn,
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
+import { UserToCollectionType } from "@/types/connections";
+import { User } from "@/types/users";
+import { getTeamFn } from "@/server/handlers/teams";
+import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
+import { createConnectionLink } from "@/lib/invite";
 
-export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
+export const Route = createFileRoute(
+	"/$locale/admin/collections/$collectionId/learners",
+)({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: ({ params }) => {
-		return Promise.all([
+	loader: ({ params }) =>
+		Promise.all([
 			getTeamConnectionsFn({
 				data: {
-					type: "course",
-					id: params.id,
+					type: "collection",
+					id: params.collectionId,
 				},
 			}),
 			getTeamFn({
@@ -50,26 +51,24 @@ export const Route = createFileRoute("/$locale/admin/courses/$id/learners")({
 					type: "admin",
 				},
 			}),
-		]);
-	},
+		]),
 });
 
 function RouteComponent() {
-	const [open, setOpen] = useState(false);
-	const navigate = Route.useNavigate();
-	const params = Route.useParams();
 	const search = Route.useSearch();
+	const params = Route.useParams();
 	const [learners, team] = Route.useLoaderData();
+	const [open, setOpen] = useState(false);
 	const router = useRouter();
 
-	const connectionResponse = useMutation({
-		mutationFn: teamConnectionResponseFn,
+	const createConnection = useMutation({
+		mutationFn: inviteUsersConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
 	});
-	const inviteConnection = useMutation({
-		mutationFn: inviteUsersConnectionFn,
+	const connectionResponse = useMutation({
+		mutationFn: teamConnectionResponseFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -80,8 +79,9 @@ function RouteComponent() {
 			router.invalidate();
 		},
 	});
+	const navigate = Route.useNavigate();
 
-	const columns: ColumnDef<UserToCourseType & { user: User }>[] = [
+	const columns: ColumnDef<UserToCollectionType & { user: User }>[] = [
 		{
 			accessorKey: "user.email",
 			header: ({ column }) => (
@@ -93,9 +93,9 @@ function RouteComponent() {
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
 			),
-			cell: ({ row: { original } }) => {
-				return <ConnectionStatusBadge {...original} />;
-			},
+			cell: ({ row: { original } }) => (
+				<ConnectionStatusBadge {...original} />
+			),
 		},
 		{
 			accessorKey: "user.firstName",
@@ -109,14 +109,14 @@ function RouteComponent() {
 				<DataTableColumnHeader title="Last Name" column={column} />
 			),
 		},
-		createDataTableActionsColumn<UserToCourseType & { user: User }>([
+		createDataTableActionsColumn<UserToCollectionType & { user: User }>([
 			{
 				name: "Accept",
 				onClick: ({ userId }) =>
 					connectionResponse.mutate({
 						data: {
-							id: params.id,
-							type: "course",
+							id: params.collectionId,
+							type: "collection",
 							toId: userId,
 							connectStatus: "accepted",
 						},
@@ -128,8 +128,8 @@ function RouteComponent() {
 				onClick: ({ userId }) =>
 					connectionResponse.mutate({
 						data: {
-							id: params.id,
-							type: "course",
+							id: params.collectionId,
+							type: "collection",
 							toId: userId,
 							connectStatus: "rejected",
 						},
@@ -138,12 +138,12 @@ function RouteComponent() {
 			},
 			{
 				name: "Delete",
-				onClick: ({ userId }) =>
+				onClick: ({ collectionId, user }) =>
 					removeConnection.mutate({
 						data: {
-							id: params.id,
-							type: "course",
-							toId: userId,
+							type: "collection",
+							id: collectionId,
+							toId: user.id,
 						},
 					}),
 			},
@@ -152,8 +152,8 @@ function RouteComponent() {
 
 	const inviteLink = createConnectionLink({
 		domain: team.domains.length > 0 ? team.domains[0] : undefined,
-		type: "course",
-		id: params.id,
+		type: "collection",
+		id: params.collectionId,
 		teamId: team.id,
 	});
 
@@ -161,7 +161,7 @@ function RouteComponent() {
 		<Page>
 			<PageHeader
 				title="Learners"
-				description="Manage learners for this course."
+				description="Manage learners for this collection."
 			>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
@@ -174,18 +174,18 @@ function RouteComponent() {
 						<DialogHeader>
 							<DialogTitle>Invite Learners</DialogTitle>
 							<DialogDescription>
-								Enter emails below and submit to invite them to
-								the course.
+								Enter emails and submit below to invite them to
+								the collection.
 							</DialogDescription>
 						</DialogHeader>
 						<EmailsForm
 							onSubmit={(value) =>
-								inviteConnection.mutateAsync(
+								createConnection.mutateAsync(
 									{
 										data: {
+											type: "collection",
+											id: params.collectionId,
 											...value,
-											id: params.id,
-											type: "course",
 										},
 									},
 									{

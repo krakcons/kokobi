@@ -6,14 +6,13 @@ import {
 	HeadContent,
 	redirect,
 	Scripts,
-	notFound,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
 import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
 import appCss from "@/index.css?url";
-import { getTenantFn } from "@/server/handlers/teams";
+import { NotFound } from "@/components/NotFound";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -40,27 +39,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 						},
 					});
 				}
-
-				const tenant = await getTenantFn();
-				if (tenant) {
-					const validRoutes = [
-						`/${pathLocale}/admin`,
-						`/${pathLocale}/learner`,
-						`/${pathLocale}/auth`,
-					];
-
-					if (
-						!validRoutes.some((route) =>
-							location.pathname.startsWith(route),
-						)
-					) {
-						throw notFound();
-					}
-				}
 			}
 
 			return { locale };
 		},
+		notFoundComponent: () => <NotFound />,
 		pendingComponent: () => (
 			<FloatingPage>
 				<LoaderCircle className="animate-spin size-12" />

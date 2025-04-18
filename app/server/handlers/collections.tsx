@@ -47,7 +47,7 @@ export const createCollectionFn = createServerFn({ method: "POST" })
 			locale,
 		});
 
-		return { id: collectionId };
+		return { collectionId };
 	});
 
 export const updateCollectionFn = createServerFn({ method: "POST" })

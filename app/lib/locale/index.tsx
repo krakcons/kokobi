@@ -45,8 +45,10 @@ export const useTranslations = <TNamespace extends keyof Messages>(
 	}
 
 	if (namespace) {
+		// @ts-expect-error
 		return i18n.messages[namespace];
 	}
 
+	// @ts-expect-error
 	return i18n.messages;
 };

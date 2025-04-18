@@ -14,10 +14,10 @@ function RouteComponent() {
 		mutationFn: createCollectionFn,
 		onSuccess: (data) => {
 			navigate({
-				to: "/$locale/admin/collections/$id/learners",
+				to: "/$locale/admin/collections/$collectionId/learners",
 				params: (p) => ({
 					...p,
-					id: data.id,
+					collectionId: data.collectionId,
 				}),
 				search: (s) => s,
 			});

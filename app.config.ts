@@ -4,6 +4,16 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+	vite: {
+		plugins: [
+			// @ts-ignore
+			tailwindcss(),
+			// @ts-ignore
+			tsConfigPaths({
+				projects: ["./tsconfig.json"],
+			}),
+		],
+	},
 	server: {
 		preset: "bun",
 		rollupConfig: {
@@ -21,13 +31,5 @@ export default defineConfig({
 		ssr: {
 			middleware: "./middleware.ts",
 		},
-	},
-	vite: {
-		plugins: [
-			tailwindcss(),
-			tsConfigPaths({
-				projects: ["./tsconfig.json"],
-			}),
-		],
 	},
 });
