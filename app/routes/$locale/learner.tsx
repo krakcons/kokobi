@@ -67,9 +67,10 @@ export const Route = createFileRoute("/$locale/learner")({
 						type: "learner",
 					},
 				});
-				console.log(teams);
 				if (teams.length === 0) {
-					throw new Error("No learner team found");
+					throw new Error(
+						"You are not yet taking any modules. You must get invited or request a course/collection to view the learner portal.",
+					);
 				} else {
 					await setTeamFn({
 						data: {
