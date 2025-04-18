@@ -3,7 +3,12 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Outlet,
+	redirect,
+	useMatch,
+} from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { getAuthFn, getTeamsFn, setTeamFn } from "@/server/handlers/user";
 import { getConnectionsFn } from "@/server/handlers/connections";
@@ -102,6 +107,11 @@ export const Route = createFileRoute("/$locale/learner")({
 function RouteComponent() {
 	const [auth, teams, courses, collections, tenantId] = Route.useLoaderData();
 
+	const play = useMatch({
+		from: "/$locale/learner/courses/$courseId/play",
+		shouldThrow: false,
+	});
+
 	return (
 		<SidebarProvider>
 			<LearnerSidebar
@@ -113,10 +123,12 @@ function RouteComponent() {
 				user={auth.user!}
 			/>
 			<SidebarInset>
-				<header className="p-4 flex flex-row items-center justify-between">
-					<SidebarTrigger />
-					<LocaleToggle />
-				</header>
+				{!play && (
+					<header className="p-4 flex flex-row items-center justify-between">
+						<SidebarTrigger />
+						<LocaleToggle />
+					</header>
+				)}
 				<Outlet />
 			</SidebarInset>
 		</SidebarProvider>

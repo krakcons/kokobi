@@ -1,21 +1,14 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { useEffect, useState } from "react";
-import { buttonVariants } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Link } from "@tanstack/react-router";
-import { useLocale, useTranslations } from "@/lib/locale";
-import { Loader2, LogOut } from "lucide-react";
+import { useTranslations } from "@/lib/locale";
+import { Loader2 } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
 import { playFn, updateAttemptFn } from "@/server/handlers/learners";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 	{
@@ -23,6 +16,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 		validateSearch: z.object({
 			attemptId: z.string(),
 		}),
+		ssr: false,
 		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
 		loader: ({ params, deps }) =>
 			Promise.all([
@@ -44,8 +38,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 function RouteComponent() {
 	const [certOpen, setCertOpen] = useState(false);
 	const [course, { attempt, url, type }] = Route.useLoaderData();
-	const locale = useLocale();
-	const t = useTranslations("Certificate");
+	const t = useTranslations("Learner");
 
 	const [loading, setLoading] = useState(true);
 	const [completed, setCompleted] = useState(!!attempt.completedAt);
@@ -90,33 +83,12 @@ function RouteComponent() {
 
 	return (
 		<main className="flex h-screen w-full flex-col">
-			{completed && (
-				<header className="flex flex-row justify-between gap-4 p-4 items-center">
-					<p>{t.dialog.description}</p>
-					<Link
-						to="/$locale/learner/courses/$courseId"
-						params={(p) => p}
-						from={Route.fullPath}
-						reloadDocument
-						className={buttonVariants()}
-					>
-						Back to course
-					</Link>
-				</header>
-			)}
-			<Link
-				to="/$locale/learner/courses/$courseId"
-				params={{ courseId: course.id, locale }}
-				className={buttonVariants({
-					size: "icon",
-					className: "absolute right-4 bottom-4",
-				})}
-				reloadDocument
-			>
-				<LogOut />
-			</Link>
+			<header className="px-4 py-2 flex flex-row items-center justify-between">
+				<SidebarTrigger />
+				<Badge>{t.statuses[attempt.status]}</Badge>
+			</header>
 			{loading && (
-				<div className="absolute flex h-screen w-screen items-center justify-center bg-background">
+				<div className="absolute flex h-screen w-full items-center justify-center bg-background">
 					<Loader2 size={48} className="animate-spin" />
 				</div>
 			)}
