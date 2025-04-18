@@ -1,22 +1,8 @@
 import { cn } from "@/lib/utils";
-import { useSidebar } from "./ui/sidebar";
 import { Separator } from "./ui/separator";
 
 export const Page = ({ children }: { children: React.ReactNode }) => {
-	const { open, isMobile } = useSidebar();
-
-	return (
-		<div
-			className={cn(
-				"p-4 gap-4 flex flex-col",
-				open && !isMobile
-					? "max-w-[calc(100vw-16rem)]"
-					: "max-w-screen",
-			)}
-		>
-			{children}
-		</div>
-	);
+	return <div className={cn("p-4 gap-4 flex flex-col")}>{children}</div>;
 };
 
 export const PageHeader = ({
