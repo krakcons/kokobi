@@ -16,6 +16,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createConnectionLink } from "@/lib/invite";
 import { hasUserCourseAccess } from "../helpers";
+import { env } from "@/env";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,
@@ -186,6 +187,11 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 						<CourseCompletion
 							name={course.name}
 							teamName={team.name}
+							logo={
+								team.logo
+									? `${env.VITE_SITE_URL}/cdn/${team.logo}`
+									: undefined
+							}
 							href={href}
 							t={t.Email.CourseCompletion}
 						/>

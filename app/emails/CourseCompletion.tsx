@@ -19,13 +19,13 @@ export const CourseCompletion = ({
 	name = "Golfing Tutorial",
 	teamName = "Krak",
 	href = "https://google.com",
-	logo = "/favicon.ico2",
+	logo,
 	t = en.Email.CourseCompletion,
 }: {
 	name?: string;
 	teamName?: string;
 	href?: string;
-	logo?: string;
+	logo?: string | null;
 	t: Messages["Email"]["CourseCompletion"];
 }) => (
 	<Html lang="en">
@@ -34,12 +34,7 @@ export const CourseCompletion = ({
 			<Body className="mx-auto my-auto bg-white font-sans">
 				<Preview>{t.title}</Preview>
 				<Container className="mx-auto mt-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
-					<Img
-						src={logo}
-						alt="logo"
-						width={175}
-						className="text-[0px]"
-					/>
+					{logo && <Img src={logo} alt="logo" height={100} />}
 					<Heading className={!logo ? "mt-0" : ""}>
 						{t.title} {name} {t.completed}
 					</Heading>

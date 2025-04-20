@@ -295,7 +295,11 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 								href={href}
 								name={course.name}
 								teamName={team.name}
-								logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
+								logo={
+									team.logo
+										? `${env.VITE_SITE_URL}/cdn/${team.logo}`
+										: undefined
+								}
 								t={t.Email.Invite}
 							/>
 						),
@@ -372,7 +376,11 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 								href={href}
 								name={collection.name}
 								teamName={team.name}
-								logo={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team?.updatedAt.toString()}`}
+								logo={
+									team.logo
+										? `${env.VITE_SITE_URL}/cdn/${team.logo}`
+										: undefined
+								}
 								t={t.Email.Invite}
 							/>
 						),

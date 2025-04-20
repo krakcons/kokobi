@@ -18,7 +18,7 @@ export const Invite = ({
 	name = "Volunteer Training",
 	teamName = "CompanionLink",
 	href = "https://google.com",
-	logo = "/favicon.ico",
+	logo,
 	t = en.Email.Invite,
 }: {
 	name?: string;
@@ -33,12 +33,7 @@ export const Invite = ({
 			<Body className="mx-auto my-auto bg-white font-sans">
 				<Preview>{`${teamName} ${t.invite} ${name}`}</Preview>
 				<Container className="mx-auto my-[40px] max-w-[465px] rounded border border-solid border-border p-8 text-foreground">
-					<Img
-						src={logo}
-						alt="logo"
-						width={175}
-						className="text-[0px]"
-					/>
+					{logo && <Img src={logo} alt="logo" height={100} />}
 					<Heading className={!logo ? "mt-0" : ""}>{t.title}</Heading>
 					<Text>
 						<strong>{teamName}</strong>
