@@ -89,6 +89,8 @@ export const teamTranslations = pgTable(
 			}),
 		locale: localeEnum.notNull(),
 		name: text("name").notNull(),
+		logo: text("logo"),
+		favicon: text("favicon"),
 		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.teamId, t.locale] })],

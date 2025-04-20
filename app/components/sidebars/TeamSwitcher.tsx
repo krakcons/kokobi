@@ -39,6 +39,8 @@ export const TeamSwitcher = ({
 
 	const activeTeam = teams.find((t) => t.id === teamId)!;
 
+	console.log(activeTeam, teams);
+
 	const { mutate: setTeam } = useMutation({
 		mutationFn: setTeamFn,
 		onSuccess: () => {

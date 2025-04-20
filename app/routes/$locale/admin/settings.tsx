@@ -115,17 +115,24 @@ function RouteComponent() {
 	});
 
 	const { data } = useQuery({
-		queryKey: ["team-logo-favicon", team.id, team.locale, team.updatedAt],
+		queryKey: [
+			"team-logo-favicon",
+			team.logo,
+			team.favicon,
+			team.updatedAt,
+		],
 		queryFn: async () => {
 			const logo = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/logo?updatedAt=${team.updatedAt}`,
+				`${env.VITE_SITE_URL}/cdn/${team.logo}?updatedAt=${team.updatedAt}`,
 			);
 			const favicon = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt}`,
+				`${env.VITE_SITE_URL}/cdn/${team.favicon}?updatedAt=${team.updatedAt}`,
 			);
 			return { logo, favicon };
 		},
 	});
+
+	console.log(data);
 
 	return (
 		<Page>
@@ -138,10 +145,9 @@ function RouteComponent() {
 			<TeamForm
 				key={team.locale}
 				defaultValues={{
-					logo: "",
-					favicon: "",
-					...team,
-					...data,
+					logo: data?.logo ?? "",
+					favicon: data?.favicon ?? "",
+					name: team.name,
 				}}
 				onSubmit={(values) => {
 					const formData = new FormData();

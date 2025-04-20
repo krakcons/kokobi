@@ -114,11 +114,24 @@ export const createTeamFn = createServerFn({ method: "POST" })
 		);
 		const id = Bun.randomUUIDv7();
 
+		let logo = null;
 		if (data.logo) {
-			await s3.write(`${id}/${locale}/logo`, data.logo);
+			const extension = data.logo.name.split(".").pop();
+			const path = `${id}/${locale}/logo.${extension}`;
+			await s3.write(path, data.logo, {
+				type: data.logo.type,
+			});
+			logo = path;
 		}
+
+		let favicon = null;
 		if (data.favicon) {
-			await s3.write(`${id}/${locale}/favicon`, data.favicon);
+			const extension = data.favicon.name.split(".").pop();
+			const path = `${id}/${locale}/favicon.${extension}`;
+			await s3.write(path, data.favicon, {
+				type: data.favicon.type,
+			});
+			favicon = path;
 		}
 
 		await db.insert(teams).values({ id });
@@ -126,6 +139,8 @@ export const createTeamFn = createServerFn({ method: "POST" })
 			name: data.name,
 			teamId: id,
 			locale,
+			logo,
+			favicon,
 		});
 		await db.insert(usersToTeams).values({
 			userId,
@@ -158,14 +173,26 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 			Object.fromEntries(formData.entries()),
 		);
 
+		let logo = null;
 		if (data.logo) {
-			await s3.write(`${teamId}/${locale}/logo`, data.logo);
+			const extension = data.logo.name.split(".").pop();
+			const path = `${teamId}/${locale}/logo.${extension}`;
+			await s3.write(path, data.logo, {
+				type: data.logo.type,
+			});
+			logo = path;
 		} else {
 			await s3.delete(`${teamId}/${locale}/logo`);
 		}
 
+		let favicon = null;
 		if (data.favicon) {
-			await s3.write(`${teamId}/${locale}/favicon`, data.favicon);
+			const extension = data.favicon.name.split(".").pop();
+			const path = `${teamId}/${locale}/favicon.${extension}`;
+			await s3.write(path, data.favicon, {
+				type: data.favicon.type,
+			});
+			favicon = path;
 		} else {
 			await s3.delete(`${teamId}/${locale}/favicon`);
 		}
@@ -176,10 +203,14 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 				name: data.name,
 				locale,
 				teamId,
+				logo,
+				favicon,
 			})
 			.onConflictDoUpdate({
 				set: {
 					name: data.name,
+					logo,
+					favicon,
 					updatedAt: new Date(),
 				},
 				target: [teamTranslations.teamId, teamTranslations.locale],

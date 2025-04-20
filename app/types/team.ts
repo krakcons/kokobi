@@ -1,4 +1,4 @@
-import { FileSchema } from "@/types/file";
+import { ImageSchema } from "@/types/file";
 import { teamTranslations, teams } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -26,7 +26,7 @@ export type InviteMemberForm = z.infer<typeof InviteMemberFormSchema>;
 
 export const TeamFormSchema = z.object({
 	name: z.string(),
-	logo: FileSchema.or(z.literal("")),
-	favicon: FileSchema.or(z.literal("")),
+	logo: ImageSchema.or(z.literal("")),
+	favicon: ImageSchema.or(z.literal("")),
 });
 export type TeamFormType = z.infer<typeof TeamFormSchema>;
