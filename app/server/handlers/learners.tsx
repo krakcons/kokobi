@@ -17,6 +17,7 @@ import { z } from "zod";
 import { createConnectionLink } from "@/lib/invite";
 import { hasUserCourseAccess } from "../helpers";
 import { env } from "@/env";
+import { teamImageUrl } from "@/lib/file";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,
@@ -187,11 +188,7 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 						<CourseCompletion
 							name={course.name}
 							teamName={team.name}
-							logo={
-								team.logo
-									? `${env.VITE_SITE_URL}/cdn/${team.logo}`
-									: undefined
-							}
+							logo={teamImageUrl(team, "logo")}
 							href={href}
 							t={t.Email.CourseCompletion}
 						/>

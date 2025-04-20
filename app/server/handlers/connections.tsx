@@ -26,6 +26,7 @@ import { env } from "../env";
 import { hasTeamCourseAccess } from "../helpers";
 import { createConnectionLink } from "@/lib/invite";
 import Invite from "@/emails/Invite";
+import { teamImageUrl } from "@/lib/file";
 
 export const GetConnectionSchema = z.object({
 	type: z.enum(["course", "collection"]),
@@ -295,11 +296,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 								href={href}
 								name={course.name}
 								teamName={team.name}
-								logo={
-									team.logo
-										? `${env.VITE_SITE_URL}/cdn/${team.logo}`
-										: undefined
-								}
+								logo={teamImageUrl(team, "logo")}
 								t={t.Email.Invite}
 							/>
 						),
@@ -376,11 +373,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 								href={href}
 								name={collection.name}
 								teamName={team.name}
-								logo={
-									team.logo
-										? `${env.VITE_SITE_URL}/cdn/${team.logo}`
-										: undefined
-								}
+								logo={teamImageUrl(team, "logo")}
 								t={t.Email.Invite}
 							/>
 						),

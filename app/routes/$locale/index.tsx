@@ -5,6 +5,7 @@ import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Blocks, Book } from "lucide-react";
 import { TeamIcon } from "@/components/TeamIcon";
+import { teamImageUrl } from "@/lib/file";
 
 export const Route = createFileRoute("/$locale/")({
 	component: Home,
@@ -55,7 +56,7 @@ function Home() {
 	if (team) {
 		return (
 			<FloatingPage className="flex flex-col max-w-screen-lg mx-auto text-center">
-				<TeamIcon src={team.logo} className="mb-8" />
+				<TeamIcon src={teamImageUrl(team, "logo")} className="mb-8" />
 				<PageHeader
 					title={team.name}
 					description={t["team-description"]}

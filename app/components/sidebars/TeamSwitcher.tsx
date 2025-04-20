@@ -21,6 +21,7 @@ import { Team, TeamTranslation } from "@/types/team";
 import { useLocale } from "@/lib/locale";
 import { useMutation } from "@tanstack/react-query";
 import { setTeamFn } from "@/server/handlers/user";
+import { teamImageUrl } from "@/lib/file";
 
 export const TeamSwitcher = ({
 	tenantId,
@@ -39,8 +40,6 @@ export const TeamSwitcher = ({
 
 	const activeTeam = teams.find((t) => t.id === teamId)!;
 
-	console.log(activeTeam, teams);
-
 	const { mutate: setTeam } = useMutation({
 		mutationFn: setTeamFn,
 		onSuccess: () => {
@@ -54,7 +53,7 @@ export const TeamSwitcher = ({
 				<div className="flex gap-2 justify-between items-center flex-wrap w-full p-2">
 					<Avatar className="rounded-lg size-8">
 						<AvatarImage
-							src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+							src={teamImageUrl(activeTeam, "favicon")}
 							className="rounded-lg"
 						/>
 						<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
@@ -76,7 +75,10 @@ export const TeamSwitcher = ({
 								>
 									<Avatar className="rounded-lg size-8">
 										<AvatarImage
-											src={`${env.VITE_SITE_URL}/cdn/${activeTeam?.id}/${activeTeam?.locale}/favicon?updatedAt=${activeTeam?.updatedAt.toString()}`}
+											src={teamImageUrl(
+												activeTeam,
+												"favicon",
+											)}
 											className="rounded-lg"
 										/>
 										<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">

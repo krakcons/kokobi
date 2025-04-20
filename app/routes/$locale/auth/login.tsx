@@ -15,6 +15,8 @@ import { setCookie } from "vinxi/http";
 import { z } from "zod";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { TeamIcon } from "@/components/TeamIcon";
+import { teamImageUrl } from "@/lib/file";
+import { Team, TeamTranslation } from "@/types/team";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -29,17 +31,17 @@ export const Route = createFileRoute("/$locale/auth/login")({
 	},
 	loader: async () => {
 		const tenantId = await getTenantFn();
-		let logo = undefined;
+		let team: (Team & TeamTranslation) | undefined = undefined;
 		if (tenantId) {
 			const tenant = await getTeamByIdFn({
 				data: {
 					teamId: tenantId,
 				},
 			});
-			logo = tenant.logo;
+			team = tenant;
 		}
 		return {
-			logo,
+			team,
 		};
 	},
 });
@@ -177,12 +179,17 @@ function RouteComponent() {
 			});
 		},
 	});
-	const { logo } = Route.useLoaderData();
+	const { team } = Route.useLoaderData();
 
 	return (
 		<FloatingPage>
 			<div className="max-w-md w-full flex flex-col">
-				<TeamIcon src={logo} className="mb-8" />
+				{team && (
+					<TeamIcon
+						src={teamImageUrl(team, "logo")}
+						className="mb-8"
+					/>
+				)}
 				<PageHeader
 					title="Login"
 					description="Enter your email below and submit to login"

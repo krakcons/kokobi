@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
-import { fetchFile } from "@/lib/file";
+import { fetchFile, teamImageUrl } from "@/lib/file";
 import { env } from "@/env";
 import {
 	createDomainFn,
@@ -122,13 +122,14 @@ function RouteComponent() {
 			team.updatedAt,
 		],
 		queryFn: async () => {
-			const logo = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${team.logo}?updatedAt=${team.updatedAt}`,
-			);
-			const favicon = await fetchFile(
-				`${env.VITE_SITE_URL}/cdn/${team.favicon}?updatedAt=${team.updatedAt}`,
-			);
-			return { logo, favicon };
+			return {
+				logo: team.logo
+					? await fetchFile(teamImageUrl(team, "logo"))
+					: null,
+				favicon: team.favicon
+					? await fetchFile(teamImageUrl(team, "favicon"))
+					: null,
+			};
 		},
 	});
 

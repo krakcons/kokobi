@@ -1,5 +1,6 @@
 import { Team, TeamTranslation } from "@/types/team";
 import { TeamIcon } from "./TeamIcon";
+import { teamImageUrl } from "@/lib/file";
 
 export const ContentBranding = ({
 	contentTeam,
@@ -10,7 +11,10 @@ export const ContentBranding = ({
 }) => {
 	return (
 		<div className="flex items-center">
-			<TeamIcon src={contentTeam.logo} className="max-h-10 mr-2" />
+			<TeamIcon
+				src={teamImageUrl(contentTeam, "logo")}
+				className="max-h-10 mr-2"
+			/>
 			<div className="flex gap-2 items-center">
 				<p>
 					Delivered by <strong>{connectTeam.name}</strong>

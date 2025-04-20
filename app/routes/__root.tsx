@@ -15,6 +15,7 @@ import appCss from "@/index.css?url";
 import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { env } from "@/env";
+import { teamImageUrl } from "@/lib/file";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -63,7 +64,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					},
 				});
 				if (tenant.favicon)
-					favicon = `${env.VITE_SITE_URL}/cdn/${tenant.favicon}`;
+					favicon = teamImageUrl(tenant, "favicon") || favicon;
 				title = `${tenant.name}`;
 			}
 
