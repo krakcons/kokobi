@@ -13,6 +13,8 @@ import { LoaderCircle } from "lucide-react";
 import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
 import appCss from "@/index.css?url";
 import { NotFound } from "@/components/NotFound";
+import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
+import { env } from "@/env";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -50,13 +52,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			</FloatingPage>
 		),
 		component: RootComponent,
-		loader: ({ context: { locale } }) =>
-			getI18nFn({
-				headers: {
-					locale,
+		loader: async ({ context: { locale } }) => {
+			const tenantId = await getTenantFn();
+			let favicon = "/favicon.ico";
+			let title = "Kokobi | Learn, Teach, Connect, and Grow";
+			if (tenantId) {
+				const tenant = await getTeamByIdFn({
+					data: {
+						teamId: tenantId,
+					},
+				});
+				if (tenant.favicon)
+					favicon = `${env.VITE_SITE_URL}/cdn/${tenant.favicon}`;
+				title = `${tenant.name}`;
+			}
+
+			return {
+				i18n: await getI18nFn({
+					headers: {
+						locale,
+					},
+				}),
+				meta: {
+					favicon,
+					title,
 				},
-			}),
-		head: () => ({
+			};
+		},
+		head: ({ loaderData }) => ({
 			meta: [
 				{
 					charSet: "utf-8",
@@ -66,10 +89,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					content: "width=device-width, initial-scale=1",
 				},
 				{
-					title: "Kokobi | Learn, Teach, Connect, and Grow",
+					title: loaderData.meta.title,
 				},
 			],
 			links: [
+				{
+					rel: "icon",
+					href: loaderData.meta.favicon,
+				},
 				{
 					rel: "preconnect",
 					href: "https://fonts.googleapis.com",
@@ -92,7 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 );
 
 function RootComponent() {
-	const i18n = Route.useLoaderData();
+	const { i18n } = Route.useLoaderData();
 
 	return (
 		<html>

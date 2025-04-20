@@ -248,8 +248,6 @@ const ImageField = ({
 	};
 }) => {
 	const { width, height } = size;
-	const suggestedWidth = size.suggestedWidth ?? width;
-	const suggestedHeight = size.suggestedHeight ?? height;
 
 	const field = useFieldContext<File | "">();
 
@@ -263,8 +261,10 @@ const ImageField = ({
 			{imageUrl ? (
 				<img
 					src={imageUrl}
-					width={width}
 					height={height}
+					style={{
+						maxHeight: size.height,
+					}}
 					alt={label}
 					className="rounded-md p-2 border"
 				/>
@@ -302,9 +302,11 @@ const ImageField = ({
 					</Button>
 				)}
 			</div>
-			<Description
-				description={`Suggested image size: ${suggestedWidth}px x ${suggestedHeight}px`}
-			/>
+			{size.suggestedWidth && size.suggestedHeight && (
+				<Description
+					description={`Suggested image size: ${size.suggestedWidth}px x ${size.suggestedHeight}px`}
+				/>
+			)}
 			<Error errors={field.getMeta().errors} />
 		</div>
 	);

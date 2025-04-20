@@ -78,6 +78,8 @@ export const TeamForm = ({
 								size={{
 									width: 350,
 									height: 100,
+									suggestedWidth: 350,
+									suggestedHeight: 100,
 								}}
 							/>
 						)}
@@ -87,8 +89,8 @@ export const TeamForm = ({
 							<field.ImageField
 								label="Favicon"
 								size={{
-									width: 512 / 4,
-									height: 512 / 4,
+									width: 512 / 8,
+									height: 512 / 8,
 									suggestedWidth: 512,
 									suggestedHeight: 512,
 								}}
