@@ -1,10 +1,9 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
-import { env } from "@/env";
 import { db } from "@/server/db";
 import { emailVerifications, teams, users } from "@/server/db/schema";
 import { sendEmail, verifyEmail } from "@/server/email";
-import { getTenantFn } from "@/server/handlers/teams";
+import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { getAuthFn } from "@/server/handlers/user";
 import { localeMiddleware } from "@/server/middleware";
 import { generateRandomString } from "@/server/random";
@@ -14,8 +13,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { setCookie } from "vinxi/http";
 import { z } from "zod";
-import { TeamAvatar, TeamAvatarImage } from "@/components/ui/team-avatar";
 import { handleLocalization } from "@/lib/locale/helpers";
+import { TeamIcon } from "@/components/TeamIcon";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -28,11 +27,19 @@ export const Route = createFileRoute("/$locale/auth/login")({
 		const auth = await getAuthFn();
 		if (auth.session) throw redirect({ to: "/$locale/admin", params });
 	},
-	loader: async ({ params }) => {
+	loader: async () => {
 		const tenantId = await getTenantFn();
-		const logoUrl = `${env.VITE_SITE_URL}/cdn/${tenantId}/${params.locale}/logo`;
+		let logo = undefined;
+		if (tenantId) {
+			const tenant = await getTeamByIdFn({
+				data: {
+					teamId: tenantId,
+				},
+			});
+			logo = tenant.logo;
+		}
 		return {
-			logo: tenantId ? logoUrl : undefined,
+			logo,
 		};
 	},
 });
@@ -175,9 +182,7 @@ function RouteComponent() {
 	return (
 		<FloatingPage>
 			<div className="max-w-md w-full flex flex-col">
-				<TeamAvatar className="mb-8">
-					<TeamAvatarImage src={logo} alt="Team Logo" />
-				</TeamAvatar>
+				<TeamIcon src={logo} className="mb-8" />
 				<PageHeader
 					title="Login"
 					description="Enter your email below and submit to login"

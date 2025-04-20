@@ -1,11 +1,10 @@
 import { buttonVariants } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useLocale, useTranslations } from "@/lib/locale";
+import { useTranslations } from "@/lib/locale";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Blocks, Book } from "lucide-react";
-import { TeamAvatar, TeamAvatarImage } from "@/components/ui/team-avatar";
-import { env } from "@/env";
+import { TeamIcon } from "@/components/TeamIcon";
 
 export const Route = createFileRoute("/$locale/")({
 	component: Home,
@@ -52,16 +51,11 @@ const CTA = () => {
 function Home() {
 	const t = useTranslations("Home");
 	const { team } = Route.useLoaderData();
-	const locale = useLocale();
 
 	if (team) {
 		return (
 			<FloatingPage className="flex flex-col max-w-screen-lg mx-auto text-center">
-				<TeamAvatar>
-					<TeamAvatarImage
-						src={`${env.VITE_SITE_URL}/cdn/${team.id}/${locale}/logo`}
-					/>
-				</TeamAvatar>
+				<TeamIcon src={team.logo} className="mb-8" />
 				<PageHeader
 					title={team.name}
 					description={t["team-description"]}
