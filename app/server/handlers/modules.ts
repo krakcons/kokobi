@@ -76,13 +76,12 @@ export const createModuleFn = createServerFn({ method: "POST" })
 
 		Promise.all(
 			Object.entries(entries).map(async ([key, file]) => {
-				console.log("File", key);
 				if (shouldIgnoreFile(key)) {
 					return;
 				}
 				const blob = await file.blob();
 				s3.write(
-					`/${teamId}/courses/${data.courseId}/${locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
+					`${teamId}/courses/${data.courseId}/${locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
 					blob,
 				);
 			}),
@@ -121,6 +120,18 @@ export const deleteModuleFn = createServerFn({ method: "POST" })
 			.where(
 				and(eq(modules.id, moduleId), eq(modules.courseId, courseId)),
 			);
+
+		const files = await s3.list({
+			prefix: `${teamId}/courses/${courseId}/${moduleExists.locale}${moduleExists.versionNumber > 1 ? `_${moduleExists.versionNumber}` : ""}/`,
+			maxKeys: 1000,
+		});
+		if (files.contents) {
+			await Promise.all(
+				files.contents.map((file) => {
+					s3.delete(file.key);
+				}),
+			);
+		}
 
 		return null;
 	});

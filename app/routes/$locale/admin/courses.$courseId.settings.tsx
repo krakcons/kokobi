@@ -81,7 +81,7 @@ function RouteComponent() {
 				variant="destructive"
 				onClick={() => {
 					deleteCourse.mutate({
-						data: { id: params.courseId },
+						data: { courseId: params.courseId },
 					});
 				}}
 				className="self-start"
