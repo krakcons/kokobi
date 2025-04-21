@@ -4,7 +4,7 @@ const dateTypes: Record<
 	"readable" | "detailed",
 	{
 		date: Intl.DateTimeFormatOptions;
-		time: Intl.DateTimeFormatOptions;
+		time?: Intl.DateTimeFormatOptions;
 	}
 > = {
 	readable: {
@@ -13,7 +13,7 @@ const dateTypes: Record<
 			month: "long",
 			day: "numeric",
 		},
-		time: {},
+		time: undefined,
 	},
 	detailed: {
 		date: {
@@ -42,8 +42,12 @@ export const formatDate = ({
 	if (!date) return "";
 
 	const dateType = dateTypes[type];
-	const dateFormatter = new Intl.DateTimeFormat(locale, dateType.date);
-	const timeFormatter = new Intl.DateTimeFormat(locale, dateType.time);
+	const dateString = new Intl.DateTimeFormat(locale, dateType.date).format(
+		date,
+	);
+	const timeString = dateType.time
+		? new Intl.DateTimeFormat(locale, dateType.time).format(date)
+		: undefined;
 
-	return `${dateFormatter.format(date)} ${timeFormatter.format(date)}`;
+	return `${dateString}${timeString ? ` ${timeString}` : ""}`;
 };
