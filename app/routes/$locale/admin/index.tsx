@@ -1,4 +1,5 @@
 import { Page, PageHeader } from "@/components/Page";
+import { PendingComponent } from "@/components/PendingComponent";
 import {
 	Card,
 	CardDescription,
@@ -32,8 +33,8 @@ function RouteComponent() {
 					<Link
 						key={c.id}
 						from="/$locale/admin/"
-						to="/$locale/admin/courses/$id/learners"
-						params={(p) => ({ ...p, id: c.id })}
+						to="/$locale/admin/courses/$courseId/learners"
+						params={(p) => ({ ...p, courseId: c.id })}
 					>
 						<Card className="flex justify-between items-center">
 							<CardHeader>
@@ -68,8 +69,8 @@ function RouteComponent() {
 					<Link
 						key={c.id}
 						from="/$locale/admin/"
-						to="/$locale/admin/collections/$id/learners"
-						params={(p) => ({ ...p, id: c.id })}
+						to="/$locale/admin/collections/$collectionId/learners"
+						params={(p) => ({ ...p, collectionId: c.id })}
 					>
 						<Card className="flex justify-between items-center">
 							<CardHeader>

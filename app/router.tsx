@@ -6,6 +6,7 @@ import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { NotFound } from "./components/NotFound";
 import { toast } from "sonner";
 import { ErrorComponent } from "./components/ErrorComponent";
+import { PendingComponent } from "./components/PendingComponent";
 
 export const createRouter = () => {
 	const queryClient = new QueryClient({
@@ -26,6 +27,7 @@ export const createRouter = () => {
 			defaultPreload: "intent",
 			notFoundMode: "root",
 			scrollRestoration: true,
+			defaultPendingComponent: PendingComponent,
 			defaultErrorComponent: ErrorComponent,
 			defaultNotFoundComponent: () => <NotFound />,
 			Wrap: ({ children }) => <ThemeProvider>{children}</ThemeProvider>,
