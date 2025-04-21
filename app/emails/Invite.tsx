@@ -8,6 +8,7 @@ import {
 	Container,
 	Head,
 	Heading,
+	Hr,
 	Html,
 	Img,
 	Preview,
@@ -48,6 +49,8 @@ export const Invite = ({
 					>
 						{t.action}
 					</Button>
+					<Hr className="mt-6" />
+					<Text className="mb-0">{teamName}</Text>
 				</Container>
 			</Body>
 		</Tailwind>
