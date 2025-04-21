@@ -14,7 +14,6 @@ import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
 import appCss from "@/index.css?url";
 import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
-import { env } from "@/env";
 import { teamImageUrl } from "@/lib/file";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(

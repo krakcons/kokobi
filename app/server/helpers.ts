@@ -1,10 +1,13 @@
 import { db } from "@/server/db";
 import {
 	courses,
+	domains,
 	usersToCollections,
 	usersToCourses,
 } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
+import { getRequestHost } from "@tanstack/react-start/server";
+import { env } from "./env";
 
 export const hasUserCourseAccess = async ({
 	courseId,
@@ -93,4 +96,18 @@ export const hasTeamCourseAccess = async ({
 	}
 
 	throw new Error("No access to course");
+};
+
+export const getTenant = async () => {
+	const hostname = getRequestHost();
+
+	if (hostname === env.VITE_ROOT_DOMAIN) {
+		return null;
+	}
+
+	const domain = await db.query.domains.findFirst({
+		where: eq(domains.hostname, hostname),
+	});
+
+	return domain ? domain.teamId : null;
 };
