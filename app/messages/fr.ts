@@ -20,7 +20,10 @@ const fr: Messages = {
 		title: { "1": "Apprentissage moderne", "2": "Moins cher" },
 		description:
 			"Découvrez une gestion de l'apprentissage moderne, abordable et facile pour une expérience éducative enrichissante.",
-		"get-started": "Démarrer",
+		"team-description":
+			"Visitez le portail d'apprentissage ou d'administration pour commencer.",
+		"go-to-admin": "Aller à l'administration",
+		"go-to-learning": "Aller à l'apprentissage",
 	},
 	Join: {
 		"0": { title: "S'inscrire" },

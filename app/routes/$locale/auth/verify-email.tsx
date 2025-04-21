@@ -64,7 +64,7 @@ const OTPForm = ({
 export const verifyOTPFn = createServerFn({ method: "POST" })
 	.middleware([localeMiddleware])
 	.validator(OTPFormSchema)
-	.handler(async ({ data, context }) => {
+	.handler(async ({ data }) => {
 		const verificationCookie = getCookie("email_verification");
 		if (!verificationCookie)
 			throw new Error("Invalid verification session. Please try again.");

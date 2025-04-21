@@ -59,6 +59,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";
 			if (tenantId) {
 				const tenant = await getTeamByIdFn({
+					headers: {
+						locale,
+					},
 					data: {
 						teamId: tenantId,
 					},
