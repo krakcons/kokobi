@@ -67,6 +67,7 @@ export const TeamForm = ({
 				onSubmit={(e) => e.preventDefault()}
 				className="flex flex-col gap-8 items-start"
 			>
+				{!collapsible && <form.BlockNavigation />}
 				<form.AppField name="name">
 					{(field) => <field.TextField label="Name" />}
 				</form.AppField>
