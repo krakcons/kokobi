@@ -23,10 +23,11 @@ import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
-import { hasTeamCourseAccess } from "../helpers";
+import { hasTeamConnectionAccess } from "../helpers";
 import { createConnectionLink } from "@/lib/invite";
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
+import { notFound } from "@tanstack/react-router";
 
 export const GetConnectionSchema = z.object({
 	type: z.enum(["course", "collection"]),
@@ -40,6 +41,16 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 		const user = context.user;
 
 		if (type === "course") {
+			try {
+				await hasTeamConnectionAccess({
+					teamId: context.learnerTeamId,
+					type,
+					id,
+				});
+			} catch (e) {
+				throw notFound();
+			}
+
 			const connection = await db.query.usersToCourses.findFirst({
 				where: and(
 					eq(usersToCourses.userId, user.id),
@@ -77,6 +88,15 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 		}
 
 		if (type === "collection") {
+			try {
+				await hasTeamConnectionAccess({
+					teamId: context.learnerTeamId,
+					type,
+					id,
+				});
+			} catch (e) {
+				throw notFound();
+			}
 			const connection = await db.query.usersToCollections.findFirst({
 				where: and(
 					eq(usersToCollections.userId, user.id),
@@ -235,11 +255,12 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			.returning();
 
 		if (type === "course") {
-			const { course: courseBase } = await hasTeamCourseAccess({
+			const { course: courseBase } = await hasTeamConnectionAccess({
 				teamId,
-				courseId: id,
+				type,
+				id,
 			});
-			const course = handleLocalization(context, courseBase);
+			const course = handleLocalization(context, courseBase!);
 
 			await db
 				.insert(usersToCourses)

@@ -29,7 +29,7 @@ export const createRouter = () => {
 			scrollRestoration: true,
 			defaultPendingComponent: PendingComponent,
 			defaultErrorComponent: ErrorComponent,
-			defaultNotFoundComponent: () => <NotFound />,
+			defaultNotFoundComponent: NotFound,
 			Wrap: ({ children }) => <ThemeProvider>{children}</ThemeProvider>,
 		}),
 		queryClient,

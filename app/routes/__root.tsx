@@ -45,7 +45,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 			return { locale };
 		},
-		notFoundComponent: () => <NotFound />,
+		notFoundComponent: NotFound,
 		pendingComponent: () => (
 			<FloatingPage>
 				<LoaderCircle className="animate-spin size-12" />

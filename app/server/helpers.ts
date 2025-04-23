@@ -1,5 +1,6 @@
 import { db } from "@/server/db";
 import {
+	collections,
 	courses,
 	domains,
 	usersToCollections,
@@ -56,43 +57,61 @@ export const hasUserCourseAccess = async ({
 	throw new Error("No access to course");
 };
 
-export const hasTeamCourseAccess = async ({
+export const hasTeamConnectionAccess = async ({
 	teamId,
-	courseId,
+	type,
+	id,
 }: {
 	teamId: string;
-	courseId: string;
+	type: "course" | "collection";
+	id: string;
 }) => {
-	// 1: Own the course
-	const course = await db.query.courses.findFirst({
-		where: and(eq(courses.id, courseId), eq(courses.teamId, teamId)),
-		with: {
-			translations: true,
-		},
-	});
+	if (type === "course") {
+		// 1: Own the course
+		const course = await db.query.courses.findFirst({
+			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
+			with: {
+				translations: true,
+			},
+		});
 
-	if (course) {
-		return { course, access: "root" };
-	}
+		if (course) {
+			return { course, access: "root" };
+		}
 
-	// 2: Course is shared with the team and accepted
-	const connection = await db.query.teamsToCourses.findFirst({
-		where: and(
-			eq(usersToCourses.courseId, courseId),
-			eq(usersToCourses.teamId, teamId),
-			eq(usersToCourses.connectStatus, "accepted"),
-		),
-		with: {
-			course: {
-				with: {
-					translations: true,
+		// 2: Course is shared with the team and accepted
+		const connection = await db.query.teamsToCourses.findFirst({
+			where: and(
+				eq(usersToCourses.courseId, id),
+				eq(usersToCourses.teamId, teamId),
+				eq(usersToCourses.connectStatus, "accepted"),
+			),
+			with: {
+				course: {
+					with: {
+						translations: true,
+					},
 				},
 			},
-		},
-	});
+		});
 
-	if (connection) {
-		return { course: connection.course, access: "shared" };
+		if (connection) {
+			return { course: connection.course, access: "shared" };
+		}
+	}
+
+	if (type === "collection") {
+		// 1: Own the collection
+		const collection = await db.query.collections.findFirst({
+			where: and(eq(collections.id, id), eq(collections.teamId, teamId)),
+			with: {
+				translations: true,
+			},
+		});
+
+		if (collection) {
+			return { collection, access: "root" };
+		}
 	}
 
 	throw new Error("No access to course");

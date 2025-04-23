@@ -15,7 +15,6 @@ import {
 	teamMiddleware,
 } from "../middleware";
 import { z } from "zod";
-import { hasTeamCourseAccess } from "../helpers";
 import { ExtendLearner } from "@/types/learner";
 import { createS3 } from "../s3";
 import { env } from "../env";
