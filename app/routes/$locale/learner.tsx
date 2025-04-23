@@ -132,7 +132,7 @@ function RouteComponent() {
 				collections={collections}
 				user={auth.user!}
 			/>
-			<SidebarInset>
+			<SidebarInset className="max-w-full overflow-hidden">
 				{!play && (
 					<header className="p-4 flex flex-row items-center justify-between">
 						<SidebarTrigger />

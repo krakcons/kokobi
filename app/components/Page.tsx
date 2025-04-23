@@ -2,7 +2,9 @@ import { cn } from "@/lib/utils";
 import { Separator } from "./ui/separator";
 
 export const Page = ({ children }: { children: React.ReactNode }) => {
-	return <div className={cn("p-4 gap-4 flex flex-col")}>{children}</div>;
+	return (
+		<div className={cn("p-4 gap-4 flex w-full flex-col")}>{children}</div>
+	);
 };
 
 export const PageHeader = ({

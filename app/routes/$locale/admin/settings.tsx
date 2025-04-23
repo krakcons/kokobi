@@ -133,8 +133,6 @@ function RouteComponent() {
 		},
 	});
 
-	console.log(data);
-
 	return (
 		<Page>
 			<PageHeader title="Settings" description="Edit your team settings">
@@ -185,7 +183,7 @@ function RouteComponent() {
 				)}
 			</PageSubHeader>
 			{domain ? (
-				<div className="w-[calc(100vw-32px)] rounded-md sm:w-full">
+				<div className="rounded-md">
 					<ScrollArea className="pb-2">
 						<Table>
 							<TableHeader>

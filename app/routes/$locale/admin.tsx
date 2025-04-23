@@ -130,8 +130,8 @@ function RouteComponent() {
 				connections={connections}
 				user={auth.user!}
 			/>
-			<SidebarInset>
-				<header className="p-4 flex flex-row items-center justify-between">
+			<SidebarInset className="max-w-full overflow-hidden">
+				<header className="p-4 flex flex-row w-full items-center justify-between">
 					<SidebarTrigger />
 					<div className="flex flex-row items-center gap-2">
 						<Select

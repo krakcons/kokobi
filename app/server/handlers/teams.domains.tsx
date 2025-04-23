@@ -16,7 +16,7 @@ import {
 } from "@aws-sdk/client-sesv2";
 import { DomainFormSchema } from "@/types/domains";
 
-type DomainRecord = {
+export type DomainRecord = {
 	required: boolean;
 	status: string;
 	type: string;
