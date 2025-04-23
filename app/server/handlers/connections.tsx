@@ -438,15 +438,22 @@ export const requestConnectionFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data: { type, id } }) => {
 		const user = context.user;
 
+		const values = {
+			userId: user.id,
+			teamId: context.learnerTeamId,
+			connectType: "request",
+			connectStatus:
+				context.learnerTeamId !== env.WELCOME_TEAM_ID
+					? "pending"
+					: "accepted",
+		} as const;
+
 		if (type === "course") {
 			await db
 				.insert(usersToCourses)
 				.values({
-					userId: user.id,
-					teamId: context.learnerTeamId,
+					...values,
 					courseId: id,
-					connectType: "request",
-					connectStatus: "pending",
 				})
 				.onConflictDoNothing();
 		}
@@ -455,11 +462,8 @@ export const requestConnectionFn = createServerFn({ method: "POST" })
 			await db
 				.insert(usersToCollections)
 				.values({
-					userId: user.id,
-					teamId: context.learnerTeamId,
+					...values,
 					collectionId: id,
-					connectType: "request",
-					connectStatus: "pending",
 				})
 				.onConflictDoNothing();
 		}

@@ -6,22 +6,40 @@ import {
 	usersToModules,
 } from "@/server/db/schema";
 import { CourseFormSchema } from "@/types/course";
-import { and, count, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { createServerFn } from "@tanstack/react-start";
-import { localeMiddleware, teamMiddleware } from "../middleware";
+import {
+	learnerMiddleware,
+	localeMiddleware,
+	teamMiddleware,
+} from "../middleware";
 import { z } from "zod";
 import { hasTeamCourseAccess } from "../helpers";
 import { ExtendLearner } from "@/types/learner";
 import { createS3 } from "../s3";
+import { env } from "../env";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.handler(async ({ context }) => {
-		const teamId = context.teamId;
-
 		const courseList = await db.query.courses.findMany({
-			where: eq(courses.teamId, teamId),
+			where: eq(courses.teamId, context.teamId),
+			with: {
+				translations: true,
+			},
+		});
+
+		return courseList.map((course) => handleLocalization(context, course));
+	});
+
+export const getAvailableCoursesFn = createServerFn({ method: "GET" })
+	.middleware([learnerMiddleware, localeMiddleware])
+	.handler(async ({ context }) => {
+		if (context.learnerTeamId !== env.WELCOME_TEAM_ID) return [];
+		// TODO: Allow learner team members to access available courses (or something else)
+		const courseList = await db.query.courses.findMany({
+			where: eq(courses.teamId, context.learnerTeamId),
 			with: {
 				translations: true,
 			},

@@ -21,6 +21,7 @@ import { emailVerifications } from "@/server/db/schema";
 import { sendEmail, verifyEmail } from "@/server/email";
 import { getTenant } from "@/server/helpers";
 import { generateRandomString } from "@/server/random";
+import { env } from "../env";
 
 export const updateI18nFn = createServerFn({ method: "POST" })
 	.validator(z.object({ locale: LocaleSchema }))
@@ -67,6 +68,12 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 					},
 				});
 			}
+			const welcomeTeam = await db.query.teams.findFirst({
+				where: eq(teams.id, env.WELCOME_TEAM_ID),
+				with: {
+					translations: true,
+				},
+			});
 			const courseTeams = await db.query.usersToCourses.findMany({
 				where: eq(usersToTeams.userId, user.id),
 				with: {
@@ -90,6 +97,7 @@ export const getTeamsFn = createServerFn({ method: "GET" })
 
 			return [
 				...(learnerTeam ? [learnerTeam] : []),
+				...(welcomeTeam ? [welcomeTeam] : []),
 				...collectionTeams.map(({ team }) => team),
 				...courseTeams.map(({ team }) => team),
 			]

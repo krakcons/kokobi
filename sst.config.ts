@@ -5,6 +5,12 @@ const LOCAL_STAGES = ["billyhawkes"];
 const ROOT_DOMAIN = "kokobi.org";
 const STAGES = ["prod", "dev", ...LOCAL_STAGES];
 
+const WELCOME_TEAM_ID = {
+	billyhawkes: "019663b4-85ea-7000-a056-7a9863194546",
+	dev: "01966381-cf55-7000-8e26-ee32fb2db600",
+	prod: "01966381-cf55-7000-8e26-ee32fb2db600",
+};
+
 export default $config({
 	app(input) {
 		return {
@@ -50,7 +56,7 @@ export default $config({
 			CLOUDFLARE_ZONE_ID: cloudflareZone.id,
 			OPENAI_API_KEY: new sst.Secret("OPENAI_API_KEY").value,
 			// Bun adapters
-			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-prod`,
+			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-${$app.stage}`,
 			S3_BUCKET: bucket.name,
 			// URLS
 			VITE_SITE_URL: LOCAL_STAGES.includes($app.stage)
@@ -59,6 +65,8 @@ export default $config({
 			VITE_ROOT_DOMAIN: LOCAL_STAGES.includes($app.stage)
 				? "localhost:3000"
 				: domain,
+			WELCOME_TEAM_ID:
+				WELCOME_TEAM_ID[$app.stage as keyof typeof WELCOME_TEAM_ID],
 		};
 
 		// EMAIL //

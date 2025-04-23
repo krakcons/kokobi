@@ -26,6 +26,7 @@ export const LearnerSidebar = ({
 	teamId,
 	teams,
 	courses,
+	availableCourses,
 	collections,
 	user,
 }: {
@@ -33,6 +34,7 @@ export const LearnerSidebar = ({
 	teamId: string;
 	teams: (Team & TeamTranslation)[];
 	courses: (UserToCourseType & { course: Course & CourseTranslation })[];
+	availableCourses: (Course & CourseTranslation)[];
 	collections: (UserToCollectionType & {
 		collection: Collection &
 			CollectionTranslation & {
@@ -77,6 +79,39 @@ export const LearnerSidebar = ({
 						</SidebarMenuItem>
 					</SidebarMenu>
 				</SidebarGroup>
+				{availableCourses.length > 0 && (
+					<SidebarGroup>
+						<SidebarGroupContent>
+							<SidebarGroupLabel>
+								Available Courses
+							</SidebarGroupLabel>
+							{availableCourses.map((course) => (
+								<SidebarMenuItem key={course.id}>
+									<Link
+										to="/$locale/learner/courses/$courseId"
+										params={{
+											locale,
+											courseId: course.id,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+												className="justify-between"
+											>
+												{course.name}
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+							))}
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
 				<SidebarGroup>
 					<SidebarGroupContent>
 						<SidebarGroupLabel>Courses</SidebarGroupLabel>

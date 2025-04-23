@@ -16,6 +16,7 @@ import { getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
 import { env } from "@/env";
+import { getAvailableCoursesFn, getCoursesFn } from "@/server/handlers/courses";
 
 export const Route = createFileRoute("/$locale/learner")({
 	component: RouteComponent,
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/$locale/learner")({
 		}
 
 		const tenantId = await getTenantFn();
+		let redirectHref = undefined;
 		if (tenantId) {
 			if (tenantId !== auth.learnerTeamId) {
 				await setTeamFn({
@@ -45,7 +47,7 @@ export const Route = createFileRoute("/$locale/learner")({
 						type: "learner",
 					},
 				});
-				throw redirect({ href: location.href, reloadDocument: true });
+				redirectHref = location.href;
 			}
 		} else {
 			if (search.teamId) {
@@ -57,10 +59,7 @@ export const Route = createFileRoute("/$locale/learner")({
 				});
 				const newUrl = new URL(env.VITE_SITE_URL + location.href);
 				newUrl.searchParams.delete("teamId");
-				throw redirect({
-					href: newUrl.href,
-					reloadDocument: true,
-				});
+				redirectHref = newUrl.href;
 			}
 			if (!auth.learnerTeamId) {
 				const teams = await getTeamsFn({
@@ -68,23 +67,20 @@ export const Route = createFileRoute("/$locale/learner")({
 						type: "learner",
 					},
 				});
-				if (teams.length === 0) {
-					throw new Error(
-						"You are not yet taking any modules. You must get invited or request a course/collection to view the learner portal.",
-					);
-				} else {
-					await setTeamFn({
-						data: {
-							teamId: teams[0].id,
-							type: "learner",
-						},
-					});
-					throw redirect({
-						href: location.href,
-						reloadDocument: true,
-					});
-				}
+				await setTeamFn({
+					data: {
+						teamId: teams[0].id,
+						type: "learner",
+					},
+				});
+				redirectHref = location.href;
 			}
+		}
+		if (redirectHref) {
+			throw redirect({
+				href: redirectHref,
+				reloadDocument: true,
+			});
 		}
 	},
 	loader: () =>
@@ -106,11 +102,13 @@ export const Route = createFileRoute("/$locale/learner")({
 				},
 			}),
 			getTenantFn(),
+			getAvailableCoursesFn(),
 		]),
 });
 
 function RouteComponent() {
-	const [auth, teams, courses, collections, tenantId] = Route.useLoaderData();
+	const [auth, teams, courses, collections, tenantId, availableCourses] =
+		Route.useLoaderData();
 
 	const play = useMatch({
 		from: "/$locale/learner/courses/$courseId/play",
@@ -123,6 +121,9 @@ function RouteComponent() {
 				tenantId={tenantId ?? undefined}
 				teamId={auth.learnerTeamId!}
 				teams={teams}
+				availableCourses={availableCourses.filter(
+					(c) => !courses?.some(({ course }) => course?.id === c.id),
+				)}
 				courses={courses}
 				collections={collections}
 				user={auth.user!}

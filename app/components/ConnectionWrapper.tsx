@@ -31,10 +31,10 @@ export const ConnectionWrapper = ({
 			}
 		} else {
 			return (
-				<>
+				<div className="flex flex-col gap-4 sm:items-start">
 					<p>Would you like to request access to "{name}"?</p>
 					<Button onClick={onRequest}>Request Access</Button>
-				</>
+				</div>
 			);
 		}
 	}
