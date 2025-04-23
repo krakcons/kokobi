@@ -28,7 +28,7 @@ import {
 } from "@/server/handlers/connections";
 import { UserToCollectionType } from "@/types/connections";
 import { User } from "@/types/users";
-import { getTeamFn } from "@/server/handlers/teams";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { createConnectionLink } from "@/lib/invite";
@@ -46,7 +46,7 @@ export const Route = createFileRoute(
 					id: params.collectionId,
 				},
 			}),
-			getTeamFn({
+			getUserTeamFn({
 				data: {
 					type: "admin",
 				},

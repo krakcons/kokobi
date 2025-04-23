@@ -20,7 +20,7 @@ import {
 	createModuleFn,
 	deleteModuleFn,
 	getModulesFn,
-} from "@/server/handlers/modules";
+} from "@/server/handlers/courses.modules";
 import { Module } from "@/types/module";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";

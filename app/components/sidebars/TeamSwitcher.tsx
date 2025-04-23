@@ -5,7 +5,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -20,7 +20,7 @@ import { env } from "@/env";
 import { Team, TeamTranslation } from "@/types/team";
 import { useLocale } from "@/lib/locale";
 import { useMutation } from "@tanstack/react-query";
-import { setTeamFn } from "@/server/handlers/user";
+import { updateUserTeamFn } from "@/server/handlers/users.teams";
 import { teamImageUrl } from "@/lib/file";
 
 export const TeamSwitcher = ({
@@ -41,7 +41,7 @@ export const TeamSwitcher = ({
 	const activeTeam = teams.find((t) => t.id === teamId)!;
 
 	const { mutate: setTeam } = useMutation({
-		mutationFn: setTeamFn,
+		mutationFn: updateUserTeamFn,
 		onSuccess: () => {
 			navigate({
 				to: type === "learner" ? "/$locale/learner" : "/$locale/admin",

@@ -2,17 +2,17 @@ import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import {
-	getAuthFn,
 	LoginFormSchema,
 	LoginFormType,
 	requestOTPFn,
-} from "@/server/handlers/user";
+} from "@/server/handlers/auth.otp";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { TeamIcon } from "@/components/TeamIcon";
 import { teamImageUrl } from "@/lib/file";
 import { Team, TeamTranslation } from "@/types/team";
+import { getAuthFn } from "@/server/handlers/auth";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),

@@ -3,16 +3,14 @@ import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { ContentBranding } from "@/components/ContentBranding";
 import { Page, PageHeader } from "@/components/Page";
-import {
-	getCollectionCoursesFn,
-	getCollectionFn,
-} from "@/server/handlers/collections";
+import { getCollectionByIdFn } from "@/server/handlers/collections";
+import { getCollectionCoursesFn } from "@/server/handlers/collections.courses";
 import {
 	getConnectionFn,
 	requestConnectionFn,
 	userConnectionResponseFn,
 } from "@/server/handlers/connections";
-import { getTeamFn } from "@/server/handlers/teams";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 
@@ -22,8 +20,8 @@ export const Route = createFileRoute(
 	component: RouteComponent,
 	loader: ({ params }) => {
 		return Promise.all([
-			getCollectionFn({ data: { id: params.collectionId } }),
-			getTeamFn({
+			getCollectionByIdFn({ data: { id: params.collectionId } }),
+			getUserTeamFn({
 				data: {
 					type: "learner",
 				},

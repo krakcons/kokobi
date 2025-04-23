@@ -21,7 +21,7 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import { getTeamFn } from "@/server/handlers/teams";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { createConnectionLink } from "@/lib/invite";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
@@ -46,7 +46,7 @@ export const Route = createFileRoute(
 					id: params.courseId,
 				},
 			}),
-			getTeamFn({
+			getUserTeamFn({
 				data: {
 					type: "admin",
 				},

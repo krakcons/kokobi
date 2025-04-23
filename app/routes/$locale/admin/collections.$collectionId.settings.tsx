@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
 	deleteCollectionFn,
-	getCollectionFn,
+	getCollectionByIdFn,
 	updateCollectionFn,
 } from "@/server/handlers/collections";
 import { useMutation } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ export const Route = createFileRoute(
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: ({ params, deps }) =>
-		getCollectionFn({
+		getCollectionByIdFn({
 			data: {
 				id: params.collectionId,
 			},

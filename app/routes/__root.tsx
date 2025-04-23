@@ -10,7 +10,7 @@ import {
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
 import { LoaderCircle } from "lucide-react";
-import { getI18nFn, updateI18nFn } from "@/server/handlers/user";
+import { getI18nFn, updateI18nFn } from "@/server/handlers/users.i18n";
 import appCss from "@/index.css?url";
 import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";

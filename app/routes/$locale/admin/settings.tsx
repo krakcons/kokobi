@@ -6,14 +6,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { fetchFile, teamImageUrl } from "@/lib/file";
-import { env } from "@/env";
 import {
-	createDomainFn,
+	createTeamDomainFn,
 	deleteTeamDomainFn,
 	getTeamDomainFn,
-} from "@/server/handlers/domains";
+} from "@/server/handlers/teams.domains";
 import { DomainFormSchema, DomainFormType } from "@/types/domains";
-import { deleteTeamFn, getTeamFn, updateTeamFn } from "@/server/handlers/teams";
+import { deleteTeamFn, updateTeamFn } from "@/server/handlers/teams";
 import { useAppForm } from "@/components/ui/form";
 import {
 	Table,
@@ -27,13 +26,14 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import CopyButton from "@/components/CopyButton";
 import { toast } from "sonner";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
 	loader: ({ deps }) =>
 		Promise.all([
-			getTeamFn({
+			getUserTeamFn({
 				data: {
 					type: "admin",
 				},
@@ -89,7 +89,7 @@ function RouteComponent() {
 	const router = useRouter();
 
 	const createDomain = useMutation({
-		mutationFn: createDomainFn,
+		mutationFn: createTeamDomainFn,
 		onSuccess: () => {
 			router.invalidate();
 		},

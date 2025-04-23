@@ -6,7 +6,7 @@ import {
 import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { getTeamMembersFn } from "@/server/handlers/teams";
+import { getTeamUsersFn } from "@/server/handlers/teams.users";
 import { Role, User } from "@/types/users";
 import { createFileRoute } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,7 +14,7 @@ import { ColumnDef } from "@tanstack/react-table";
 export const Route = createFileRoute("/$locale/admin/members")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: () => getTeamMembersFn(),
+	loader: () => getTeamUsersFn(),
 });
 
 function RouteComponent() {

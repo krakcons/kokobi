@@ -1,5 +1,5 @@
 import { useAppForm } from "../ui/form";
-import { UserFormSchema, UserFormType } from "@/server/handlers/user";
+import { UserFormSchema, UserFormType } from "@/server/handlers/users";
 
 export const UserForm = ({
 	defaultValues,

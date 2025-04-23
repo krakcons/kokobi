@@ -7,7 +7,7 @@ import { generateRandomString } from "@/server/random";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-export const getKeysFn = createServerFn({ method: "GET" })
+export const getTeamKeysFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware()])
 	.handler(async ({ context }) => {
 		const teamId = context.teamId;
@@ -19,7 +19,7 @@ export const getKeysFn = createServerFn({ method: "GET" })
 		return keysList;
 	});
 
-export const createKeyFn = createServerFn({ method: "POST" })
+export const createTeamKeyFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
 	.validator(APIKeyFormSchema)
 	.handler(async ({ context, data }) => {
@@ -37,7 +37,7 @@ export const createKeyFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
-export const deleteKeyFn = createServerFn({ method: "POST" })
+export const deleteTeamKeyFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
 	.validator(z.object({ id: z.string() }))
 	.handler(async ({ context, data: { id } }) => {

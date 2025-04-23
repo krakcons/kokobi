@@ -19,7 +19,7 @@ import {
 	createCollectionCourseFn,
 	deleteCollectionCourseFn,
 	getCollectionCoursesFn,
-} from "@/server/handlers/collections";
+} from "@/server/handlers/collections.courses";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { Course, CourseTranslation } from "@/types/course";
 import { useMutation } from "@tanstack/react-query";

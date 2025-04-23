@@ -1,0 +1,121 @@
+import {
+	authMiddleware,
+	localeMiddleware,
+	protectedMiddleware,
+} from "../middleware";
+import { db } from "@/server/db";
+import { teams, users, usersToTeams } from "@/server/db/schema";
+import { and, eq } from "drizzle-orm";
+import { createI18n } from "@/lib/locale/actions";
+import { handleLocalization } from "@/lib/locale/helpers";
+import { z } from "zod";
+import { LocaleSchema } from "@/lib/locale";
+import { getCookie, setCookie } from "@tanstack/react-start/server";
+import { createSession, invalidateSession } from "@/server/auth";
+import { createServerFn } from "@tanstack/react-start";
+import { deleteCookie } from "@tanstack/react-start/server";
+import { redirect } from "@tanstack/react-router";
+import { Team, TeamTranslation } from "@/types/team";
+
+import { emailVerifications } from "@/server/db/schema";
+import { sendEmail, verifyEmail } from "@/server/email";
+import { getTenant } from "@/server/helpers";
+import { generateRandomString } from "@/server/random";
+import { env } from "../env";
+
+export const UserFormSchema = z.object({
+	firstName: z.string().min(1),
+	lastName: z.string().min(1),
+});
+export type UserFormType = z.infer<typeof UserFormSchema>;
+export const updateUserFn = createServerFn({ method: "POST" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.validator(UserFormSchema)
+	.handler(async ({ context, data }) => {
+		await db.update(users).set(data).where(eq(users.id, context.user.id));
+	});
+
+export const getTeamsFn = createServerFn({ method: "GET" })
+	.middleware([authMiddleware, localeMiddleware])
+	.validator(
+		z.object({
+			type: z.enum(["learner", "admin"]),
+		}),
+	)
+	.handler(async ({ context, data: { type } }) => {
+		const user = context.user;
+
+		if (!user) {
+			throw new Error("Unauthorized");
+		}
+
+		if (type === "learner") {
+			let learnerTeam = undefined;
+			if (context.learnerTeamId) {
+				learnerTeam = await db.query.teams.findFirst({
+					where: eq(teams.id, context.learnerTeamId),
+					with: {
+						translations: true,
+					},
+				});
+			}
+			const welcomeTeam = await db.query.teams.findFirst({
+				where: eq(teams.id, env.WELCOME_TEAM_ID),
+				with: {
+					translations: true,
+				},
+			});
+			const courseTeams = await db.query.usersToCourses.findMany({
+				where: eq(usersToTeams.userId, user.id),
+				with: {
+					team: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
+			const collectionTeams = await db.query.usersToCollections.findMany({
+				where: eq(usersToTeams.userId, user.id),
+				with: {
+					team: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
+
+			return [
+				...(learnerTeam ? [learnerTeam] : []),
+				...(welcomeTeam ? [welcomeTeam] : []),
+				...collectionTeams.map(({ team }) => team),
+				...courseTeams.map(({ team }) => team),
+			]
+				.map((team) => handleLocalization(context, team))
+				.reduce(
+					(acc, team) =>
+						acc.find((t) => t.id === team.teamId)
+							? acc
+							: [...acc, team],
+					[] as (Team & TeamTranslation)[],
+				);
+		}
+
+		if (type === "admin") {
+			const teams = await db.query.usersToTeams.findMany({
+				where: eq(usersToTeams.userId, user.id),
+				with: {
+					team: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
+
+			return teams.map(({ team }) => handleLocalization(context, team));
+		}
+
+		return [];
+	});

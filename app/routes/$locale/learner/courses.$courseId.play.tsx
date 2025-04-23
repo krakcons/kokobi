@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "@/lib/locale";
 import { Loader2 } from "lucide-react";
 import { getCourseFn } from "@/server/handlers/courses";
-import { playFn, updateAttemptFn } from "@/server/handlers/learners";
+import {
+	getUserModuleFn,
+	updateUserModuleFn,
+} from "@/server/handlers/users.modules";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,7 +28,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 						courseId: params.courseId,
 					},
 				}),
-				playFn({
+				getUserModuleFn({
 					data: {
 						courseId: params.courseId,
 						attemptId: deps.attemptId,
@@ -45,7 +48,7 @@ function RouteComponent() {
 
 	// Update learner mutation
 	const { mutate } = useMutation({
-		mutationFn: updateAttemptFn,
+		mutationFn: updateUserModuleFn,
 		onSuccess: (attempt) => {
 			if (!completed && attempt.completedAt) {
 				setCompleted(true);

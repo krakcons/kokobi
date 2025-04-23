@@ -21,9 +21,9 @@ import {
 	userConnectionResponseFn,
 } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
-import { createAttemptFn } from "@/server/handlers/learners";
-import { getTeamFn } from "@/server/handlers/teams";
-import { getAuthFn } from "@/server/handlers/user";
+import { createUserModuleFn } from "@/server/handlers/users.modules";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
+import { getAuthFn } from "@/server/handlers/auth";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	loader: ({ params }) => {
 		return Promise.all([
 			getCourseFn({ data: { courseId: params.courseId } }),
-			getTeamFn({
+			getUserTeamFn({
 				data: {
 					type: "learner",
 				},
@@ -62,7 +62,7 @@ function RouteComponent() {
 	const router = useRouter();
 
 	const createAttempt = useMutation({
-		mutationFn: createAttemptFn,
+		mutationFn: createUserModuleFn,
 		onSuccess: (attemptId) => {
 			navigate({
 				to: `/$locale/learner/courses/$courseId/play`,

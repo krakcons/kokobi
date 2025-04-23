@@ -8,7 +8,7 @@ import { Page, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Key } from "@/types/keys";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Eye, EyeOff, Plus } from "lucide-react";
@@ -23,12 +23,16 @@ import {
 } from "@/components/ui/dialog";
 import { APIKeyForm } from "@/components/forms/APIKeyForm";
 import CopyButton from "@/components/CopyButton";
-import { createKeyFn, deleteKeyFn, getKeysFn } from "@/server/handlers/keys";
+import {
+	createTeamKeyFn,
+	deleteTeamKeyFn,
+	getTeamKeysFn,
+} from "@/server/handlers/teams.keys";
 
 export const Route = createFileRoute("/$locale/admin/keys")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: () => getKeysFn(),
+	loader: () => getTeamKeysFn(),
 });
 
 const APIKeyCell = ({ secret }: { secret: string }) => {
@@ -63,13 +67,13 @@ function RouteComponent() {
 	const router = useRouter();
 
 	const createKey = useMutation({
-		mutationFn: createKeyFn,
+		mutationFn: createTeamKeyFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
 	});
 	const deleteKey = useMutation({
-		mutationFn: deleteKeyFn,
+		mutationFn: deleteTeamKeyFn,
 		onSuccess: () => {
 			router.invalidate();
 		},

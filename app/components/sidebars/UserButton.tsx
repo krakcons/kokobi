@@ -5,7 +5,8 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { Theme, themes, useTheme } from "@/lib/theme";
-import { signOutFn, updateUserFn } from "@/server/handlers/user";
+import { updateUserFn } from "@/server/handlers/users";
+import { deleteAuthFn } from "@/server/handlers/auth";
 import { useServerFn } from "@tanstack/react-start";
 import type { User as UserType } from "@/types/users";
 import {
@@ -58,7 +59,7 @@ export const UserButton = ({ user }: { user: UserType }) => {
 	const { theme, setTheme } = useTheme();
 	const { isMobile } = useSidebar();
 	const [accountOpen, setAccountOpen] = useState(false);
-	const signOut = useServerFn(signOutFn);
+	const signOut = useServerFn(deleteAuthFn);
 	const router = useRouter();
 	const location = useLocation();
 	const locale = useLocale();

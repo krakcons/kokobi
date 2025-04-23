@@ -20,7 +20,11 @@ import {
 import { useLocale, useTranslations } from "@/lib/locale";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
-import { getAuthFn, getTeamsFn, setTeamFn } from "@/server/handlers/user";
+import { getAuthFn } from "@/server/handlers/auth";
+import {
+	getUserTeamsFn,
+	updateUserTeamFn,
+} from "@/server/handlers/users.teams";
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { EditingLocaleSchema } from "@/types/router";
@@ -47,7 +51,7 @@ export const Route = createFileRoute("/$locale/admin")({
 		const tenantId = await getTenantFn();
 		if (tenantId) {
 			if (tenantId !== auth.teamId) {
-				await setTeamFn({
+				await updateUserTeamFn({
 					data: {
 						teamId: tenantId,
 						type: "admin",
@@ -60,7 +64,7 @@ export const Route = createFileRoute("/$locale/admin")({
 			}
 		} else {
 			if (!auth.teamId) {
-				const teams = await getTeamsFn({
+				const teams = await getUserTeamsFn({
 					data: {
 						type: "admin",
 					},
@@ -73,7 +77,7 @@ export const Route = createFileRoute("/$locale/admin")({
 						},
 					});
 				} else {
-					await setTeamFn({
+					await updateUserTeamFn({
 						data: {
 							teamId: teams[0].id,
 							type: "admin",
@@ -90,7 +94,7 @@ export const Route = createFileRoute("/$locale/admin")({
 	loader: () =>
 		Promise.all([
 			getAuthFn(),
-			getTeamsFn({
+			getUserTeamsFn({
 				data: {
 					type: "admin",
 				},

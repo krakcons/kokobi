@@ -10,13 +10,17 @@ import {
 	useMatch,
 } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import { getAuthFn, getTeamsFn, setTeamFn } from "@/server/handlers/user";
+import {
+	getUserTeamsFn,
+	updateUserTeamFn,
+} from "@/server/handlers/users.teams";
+import { getAuthFn } from "@/server/handlers/auth";
 import { getConnectionsFn } from "@/server/handlers/connections";
 import { getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
 import { env } from "@/env";
-import { getAvailableCoursesFn, getCoursesFn } from "@/server/handlers/courses";
+import { getAvailableCoursesFn } from "@/server/handlers/courses";
 
 export const Route = createFileRoute("/$locale/learner")({
 	component: RouteComponent,
@@ -41,7 +45,7 @@ export const Route = createFileRoute("/$locale/learner")({
 		let redirectHref = undefined;
 		if (tenantId) {
 			if (tenantId !== auth.learnerTeamId) {
-				await setTeamFn({
+				await updateUserTeamFn({
 					data: {
 						teamId: tenantId,
 						type: "learner",
@@ -51,7 +55,7 @@ export const Route = createFileRoute("/$locale/learner")({
 			}
 		} else {
 			if (search.teamId) {
-				await setTeamFn({
+				await updateUserTeamFn({
 					data: {
 						teamId: search.teamId,
 						type: "learner",
@@ -62,12 +66,12 @@ export const Route = createFileRoute("/$locale/learner")({
 				redirectHref = newUrl.href;
 			}
 			if (!auth.learnerTeamId) {
-				const teams = await getTeamsFn({
+				const teams = await getUserTeamsFn({
 					data: {
 						type: "learner",
 					},
 				});
-				await setTeamFn({
+				await updateUserTeamFn({
 					data: {
 						teamId: teams[0].id,
 						type: "learner",
@@ -86,7 +90,7 @@ export const Route = createFileRoute("/$locale/learner")({
 	loader: () =>
 		Promise.all([
 			getAuthFn(),
-			getTeamsFn({
+			getUserTeamsFn({
 				data: {
 					type: "learner",
 				},

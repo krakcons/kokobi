@@ -16,7 +16,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createConnectionLink } from "@/lib/invite";
 import { hasUserCourseAccess } from "../helpers";
-import { env } from "@/env";
 import { teamImageUrl } from "@/lib/file";
 
 const parser = new XMLParser({
@@ -64,7 +63,7 @@ const parseIMSManifest = async (file: S3File) => {
 	};
 };
 
-export const playFn = createServerFn({ method: "GET" })
+export const getUserModuleFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware])
 	.validator(z.object({ courseId: z.string(), attemptId: z.string() }))
 	.handler(async ({ context, data: { courseId, attemptId } }) => {
@@ -100,7 +99,7 @@ export const playFn = createServerFn({ method: "GET" })
 		};
 	});
 
-export const updateAttemptFn = createServerFn({ method: "POST" })
+export const updateUserModuleFn = createServerFn({ method: "POST" })
 	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(
 		LearnerUpdateSchema.extend({
@@ -218,7 +217,7 @@ export const updateAttemptFn = createServerFn({ method: "POST" })
 		return ExtendLearner(attempt.module.type).parse(newAttempt[0]);
 	});
 
-export const createAttemptFn = createServerFn({ method: "POST" })
+export const createUserModuleFn = createServerFn({ method: "POST" })
 	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
 	.handler(async ({ context, data: { courseId } }) => {

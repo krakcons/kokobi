@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
-import { getTeamFn } from "@/server/handlers/teams";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { lazy } from "react";
 import { PendingComponent } from "@/components/PendingComponent";
 import { teamImageUrl } from "@/lib/file";
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/$locale/admin/certificate")({
 	component: RouteComponent,
 	pendingComponent: PendingComponent,
 	loader: () =>
-		getTeamFn({
+		getUserTeamFn({
 			data: {
 				type: "admin",
 			},

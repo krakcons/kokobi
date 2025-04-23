@@ -18,7 +18,7 @@ import { z } from "zod";
 import { ExtendLearner } from "@/types/learner";
 import { createS3 } from "../s3";
 import { env } from "../env";
-import { hasTeamAccess, hasTeamConnectionAccess } from "../helpers";
+import { hasTeamAccess } from "../helpers";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])

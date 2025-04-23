@@ -4,11 +4,11 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { RedirectSchema } from "./login";
 import {
-	getAuthFn,
 	OTPFormSchema,
 	OTPFormType,
 	verifyOTPFn,
-} from "@/server/handlers/user";
+} from "@/server/handlers/auth.otp";
+import { getAuthFn } from "@/server/handlers/auth";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({
 	component: RouteComponent,
