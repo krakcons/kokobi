@@ -228,13 +228,17 @@ export const createUserModuleFn = createServerFn({ method: "POST" })
 			userId: user.id,
 		});
 
-		const module = await db.query.modules.findFirst({
+		const moduleList = await db.query.modules.findMany({
 			where: eq(modules.courseId, courseId),
 		});
 
-		if (!module) {
+		if (moduleList.length === 0) {
 			throw new Error("Module not found");
 		}
+
+		const module =
+			moduleList.find((m) => m.locale === context.locale) ??
+			moduleList[0];
 
 		const id = Bun.randomUUIDv7();
 		await db.insert(usersToModules).values({
