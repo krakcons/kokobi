@@ -141,9 +141,12 @@ function RouteComponent() {
 												{t.statuses[attempt.status]}
 											</TableCell>
 											<TableCell>
-												{attempt.score.raw +
-													" / " +
-													attempt.score.max}
+												{["failed", "passed"].includes(
+													attempt.status,
+												) &&
+													attempt.score.raw +
+														" / " +
+														attempt.score.max}
 											</TableCell>
 											<TableCell>
 												{attempt.createdAt &&
