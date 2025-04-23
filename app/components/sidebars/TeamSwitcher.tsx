@@ -5,7 +5,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -36,14 +36,18 @@ export const TeamSwitcher = ({
 }) => {
 	const { isMobile } = useSidebar();
 	const locale = useLocale();
-	const router = useRouter();
+	const navigate = useNavigate();
 
 	const activeTeam = teams.find((t) => t.id === teamId)!;
 
 	const { mutate: setTeam } = useMutation({
 		mutationFn: setTeamFn,
 		onSuccess: () => {
-			router.invalidate();
+			navigate({
+				to: type === "learner" ? "/$locale/learner" : "/$locale/admin",
+				params: { locale },
+				reloadDocument: true,
+			});
 		},
 	});
 

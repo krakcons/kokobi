@@ -57,26 +57,25 @@ export const hasUserCourseAccess = async ({
 	throw new Error("No access to course");
 };
 
-export const hasTeamConnectionAccess = async ({
+export const hasTeamAccess = async ({
 	teamId,
 	type,
 	id,
+	access,
 }: {
 	teamId: string;
 	type: "course" | "collection";
 	id: string;
+	access?: "root" | "shared";
 }) => {
 	if (type === "course") {
 		// 1: Own the course
 		const course = await db.query.courses.findFirst({
 			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
-			with: {
-				translations: true,
-			},
 		});
 
-		if (course) {
-			return { course, access: "root" };
+		if (course && access !== "shared") {
+			return "root";
 		}
 
 		// 2: Course is shared with the team and accepted
@@ -86,17 +85,10 @@ export const hasTeamConnectionAccess = async ({
 				eq(usersToCourses.teamId, teamId),
 				eq(usersToCourses.connectStatus, "accepted"),
 			),
-			with: {
-				course: {
-					with: {
-						translations: true,
-					},
-				},
-			},
 		});
 
-		if (connection) {
-			return { course: connection.course, access: "shared" };
+		if (connection && access !== "root") {
+			return "shared";
 		}
 	}
 
@@ -109,12 +101,12 @@ export const hasTeamConnectionAccess = async ({
 			},
 		});
 
-		if (collection) {
-			return { collection, access: "root" };
+		if (collection && access !== "shared") {
+			return "root";
 		}
 	}
 
-	throw new Error("No access to course");
+	throw new Error("Access denied");
 };
 
 export const getTenant = async () => {

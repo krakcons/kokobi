@@ -34,6 +34,7 @@ import {
 	X,
 	ChartNoAxesColumn,
 } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";

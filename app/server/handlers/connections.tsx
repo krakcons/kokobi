@@ -23,11 +23,10 @@ import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
-import { hasTeamConnectionAccess } from "../helpers";
 import { createConnectionLink } from "@/lib/invite";
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
-import { notFound } from "@tanstack/react-router";
+import { hasTeamAccess } from "../helpers";
 
 export const GetConnectionSchema = z.object({
 	type: z.enum(["course", "collection"]),
@@ -39,18 +38,13 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 	.validator(GetConnectionSchema)
 	.handler(async ({ context, data: { type, id } }) => {
 		const user = context.user;
+		await hasTeamAccess({
+			teamId: context.learnerTeamId,
+			type,
+			id,
+		});
 
 		if (type === "course") {
-			try {
-				await hasTeamConnectionAccess({
-					teamId: context.learnerTeamId,
-					type,
-					id,
-				});
-			} catch (e) {
-				throw notFound();
-			}
-
 			const connection = await db.query.usersToCourses.findFirst({
 				where: and(
 					eq(usersToCourses.userId, user.id),
@@ -88,15 +82,6 @@ export const getConnectionFn = createServerFn({ method: "GET" })
 		}
 
 		if (type === "collection") {
-			try {
-				await hasTeamConnectionAccess({
-					teamId: context.learnerTeamId,
-					type,
-					id,
-				});
-			} catch (e) {
-				throw notFound();
-			}
 			const connection = await db.query.usersToCollections.findFirst({
 				where: and(
 					eq(usersToCollections.userId, user.id),
@@ -227,6 +212,11 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 	)
 	.handler(async ({ context, data: { type, id, emails } }) => {
 		const teamId = context.teamId;
+		await hasTeamAccess({
+			teamId,
+			type,
+			id,
+		});
 
 		const teamBase = await db.query.teams.findFirst({
 			where: and(eq(teams.id, teamId)),
@@ -255,10 +245,11 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			.returning();
 
 		if (type === "course") {
-			const { course: courseBase } = await hasTeamConnectionAccess({
-				teamId,
-				type,
-				id,
+			const courseBase = await db.query.courses.findFirst({
+				where: eq(courses.id, id),
+				with: {
+					translations: true,
+				},
 			});
 			const course = handleLocalization(context, courseBase!);
 
@@ -417,25 +408,18 @@ export const inviteTeamsConnectionFn = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ context, data: { type, id, teamIds } }) => {
+		await hasTeamAccess({
+			teamId: context.teamId,
+			type,
+			id,
+			access: "root",
+		});
+
+		if (teamIds.includes(context.teamId)) {
+			throw new Error("You cannot invite yourself");
+		}
+
 		if (type === "course") {
-			const course = await db.query.courses.findFirst({
-				where: and(
-					eq(courses.id, id),
-					eq(courses.teamId, context.teamId),
-				),
-				with: {
-					translations: true,
-				},
-			});
-
-			if (!course) {
-				throw new Error("Course not found");
-			}
-
-			if (teamIds.includes(context.teamId)) {
-				throw new Error("You cannot invite yourself");
-			}
-
 			await db.insert(teamsToCourses).values(
 				teamIds.map((teamId) => ({
 					fromTeamId: context.teamId,

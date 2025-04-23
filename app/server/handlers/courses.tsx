@@ -18,6 +18,7 @@ import { z } from "zod";
 import { ExtendLearner } from "@/types/learner";
 import { createS3 } from "../s3";
 import { env } from "../env";
+import { hasTeamAccess, hasTeamConnectionAccess } from "../helpers";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -100,14 +101,12 @@ export const updateCourseFn = createServerFn({ method: "POST" })
 	.validator(CourseFormSchema.extend({ id: z.string() }))
 	.handler(async ({ context: { teamId, locale }, data }) => {
 		const id = data.id;
-
-		const course = await db.query.courses.findFirst({
-			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
+		await hasTeamAccess({
+			type: "course",
+			id,
+			teamId,
+			access: "root",
 		});
-
-		if (!course) {
-			throw new Error("Course not found");
-		}
 
 		await db
 			.update(courses)
@@ -142,15 +141,26 @@ export const deleteCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
 	.handler(async ({ context, data: { courseId } }) => {
+		await hasTeamAccess({
+			type: "course",
+			id: courseId,
+			teamId: context.teamId,
+			access: "root",
+		});
+
 		const s3 = await createS3();
-		const teamId = context.teamId;
 
 		await db
 			.delete(courses)
-			.where(and(eq(courses.id, courseId), eq(courses.teamId, teamId)));
+			.where(
+				and(
+					eq(courses.id, courseId),
+					eq(courses.teamId, context.teamId),
+				),
+			);
 
 		const files = await s3.list({
-			prefix: `${teamId}/courses/${courseId}/`,
+			prefix: `${context.teamId}/courses/${courseId}/`,
 			maxKeys: 1000,
 		});
 		if (files.contents) {
@@ -168,8 +178,9 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
 	.handler(async ({ context, data: { courseId } }) => {
-		const { access } = await hasTeamCourseAccess({
-			courseId,
+		const access = await hasTeamAccess({
+			type: "course",
+			id: courseId,
 			teamId: context.teamId,
 		});
 
