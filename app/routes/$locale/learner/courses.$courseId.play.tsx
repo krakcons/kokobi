@@ -2,10 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "@/lib/locale";
 import { Loader2 } from "lucide-react";
-import { getCourseFn } from "@/server/handlers/courses";
 import {
 	getUserModuleFn,
 	updateUserModuleFn,
@@ -22,46 +21,35 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 		ssr: false,
 		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
 		loader: ({ params, deps }) =>
-			Promise.all([
-				getCourseFn({
-					data: {
-						courseId: params.courseId,
-					},
-				}),
-				getUserModuleFn({
-					data: {
-						courseId: params.courseId,
-						attemptId: deps.attemptId,
-					},
-				}),
-			]),
+			getUserModuleFn({
+				data: {
+					courseId: params.courseId,
+					attemptId: deps.attemptId,
+				},
+			}),
 	},
 );
 
 function RouteComponent() {
-	const [certOpen, setCertOpen] = useState(false);
-	const [course, { attempt, url, type }] = Route.useLoaderData();
+	const { attempt: initialAttempt, url, type } = Route.useLoaderData();
 	const t = useTranslations("Learner");
 
 	const [loading, setLoading] = useState(true);
-	const [completed, setCompleted] = useState(!!attempt.completedAt);
+	const [attempt, setAttempt] = useState(initialAttempt);
 
 	// Update learner mutation
 	const { mutate } = useMutation({
 		mutationFn: updateUserModuleFn,
-		onSuccess: (attempt) => {
-			if (!completed && attempt.completedAt) {
-				setCompleted(true);
-			}
+		onSuccess: (newAttempt) => {
+			setAttempt(newAttempt);
 		},
 	});
 
 	const { isApiAvailable } = useLMS({
 		type,
-		initialData: attempt.data,
+		initialData: initialAttempt.data,
 		onDataChange: (data) => {
-			console.log("Data changed", data);
-			if (!attempt.completedAt) {
+			if (attempt.completedAt === null) {
 				mutate({
 					data: {
 						courseId: attempt.courseId,
@@ -72,13 +60,6 @@ function RouteComponent() {
 			}
 		},
 	});
-
-	useEffect(() => {
-		const hidden = localStorage.getItem(attempt.id);
-		if (completed && !hidden) {
-			setCertOpen(true);
-		}
-	}, [completed, attempt.id]);
 
 	if (!isApiAvailable) {
 		return <div>LMS not available. Please try again later.</div>;

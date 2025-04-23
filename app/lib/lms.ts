@@ -7,7 +7,7 @@ import {
 	Scorm2004ErrorCode,
 	Scorm2004ErrorMessage,
 } from "@/types/scorm/versions/2004";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 declare global {
 	interface Window {
@@ -20,27 +20,42 @@ export const useLMS = ({
 	type,
 	initialData,
 	onDataChange,
+	debug = false,
 }: {
 	type: Module["type"];
 	initialData: Record<string, string>;
 	onDataChange: (data: Record<string, string>) => void;
+	debug?: boolean;
 }) => {
+	const onDataChangeRef = useRef(onDataChange);
 	const [data, setData] = useState(initialData);
 	const error = useRef<number | null>(null);
 	const initialized = useRef<boolean>(false);
 	const [isApiAvailable, setIsApiAvailable] = useState(false);
 
+	const log = useCallback(
+		(...data: any[]) => {
+			if (debug) {
+				console.log(data);
+			}
+		},
+		[debug],
+	);
+
+	// Update onDataChange callback on change
+	useEffect(() => {
+		onDataChangeRef.current = onDataChange;
+	}, [onDataChange]);
+
 	// Log error
 	useEffect(() => {
 		if (error.current) {
-			console.log(
+			log(
 				"Error: ",
 				Scorm12ErrorMessage[error.current as Scorm12ErrorCode].short,
 			);
 		}
 	}, [error]);
-
-	console.log("useSCORM", type === "1.2" && typeof window !== "undefined");
 
 	useEffect(() => {
 		const checkApiAvailability = () => {
@@ -61,7 +76,7 @@ export const useLMS = ({
 	if (type === "1.2" && typeof window !== "undefined") {
 		window.API = {
 			LMSInitialize: (): boolean => {
-				console.log("LMSInitialize");
+				log("LMSInitialize");
 
 				if (initialized.current) {
 					error.current = Scorm12ErrorCode.GeneralException;
@@ -73,7 +88,7 @@ export const useLMS = ({
 				return true;
 			},
 			LMSCommit: (): boolean => {
-				console.log("LMSCommit");
+				log("LMSCommit");
 
 				return true;
 			},
@@ -84,15 +99,15 @@ export const useLMS = ({
 
 				const value = data[key] ?? "";
 
-				console.log("LMSGetValue", key, value);
+				log("LMSGetValue", key, value);
 
 				return `${value}`;
 			},
 			LMSSetValue: (key: string, value: string): string => {
-				console.log("LMSSetValue", key, `${value}`);
+				log("LMSSetValue", key, `${value}`);
 
 				if (!key || key === "") {
-					console.log("Error: key is empty", key);
+					log("Error: key is empty", key);
 					return "false";
 				}
 
@@ -101,19 +116,19 @@ export const useLMS = ({
 						...oldData,
 						[key]: `${value}`,
 					};
-					onDataChange(newData);
+					onDataChangeRef.current(newData);
 					return newData;
 				});
 
 				return "true";
 			},
 			LMSGetLastError: (): number | null => {
-				console.log("LMSGetLastError", error ?? null);
+				log("LMSGetLastError", error ?? null);
 
 				return error.current ?? null;
 			},
 			LMSGetErrorString: (code: number): string => {
-				console.log("LMSGetErrorString", code);
+				log("LMSGetErrorString", code);
 				if (code && Object.values(Scorm12ErrorCode).includes(code)) {
 					return Scorm12ErrorMessage[code as Scorm12ErrorCode].short;
 				} else {
@@ -121,7 +136,7 @@ export const useLMS = ({
 				}
 			},
 			LMSGetDiagnostic: (code: number): string => {
-				console.log("LMSGetDiagnostic", code);
+				log("LMSGetDiagnostic", code);
 				if (code && Object.values(Scorm12ErrorCode).includes(code)) {
 					return Scorm12ErrorMessage[code as Scorm12ErrorCode]
 						.diagnostic;
@@ -130,7 +145,7 @@ export const useLMS = ({
 				}
 			},
 			LMSFinish: (): boolean => {
-				console.log("LMSFinish");
+				log("LMSFinish");
 
 				return true;
 			},
@@ -138,7 +153,7 @@ export const useLMS = ({
 	} else if (type === "2004" && typeof window !== "undefined") {
 		window.API_1484_11 = {
 			Initialize: (): boolean => {
-				console.log("Initialize");
+				log("Initialize");
 
 				if (initialized.current) {
 					error.current = Scorm2004ErrorCode.AlreadyInitialized;
@@ -150,7 +165,7 @@ export const useLMS = ({
 				return true;
 			},
 			Commit: (): boolean => {
-				console.log("Commit");
+				log("Commit");
 
 				return true;
 			},
@@ -161,19 +176,19 @@ export const useLMS = ({
 
 				const value = data[key];
 
-				console.log("GetValue", key, value);
+				log("GetValue", key, value);
 
 				if (value === undefined) {
 					error.current = Scorm2004ErrorCode.GeneralGetFailure;
-					console.log("Error: couldn't find value for key", key);
+					log("Error: couldn't find value for key", key);
 				}
 
 				return `${value}`;
 			},
 			SetValue: (key: string, value: string): string => {
-				console.log("SetValue", key, value);
+				log("SetValue", key, value);
 				if (!key || key === "") {
-					console.log("Error: key is empty", key);
+					log("Error: key is empty", key);
 					return "false";
 				}
 
@@ -182,19 +197,19 @@ export const useLMS = ({
 						...oldData,
 						[key]: `${value}`,
 					};
-					onDataChange(newData);
+					onDataChangeRef.current(newData);
 					return newData;
 				});
 
 				return "true";
 			},
 			GetLastError: (): number | null => {
-				console.log("GetLastError", error ?? null);
+				log("GetLastError", error ?? null);
 
 				return error.current ?? null;
 			},
 			GetErrorString: (code: number): string => {
-				console.log("GetErrorString", code);
+				log("GetErrorString", code);
 				if (code && Object.values(Scorm2004ErrorCode).includes(code)) {
 					return Scorm2004ErrorMessage[code as Scorm2004ErrorCode]
 						.short;
@@ -203,7 +218,7 @@ export const useLMS = ({
 				}
 			},
 			GetDiagnostic: (code: number): string => {
-				console.log("GetDiagnostic", code);
+				log("GetDiagnostic", code);
 				if (code && Object.values(Scorm2004ErrorCode).includes(code)) {
 					return Scorm2004ErrorMessage[code as Scorm2004ErrorCode]
 						.diagnostic;
@@ -212,7 +227,7 @@ export const useLMS = ({
 				}
 			},
 			Terminate: (): boolean => {
-				console.log("Terminate");
+				log("Terminate");
 
 				return true;
 			},
