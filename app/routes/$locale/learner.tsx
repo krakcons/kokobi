@@ -45,7 +45,7 @@ export const Route = createFileRoute("/$locale/learner")({
 						type: "learner",
 					},
 				});
-				throw redirect({ href: location.href });
+				throw redirect({ href: location.href, reloadDocument: true });
 			}
 		} else {
 			if (search.teamId) {
@@ -59,6 +59,7 @@ export const Route = createFileRoute("/$locale/learner")({
 				newUrl.searchParams.delete("teamId");
 				throw redirect({
 					href: newUrl.href,
+					reloadDocument: true,
 				});
 			}
 			if (!auth.learnerTeamId) {
@@ -78,7 +79,10 @@ export const Route = createFileRoute("/$locale/learner")({
 							type: "learner",
 						},
 					});
-					throw redirect({ href: location.href });
+					throw redirect({
+						href: location.href,
+						reloadDocument: true,
+					});
 				}
 			}
 		}

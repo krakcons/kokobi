@@ -20,6 +20,7 @@ import { Route as LocaleLearnerIndexImport } from './routes/$locale/learner/inde
 import { Route as LocaleAdminIndexImport } from './routes/$locale/admin/index'
 import { Route as LocaleLearnerRequestImport } from './routes/$locale/learner/request'
 import { Route as LocaleLearnerInviteImport } from './routes/$locale/learner/invite'
+import { Route as LocaleLearnerIntroImport } from './routes/$locale/learner/intro'
 import { Route as LocaleAuthVerifyEmailImport } from './routes/$locale/auth/verify-email'
 import { Route as LocaleAuthLoginImport } from './routes/$locale/auth/login'
 import { Route as LocaleAdminSettingsImport } from './routes/$locale/admin/settings'
@@ -95,6 +96,12 @@ const LocaleLearnerRequestRoute = LocaleLearnerRequestImport.update({
 const LocaleLearnerInviteRoute = LocaleLearnerInviteImport.update({
   id: '/invite',
   path: '/invite',
+  getParentRoute: () => LocaleLearnerRoute,
+} as any)
+
+const LocaleLearnerIntroRoute = LocaleLearnerIntroImport.update({
+  id: '/intro',
+  path: '/intro',
   getParentRoute: () => LocaleLearnerRoute,
 } as any)
 
@@ -325,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAuthVerifyEmailImport
       parentRoute: typeof rootRoute
     }
+    '/$locale/learner/intro': {
+      id: '/$locale/learner/intro'
+      path: '/intro'
+      fullPath: '/$locale/learner/intro'
+      preLoaderRoute: typeof LocaleLearnerIntroImport
+      parentRoute: typeof LocaleLearnerImport
+    }
     '/$locale/learner/invite': {
       id: '/$locale/learner/invite'
       path: '/invite'
@@ -510,6 +524,7 @@ const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
 )
 
 interface LocaleLearnerRouteChildren {
+  LocaleLearnerIntroRoute: typeof LocaleLearnerIntroRoute
   LocaleLearnerInviteRoute: typeof LocaleLearnerInviteRoute
   LocaleLearnerRequestRoute: typeof LocaleLearnerRequestRoute
   LocaleLearnerIndexRoute: typeof LocaleLearnerIndexRoute
@@ -519,6 +534,7 @@ interface LocaleLearnerRouteChildren {
 }
 
 const LocaleLearnerRouteChildren: LocaleLearnerRouteChildren = {
+  LocaleLearnerIntroRoute: LocaleLearnerIntroRoute,
   LocaleLearnerInviteRoute: LocaleLearnerInviteRoute,
   LocaleLearnerRequestRoute: LocaleLearnerRequestRoute,
   LocaleLearnerIndexRoute: LocaleLearnerIndexRoute,
@@ -546,6 +562,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
+  '/$locale/learner/intro': typeof LocaleLearnerIntroRoute
   '/$locale/learner/invite': typeof LocaleLearnerInviteRoute
   '/$locale/learner/request': typeof LocaleLearnerRequestRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
@@ -577,6 +594,7 @@ export interface FileRoutesByTo {
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
+  '/$locale/learner/intro': typeof LocaleLearnerIntroRoute
   '/$locale/learner/invite': typeof LocaleLearnerInviteRoute
   '/$locale/learner/request': typeof LocaleLearnerRequestRoute
   '/$locale/admin': typeof LocaleAdminIndexRoute
@@ -611,6 +629,7 @@ export interface FileRoutesById {
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
+  '/$locale/learner/intro': typeof LocaleLearnerIntroRoute
   '/$locale/learner/invite': typeof LocaleLearnerInviteRoute
   '/$locale/learner/request': typeof LocaleLearnerRequestRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
@@ -646,6 +665,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/settings'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
+    | '/$locale/learner/intro'
     | '/$locale/learner/invite'
     | '/$locale/learner/request'
     | '/$locale/admin/'
@@ -676,6 +696,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/settings'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
+    | '/$locale/learner/intro'
     | '/$locale/learner/invite'
     | '/$locale/learner/request'
     | '/$locale/admin'
@@ -708,6 +729,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/settings'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
+    | '/$locale/learner/intro'
     | '/$locale/learner/invite'
     | '/$locale/learner/request'
     | '/$locale/admin/'
@@ -799,6 +821,7 @@ export const routeTree = rootRoute
     "/$locale/learner": {
       "filePath": "$locale/learner.tsx",
       "children": [
+        "/$locale/learner/intro",
         "/$locale/learner/invite",
         "/$locale/learner/request",
         "/$locale/learner/",
@@ -835,6 +858,10 @@ export const routeTree = rootRoute
     },
     "/$locale/auth/verify-email": {
       "filePath": "$locale/auth/verify-email.tsx"
+    },
+    "/$locale/learner/intro": {
+      "filePath": "$locale/learner/intro.tsx",
+      "parent": "/$locale/learner"
     },
     "/$locale/learner/invite": {
       "filePath": "$locale/learner/invite.tsx",

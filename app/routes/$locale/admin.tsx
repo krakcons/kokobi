@@ -53,6 +53,10 @@ export const Route = createFileRoute("/$locale/admin")({
 						type: "admin",
 					},
 				});
+				throw redirect({
+					href: location.href,
+					reloadDocument: true,
+				});
 			}
 		} else {
 			if (!auth.teamId) {
@@ -77,6 +81,7 @@ export const Route = createFileRoute("/$locale/admin")({
 					});
 					throw redirect({
 						href: location.href,
+						reloadDocument: true,
 					});
 				}
 			}
