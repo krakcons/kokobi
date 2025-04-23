@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
-import { createConnectionLink } from "@/lib/invite";
+import { getConnectionLinkFn } from "@/server/handlers/connections";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
@@ -46,9 +46,10 @@ export const Route = createFileRoute(
 					id: params.courseId,
 				},
 			}),
-			getUserTeamFn({
+			getConnectionLinkFn({
 				data: {
-					type: "admin",
+					type: "course",
+					id: params.courseId,
 				},
 			}),
 		]);
@@ -60,7 +61,7 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const [learners, team] = Route.useLoaderData();
+	const [learners, inviteLink] = Route.useLoaderData();
 	const router = useRouter();
 
 	const connectionResponse = useMutation({
@@ -150,13 +151,6 @@ function RouteComponent() {
 			},
 		]),
 	];
-
-	const inviteLink = createConnectionLink({
-		domain: team.domains.length > 0 ? team.domains[0] : undefined,
-		type: "course",
-		id: params.courseId,
-		teamId: team.id,
-	});
 
 	return (
 		<Page>

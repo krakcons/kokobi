@@ -23,7 +23,7 @@ import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
-import { createConnectionLink } from "@/lib/invite";
+import { ConnectionLinkSchema, getConnectionLink } from "@/lib/invite";
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
 import { hasTeamAccess } from "../helpers";
@@ -32,6 +32,17 @@ export const GetConnectionSchema = z.object({
 	type: z.enum(["course", "collection"]),
 	id: z.string(),
 });
+
+export const getConnectionLinkFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware()])
+	.validator(
+		ConnectionLinkSchema.omit({
+			teamId: true,
+		}),
+	)
+	.handler(async ({ context: { teamId }, data: { type, id, locale } }) => {
+		return getConnectionLink({ type, id, teamId, locale });
+	});
 
 export const getConnectionFn = createServerFn({ method: "GET" })
 	.middleware([learnerMiddleware, localeMiddleware])
@@ -285,11 +296,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 			await Promise.all(
 				userList.map(async (user) => {
-					const href = createConnectionLink({
-						domain:
-							team.domains.length > 0
-								? team.domains[0]
-								: undefined,
+					const href = await getConnectionLink({
 						teamId,
 						type: "course",
 						id: course.id,
@@ -362,11 +369,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 			await Promise.all([
 				userList.map(async (user) => {
-					const href = createConnectionLink({
-						domain:
-							team.domains.length > 0
-								? team.domains[0]
-								: undefined,
+					const href = await getConnectionLink({
 						teamId,
 						type: "collection",
 						id: collection.id,

@@ -21,6 +21,7 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
+	getConnectionLinkFn,
 	getTeamConnectionsFn,
 	inviteUsersConnectionFn,
 	removeConnectionFn,
@@ -28,10 +29,8 @@ import {
 } from "@/server/handlers/connections";
 import { UserToCollectionType } from "@/types/connections";
 import { User } from "@/types/users";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { createConnectionLink } from "@/lib/invite";
 
 export const Route = createFileRoute(
 	"/$locale/admin/collections/$collectionId/learners",
@@ -46,9 +45,10 @@ export const Route = createFileRoute(
 					id: params.collectionId,
 				},
 			}),
-			getUserTeamFn({
+			getConnectionLinkFn({
 				data: {
-					type: "admin",
+					type: "collection",
+					id: params.collectionId,
 				},
 			}),
 		]),
@@ -57,7 +57,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
 	const search = Route.useSearch();
 	const params = Route.useParams();
-	const [learners, team] = Route.useLoaderData();
+	const [learners, inviteLink] = Route.useLoaderData();
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
 
@@ -149,13 +149,6 @@ function RouteComponent() {
 			},
 		]),
 	];
-
-	const inviteLink = createConnectionLink({
-		domain: team.domains.length > 0 ? team.domains[0] : undefined,
-		type: "collection",
-		id: params.collectionId,
-		teamId: team.id,
-	});
 
 	return (
 		<Page>
