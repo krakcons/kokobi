@@ -2,7 +2,7 @@ import { db } from "@/server/db";
 import { modules, teams, usersToModules } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { localeMiddleware, protectedMiddleware } from "../middleware";
-import { s3 } from "@/server/s3";
+import { createS3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { sendEmail, verifyEmail } from "../email";
@@ -68,6 +68,7 @@ export const playFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware])
 	.validator(z.object({ courseId: z.string(), attemptId: z.string() }))
 	.handler(async ({ context, data: { courseId, attemptId } }) => {
+		const s3 = await createS3();
 		const attempt = await db.query.usersToModules.findFirst({
 			where: and(
 				eq(usersToModules.courseId, courseId),

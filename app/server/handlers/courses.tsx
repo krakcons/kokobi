@@ -13,7 +13,7 @@ import { localeMiddleware, teamMiddleware } from "../middleware";
 import { z } from "zod";
 import { hasTeamCourseAccess } from "../helpers";
 import { ExtendLearner } from "@/types/learner";
-import { s3 } from "../s3";
+import { createS3 } from "../s3";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -125,6 +125,7 @@ export const deleteCourseFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
 	.handler(async ({ context, data: { courseId } }) => {
+		const s3 = await createS3();
 		const teamId = context.teamId;
 
 		await db

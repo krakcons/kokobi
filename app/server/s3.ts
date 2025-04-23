@@ -1,8 +1,9 @@
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { S3Client } from "bun";
 
-const credentials = await fromNodeProviderChain()();
-
-export const s3 = new S3Client({
-	...credentials,
-});
+export const createS3 = async () => {
+	const credentials = await fromNodeProviderChain()();
+	return new S3Client({
+		...credentials,
+	});
+};

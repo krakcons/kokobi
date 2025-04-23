@@ -4,7 +4,7 @@ import { and, desc, eq, max } from "drizzle-orm";
 import { localeMiddleware, teamMiddleware } from "../middleware";
 import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
-import { s3 } from "@/server/s3";
+import { createS3 } from "@/server/s3";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -26,6 +26,7 @@ export const createModuleFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const teamId = context.teamId;
+		const s3 = await createS3();
 
 		const data = ModuleFormSchema.extend({ courseId: z.string() }).parse(
 			Object.fromEntries(formData.entries()),
@@ -95,6 +96,7 @@ export const deleteModuleFn = createServerFn({ method: "POST" })
 	.validator(z.object({ courseId: z.string(), moduleId: z.string() }))
 	.handler(async ({ context, data: { courseId, moduleId } }) => {
 		const teamId = context.teamId;
+		const s3 = await createS3();
 
 		const moduleExists = await db.query.modules.findFirst({
 			where: and(

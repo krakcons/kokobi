@@ -6,7 +6,7 @@ import {
 	usersToCourses,
 	usersToTeams,
 } from "@/server/db/schema";
-import { s3 } from "@/server/s3";
+import { createS3 } from "@/server/s3";
 import { InviteMemberFormSchema, TeamFormSchema } from "@/types/team";
 import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -106,6 +106,7 @@ export const createTeamFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const userId = context.user.id;
+		const s3 = await createS3();
 
 		const data = TeamFormSchema.parse(
 			Object.fromEntries(formData.entries()),
@@ -166,6 +167,7 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const teamId = context.teamId;
+		const s3 = await createS3();
 
 		const data = TeamFormSchema.parse(
 			Object.fromEntries(formData.entries()),
@@ -287,18 +289,19 @@ export const deleteTeamFn = createServerFn({ method: "POST" })
 	.handler(async ({ context }) => {
 		const userId = context.user?.id;
 		const teamId = context.teamId;
+		const s3 = await createS3();
 
-		// TODO: DELETE full team data w/courses (waiting on bun s3 list function)
-		await Promise.all([
-			locales.map(async (locale) => {
-				await s3.delete(`/${teamId}/${locale.value}/logo`);
-				await s3.delete(
-					`/${teamId}/${locale.value
-						.toLowerCase()
-						.replaceAll("-", "_")}/favicon`,
-				);
-			}),
-		]);
+		const files = await s3.list({
+			prefix: `${teamId}/`,
+			maxKeys: 1000,
+		});
+		if (files.contents) {
+			await Promise.all(
+				files.contents.map((file) => {
+					s3.delete(file.key);
+				}),
+			);
+		}
 		await db.delete(teams).where(eq(teams.id, teamId));
 
 		// Find next best team or redirect to create team
