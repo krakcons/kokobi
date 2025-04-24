@@ -214,10 +214,11 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 		return {
 			total,
 			completed,
-			completedPercent: Math.round((completed / total) * 100),
-			completedTimeAverage: Math.round(
-				totalCompletionTime / 60 / completed,
-			),
+			completedPercent:
+				completed > 0
+					? ((completed / total) * 100).toFixed(0)
+					: undefined,
+			completedTimeAverage: (totalCompletionTime / completed).toFixed(1),
 			charts: {
 				status: attempts.reduce(
 					(acc, learner) => {

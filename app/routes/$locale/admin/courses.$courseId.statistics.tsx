@@ -53,7 +53,7 @@ function RouteComponent() {
 		},
 		{
 			title: "Total Completed",
-			value: `${statistics.completed} (${statistics.completedPercent}%)`,
+			value: `${statistics.completed} ${statistics.completedPercent ? `(${statistics.completedPercent}%)` : ""}`,
 			description: "Total learners that have completed this course.",
 			icon: <CheckCircle className="size-4" />,
 		},
