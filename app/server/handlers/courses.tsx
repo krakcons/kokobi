@@ -2,7 +2,6 @@ import { db } from "@/server/db";
 import {
 	courseTranslations,
 	courses,
-	usersToCourses,
 	usersToModules,
 } from "@/server/db/schema";
 import { CourseFormSchema } from "@/types/course";
@@ -15,7 +14,7 @@ import {
 	teamMiddleware,
 } from "../lib/middleware";
 import { z } from "zod";
-import { ExtendLearner } from "@/types/learner";
+import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { createS3 } from "../s3";
 import { env } from "../env";
 import { hasTeamAccess } from "../lib/access";
@@ -184,16 +183,7 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 			teamId: context.teamId,
 		});
 
-		const connections = await db.query.usersToCourses.findMany({
-			where: and(
-				eq(usersToCourses.courseId, courseId),
-				access === "shared"
-					? eq(usersToCourses.teamId, context.teamId)
-					: undefined,
-			),
-		});
-
-		const learners = await db.query.usersToModules.findMany({
+		const attemptList = await db.query.usersToModules.findMany({
 			where: and(
 				eq(usersToModules.courseId, courseId),
 				access === "shared"
@@ -205,10 +195,43 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 			},
 		});
 
+		const attempts = attemptList.map((attempt) =>
+			ExtendLearner(attempt.module.type).parse(attempt),
+		);
+
+		const total = attempts.length;
+		const completed = attempts.filter((l) => !!l.completedAt).length;
+		const totalCompletionTime = attempts.reduce((acc, learner) => {
+			if (learner.completedAt) {
+				acc +=
+					(learner.completedAt.getTime() -
+						learner.createdAt.getTime()) /
+					1000;
+			}
+			return acc;
+		}, 0);
+
 		return {
-			connections,
-			learners: learners.map((learner) =>
-				ExtendLearner(learner.module.type).parse(learner),
+			total,
+			completed,
+			completedPercent: Math.round((completed / total) * 100),
+			completedTimeAverage: Math.round(
+				totalCompletionTime / 60 / completed,
 			),
+			charts: {
+				status: attempts.reduce(
+					(acc, learner) => {
+						const index = learnerStatuses.indexOf(learner.status);
+						if (index !== -1) {
+							acc[index].value += 1;
+						}
+						return acc;
+					},
+					learnerStatuses.map((status) => ({
+						name: status,
+						value: 0,
+					})),
+				),
+			},
 		};
 	});

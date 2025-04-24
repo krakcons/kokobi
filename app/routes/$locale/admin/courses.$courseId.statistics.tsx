@@ -10,7 +10,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { CheckCircle, CircleEllipsis, Clock, Users } from "lucide-react";
-import { learnerStatuses } from "@/types/learner";
 import {
 	ChartConfig,
 	ChartContainer,
@@ -18,20 +17,19 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Pie, PieChart } from "recharts";
+import { learnerStatuses } from "@/types/learner";
+import { useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/statistics",
 )({
 	component: RouteComponent,
-	loader: ({ params }) => {
-		return Promise.all([
-			getCourseStatisticsFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
-		]);
-	},
+	loader: ({ params }) =>
+		getCourseStatisticsFn({
+			data: {
+				courseId: params.courseId,
+			},
+		}),
 });
 
 const statusChartConfig: ChartConfig = {
@@ -43,36 +41,25 @@ const statusChartConfig: ChartConfig = {
 };
 
 function RouteComponent() {
-	const [statistics] = Route.useLoaderData();
-	const learners = statistics.learners.length;
-	const completed = statistics.learners.filter((l) => !!l.completedAt).length;
-	const totalCompletionTime = statistics.learners.reduce((acc, learner) => {
-		if (learner.completedAt) {
-			acc +=
-				(learner.completedAt.getTime() - learner.createdAt.getTime()) /
-				1000;
-		}
-		return acc;
-	}, 0);
+	const statistics = Route.useLoaderData();
+	const t = useTranslations("Learner");
 
 	const cards = [
 		{
-			title: "Total Learners",
-			value: learners,
-			description: "Total learners that have enrolled in this course.",
+			title: "Total Attempts",
+			value: statistics.total,
+			description: "Total learners that have started this course.",
 			icon: <Users className="size-4" />,
 		},
 		{
 			title: "Total Completed",
-			value: `${completed} (${Math.round(
-				(completed / learners) * 100,
-			)}%)`,
+			value: `${statistics.completed} (${statistics.completedPercent}%)`,
 			description: "Total learners that have completed this course.",
 			icon: <CheckCircle className="size-4" />,
 		},
 		{
 			title: "Average Completion Time",
-			value: `${Math.round(totalCompletionTime / 60 / completed)} minutes`,
+			value: `${statistics.completedTimeAverage} minutes`,
 			description: "Average time it takes to complete this course.",
 			icon: <Clock className="size-4" />,
 		},
@@ -80,20 +67,11 @@ function RouteComponent() {
 
 	const charts = [
 		{
-			title: "Learner Status",
-			description: "Portion of learners with each status.",
+			title: "Attempt Status",
+			description: `Total learners with each status (${learnerStatuses.map((s) => t.statuses[s]).join(", ")})`,
 			icon: <CircleEllipsis className="size-4" />,
 			config: statusChartConfig,
-			data: statistics.learners.reduce(
-				(acc, learner) => {
-					const index = learnerStatuses.indexOf(learner.status);
-					if (index !== -1) {
-						acc[index].value += 1;
-					}
-					return acc;
-				},
-				learnerStatuses.map((status) => ({ name: status, value: 0 })),
-			),
+			data: statistics.charts.status,
 		},
 	];
 
