@@ -25,6 +25,10 @@ export const TeamFormSchema = z.object({
 });
 export type TeamFormType = z.infer<typeof TeamFormSchema>;
 
+export const roles = ["owner", "member"] as const;
+export const RoleSchema = z.enum(roles);
+export type Role = z.infer<typeof RoleSchema>;
+
 export const TeamUsersFormSchema = z.object({
 	users: z
 		.object({

@@ -34,7 +34,6 @@ import {
 	X,
 	ChartNoAxesColumn,
 } from "lucide-react";
-import { useTheme } from "@/lib/theme";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
@@ -44,8 +43,9 @@ import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { teamConnectionResponseFn } from "@/server/handlers/connections";
 import { useMutation } from "@tanstack/react-query";
 import { TeamSwitcher } from "./TeamSwitcher";
-import { Role, User } from "@/types/users";
+import { User } from "@/types/users";
 import { UserButton } from "./UserButton";
+import { Role } from "@/types/team";
 
 const CourseCollapsible = ({
 	course,

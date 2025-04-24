@@ -148,6 +148,7 @@ export const updateUserTeamFn = createServerFn({ method: "POST" })
 				where: and(
 					eq(usersToTeams.userId, context.user.id),
 					eq(usersToTeams.teamId, data.teamId),
+					eq(usersToTeams.connectStatus, "accepted"),
 				),
 			});
 

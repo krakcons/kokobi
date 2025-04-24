@@ -1,13 +1,16 @@
 import {
+	createDataTableActionsColumn,
 	DataTable,
 	DataTableColumnHeader,
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { useLocale, useTranslations } from "@/lib/locale";
+import { useTranslations } from "@/lib/locale";
 import {
 	createTeamUsersFn,
+	deleteTeamUserFn,
 	getTeamUsersFn,
+	updateTeamUserFn,
 } from "@/server/handlers/teams.users";
 import { User } from "@/types/users";
 import { useMutation } from "@tanstack/react-query";
@@ -27,6 +30,14 @@ import { UserPlus } from "lucide-react";
 import { TeamUsersForm } from "@/components/forms/TeamUsersForm";
 import { UserToTeamType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+} from "@/components/ui/select";
+import { Role, roles } from "@/types/team";
+import { SelectValue } from "@radix-ui/react-select";
 
 export const Route = createFileRoute("/$locale/admin/members")({
 	component: RouteComponent,
@@ -46,6 +57,18 @@ function RouteComponent() {
 		mutationFn: createTeamUsersFn,
 		onSuccess: () => {
 			setOpen(false);
+			router.invalidate();
+		},
+	});
+	const updateTeamUser = useMutation({
+		mutationFn: updateTeamUserFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
+	const deleteTeamUser = useMutation({
+		mutationFn: deleteTeamUserFn,
+		onSuccess: () => {
 			router.invalidate();
 		},
 	});
@@ -72,7 +95,49 @@ function RouteComponent() {
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Role" />
 			),
+			cell: ({
+				row: {
+					original: { userId, role },
+				},
+			}) => {
+				return (
+					<Select
+						value={role}
+						onValueChange={(value: Role) => {
+							updateTeamUser.mutate({
+								data: {
+									userId: userId,
+									role: value,
+								},
+							});
+						}}
+					>
+						<SelectTrigger className="w-min">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{roles.map((role) => (
+								<SelectItem key={role} value={role}>
+									{t[role]}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				);
+			},
 		},
+		createDataTableActionsColumn<UserToTeamType>([
+			{
+				name: "Delete",
+				onClick: ({ userId }) => {
+					deleteTeamUser.mutate({
+						data: {
+							userId: userId,
+						},
+					});
+				},
+			},
+		]),
 	];
 
 	return (

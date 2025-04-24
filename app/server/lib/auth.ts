@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "../db";
 import { Session, sessions, User, users, usersToTeams } from "../db/schema";
 import { deleteCookie, getCookie } from "@tanstack/react-start/server";
-import { Role } from "@/types/users";
+import { Role } from "@/types/team";
 
 export type AuthResult =
 	| {

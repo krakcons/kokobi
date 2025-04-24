@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
 import { usersToTeams } from "@/server/db/schema";
-import { TeamUsersFormSchema } from "@/types/team";
+import { RoleSchema, TeamUsersFormSchema } from "@/types/team";
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { teamMiddleware } from "../lib/middleware";
@@ -50,18 +50,39 @@ export const createTeamUsersFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
-export const deleteTeamUsersFn = createServerFn({ method: "POST" })
+export const updateTeamUserFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware({ role: "owner" })])
+	.validator(z.object({ userId: z.string(), role: RoleSchema }))
+	.handler(async ({ context, data }) => {
+		await db
+			.update(usersToTeams)
+			.set({
+				role: data.role,
+			})
+			.where(
+				and(
+					eq(usersToTeams.userId, data.userId),
+					eq(usersToTeams.teamId, context.teamId),
+				),
+			);
+
+		return null;
+	});
+
+export const deleteTeamUserFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.validator(z.object({ userId: z.string() }))
 	.handler(async ({ context, data: { userId } }) => {
-		const id = context.teamId;
+		if (context.user.id === userId) {
+			throw new Error("You cannot delete yourself");
+		}
 
 		await db
 			.delete(usersToTeams)
 			.where(
 				and(
 					eq(usersToTeams.userId, userId),
-					eq(usersToTeams.teamId, id),
+					eq(usersToTeams.teamId, context.teamId),
 				),
 			);
 

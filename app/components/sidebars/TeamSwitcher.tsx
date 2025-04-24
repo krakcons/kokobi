@@ -129,13 +129,20 @@ export const TeamSwitcher = ({
 								.map(({ team, ...connection }) => (
 									<DropdownMenuItem
 										key={team.id}
-										onClick={() => {
-											setTeam({
-												data: {
-													teamId: team.id,
-													type,
-												},
-											});
+										onClick={(e) => {
+											if (
+												connection.connectStatus ===
+												"accepted"
+											) {
+												setTeam({
+													data: {
+														teamId: team.id,
+														type,
+													},
+												});
+											} else {
+												e.preventDefault();
+											}
 										}}
 										className="gap-2 p-2"
 									>
@@ -153,7 +160,9 @@ export const TeamSwitcher = ({
 												}
 											</AvatarFallback>
 										</Avatar>
-										{team.name}
+										<p className="truncate flex-1">
+											{team.name}
+										</p>
 										<ConnectionActions
 											className="ml-2"
 											connection={connection}
