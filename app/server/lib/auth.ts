@@ -2,7 +2,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "../db";
 import { Session, sessions, User, users, usersToTeams } from "../db/schema";
-import { getCookie } from "@tanstack/react-start/server";
+import { deleteCookie, getCookie } from "@tanstack/react-start/server";
 import { Role } from "@/types/users";
 
 export type AuthResult =
@@ -97,10 +97,27 @@ export async function getAuth(token?: string): Promise<AuthResult> {
 
 		if (team) {
 			role = team.role;
+		} else {
+			// Case where team or connection is deleted but user is still logged in
+			deleteCookie("teamId");
+			teamId = null;
 		}
 	}
 
-	const learnerTeamId = getCookie("learnerTeamId") ?? null;
+	let learnerTeamId = getCookie("learnerTeamId") ?? null;
+	if (user.id && learnerTeamId) {
+		const team = await db.query.usersToTeams.findFirst({
+			where: and(
+				eq(usersToTeams.userId, user.id),
+				eq(usersToTeams.teamId, learnerTeamId),
+			),
+		});
+		if (!team) {
+			// Case where team or connection is deleted but user is still logged in
+			deleteCookie("learnerTeamId");
+			learnerTeamId = null;
+		}
+	}
 
 	return { session, user, learnerTeamId, teamId, role };
 }
