@@ -32,6 +32,7 @@ import {
 	Link,
 	useRouter,
 } from "@tanstack/react-router";
+import { AlertCircle, Award, Play } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
@@ -95,169 +96,189 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<div className="flex flex-col gap-8 w-full">
-				<ContentBranding contentTeam={course.team} connectTeam={team} />
-				<PageHeader
-					title={course.name}
-					description={course.description}
-				>
-					{connection && (
-						<ConnectionStatusBadge hideOnSuccess {...connection} />
-					)}
-				</PageHeader>
-				<ConnectionWrapper
-					name={course.name}
-					connection={connection}
-					onRequest={() =>
-						requestConnection.mutate({
-							data: {
-								type: "course",
-								id: course.id,
-							},
-						})
-					}
-					onResponse={(status) => {
-						connectionResponse.mutate({
-							data: {
-								type: "course",
-								id: course.id,
-								connectStatus: status,
-							},
-						});
-					}}
-				>
-					{attempts.length > 0 ? (
-						<div className="flex flex-col gap-4">
-							<h3>Attempts</h3>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Status</TableHead>
-										<TableHead>Score</TableHead>
-										<TableHead>Started At</TableHead>
-										<TableHead>Completed At</TableHead>
-										<TableHead></TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{attempts.map((attempt) => (
-										<TableRow key={attempt.id}>
-											<TableCell>
-												{t.statuses[attempt.status]}
-											</TableCell>
-											<TableCell>
-												{["failed", "passed"].includes(
-													attempt.status,
-												) &&
-													attempt.score.raw +
-														" / " +
-														attempt.score.max}
-											</TableCell>
-											<TableCell>
-												{attempt.createdAt &&
-													formatDate({
-														date: new Date(
-															attempt.createdAt,
-														),
-														locale,
-														type: "detailed",
-													})}
-											</TableCell>
-											<TableCell>
-												{attempt.completedAt &&
-													formatDate({
-														date: new Date(
-															attempt.completedAt,
-														),
-														locale,
-														type: "detailed",
-													})}
-											</TableCell>
-											<TableCell className="flex gap-2">
-												<Link
-													to="/$locale/learner/courses/$courseId/play"
-													params={{
-														courseId: course.id,
-														locale,
-													}}
-													search={{
-														attemptId: attempt.id,
-													}}
-													className={buttonVariants()}
-												>
-													Continue
-												</Link>
-												{attempt.completedAt && (
-													<ClientOnly
-														fallback={
-															<Button
-																variant="outline"
-																disabled
+			<ContentBranding contentTeam={course.team} connectTeam={team} />
+			<PageHeader title={course.name} description={course.description}>
+				{connection && (
+					<ConnectionStatusBadge hideOnSuccess {...connection} />
+				)}
+			</PageHeader>
+			<ConnectionWrapper
+				name={course.name}
+				connection={connection}
+				onRequest={() =>
+					requestConnection.mutate({
+						data: {
+							type: "course",
+							id: course.id,
+						},
+					})
+				}
+				onResponse={(status) => {
+					connectionResponse.mutate({
+						data: {
+							type: "course",
+							id: course.id,
+							connectStatus: status,
+						},
+					});
+				}}
+			>
+				{attempts.length > 0 ? (
+					<div className="flex flex-col gap-4">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Status</TableHead>
+									<TableHead>Score</TableHead>
+									<TableHead>Started At</TableHead>
+									<TableHead>Completed At</TableHead>
+									<TableHead></TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{attempts.map((attempt) => (
+									<TableRow key={attempt.id}>
+										<TableCell>
+											{t.statuses[attempt.status]}
+										</TableCell>
+										<TableCell>
+											{["failed", "passed"].includes(
+												attempt.status,
+											) &&
+												attempt.score.raw +
+													" / " +
+													attempt.score.max}
+										</TableCell>
+										<TableCell className="text-nowrap">
+											{attempt.createdAt &&
+												formatDate({
+													date: new Date(
+														attempt.createdAt,
+													),
+													locale,
+													type: "detailed",
+												})}
+										</TableCell>
+										<TableCell className="text-nowrap">
+											{attempt.completedAt &&
+												formatDate({
+													date: new Date(
+														attempt.completedAt,
+													),
+													locale,
+													type: "detailed",
+												})}
+										</TableCell>
+										<TableCell className="flex justify-end items-center gap-2">
+											{attempt.completedAt && (
+												<>
+													{user?.firstName &&
+													user?.lastName ? (
+														<ClientOnly
+															fallback={
+																<Button
+																	variant="outline"
+																	disabled
+																>
+																	<Award />
+																	Download
+																	Certificate
+																</Button>
+															}
+														>
+															<PDFDownloadLink
+																fileName="certificate.pdf"
+																document={
+																	<Certificate
+																		certificate={{
+																			name:
+																				user?.firstName +
+																				" " +
+																				user?.lastName,
+																			teamName:
+																				team.name,
+																			course: course.name,
+																			completedAt:
+																				attempt.completedAt &&
+																				formatDate(
+																					{
+																						date: new Date(
+																							attempt.completedAt,
+																						),
+																						locale,
+																						type: "readable",
+																					},
+																				),
+																			t: tCert.pdf,
+																		}}
+																	/>
+																}
+																className={buttonVariants(
+																	{
+																		variant:
+																			"outline",
+																	},
+																)}
 															>
+																<Award />
 																Download
 																Certificate
-															</Button>
-														}
-													>
-														<PDFDownloadLink
-															fileName="certificate.pdf"
-															document={
-																<Certificate
-																	certificate={{
-																		name:
-																			user?.firstName +
-																			" " +
-																			user?.lastName,
-																		teamName:
-																			team.name,
-																		course: course.name,
-																		completedAt:
-																			attempt.completedAt &&
-																			formatDate(
-																				{
-																					date: new Date(
-																						attempt.completedAt,
-																					),
-																					locale,
-																					type: "readable",
-																				},
-																			),
-																		t: tCert.pdf,
-																	}}
-																/>
-															}
-															className={buttonVariants(
-																{
-																	variant:
-																		"outline",
-																},
-															)}
+															</PDFDownloadLink>
+														</ClientOnly>
+													) : (
+														<Button
+															variant="outline"
+															onClick={() => {
+																navigate({
+																	to: ".",
+																	search: {
+																		accountDialog:
+																			true,
+																	},
+																});
+															}}
 														>
-															Download Certificate
-														</PDFDownloadLink>
-													</ClientOnly>
-												)}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</div>
-					) : (
-						<Button
-							onClick={() =>
-								createAttempt.mutate({
-									data: {
-										courseId: course.id,
-									},
-								})
-							}
-						>
-							Start Course
-						</Button>
-					)}
-				</ConnectionWrapper>
-			</div>
+															<AlertCircle />
+															Certificate Requires
+															Name
+														</Button>
+													)}
+												</>
+											)}
+											<Link
+												to="/$locale/learner/courses/$courseId/play"
+												params={{
+													courseId: course.id,
+													locale,
+												}}
+												search={{
+													attemptId: attempt.id,
+												}}
+												className={buttonVariants()}
+											>
+												<Play className="size-3.5" />
+												Continue
+											</Link>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
+				) : (
+					<Button
+						onClick={() =>
+							createAttempt.mutate({
+								data: {
+									courseId: course.id,
+								},
+							})
+						}
+					>
+						Start Course
+					</Button>
+				)}
+			</ConnectionWrapper>
 		</Page>
 	);
 }

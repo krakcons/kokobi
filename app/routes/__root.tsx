@@ -15,9 +15,13 @@ import appCss from "@/index.css?url";
 import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { teamImageUrl } from "@/lib/file";
+import { z } from "zod";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
+		validateSearch: z.object({
+			accountDialog: z.boolean().optional(),
+		}),
 		beforeLoad: async ({ location }) => {
 			const i18n = await getI18nFn();
 			let locale = i18n.locale;

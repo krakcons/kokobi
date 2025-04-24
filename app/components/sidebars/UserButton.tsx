@@ -37,10 +37,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "../ui/dialog";
-import { useState } from "react";
 import { UserForm } from "../forms/UserForm";
 import { useMutation } from "@tanstack/react-query";
-import { Link, useLocation, useRouter } from "@tanstack/react-router";
+import {
+	Link,
+	useLocation,
+	useNavigate,
+	useRouter,
+	useSearch,
+} from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/lib/locale";
 
@@ -58,11 +63,14 @@ const ThemeIcon = ({ theme }: { theme: Theme }) => {
 export const UserButton = ({ user }: { user: UserType }) => {
 	const { theme, setTheme } = useTheme();
 	const { isMobile } = useSidebar();
-	const [accountOpen, setAccountOpen] = useState(false);
 	const signOut = useServerFn(deleteAuthFn);
 	const router = useRouter();
 	const location = useLocation();
 	const locale = useLocale();
+	const { accountDialog = false } = useSearch({
+		from: "__root__",
+	});
+	const navigate = useNavigate();
 
 	const learnerAdmin = location.pathname.startsWith(`/${locale}/learner`);
 
@@ -77,11 +85,19 @@ export const UserButton = ({ user }: { user: UserType }) => {
 			<User className="size-4.5" />
 		);
 
+	const setAccountDialog = (open: boolean) =>
+		navigate({
+			to: ".",
+			search: {
+				accountDialog: open || undefined,
+			},
+		});
+
 	const updateUser = useMutation({
 		mutationFn: updateUserFn,
 		onSuccess: () => {
 			router.invalidate();
-			setAccountOpen(false);
+			setAccountDialog(false);
 		},
 	});
 
@@ -172,7 +188,7 @@ export const UserButton = ({ user }: { user: UserType }) => {
 									)
 								</DropdownMenuItem>
 								<DropdownMenuItem
-									onSelect={() => setAccountOpen(true)}
+									onSelect={() => setAccountDialog(true)}
 								>
 									<UserCircleIcon />
 									Account
@@ -209,7 +225,10 @@ export const UserButton = ({ user }: { user: UserType }) => {
 					</DropdownMenu>
 				</SidebarMenuItem>
 			</SidebarFooter>
-			<Dialog open={accountOpen} onOpenChange={setAccountOpen}>
+			<Dialog
+				open={accountDialog}
+				onOpenChange={(open) => setAccountDialog(open)}
+			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Account</DialogTitle>
