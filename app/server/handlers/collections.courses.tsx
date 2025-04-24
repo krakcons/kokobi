@@ -2,7 +2,7 @@ import { db } from "@/server/db";
 import { collections, collectionsToCourses } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { localeMiddleware, teamMiddleware } from "../middleware";
+import { localeMiddleware, teamMiddleware } from "../lib/middleware";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { createServerFn } from "@tanstack/react-start";

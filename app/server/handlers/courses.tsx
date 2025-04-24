@@ -13,12 +13,12 @@ import {
 	learnerMiddleware,
 	localeMiddleware,
 	teamMiddleware,
-} from "../middleware";
+} from "../lib/middleware";
 import { z } from "zod";
 import { ExtendLearner } from "@/types/learner";
 import { createS3 } from "../s3";
 import { env } from "../env";
-import { hasTeamAccess } from "../helpers/access";
+import { hasTeamAccess } from "../lib/access";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])

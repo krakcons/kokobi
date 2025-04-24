@@ -1,7 +1,7 @@
 import { db } from "@/server/db";
 import { courses, modules } from "@/server/db/schema";
 import { and, desc, eq, max } from "drizzle-orm";
-import { localeMiddleware, teamMiddleware } from "../middleware";
+import { localeMiddleware, teamMiddleware } from "../lib/middleware";
 import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { createS3 } from "@/server/s3";

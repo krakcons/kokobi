@@ -1,5 +1,5 @@
 import { env } from "@/server/env";
-import { LocaleSchema } from "./locale";
+import { LocaleSchema } from "@/lib/locale";
 import { and, eq } from "drizzle-orm";
 import { domains } from "@/server/db/schema";
 import { db } from "@/server/db";

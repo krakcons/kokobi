@@ -3,7 +3,7 @@ import { teams, users, usersToTeams } from "@/server/db/schema";
 import { InviteMemberFormSchema } from "@/types/team";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { teamMiddleware } from "../middleware";
+import { teamMiddleware } from "../lib/middleware";
 import { createServerFn } from "@tanstack/react-start";
 
 export const getTeamUsersFn = createServerFn({ method: "GET" })

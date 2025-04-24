@@ -44,7 +44,10 @@ function RouteComponent() {
 	const { mutate } = useMutation({
 		mutationFn: updateUserModuleFn,
 		onSuccess: (newAttempt) => {
-			setAttempt(newAttempt);
+			if (newAttempt) setAttempt(newAttempt);
+		},
+		scope: {
+			id: attempt.id,
 		},
 	});
 

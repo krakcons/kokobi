@@ -2,16 +2,12 @@ import { Domain } from "@/types/domains";
 import { Team, TeamTranslation } from "@/types/team";
 import {
 	GetEmailIdentityCommand,
-	SESv2Client,
 	SendEmailCommand,
 } from "@aws-sdk/client-sesv2";
 import { render } from "@react-email/components";
 import { ReactElement } from "react";
 import { Resource } from "sst";
-
-export const ses = new SESv2Client({
-	region: process.env.AWS_REGION,
-});
+import { ses } from "../ses";
 
 export const verifyEmail = async (domains: Domain[]) => {
 	if (domains.length === 0) return false;

@@ -2,12 +2,12 @@ import { db } from "@/server/db";
 import { domains } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { teamMiddleware } from "../middleware";
+import { teamMiddleware } from "../lib/middleware";
 import { createServerFn } from "@tanstack/react-start";
 import { cf } from "../cloudflare";
 import { APIError } from "cloudflare";
 import { env } from "../env";
-import { ses } from "../email";
+import { ses } from "../ses";
 import {
 	CreateEmailIdentityCommand,
 	DeleteEmailIdentityCommand,

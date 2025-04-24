@@ -2,7 +2,7 @@ import {
 	learnerMiddleware,
 	localeMiddleware,
 	teamMiddleware,
-} from "../middleware";
+} from "../lib/middleware";
 import { db } from "@/server/db";
 import {
 	collections,
@@ -18,15 +18,18 @@ import { ExtendLearner } from "@/types/learner";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { sendEmail, verifyEmail } from "../email";
+import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { ConnectionType } from "@/types/connections";
 import { env } from "../env";
-import { ConnectionLinkSchema, getConnectionLink } from "@/lib/invite";
+import {
+	ConnectionLinkSchema,
+	getConnectionLink,
+} from "@/server/lib/connection";
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
-import { hasTeamAccess } from "../helpers/access";
+import { hasTeamAccess } from "../lib/access";
 
 export const GetConnectionSchema = z.object({
 	type: z.enum(["course", "collection"]),

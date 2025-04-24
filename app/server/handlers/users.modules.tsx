@@ -1,20 +1,20 @@
 import { db } from "@/server/db";
 import { modules, teams, usersToModules } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { learnerMiddleware, localeMiddleware } from "../middleware";
+import { learnerMiddleware, localeMiddleware } from "../lib/middleware";
 import { createS3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { sendEmail, verifyEmail } from "../email";
+import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator } from "@/lib/locale/actions";
 import CourseCompletion from "@/emails/CourseCompletion";
 import { getInitialScormData } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { hasUserAccess } from "../helpers";
+import { hasUserAccess } from "../lib/access";
 import { teamImageUrl } from "@/lib/file";
-import { getConnectionLink } from "@/lib/invite";
-import { parseIMSManifest } from "../helpers/modules";
+import { getConnectionLink } from "@/server/lib/connection";
+import { parseIMSManifest } from "../lib/modules";
 
 export const getUserModuleFn = createServerFn({ method: "GET" })
 	.middleware([learnerMiddleware])
@@ -64,6 +64,13 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ context, data }) => {
+		await hasUserAccess({
+			type: "course",
+			id: data.courseId,
+			userId: context.user.id,
+			teamId: context.learnerTeamId,
+		});
+
 		const attempt = await db.query.usersToModules.findFirst({
 			where: and(
 				eq(usersToModules.courseId, data.courseId),
@@ -85,15 +92,8 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 			throw new Error("Attempt not found.");
 		}
 		if (attempt.completedAt) {
-			throw new Error("Learner has already completed the course.");
+			return undefined;
 		}
-
-		await hasUserAccess({
-			type: "course",
-			id: data.courseId,
-			userId: context.user.id,
-			teamId: context.learnerTeamId,
-		});
 
 		// UPDATE LEARNER
 		let completedAt = undefined;
@@ -117,6 +117,7 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 					: attempt.completedAt;
 
 			if (justCompleted) {
+				console.log("just completed");
 				const teamBase = await db.query.teams.findFirst({
 					where: eq(teams.id, context.learnerTeamId),
 					with: {

@@ -1,16 +1,16 @@
-import { localeMiddleware } from "../middleware";
+import { localeMiddleware } from "../lib/middleware";
 import { db } from "@/server/db";
 import { teams, users, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { z } from "zod";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
-import { createSession } from "@/server/auth";
+import { createSession } from "@/server/lib/auth";
 import { createServerFn } from "@tanstack/react-start";
 import { emailVerifications } from "@/server/db/schema";
-import { sendEmail, verifyEmail } from "@/server/email";
-import { getTenant } from "@/server/helpers/tenant";
-import { generateRandomString } from "@/server/random";
+import { sendEmail, verifyEmail } from "@/server/lib/email";
+import { getTenant } from "@/server/lib/tenant";
+import { generateRandomString } from "@/server/lib/random";
 
 export const LoginFormSchema = z.object({
 	email: z.string().email(),

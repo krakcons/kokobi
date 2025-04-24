@@ -2,8 +2,8 @@ import { db } from "@/server/db";
 import { keys } from "@/server/db/schema";
 import { APIKeyFormSchema } from "@/types/keys";
 import { and, eq } from "drizzle-orm";
-import { teamMiddleware } from "../middleware";
-import { generateRandomString } from "@/server/random";
+import { teamMiddleware } from "../lib/middleware";
+import { generateRandomString } from "@/server/lib/random";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 

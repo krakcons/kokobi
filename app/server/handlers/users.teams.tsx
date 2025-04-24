@@ -2,7 +2,7 @@ import {
 	authMiddleware,
 	localeMiddleware,
 	protectedMiddleware,
-} from "../middleware";
+} from "../lib/middleware";
 import { db } from "@/server/db";
 import { teams, usersToTeams } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";

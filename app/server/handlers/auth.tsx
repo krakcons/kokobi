@@ -1,5 +1,5 @@
-import { authMiddleware, localeMiddleware } from "../middleware";
-import { invalidateSession } from "@/server/auth";
+import { authMiddleware, localeMiddleware } from "../lib/middleware";
+import { invalidateSession } from "@/server/lib/auth";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";

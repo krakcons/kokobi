@@ -1,23 +1,9 @@
 // Based on: https://thecopenhagenbook.com
 import { and, eq } from "drizzle-orm";
-import { db } from "./db";
-import {
-	emailVerifications,
-	Session,
-	sessions,
-	User,
-	users,
-	usersToTeams,
-} from "./db/schema";
-import {
-	deleteCookie,
-	getCookie,
-	setCookie,
-} from "@tanstack/react-start/server";
-import { env } from "./env";
+import { db } from "../db";
+import { Session, sessions, User, users, usersToTeams } from "../db/schema";
+import { getCookie } from "@tanstack/react-start/server";
 import { Role } from "@/types/users";
-import { generateRandomString } from "./random";
-import { sendEmail } from "./email";
 
 export type AuthResult =
 	| {

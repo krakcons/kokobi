@@ -6,7 +6,7 @@ import {
 } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { localeMiddleware, teamMiddleware } from "../middleware";
+import { localeMiddleware, teamMiddleware } from "../lib/middleware";
 import { CollectionFormSchema } from "@/types/collections";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { createServerFn } from "@tanstack/react-start";
