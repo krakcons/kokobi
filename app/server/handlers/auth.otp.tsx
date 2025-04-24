@@ -9,7 +9,7 @@ import { createSession } from "@/server/auth";
 import { createServerFn } from "@tanstack/react-start";
 import { emailVerifications } from "@/server/db/schema";
 import { sendEmail, verifyEmail } from "@/server/email";
-import { getTenant } from "@/server/helpers";
+import { getTenant } from "@/server/helpers/tenant";
 import { generateRandomString } from "@/server/random";
 
 export const LoginFormSchema = z.object({

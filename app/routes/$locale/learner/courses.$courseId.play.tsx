@@ -31,7 +31,10 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 );
 
 function RouteComponent() {
-	const { attempt: initialAttempt, url, type } = Route.useLoaderData();
+	const {
+		meta: { url, type },
+		...initialAttempt
+	} = Route.useLoaderData();
 	const t = useTranslations("Learner");
 
 	const [loading, setLoading] = useState(true);

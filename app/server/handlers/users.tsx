@@ -5,22 +5,11 @@ import {
 } from "../middleware";
 import { db } from "@/server/db";
 import { teams, users, usersToTeams } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
-import { createI18n } from "@/lib/locale/actions";
+import { eq } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { z } from "zod";
-import { LocaleSchema } from "@/lib/locale";
-import { getCookie, setCookie } from "@tanstack/react-start/server";
-import { createSession, invalidateSession } from "@/server/auth";
 import { createServerFn } from "@tanstack/react-start";
-import { deleteCookie } from "@tanstack/react-start/server";
-import { redirect } from "@tanstack/react-router";
 import { Team, TeamTranslation } from "@/types/team";
-
-import { emailVerifications } from "@/server/db/schema";
-import { sendEmail, verifyEmail } from "@/server/email";
-import { getTenant } from "@/server/helpers";
-import { generateRandomString } from "@/server/random";
 import { env } from "../env";
 
 export const UserFormSchema = z.object({

@@ -17,7 +17,7 @@ import {
 import { handleLocalization } from "@/lib/locale/helpers";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, setCookie } from "@tanstack/react-start/server";
-import { getTenant } from "../helpers";
+import { getTenant } from "../helpers/tenant";
 
 export const getTeamByIdFn = createServerFn({ method: "GET" })
 	.middleware([localeMiddleware])

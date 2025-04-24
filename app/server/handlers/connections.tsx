@@ -26,7 +26,7 @@ import { env } from "../env";
 import { ConnectionLinkSchema, getConnectionLink } from "@/lib/invite";
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
-import { hasTeamAccess } from "../helpers";
+import { hasTeamAccess } from "../helpers/access";
 
 export const GetConnectionSchema = z.object({
 	type: z.enum(["course", "collection"]),

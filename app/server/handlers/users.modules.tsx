@@ -1,70 +1,23 @@
 import { db } from "@/server/db";
 import { modules, teams, usersToModules } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { localeMiddleware, protectedMiddleware } from "../middleware";
+import { learnerMiddleware, localeMiddleware } from "../middleware";
 import { createS3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { sendEmail, verifyEmail } from "../email";
 import { createTranslator } from "@/lib/locale/actions";
-import { XMLParser } from "fast-xml-parser";
-import { IMSManifestSchema, Resource } from "@/types/scorm/content";
-import { S3File } from "bun";
 import CourseCompletion from "@/emails/CourseCompletion";
 import { getInitialScormData } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { hasUserCourseAccess } from "../helpers";
+import { hasUserAccess } from "../helpers";
 import { teamImageUrl } from "@/lib/file";
 import { getConnectionLink } from "@/lib/invite";
-
-const parser = new XMLParser({
-	ignoreAttributes: false,
-	attributeNamePrefix: "",
-});
-
-const getAllResources = (resource: Resource | Resource[]): Resource[] => {
-	const resources: Resource[] = [];
-
-	const traverseResource = (res: Resource | Resource[]): void => {
-		if (Array.isArray(res)) {
-			res.forEach((subRes) => {
-				resources.push(subRes);
-				traverseResource(subRes);
-			});
-		} else if (res) {
-			resources.push(res);
-		}
-	};
-
-	traverseResource(resource);
-	return resources;
-};
-
-const parseIMSManifest = async (file: S3File) => {
-	const text = await file.text();
-
-	if (!text) throw new Error("404");
-
-	const parsedIMSManifest = parser.parse(text);
-
-	const scorm = IMSManifestSchema.parse(parsedIMSManifest).manifest;
-
-	const firstOrganization = Array.isArray(scorm.organizations.organization)
-		? scorm.organizations.organization[0]
-		: scorm.organizations.organization;
-
-	const resources = getAllResources(scorm.resources.resource);
-
-	return {
-		scorm,
-		firstOrganization,
-		resources,
-	};
-};
+import { parseIMSManifest } from "../helpers/modules";
 
 export const getUserModuleFn = createServerFn({ method: "GET" })
-	.middleware([protectedMiddleware])
+	.middleware([learnerMiddleware])
 	.validator(z.object({ courseId: z.string(), attemptId: z.string() }))
 	.handler(async ({ context, data: { courseId, attemptId } }) => {
 		const s3 = await createS3();
@@ -73,6 +26,7 @@ export const getUserModuleFn = createServerFn({ method: "GET" })
 				eq(usersToModules.courseId, courseId),
 				eq(usersToModules.id, attemptId),
 				eq(usersToModules.userId, context.user.id),
+				eq(usersToModules.teamId, context.learnerTeamId),
 			),
 			with: {
 				module: {
@@ -93,14 +47,16 @@ export const getUserModuleFn = createServerFn({ method: "GET" })
 
 		const { scorm, resources } = await parseIMSManifest(imsManifest);
 		return {
-			attempt: ExtendLearner(attempt.module.type).parse(attempt),
-			url: `/cdn${courseFileUrl}/${resources[0].href}`,
-			type: scorm.metadata.schemaversion,
+			...ExtendLearner(attempt.module.type).parse(attempt),
+			meta: {
+				url: `/cdn${courseFileUrl}/${resources[0].href}`,
+				type: scorm.metadata.schemaversion,
+			},
 		};
 	});
 
 export const updateUserModuleFn = createServerFn({ method: "POST" })
-	.middleware([protectedMiddleware, localeMiddleware])
+	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(
 		LearnerUpdateSchema.extend({
 			attemptId: z.string(),
@@ -110,8 +66,10 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data }) => {
 		const attempt = await db.query.usersToModules.findFirst({
 			where: and(
+				eq(usersToModules.courseId, data.courseId),
 				eq(usersToModules.id, data.attemptId),
 				eq(usersToModules.userId, context.user.id),
+				eq(usersToModules.teamId, context.learnerTeamId),
 			),
 			with: {
 				module: true,
@@ -130,9 +88,11 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 			throw new Error("Learner has already completed the course.");
 		}
 
-		const teamId = await hasUserCourseAccess({
-			courseId: attempt.module.courseId,
+		await hasUserAccess({
+			type: "course",
+			id: data.courseId,
 			userId: context.user.id,
+			teamId: context.learnerTeamId,
 		});
 
 		// UPDATE LEARNER
@@ -158,7 +118,7 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 
 			if (justCompleted) {
 				const teamBase = await db.query.teams.findFirst({
-					where: eq(teams.id, teamId),
+					where: eq(teams.id, context.learnerTeamId),
 					with: {
 						translations: true,
 						domains: true,
@@ -168,7 +128,7 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 				const course = handleLocalization(context, attempt.course);
 
 				const href = await getConnectionLink({
-					teamId,
+					teamId: context.learnerTeamId,
 					id: course.id,
 					type: "course",
 					locale: course.locale,
@@ -208,7 +168,7 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 					eq(usersToModules.courseId, data.courseId),
 					eq(usersToModules.id, data.attemptId),
 					eq(usersToModules.userId, context.user.id),
-					eq(usersToModules.teamId, teamId),
+					eq(usersToModules.teamId, context.learnerTeamId),
 				),
 			)
 			.returning();
@@ -217,14 +177,14 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 	});
 
 export const createUserModuleFn = createServerFn({ method: "POST" })
-	.middleware([protectedMiddleware, localeMiddleware])
+	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(z.object({ courseId: z.string() }))
 	.handler(async ({ context, data: { courseId } }) => {
-		const user = context.user;
-
-		const teamId = await hasUserCourseAccess({
-			courseId,
-			userId: user.id,
+		await hasUserAccess({
+			type: "course",
+			id: courseId,
+			userId: context.user.id,
+			teamId: context.learnerTeamId,
 		});
 
 		const moduleList = await db.query.modules.findMany({
@@ -243,7 +203,7 @@ export const createUserModuleFn = createServerFn({ method: "POST" })
 		await db.insert(usersToModules).values({
 			id,
 			userId: context.user.id,
-			teamId,
+			teamId: context.learnerTeamId,
 			moduleId: module.id,
 			courseId,
 			data: getInitialScormData(module.type),
