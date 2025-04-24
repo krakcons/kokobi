@@ -68,7 +68,6 @@
 		"tailwindcss-animate": "^1.0.7",
 		"unzipit": "^1.4.3",
 		"vinxi": "^0.5.4",
-		"vite-plugin-node-polyfills": "^0.23.0",
 		"zod": "^3.24.3"
 	},
 	"devDependencies": {

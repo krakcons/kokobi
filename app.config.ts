@@ -13,12 +13,6 @@ export default defineConfig({
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
 			}),
-			nodePolyfills({
-				include: ["buffer"],
-				globals: {
-					Buffer: true,
-				},
-			}),
 		],
 	},
 	server: {
