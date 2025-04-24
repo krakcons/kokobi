@@ -26,7 +26,12 @@ import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import {
+	ClientOnly,
+	createFileRoute,
+	Link,
+	useRouter,
+} from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
@@ -183,42 +188,54 @@ function RouteComponent() {
 													Continue
 												</Link>
 												{attempt.completedAt && (
-													<PDFDownloadLink
-														fileName="certificate.pdf"
-														document={
-															<Certificate
-																certificate={{
-																	name:
-																		user?.firstName +
-																		" " +
-																		user?.lastName,
-																	teamName:
-																		team.name,
-																	course: course.name,
-																	completedAt:
-																		attempt.completedAt &&
-																		formatDate(
-																			{
-																				date: new Date(
-																					attempt.completedAt,
-																				),
-																				locale,
-																				type: "readable",
-																			},
-																		),
-																	t: tCert.pdf,
-																}}
-															/>
+													<ClientOnly
+														fallback={
+															<Button
+																variant="outline"
+																disabled
+															>
+																Download
+																Certificate
+															</Button>
 														}
-														className={buttonVariants(
-															{
-																variant:
-																	"outline",
-															},
-														)}
 													>
-														Download Certificate
-													</PDFDownloadLink>
+														<PDFDownloadLink
+															fileName="certificate.pdf"
+															document={
+																<Certificate
+																	certificate={{
+																		name:
+																			user?.firstName +
+																			" " +
+																			user?.lastName,
+																		teamName:
+																			team.name,
+																		course: course.name,
+																		completedAt:
+																			attempt.completedAt &&
+																			formatDate(
+																				{
+																					date: new Date(
+																						attempt.completedAt,
+																					),
+																					locale,
+																					type: "readable",
+																				},
+																			),
+																		t: tCert.pdf,
+																	}}
+																/>
+															}
+															className={buttonVariants(
+																{
+																	variant:
+																		"outline",
+																},
+															)}
+														>
+															Download Certificate
+														</PDFDownloadLink>
+													</ClientOnly>
 												)}
 											</TableCell>
 										</TableRow>

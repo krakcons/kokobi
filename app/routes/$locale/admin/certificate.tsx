@@ -1,11 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
-import { lazy } from "react";
 import { PendingComponent } from "@/components/PendingComponent";
 import { teamImageUrl } from "@/lib/file";
+import { PDFViewer } from "@react-pdf/renderer";
+import { Certificate } from "@/components/Certificate";
 
 export const Route = createFileRoute("/$locale/admin/certificate")({
 	component: RouteComponent,
@@ -18,8 +19,6 @@ export const Route = createFileRoute("/$locale/admin/certificate")({
 		}),
 });
 
-const CertificatePDF = lazy(() => import("@/components/CertificatePDF"));
-
 function RouteComponent() {
 	const team = Route.useLoaderData();
 	const locale = useLocale();
@@ -31,19 +30,23 @@ function RouteComponent() {
 				title="Certificate"
 				description="View how your certificate will look"
 			/>
-			<CertificatePDF
-				certificate={{
-					teamName: team?.name,
-					logo: teamImageUrl(team, "logo"),
-					name: "John Doe",
-					course: "Volunteer Training",
-					completedAt: formatDate({
-						date: new Date(),
-						locale,
-					}),
-					t: t.pdf,
-				}}
-			/>
+			<ClientOnly>
+				<PDFViewer className="h-[700px] w-full">
+					<Certificate
+						certificate={{
+							teamName: team?.name,
+							logo: teamImageUrl(team, "logo"),
+							name: "John Doe",
+							course: "Volunteer Training",
+							completedAt: formatDate({
+								date: new Date(),
+								locale,
+							}),
+							t: t.pdf,
+						}}
+					/>
+				</PDFViewer>
+			</ClientOnly>
 		</Page>
 	);
 }
