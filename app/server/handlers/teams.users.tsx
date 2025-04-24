@@ -1,7 +1,7 @@
 import { db } from "@/server/db";
 import { usersToTeams } from "@/server/db/schema";
 import { TeamUsersFormSchema } from "@/types/team";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { teamMiddleware } from "../lib/middleware";
 import { createServerFn } from "@tanstack/react-start";
@@ -42,6 +42,7 @@ export const createTeamUsersFn = createServerFn({ method: "POST" })
 			.onConflictDoUpdate({
 				target: [usersToTeams.userId, usersToTeams.teamId],
 				set: {
+					role: sql`excluded.role`,
 					updatedAt: new Date(),
 				},
 			});
