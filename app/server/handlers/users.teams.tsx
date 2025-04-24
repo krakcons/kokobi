@@ -5,13 +5,14 @@ import {
 } from "../lib/middleware";
 import { db } from "@/server/db";
 import { teams, usersToTeams } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { z } from "zod";
 import { setCookie } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { Team, TeamTranslation } from "@/types/team";
 import { env } from "@/server/env";
+import { UserToTeamType } from "@/types/connections";
 
 export const getUserTeamFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware, localeMiddleware])
@@ -39,89 +40,95 @@ export const getUserTeamFn = createServerFn({ method: "GET" })
 		return handleLocalization(context, team);
 	});
 
-export const getUserTeamsFn = createServerFn({ method: "GET" })
-	.middleware([authMiddleware, localeMiddleware])
-	.validator(
-		z.object({
-			type: z.enum(["learner", "admin"]),
-		}),
-	)
-	.handler(async ({ context, data: { type } }) => {
+export const getAdminUserTeamsFn = createServerFn({ method: "GET" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.handler(async ({ context }) => {
 		const user = context.user;
 
-		if (!user) {
-			throw new Error("Unauthorized");
-		}
-
-		if (type === "learner") {
-			let learnerTeam = undefined;
-			if (context.learnerTeamId) {
-				learnerTeam = await db.query.teams.findFirst({
-					where: eq(teams.id, context.learnerTeamId),
+		const teams = await db.query.usersToTeams.findMany({
+			where: eq(usersToTeams.userId, user.id),
+			with: {
+				team: {
 					with: {
 						translations: true,
 					},
-				});
-			}
-			const welcomeTeam = await db.query.teams.findFirst({
-				where: eq(teams.id, env.WELCOME_TEAM_ID),
-				with: {
-					translations: true,
 				},
-			});
-			const courseTeams = await db.query.usersToCourses.findMany({
-				where: eq(usersToTeams.userId, user.id),
-				with: {
-					team: {
-						with: {
-							translations: true,
-						},
+			},
+		});
+
+		return teams.map((connection) => ({
+			...connection,
+			team: handleLocalization(context, connection.team),
+		}));
+	});
+
+export const getLearnerUserTeamsFn = createServerFn({ method: "GET" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.handler(async ({ context }) => {
+		const user = context.user;
+
+		const defaultTeams = await db.query.teams.findMany({
+			where: or(
+				// Welcome team
+				eq(teams.id, env.WELCOME_TEAM_ID),
+				// Team of the user (from tenant, old session, or query param)
+				context.learnerTeamId
+					? eq(teams.id, context.learnerTeamId)
+					: undefined,
+			),
+			with: {
+				translations: true,
+			},
+		});
+
+		const courseTeams = await db.query.usersToCourses.findMany({
+			where: eq(usersToTeams.userId, user.id),
+			with: {
+				team: {
+					with: {
+						translations: true,
 					},
 				},
-			});
-			const collectionTeams = await db.query.usersToCollections.findMany({
-				where: eq(usersToTeams.userId, user.id),
-				with: {
-					team: {
-						with: {
-							translations: true,
-						},
+			},
+		});
+
+		const collectionTeams = await db.query.usersToCollections.findMany({
+			where: eq(usersToTeams.userId, user.id),
+			with: {
+				team: {
+					with: {
+						translations: true,
 					},
 				},
-			});
+			},
+		});
 
-			return [
-				...(learnerTeam ? [learnerTeam] : []),
-				...(welcomeTeam ? [welcomeTeam] : []),
-				...collectionTeams.map(({ team }) => team),
-				...courseTeams.map(({ team }) => team),
-			]
-				.map((team) => handleLocalization(context, team))
-				.reduce(
-					(acc, team) =>
-						acc.find((t) => t.id === team.teamId)
-							? acc
-							: [...acc, team],
-					[] as (Team & TeamTranslation)[],
-				);
-		}
+		const createAutoUserTeam = (
+			team: Team & { translations: TeamTranslation[] },
+		): UserToTeamType & {
+			team: Team & TeamTranslation;
+		} => ({
+			team: handleLocalization(context, team),
+			userId: user.id,
+			teamId: team.id,
+			connectType: "invite",
+			connectStatus: "pending",
+			role: "member",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
 
-		if (type === "admin") {
-			const teams = await db.query.usersToTeams.findMany({
-				where: eq(usersToTeams.userId, user.id),
-				with: {
-					team: {
-						with: {
-							translations: true,
-						},
-					},
-				},
-			});
-
-			return teams.map(({ team }) => handleLocalization(context, team));
-		}
-
-		return [];
+		return [
+			...defaultTeams.map((team) => createAutoUserTeam(team)),
+			...collectionTeams.map((c) => createAutoUserTeam(c.team)),
+			...courseTeams.map((c) => createAutoUserTeam(c.team)),
+		].reduce(
+			(acc, userTeam) =>
+				acc.find((t) => t.teamId === userTeam.teamId)
+					? acc
+					: [...acc, userTeam],
+			[] as (UserToTeamType & { team: Team & TeamTranslation })[],
+		);
 	});
 
 export const updateUserTeamFn = createServerFn({ method: "POST" })

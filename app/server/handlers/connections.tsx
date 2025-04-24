@@ -1,6 +1,8 @@
 import {
+	authMiddleware,
 	learnerMiddleware,
 	localeMiddleware,
+	protectedMiddleware,
 	teamMiddleware,
 } from "../lib/middleware";
 import { db } from "@/server/db";
@@ -13,6 +15,7 @@ import {
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
+	usersToTeams,
 } from "@/server/db/schema";
 import { ExtendLearner } from "@/types/learner";
 import { createServerFn } from "@tanstack/react-start";
@@ -26,6 +29,7 @@ import { env } from "@/server/env";
 import {
 	ConnectionLinkSchema,
 	getConnectionLink,
+	getUserList,
 } from "@/server/lib/connection";
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
@@ -184,32 +188,6 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 		}
 	});
 
-export const getAttemptsFn = createServerFn({ method: "GET" })
-	.middleware([learnerMiddleware, localeMiddleware])
-	.validator(
-		z.object({
-			courseId: z.string(),
-		}),
-	)
-	.handler(async ({ context, data: { courseId } }) => {
-		const user = context.user;
-
-		const moduleList = await db.query.usersToModules.findMany({
-			where: and(
-				eq(usersToModules.userId, user.id),
-				eq(usersToModules.courseId, courseId),
-				eq(usersToModules.teamId, context.learnerTeamId),
-			),
-			with: {
-				module: true,
-			},
-		});
-
-		return moduleList.map((attempt) =>
-			ExtendLearner(attempt.module.type).parse(attempt),
-		);
-	});
-
 export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(
@@ -220,15 +198,14 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 		}),
 	)
 	.handler(async ({ context, data: { type, id, emails } }) => {
-		const teamId = context.teamId;
 		await hasTeamAccess({
-			teamId,
+			teamId: context.teamId,
 			type,
 			id,
 		});
 
 		const teamBase = await db.query.teams.findFirst({
-			where: and(eq(teams.id, teamId)),
+			where: and(eq(teams.id, context.teamId)),
 			with: {
 				translations: true,
 				domains: true,
@@ -237,21 +214,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 		const team = handleLocalization(context, teamBase!);
 
-		const userList = await db
-			.insert(users)
-			.values(
-				emails.map((email) => ({
-					email,
-					id: Bun.randomUUIDv7(),
-				})),
-			)
-			.onConflictDoUpdate({
-				target: [users.email],
-				set: {
-					updatedAt: new Date(),
-				},
-			})
-			.returning();
+		const userList = await getUserList({ emails });
 
 		if (type === "course") {
 			const courseBase = await db.query.courses.findFirst({
@@ -267,7 +230,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 				.values(
 					userList.map((u) => ({
 						userId: u.id,
-						teamId,
+						teamId: context.teamId,
 						courseId: id,
 						connectType: "invite" as ConnectionType["connectType"],
 						connectStatus:
@@ -295,7 +258,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			await Promise.all(
 				userList.map(async (user) => {
 					const href = await getConnectionLink({
-						teamId,
+						teamId: context.teamId,
 						type: "course",
 						id: course.id,
 						locale: "en",
@@ -327,7 +290,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			const collectionBase = await db.query.collections.findFirst({
 				where: and(
 					eq(collections.id, id),
-					eq(collections.teamId, teamId),
+					eq(collections.teamId, context.teamId),
 				),
 				with: {
 					translations: true,
@@ -340,7 +303,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 				.values(
 					userList.map((u) => ({
 						userId: u.id,
-						teamId,
+						teamId: context.teamId,
 						collectionId: id,
 						connectType: "invite" as ConnectionType["connectType"],
 						connectStatus:
@@ -368,7 +331,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			await Promise.all([
 				userList.map(async (user) => {
 					const href = await getConnectionLink({
-						teamId,
+						teamId: context.teamId,
 						type: "collection",
 						id: collection.id,
 						locale: "en",
@@ -477,11 +440,11 @@ export const requestConnectionFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
-export const userConnectionResponseFn = createServerFn({ method: "POST" })
-	.middleware([learnerMiddleware, localeMiddleware])
+export const updateUserConnectionFn = createServerFn({ method: "POST" })
+	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(
 		z.object({
-			type: z.enum(["course", "collection"]),
+			type: z.enum(["course", "collection", "team"]),
 			id: z.string(),
 			connectStatus: z.enum(["accepted", "rejected"]),
 		}),
@@ -490,6 +453,9 @@ export const userConnectionResponseFn = createServerFn({ method: "POST" })
 		const user = context.user;
 
 		if (type === "course") {
+			if (!context.learnerTeamId) {
+				throw new Error("No learner team");
+			}
 			await db
 				.update(usersToCourses)
 				.set({
@@ -500,11 +466,15 @@ export const userConnectionResponseFn = createServerFn({ method: "POST" })
 						eq(usersToCourses.userId, user.id),
 						eq(usersToCourses.teamId, context.learnerTeamId),
 						eq(usersToCourses.courseId, id),
+						eq(usersToCollections.connectType, "invite"),
 					),
 				);
 		}
 
 		if (type === "collection") {
+			if (!context.learnerTeamId) {
+				throw new Error("No learner team");
+			}
 			await db
 				.update(usersToCollections)
 				.set({
@@ -515,6 +485,22 @@ export const userConnectionResponseFn = createServerFn({ method: "POST" })
 						eq(usersToCollections.userId, user.id),
 						eq(usersToCollections.teamId, context.learnerTeamId),
 						eq(usersToCollections.collectionId, id),
+						eq(usersToCollections.connectType, "invite"),
+					),
+				);
+		}
+
+		if (type === "team") {
+			await db
+				.update(usersToTeams)
+				.set({
+					connectStatus,
+				})
+				.where(
+					and(
+						eq(usersToTeams.userId, user.id),
+						eq(usersToTeams.teamId, id),
+						eq(usersToTeams.connectType, "invite"),
 					),
 				);
 		}

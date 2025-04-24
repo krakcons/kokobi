@@ -1,7 +1,7 @@
 import { env } from "@/server/env";
 import { LocaleSchema } from "@/lib/locale";
 import { and, eq } from "drizzle-orm";
-import { domains } from "@/server/db/schema";
+import { domains, users } from "@/server/db/schema";
 import { db } from "@/server/db";
 import { cf } from "@/server/cloudflare";
 import { z } from "zod";
@@ -38,4 +38,22 @@ export const getConnectionLink = async ({
 		url.searchParams.set("teamId", teamId);
 	}
 	return url.toString();
+};
+
+export const getUserList = async ({ emails }: { emails: string[] }) => {
+	return await db
+		.insert(users)
+		.values(
+			emails.map((email) => ({
+				email,
+				id: Bun.randomUUIDv7(),
+			})),
+		)
+		.onConflictDoUpdate({
+			target: [users.email],
+			set: {
+				updatedAt: new Date(),
+			},
+		})
+		.returning();
 };

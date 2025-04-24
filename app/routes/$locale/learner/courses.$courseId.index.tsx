@@ -15,13 +15,15 @@ import {
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import {
-	getAttemptsFn,
 	getConnectionFn,
 	requestConnectionFn,
-	userConnectionResponseFn,
+	updateUserConnectionFn,
 } from "@/server/handlers/connections";
 import { getCourseFn } from "@/server/handlers/courses";
-import { createUserModuleFn } from "@/server/handlers/users.modules";
+import {
+	createUserModuleFn,
+	getUserModulesByCourseFn,
+} from "@/server/handlers/users.modules";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -44,7 +46,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 					type: "learner",
 				},
 			}),
-			getAttemptsFn({
+			getUserModulesByCourseFn({
 				data: {
 					courseId: params.courseId,
 				},
@@ -88,7 +90,7 @@ function RouteComponent() {
 		},
 	});
 	const connectionResponse = useMutation({
-		mutationFn: userConnectionResponseFn,
+		mutationFn: updateUserConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},

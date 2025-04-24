@@ -163,7 +163,7 @@ const SelectField = ({
 				onValueChange={(value) => field.handleChange(value)}
 				defaultValue={field.state.value}
 			>
-				<SelectTrigger>
+				<SelectTrigger className="gap-1">
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>

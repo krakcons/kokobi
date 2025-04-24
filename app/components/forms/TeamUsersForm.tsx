@@ -1,24 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
-import { z } from "zod";
+import { TeamUsersFormSchema, TeamUsersFormType } from "@/types/team";
 
-export const EmailsFormSchema = z.object({
-	emails: z.string().email().array(),
-});
-export type EmailsFormType = z.infer<typeof EmailsFormSchema>;
-export const EmailsForm = ({
+export const TeamUsersForm = ({
 	onSubmit,
 }: {
-	onSubmit: (values: EmailsFormType) => Promise<any>;
+	onSubmit: (values: TeamUsersFormType) => Promise<any>;
 }) => {
 	const form = useAppForm({
 		validators: {
-			onSubmit: EmailsFormSchema,
+			onSubmit: TeamUsersFormSchema,
 		},
 		defaultValues: {
-			emails: [""],
-		} as EmailsFormType,
+			users: [
+				{
+					email: "",
+					role: "member",
+				},
+			],
+		} as TeamUsersFormType,
 		onSubmit: ({ value }) => onSubmit(value),
 	});
 
@@ -29,7 +30,7 @@ export const EmailsForm = ({
 				onSubmit={(e) => e.preventDefault()}
 				className="flex flex-col gap-2 w-full"
 			>
-				<form.Field name="emails" mode="array">
+				<form.Field name="users" mode="array">
 					{(arrayField) => (
 						<>
 							{arrayField.state.value.map((_, index) => (
@@ -37,11 +38,35 @@ export const EmailsForm = ({
 									key={index}
 									className="flex items-start gap-2 flex-1 w-full"
 								>
-									<form.AppField name={`emails[${index}]`}>
+									<form.AppField
+										name={`users[${index}].email`}
+									>
 										{(subField) => (
 											<div className="flex-1">
-												<subField.TextField label="" />
+												<subField.TextField
+													label=""
+													autoComplete="email"
+												/>
 											</div>
+										)}
+									</form.AppField>
+									<form.AppField
+										name={`users[${index}].role`}
+									>
+										{(subField) => (
+											<subField.SelectField
+												label=""
+												options={[
+													{
+														value: "owner",
+														label: "Owner",
+													},
+													{
+														value: "member",
+														label: "Member",
+													},
+												]}
+											/>
 										)}
 									</form.AppField>
 									<Button
@@ -60,12 +85,15 @@ export const EmailsForm = ({
 								<Button
 									type="button"
 									onClick={() => {
-										arrayField.pushValue("");
+										arrayField.pushValue({
+											email: "",
+											role: "member",
+										});
 									}}
 									variant="outline"
 								>
 									<Plus />
-									Add Email
+									Add Member
 								</Button>
 								<form.SubmitButton />
 							</div>

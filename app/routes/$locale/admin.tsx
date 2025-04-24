@@ -22,7 +22,7 @@ import { LocaleToggle } from "@/components/LocaleToggle";
 import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
 import { getAuthFn } from "@/server/handlers/auth";
 import {
-	getUserTeamsFn,
+	getAdminUserTeamsFn,
 	updateUserTeamFn,
 } from "@/server/handlers/users.teams";
 import { getCollectionsFn } from "@/server/handlers/collections";
@@ -64,12 +64,11 @@ export const Route = createFileRoute("/$locale/admin")({
 			}
 		} else {
 			if (!auth.teamId) {
-				const teams = await getUserTeamsFn({
-					data: {
-						type: "admin",
-					},
-				});
-				if (teams.length === 0) {
+				const userTeams = await getAdminUserTeamsFn();
+				const validTeams = userTeams.filter(
+					({ connectStatus }) => connectStatus === "accepted",
+				);
+				if (validTeams.length === 0) {
 					throw redirect({
 						to: "/$locale/create-team",
 						params: {
@@ -79,7 +78,7 @@ export const Route = createFileRoute("/$locale/admin")({
 				} else {
 					await updateUserTeamFn({
 						data: {
-							teamId: teams[0].id,
+							teamId: validTeams[0].teamId,
 							type: "admin",
 						},
 					});
@@ -94,11 +93,7 @@ export const Route = createFileRoute("/$locale/admin")({
 	loader: () =>
 		Promise.all([
 			getAuthFn(),
-			getUserTeamsFn({
-				data: {
-					type: "admin",
-				},
-			}),
+			getAdminUserTeamsFn(),
 			getCoursesFn(),
 			getCollectionsFn(),
 			getTeamConnectionsFn({
@@ -129,6 +124,7 @@ function RouteComponent() {
 				collections={collections}
 				connections={connections}
 				user={auth.user!}
+				role={auth.role!}
 			/>
 			<SidebarInset className="max-w-full overflow-hidden">
 				<header className="p-4 flex flex-row w-full items-center justify-between">

@@ -2,6 +2,7 @@ import {
 	teamsToCourses,
 	usersToCollections,
 	usersToCourses,
+	usersToTeams,
 } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -14,6 +15,9 @@ export type UserToCollectionType = z.infer<typeof UserToCollectionSchema>;
 
 export const TeamToCourseSchema = createSelectSchema(teamsToCourses);
 export type TeamToCourseType = z.infer<typeof TeamToCourseSchema>;
+
+export const UserToTeamSchema = createSelectSchema(usersToTeams);
+export type UserToTeamType = z.infer<typeof UserToTeamSchema>;
 
 export const ConnectionSchema = z.object({
 	connectType: z.enum(["invite", "request"]),

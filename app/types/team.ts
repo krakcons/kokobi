@@ -18,15 +18,19 @@ export type Team = z.infer<typeof TeamSchema>;
 export const TeamTranslationSchema = createSelectSchema(teamTranslations);
 export type TeamTranslation = z.infer<typeof TeamTranslationSchema>;
 
-export const InviteMemberFormSchema = z.object({
-	email: z.string().email(),
-	role: z.enum(["owner", "member"]).optional().default("member"),
-});
-export type InviteMemberForm = z.infer<typeof InviteMemberFormSchema>;
-
 export const TeamFormSchema = z.object({
 	name: z.string(),
 	logo: ImageSchema.or(z.literal("")),
 	favicon: ImageSchema.or(z.literal("")),
 });
 export type TeamFormType = z.infer<typeof TeamFormSchema>;
+
+export const TeamUsersFormSchema = z.object({
+	users: z
+		.object({
+			email: z.string().email(),
+			role: z.enum(["owner", "member"]).optional().default("member"),
+		})
+		.array(),
+});
+export type TeamUsersFormType = z.infer<typeof TeamUsersFormSchema>;

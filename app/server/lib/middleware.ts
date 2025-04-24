@@ -39,7 +39,7 @@ export const teamMiddleware = ({ role = "member" }: { role?: Role } = {}) =>
 				!teamId ||
 				(teamRole && roles.indexOf(teamRole) > roles.indexOf(role))
 			) {
-				throw new Error("Unauthorized");
+				throw new Error("No admin team or role not permitted");
 			}
 
 			return next({
@@ -56,7 +56,7 @@ export const learnerMiddleware = createMiddleware()
 	.server(async ({ context, next }) => {
 		const { learnerTeamId } = context;
 		if (!learnerTeamId) {
-			throw new Error("Unauthorized");
+			throw new Error("No learner team");
 		}
 
 		return next({

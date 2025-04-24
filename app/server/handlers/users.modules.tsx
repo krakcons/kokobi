@@ -55,6 +55,32 @@ export const getUserModuleFn = createServerFn({ method: "GET" })
 		};
 	});
 
+export const getUserModulesByCourseFn = createServerFn({ method: "GET" })
+	.middleware([learnerMiddleware, localeMiddleware])
+	.validator(
+		z.object({
+			courseId: z.string(),
+		}),
+	)
+	.handler(async ({ context, data: { courseId } }) => {
+		const user = context.user;
+
+		const moduleList = await db.query.usersToModules.findMany({
+			where: and(
+				eq(usersToModules.userId, user.id),
+				eq(usersToModules.courseId, courseId),
+				eq(usersToModules.teamId, context.learnerTeamId),
+			),
+			with: {
+				module: true,
+			},
+		});
+
+		return moduleList.map((attempt) =>
+			ExtendLearner(attempt.module.type).parse(attempt),
+		);
+	});
+
 export const updateUserModuleFn = createServerFn({ method: "POST" })
 	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(

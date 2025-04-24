@@ -8,7 +8,7 @@ import { getCollectionCoursesFn } from "@/server/handlers/collections.courses";
 import {
 	getConnectionFn,
 	requestConnectionFn,
-	userConnectionResponseFn,
+	updateUserConnectionFn,
 } from "@/server/handlers/connections";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useMutation } from "@tanstack/react-query";
@@ -49,7 +49,7 @@ function RouteComponent() {
 		},
 	});
 	const connectionResponse = useMutation({
-		mutationFn: userConnectionResponseFn,
+		mutationFn: updateUserConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},

@@ -105,19 +105,20 @@ export async function getAuth(token?: string): Promise<AuthResult> {
 	}
 
 	let learnerTeamId = getCookie("learnerTeamId") ?? null;
-	if (user.id && learnerTeamId) {
-		const team = await db.query.usersToTeams.findFirst({
-			where: and(
-				eq(usersToTeams.userId, user.id),
-				eq(usersToTeams.teamId, learnerTeamId),
-			),
-		});
-		if (!team) {
-			// Case where team or connection is deleted but user is still logged in
-			deleteCookie("learnerTeamId");
-			learnerTeamId = null;
-		}
-	}
+	// TODO: Fix so it checks the correct learner teams
+	//if (user.id && learnerTeamId) {
+	//	const team = await db.query.usersToTeams.findFirst({
+	//		where: and(
+	//			eq(usersToTeams.userId, user.id),
+	//			eq(usersToTeams.teamId, learnerTeamId),
+	//		),
+	//	});
+	//	if (!team) {
+	//		// Case where team or connection is deleted but user is still logged in
+	//		deleteCookie("learnerTeamId");
+	//		learnerTeamId = null;
+	//	}
+	//}
 
 	return { session, user, learnerTeamId, teamId, role };
 }

@@ -39,12 +39,12 @@ import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
 import { Collection, CollectionTranslation } from "@/types/collections";
 import { Team, TeamTranslation } from "@/types/team";
-import { TeamToCourseType } from "@/types/connections";
+import { TeamToCourseType, UserToTeamType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { teamConnectionResponseFn } from "@/server/handlers/connections";
 import { useMutation } from "@tanstack/react-query";
 import { TeamSwitcher } from "./TeamSwitcher";
-import { User } from "@/types/users";
+import { Role, User } from "@/types/users";
 import { UserButton } from "./UserButton";
 
 const CourseCollapsible = ({
@@ -498,17 +498,20 @@ export const AdminSidebar = ({
 	collections,
 	connections,
 	user,
+	role,
 }: {
 	tenantId?: string;
 	teamId: string;
-	teams: (Team & TeamTranslation)[];
+	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
 	courses: (Course & CourseTranslation)[];
 	collections: (Collection & CollectionTranslation)[];
 	connections: (TeamToCourseType & {
 		course: Course & CourseTranslation;
 		team: Team & TeamTranslation;
 	})[];
+	teamConnections: (UserToTeamType & { team: Team & TeamTranslation })[];
 	user: User;
+	role: Role;
 }) => {
 	const { setOpenMobile } = useSidebar();
 	const t = useTranslations("Nav");
@@ -615,87 +618,91 @@ export const AdminSidebar = ({
 						))}
 					</SidebarGroupContent>
 				</SidebarGroup>
-				<SidebarGroup>
-					<SidebarGroupContent>
-						<SidebarGroupLabel>{t.sidebar.team}</SidebarGroupLabel>
-						<SidebarMenuItem>
-							<Link
-								to="/$locale/admin/keys"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								{({ isActive }) => (
-									<SidebarMenuButton isActive={isActive}>
-										<Key />
-										{t.sidebar.apiKeys}
-									</SidebarMenuButton>
-								)}
-							</Link>
-						</SidebarMenuItem>
-						<SidebarMenuItem>
-							<Link
-								to="/$locale/admin/certificate"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								{({ isActive }) => (
-									<SidebarMenuButton isActive={isActive}>
-										<FileBadge />
-										{t.sidebar.certificate}
-									</SidebarMenuButton>
-								)}
-							</Link>
-						</SidebarMenuItem>
-						<SidebarMenuItem>
-							<Link
-								to="/$locale/admin/members"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								{({ isActive }) => (
-									<SidebarMenuButton isActive={isActive}>
-										<Users />
-										{t.sidebar.members}
-									</SidebarMenuButton>
-								)}
-							</Link>
-						</SidebarMenuItem>
-						<SidebarMenuItem>
-							<Link
-								to="/$locale/admin/settings"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								{({ isActive }) => (
-									<SidebarMenuButton isActive={isActive}>
-										<Settings />
-										Settings
-									</SidebarMenuButton>
-								)}
-							</Link>
-						</SidebarMenuItem>
-					</SidebarGroupContent>
-				</SidebarGroup>
+				{role === "owner" && (
+					<SidebarGroup>
+						<SidebarGroupContent>
+							<SidebarGroupLabel>
+								{t.sidebar.team}
+							</SidebarGroupLabel>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/admin/keys"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton isActive={isActive}>
+											<Key />
+											{t.sidebar.apiKeys}
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/admin/certificate"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton isActive={isActive}>
+											<FileBadge />
+											{t.sidebar.certificate}
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/admin/members"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton isActive={isActive}>
+											<Users />
+											{t.sidebar.members}
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/admin/settings"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton isActive={isActive}>
+											<Settings />
+											Settings
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
 			</SidebarContent>
 			<UserButton user={user} />
 		</Sidebar>

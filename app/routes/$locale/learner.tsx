@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import {
-	getUserTeamsFn,
+	getLearnerUserTeamsFn,
 	updateUserTeamFn,
 } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
@@ -66,14 +66,10 @@ export const Route = createFileRoute("/$locale/learner")({
 				redirectHref = newUrl.href;
 			}
 			if (!auth.learnerTeamId) {
-				const teams = await getUserTeamsFn({
-					data: {
-						type: "learner",
-					},
-				});
+				const teams = await getLearnerUserTeamsFn();
 				await updateUserTeamFn({
 					data: {
-						teamId: teams[0].id,
+						teamId: teams[0].teamId,
 						type: "learner",
 					},
 				});
@@ -90,11 +86,7 @@ export const Route = createFileRoute("/$locale/learner")({
 	loader: () =>
 		Promise.all([
 			getAuthFn(),
-			getUserTeamsFn({
-				data: {
-					type: "learner",
-				},
-			}),
+			getLearnerUserTeamsFn(),
 			getConnectionsFn({
 				data: {
 					type: "course",
