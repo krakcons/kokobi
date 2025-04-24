@@ -21,8 +21,8 @@ import { z } from "zod";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator } from "@/lib/locale/actions";
 import { handleLocalization } from "@/lib/locale/helpers";
-import { ConnectionType } from "@/types/connections";
-import { env } from "../env";
+import { ConnectionType, GetConnectionSchema } from "@/types/connections";
+import { env } from "@/server/env";
 import {
 	ConnectionLinkSchema,
 	getConnectionLink,
@@ -30,11 +30,6 @@ import {
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
 import { hasTeamAccess } from "../lib/access";
-
-export const GetConnectionSchema = z.object({
-	type: z.enum(["course", "collection"]),
-	id: z.string(),
-});
 
 export const getConnectionLinkFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware()])

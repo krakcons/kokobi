@@ -16,3 +16,12 @@ export const DomainFormSchema = z.object({
 		),
 });
 export type DomainFormType = z.infer<typeof DomainFormSchema>;
+
+export type DomainRecord = {
+	required: boolean;
+	status: string;
+	type: string;
+	name: string;
+	value: string;
+	priority?: number;
+};

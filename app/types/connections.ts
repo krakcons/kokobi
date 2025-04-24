@@ -20,3 +20,8 @@ export const ConnectionSchema = z.object({
 	connectStatus: z.enum(["pending", "accepted", "rejected"]),
 });
 export type ConnectionType = z.infer<typeof ConnectionSchema>;
+
+export const GetConnectionSchema = z.object({
+	type: z.enum(["course", "collection"]),
+	id: z.string(),
+});

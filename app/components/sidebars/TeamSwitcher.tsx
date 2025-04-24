@@ -119,7 +119,10 @@ export const TeamSwitcher = ({
 									>
 										<Avatar className="rounded-md size-6">
 											<AvatarImage
-												src={`${env.VITE_SITE_URL}/cdn/${team.id}/${team.locale}/favicon?updatedAt=${team.updatedAt.toString()}`}
+												src={teamImageUrl(
+													team,
+													"favicon",
+												)}
 												className="rounded-md"
 											/>
 											<AvatarFallback className="rounded-md">

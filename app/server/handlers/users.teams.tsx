@@ -11,7 +11,7 @@ import { z } from "zod";
 import { setCookie } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
 import { Team, TeamTranslation } from "@/types/team";
-import { env } from "../env";
+import { env } from "@/server/env";
 
 export const getUserTeamFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware, localeMiddleware])

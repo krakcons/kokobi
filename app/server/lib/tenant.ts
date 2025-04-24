@@ -2,7 +2,7 @@ import { db } from "@/server/db";
 import { domains } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { getRequestHost } from "@tanstack/react-start/server";
-import { env } from "../env";
+import { env } from "@/server/env";
 
 export const getTenant = async () => {
 	const hostname = getRequestHost();

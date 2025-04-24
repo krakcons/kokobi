@@ -7,3 +7,9 @@ export type User = z.infer<typeof UserSchema>;
 
 export const roles = ["owner", "member"] as const;
 export type Role = (typeof roles)[number];
+
+export const UserFormSchema = z.object({
+	firstName: z.string().min(1),
+	lastName: z.string().min(1),
+});
+export type UserFormType = z.infer<typeof UserFormSchema>;

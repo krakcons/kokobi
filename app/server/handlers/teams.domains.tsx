@@ -6,7 +6,7 @@ import { teamMiddleware } from "../lib/middleware";
 import { createServerFn } from "@tanstack/react-start";
 import { cf } from "../cloudflare";
 import { APIError } from "cloudflare";
-import { env } from "../env";
+import { env } from "@/server/env";
 import { ses } from "../ses";
 import {
 	CreateEmailIdentityCommand,
@@ -14,16 +14,7 @@ import {
 	GetEmailIdentityCommand,
 	PutEmailIdentityMailFromAttributesCommand,
 } from "@aws-sdk/client-sesv2";
-import { DomainFormSchema } from "@/types/domains";
-
-export type DomainRecord = {
-	required: boolean;
-	status: string;
-	type: string;
-	name: string;
-	value: string;
-	priority?: number;
-};
+import { DomainFormSchema, DomainRecord } from "@/types/domains";
 
 export const getTeamDomainFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware({ role: "owner" })])

@@ -1,11 +1,8 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
-import {
-	LoginFormSchema,
-	LoginFormType,
-	requestOTPFn,
-} from "@/server/handlers/auth.otp";
+import { requestOTPFn } from "@/server/handlers/auth.otp";
+import { LoginFormSchema, LoginFormType } from "@/types/auth";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";

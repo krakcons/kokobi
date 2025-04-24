@@ -10,13 +10,9 @@ import { handleLocalization } from "@/lib/locale/helpers";
 import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { Team, TeamTranslation } from "@/types/team";
-import { env } from "../env";
+import { env } from "@/server/env";
+import { UserFormSchema } from "@/types/users";
 
-export const UserFormSchema = z.object({
-	firstName: z.string().min(1),
-	lastName: z.string().min(1),
-});
-export type UserFormType = z.infer<typeof UserFormSchema>;
 export const updateUserFn = createServerFn({ method: "POST" })
 	.middleware([protectedMiddleware, localeMiddleware])
 	.validator(UserFormSchema)

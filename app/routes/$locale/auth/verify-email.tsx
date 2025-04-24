@@ -3,11 +3,8 @@ import { useAppForm } from "@/components/ui/form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { RedirectSchema } from "./login";
-import {
-	OTPFormSchema,
-	OTPFormType,
-	verifyOTPFn,
-} from "@/server/handlers/auth.otp";
+import { verifyOTPFn } from "@/server/handlers/auth.otp";
+import { OTPFormSchema, OTPFormType } from "@/types/auth";
 import { getAuthFn } from "@/server/handlers/auth";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({

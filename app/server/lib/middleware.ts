@@ -70,7 +70,7 @@ export const learnerMiddleware = createMiddleware()
 export const localeMiddleware = createMiddleware().server(async ({ next }) => {
 	return next({
 		context: LocalizedInputSchema.parse({
-			locale: getHeader("locale") ?? getCookie("locale"),
+			locale: getHeader("locale") ?? getCookie("locale") ?? "en",
 			fallbackLocale: getHeader("fallbackLocale"),
 		}),
 	});

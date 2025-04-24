@@ -16,7 +16,7 @@ import {
 import { z } from "zod";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { createS3 } from "../s3";
-import { env } from "../env";
+import { env } from "@/server/env";
 import { hasTeamAccess } from "../lib/access";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
