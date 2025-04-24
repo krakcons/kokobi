@@ -27,6 +27,17 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import CopyButton from "@/components/CopyButton";
 import { toast } from "sonner";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
@@ -103,8 +114,14 @@ function RouteComponent() {
 	});
 	const deleteTeam = useMutation({
 		mutationFn: deleteTeamFn,
-		onSuccess: () => {
-			router.invalidate();
+		onSuccess: (data) => {
+			if (data.teamId) {
+				navigate({ to: "/$locale/admin" });
+			} else {
+				navigate({
+					to: "/$locale/create-team",
+				});
+			}
 		},
 	});
 	const deleteTeamDomain = useMutation({
@@ -258,24 +275,37 @@ function RouteComponent() {
 				title="Delete Team"
 				description="This will delete the team and all associated data. This action cannot be undone."
 			/>
-			<Button
-				variant="destructive"
-				onClick={() => {
-					deleteTeam.mutate(undefined, {
-						onSuccess: (data) => {
-							if (data.teamId) {
-								navigate({ to: "/$locale/admin" });
-							} else {
-								navigate({ to: "/$locale/create-team" });
-							}
-						},
-					});
-				}}
-				className="self-start"
-			>
-				<Trash />
-				Delete
-			</Button>
+			<AlertDialog>
+				<AlertDialogTrigger asChild>
+					<Button variant="destructive" className="self-start">
+						<Trash />
+						Delete
+					</Button>
+				</AlertDialogTrigger>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Are you absolutely sure?
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently
+							delete your team and remove all your data (ex.
+							collections, courses, learners, etc) from our
+							servers.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								deleteTeam.mutate({});
+							}}
+						>
+							Continue
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Page>
 	);
 }

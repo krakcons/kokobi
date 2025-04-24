@@ -11,6 +11,17 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute(
 	"/$locale/admin/collections/$collectionId/settings",
@@ -78,18 +89,38 @@ function RouteComponent() {
 				title="Delete Collection"
 				description="This will delete the collection and all associated data. This action cannot be undone."
 			/>
-			<Button
-				variant="destructive"
-				onClick={() => {
-					deleteCollection.mutate({
-						data: { id: params.collectionId },
-					});
-				}}
-				className="self-start"
-			>
-				<Trash />
-				Delete
-			</Button>
+			<AlertDialog>
+				<AlertDialogTrigger asChild>
+					<Button variant="destructive" className="self-start">
+						<Trash />
+						Delete
+					</Button>
+				</AlertDialogTrigger>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Are you absolutely sure?
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently
+							delete your collection and remove all related data
+							(ex. courses, learners, etc) from our servers.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								deleteCollection.mutate({
+									data: { id: params.collectionId },
+								});
+							}}
+						>
+							Continue
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Page>
 	);
 }
