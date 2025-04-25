@@ -217,6 +217,6 @@ export const getTeamStatsFn = createServerFn({ method: "GET" })
 export const getTenantFn = createServerFn({ method: "GET" }).handler(
 	async () => {
 		return await getTenant();
-		//return "0196536b-bd74-7000-ba59-238964d55b56";
+		return "019663b4-85ea-7000-a056-7a9863194546";
 	},
 );

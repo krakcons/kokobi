@@ -6,6 +6,7 @@ import { FloatingPage, PageHeader } from "@/components/Page";
 import { Blocks, Book } from "lucide-react";
 import { TeamIcon } from "@/components/TeamIcon";
 import { teamImageUrl } from "@/lib/file";
+import { LocaleToggle } from "@/components/LocaleToggle";
 
 export const Route = createFileRoute("/$locale/")({
 	component: Home,
@@ -55,8 +56,8 @@ function Home() {
 
 	if (team) {
 		return (
-			<FloatingPage className="flex flex-col max-w-screen-lg mx-auto text-center">
-				<TeamIcon src={teamImageUrl(team, "logo")} className="mb-8" />
+			<FloatingPage>
+				<TeamIcon src={teamImageUrl(team, "logo")} className="my-4" />
 				<PageHeader
 					title={team.name}
 					description={t["team-description"]}
@@ -69,6 +70,7 @@ function Home() {
 			<>
 				<header className="border-b-elevation-4 flex h-14 w-full items-center justify-center border-b px-6">
 					<nav className="flex w-full max-w-screen-lg items-center justify-end"></nav>
+					<LocaleToggle />
 				</header>
 				<main className="mx-auto w-full max-w-screen-xl">
 					<div className="flex w-full flex-col items-start gap-8 justify-center p-10 sm:p-20">

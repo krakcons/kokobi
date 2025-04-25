@@ -12,7 +12,7 @@ export const TeamIcon = ({
 		<img
 			src={src}
 			alt="Team Logo"
-			className={cn("max-h-24 w-min border rounded-md", className)}
+			className={cn("max-h-20 w-min", className)}
 		/>
 	);
 };

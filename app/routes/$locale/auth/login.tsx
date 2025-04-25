@@ -98,7 +98,7 @@ function RouteComponent() {
 	return (
 		<FloatingPage>
 			{team && (
-				<TeamIcon src={teamImageUrl(team, "logo")} className="mb-8" />
+				<TeamIcon src={teamImageUrl(team, "logo")} className="my-4" />
 			)}
 			<PageHeader title={t.title} description={t.description} />
 			<LoginForm
