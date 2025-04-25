@@ -35,7 +35,6 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { AlertCircle, Award, Play } from "lucide-react";
-import { teamImageUrl } from "@/lib/file";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
@@ -210,22 +209,10 @@ function RouteComponent() {
 																				user?.firstName +
 																				" " +
 																				user?.lastName,
-																			teamName:
-																				team.name,
-																			logo: teamImageUrl(
+																			connectTeam:
 																				course.team,
-																				"logo",
-																			),
-																			contentLogo:
-																				team.id !==
-																				course
-																					.team
-																					.id
-																					? teamImageUrl(
-																							team,
-																							"logo",
-																						)
-																					: undefined,
+																			contentTeam:
+																				team,
 																			course: course.name,
 																			completedAt:
 																				attempt.completedAt &&
