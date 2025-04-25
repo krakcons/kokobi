@@ -15,7 +15,11 @@ import { LayoutDashboard } from "lucide-react";
 import { Course, CourseTranslation } from "@/types/course";
 import { Collection, CollectionTranslation } from "@/types/collections";
 import { Team, TeamTranslation } from "@/types/team";
-import { UserToCollectionType, UserToCourseType } from "@/types/connections";
+import {
+	UserToCollectionType,
+	UserToCourseType,
+	UserToTeamType,
+} from "@/types/connections";
 import { TeamSwitcher } from "./TeamSwitcher";
 import { User } from "@/types/users";
 import { UserButton } from "./UserButton";
@@ -32,7 +36,7 @@ export const LearnerSidebar = ({
 }: {
 	tenantId?: string;
 	teamId: string;
-	teams: (Team & TeamTranslation)[];
+	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
 	courses: (UserToCourseType & { course: Course & CourseTranslation })[];
 	availableCourses: (Course & CourseTranslation)[];
 	collections: (UserToCollectionType & {
@@ -103,7 +107,9 @@ export const LearnerSidebar = ({
 												isActive={isActive}
 												className="justify-between"
 											>
-												{course.name}
+												<p className="truncate">
+													{course.name}
+												</p>
 											</SidebarMenuButton>
 										)}
 									</Link>
@@ -133,7 +139,9 @@ export const LearnerSidebar = ({
 											isActive={isActive}
 											className="justify-between"
 										>
-											{connection.course.name}
+											<p className="truncate">
+												{connection.course.name}
+											</p>
 											<ConnectionStatusBadge
 												hideOnSuccess
 												{...connection}
@@ -166,7 +174,9 @@ export const LearnerSidebar = ({
 											isActive={isActive}
 											className="justify-between"
 										>
-											{connection.collection.name}
+											<p className="truncate">
+												{connection.collection.name}
+											</p>
 											<ConnectionStatusBadge
 												hideOnSuccess
 												{...connection}
