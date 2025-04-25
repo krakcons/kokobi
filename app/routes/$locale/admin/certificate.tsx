@@ -35,7 +35,7 @@ function RouteComponent() {
 					<Certificate
 						certificate={{
 							connectTeam: team,
-							contentTeam: { ...team, id: "21" },
+							contentTeam: team,
 							name: "John Doe",
 							course: "Volunteer Training",
 							completedAt: formatDate({
