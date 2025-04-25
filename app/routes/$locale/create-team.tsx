@@ -28,22 +28,17 @@ function RouteComponent() {
 
 	return (
 		<FloatingPage>
-			<div className="flex flex-col max-w-lg w-full">
-				<PageHeader
-					title="Create Team"
-					description="Create a new team"
-				/>
-				<TeamForm
-					collapsible
-					onSubmit={(values) => {
-						const formData = new FormData();
-						for (const [key, value] of Object.entries(values)) {
-							formData.append(key, value);
-						}
-						return createTeam.mutateAsync({ data: formData });
-					}}
-				/>
-			</div>
+			<PageHeader title="Create Team" description="Create a new team" />
+			<TeamForm
+				collapsible
+				onSubmit={(values) => {
+					const formData = new FormData();
+					for (const [key, value] of Object.entries(values)) {
+						formData.append(key, value);
+					}
+					return createTeam.mutateAsync({ data: formData });
+				}}
+			/>
 		</FloatingPage>
 	);
 }

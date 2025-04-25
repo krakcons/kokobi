@@ -25,7 +25,7 @@ function RouteComponent() {
 		<Page>
 			<PageHeader
 				title="Dashboard"
-				description="Welcome to the kokobi dashboard. Within this admin portal you will be able to create and manage courses, invite learners, and more."
+				description="Welcome to the dashboard. Within this admin portal you will be able to create and manage courses, invite learners, and more."
 			/>
 			<h3>Courses</h3>
 			{courses.length > 0 ? (

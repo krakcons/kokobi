@@ -1,5 +1,5 @@
 const en = {
-	Nav: {
+	AdminSidebar: {
 		top: {
 			editing: "Editing",
 		},
@@ -13,6 +13,17 @@ const en = {
 			domains: "Domains",
 			members: "Members",
 		},
+	},
+	LearnerSidebar: {
+		dashboard: "Dashboard",
+		"available-courses": "Available Courses",
+		courses: "Courses",
+		collections: "Collections",
+	},
+	LearnerDashboard: {
+		title: "Dashboard",
+		description:
+			"View all your courses, collections, attempts, and certificates",
 	},
 	Home: {
 		title: { "1": "Modern Learning", "2": "For Less" },
@@ -50,9 +61,11 @@ const en = {
 		},
 	},
 	Certificate: {
+		fileName: "certificate.pdf",
 		title: "Certificate of Completion",
 		message: "This is to certify that you have successfully completed",
-		download: "Download",
+		download: "Download Certificate",
+		"no-name": "Certificate Requires Name",
 		pdf: {
 			title: "Certificate of Completion",
 			message: "This certificate is proudly awarded to",
@@ -61,12 +74,6 @@ const en = {
 				"2": "offered by",
 			},
 			date: "Date of Completion",
-		},
-		dialog: {
-			title: "Completed!",
-			description:
-				"You can close this window. An email containing your certificate will be sent shortly. Go to the certificate download page:",
-			"dont-show": "Don't show this again",
 		},
 	},
 	Email: {
@@ -112,6 +119,10 @@ const en = {
 			passed: "Passed",
 			failed: "Failed",
 		},
+		status: "Status",
+		score: "Score",
+		startedAt: "Started At",
+		completedAt: "Completed At",
 	},
 	Role: {
 		owner: "Owner",
@@ -135,6 +146,62 @@ const en = {
 	ConnectionTypes: {
 		invite: "Invite",
 		request: "Request",
+	},
+	Login: {
+		title: "Login",
+		description: "Enter your email below and submit to login",
+	},
+	VerifyEmail: {
+		title: "Verify Email",
+		description: "Enter the code we sent you to verify your email",
+	},
+	UserButton: {
+		theme: {
+			label: "Theme",
+			light: "Light",
+			dark: "Dark",
+			system: "System",
+		},
+		account: "Account",
+		switch: {
+			admin: "Switch to admin",
+			learner: "Switch to learning",
+		},
+		signout: "Sign out",
+	},
+	TeamSwitcher: {
+		title: "Teams",
+		create: "Create team",
+	},
+	Course: {
+		start: "Start",
+		continue: "Continue",
+	},
+	LoginForm: {
+		email: {
+			label: "Email",
+		},
+	},
+	VerifyEmailForm: {
+		code: {
+			label: "Code",
+		},
+	},
+	UserForm: {
+		title: "Account",
+		description: "Manage your account settings.",
+		firstName: {
+			label: "First Name",
+		},
+		lastName: {
+			label: "Last Name",
+		},
+	},
+	ConnectionWrapper: {
+		invited: "You have been invited to",
+		request: "Would you like to request access to",
+		requested: "Requested access, please wait for an admin to approve.",
+		rejected: "An admin has rejected your request",
 	},
 };
 

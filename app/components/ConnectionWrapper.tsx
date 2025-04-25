@@ -1,5 +1,6 @@
 import { ConnectionType } from "@/types/connections";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/locale";
 
 export const ConnectionWrapper = ({
 	children,
@@ -14,6 +15,9 @@ export const ConnectionWrapper = ({
 	onRequest: () => void;
 	onResponse: (status: "accepted" | "rejected") => void;
 }) => {
+	const t = useTranslations("ConnectionWrapper");
+	const tActions = useTranslations("ConnectionActions");
+	const tTypes = useTranslations("ConnectionTypes");
 	if (connection?.connectStatus === "accepted") {
 		return children;
 	}
@@ -21,19 +25,17 @@ export const ConnectionWrapper = ({
 	if (!connection || connection.connectType === "request") {
 		if (connection) {
 			if (connection.connectStatus === "rejected") {
-				return <p>An admin has rejected your request to "{name}".</p>;
+				return <p>{t.rejected}</p>;
 			} else {
-				return (
-					<p>
-						Requested "{name}", please wait for an admin to approve.
-					</p>
-				);
+				return <p>{t.requested}</p>;
 			}
 		} else {
 			return (
 				<div className="flex flex-col gap-4 sm:items-start">
-					<p>Would you like to request access to "{name}"?</p>
-					<Button onClick={onRequest}>Request Access</Button>
+					<p>
+						{t.request} "{name}"?
+					</p>
+					<Button onClick={onRequest}>{tTypes.request}</Button>
 				</div>
 			);
 		}
@@ -42,7 +44,9 @@ export const ConnectionWrapper = ({
 	if (connection.connectType === "invite") {
 		return (
 			<div className="flex flex-col gap-4">
-				<p>You have been invited to "{name}".</p>
+				<p>
+					{t.invited} "{name}".
+				</p>
 				<div className="flex gap-2">
 					{["pending", "rejected"].includes(
 						connection.connectStatus,
@@ -54,7 +58,7 @@ export const ConnectionWrapper = ({
 								onResponse("accepted");
 							}}
 						>
-							Accept
+							{tActions.accept}
 						</Button>
 					)}
 					{["pending", "accepted"].includes(
@@ -68,7 +72,7 @@ export const ConnectionWrapper = ({
 								onResponse("rejected");
 							}}
 						>
-							Reject
+							{tActions.reject}
 						</Button>
 					)}
 				</div>

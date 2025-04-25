@@ -6,6 +6,7 @@ import { RedirectSchema } from "./login";
 import { verifyOTPFn } from "@/server/handlers/auth.otp";
 import { OTPFormSchema, OTPFormType } from "@/types/auth";
 import { getAuthFn } from "@/server/handlers/auth";
+import { useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({
 	component: RouteComponent,
@@ -21,6 +22,7 @@ const OTPForm = ({
 }: {
 	onSubmit: (data: OTPFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("VerifyEmailForm");
 	const form = useAppForm({
 		defaultValues: {
 			code: "",
@@ -42,7 +44,9 @@ const OTPForm = ({
 			>
 				<form.AppField
 					name="code"
-					children={(field) => <field.TextField label="Code" />}
+					children={(field) => (
+						<field.TextField label={t.code.label} />
+					)}
 				/>
 				<form.SubmitButton />
 			</form>
@@ -53,6 +57,7 @@ const OTPForm = ({
 function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
+	const t = useTranslations("VerifyEmail");
 	const verifyMutation = useMutation({
 		mutationFn: verifyOTPFn,
 		onSuccess: () => {
@@ -65,15 +70,10 @@ function RouteComponent() {
 
 	return (
 		<FloatingPage>
-			<div className="max-w-md w-full">
-				<PageHeader
-					title="Verify Email"
-					description="Enter the code we sent you to verify your email"
-				/>
-				<OTPForm
-					onSubmit={(data) => verifyMutation.mutateAsync({ data })}
-				/>
-			</div>
+			<PageHeader title={t.title} description={t.description} />
+			<OTPForm
+				onSubmit={(data) => verifyMutation.mutateAsync({ data })}
+			/>
 		</FloatingPage>
 	);
 }

@@ -106,7 +106,7 @@ export const Route = createFileRoute("/$locale/admin")({
 });
 
 function RouteComponent() {
-	const t = useTranslations("Nav");
+	const t = useTranslations("AdminSidebar");
 	const locale = useLocale();
 	const search = Route.useSearch();
 	const navigate = useNavigate();

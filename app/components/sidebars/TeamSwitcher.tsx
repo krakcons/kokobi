@@ -17,7 +17,7 @@ import {
 import { ChevronsUpDown, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Team, TeamTranslation } from "@/types/team";
-import { useLocale } from "@/lib/locale";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { useMutation } from "@tanstack/react-query";
 import { updateUserTeamFn } from "@/server/handlers/users.teams";
 import { teamImageUrl } from "@/lib/file";
@@ -40,6 +40,7 @@ export const TeamSwitcher = ({
 	const locale = useLocale();
 	const navigate = useNavigate();
 	const router = useRouter();
+	const t = useTranslations("TeamSwitcher");
 
 	const activeTeam = teams.find((t) => t.teamId === teamId)!.team;
 
@@ -116,7 +117,7 @@ export const TeamSwitcher = ({
 							sideOffset={4}
 						>
 							<DropdownMenuLabel className="text-xs text-muted-foreground">
-								Teams
+								{t.title}
 							</DropdownMenuLabel>
 							{teams
 								.sort((a) =>
@@ -194,7 +195,7 @@ export const TeamSwitcher = ({
 												<Plus className="size-4" />
 											</div>
 											<div className="font-medium text-muted-foreground">
-												Create team
+												{t.create}
 											</div>
 										</Link>
 									</DropdownMenuItem>

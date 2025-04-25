@@ -10,6 +10,7 @@ import { TeamIcon } from "@/components/TeamIcon";
 import { teamImageUrl } from "@/lib/file";
 import { Team, TeamTranslation } from "@/types/team";
 import { getAuthFn } from "@/server/handlers/auth";
+import { useTranslations } from "@/lib/locale";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -46,6 +47,7 @@ const LoginForm = ({
 	onSubmit: (data: LoginFormType) => Promise<any>;
 	defaultValues?: LoginFormType;
 }) => {
+	const t = useTranslations("LoginForm");
 	const form = useAppForm({
 		defaultValues: {
 			...defaultValues,
@@ -56,6 +58,7 @@ const LoginForm = ({
 		},
 		onSubmit: ({ value }) => onSubmit(value),
 	});
+
 	return (
 		<form.AppForm>
 			<form
@@ -67,7 +70,9 @@ const LoginForm = ({
 			>
 				<form.AppField
 					name="email"
-					children={(field) => <field.TextField label="Email" />}
+					children={(field) => (
+						<field.TextField label={t.email.label} />
+					)}
 				/>
 				<form.SubmitButton />
 			</form>
@@ -88,24 +93,17 @@ function RouteComponent() {
 		},
 	});
 	const { team } = Route.useLoaderData();
+	const t = useTranslations("Login");
 
 	return (
 		<FloatingPage>
-			<div className="max-w-md w-full flex flex-col">
-				{team && (
-					<TeamIcon
-						src={teamImageUrl(team, "logo")}
-						className="mb-8"
-					/>
-				)}
-				<PageHeader
-					title="Login"
-					description="Enter your email below and submit to login"
-				/>
-				<LoginForm
-					onSubmit={(data) => requestMutation.mutateAsync({ data })}
-				/>
-			</div>
+			{team && (
+				<TeamIcon src={teamImageUrl(team, "logo")} className="mb-8" />
+			)}
+			<PageHeader title={t.title} description={t.description} />
+			<LoginForm
+				onSubmit={(data) => requestMutation.mutateAsync({ data })}
+			/>
 		</FloatingPage>
 	);
 }

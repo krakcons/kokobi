@@ -10,7 +10,7 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
-import { useLocale } from "@/lib/locale";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { LayoutDashboard } from "lucide-react";
 import { Course, CourseTranslation } from "@/types/course";
 import { Collection, CollectionTranslation } from "@/types/collections";
@@ -49,6 +49,7 @@ export const LearnerSidebar = ({
 }) => {
 	const { setOpenMobile } = useSidebar();
 	const locale = useLocale();
+	const t = useTranslations("LearnerSidebar");
 
 	return (
 		<Sidebar className="list-none">
@@ -76,7 +77,7 @@ export const LearnerSidebar = ({
 								{({ isActive }) => (
 									<SidebarMenuButton isActive={isActive}>
 										<LayoutDashboard />
-										Dashboard
+										{t.dashboard}
 									</SidebarMenuButton>
 								)}
 							</Link>
@@ -87,7 +88,7 @@ export const LearnerSidebar = ({
 					<SidebarGroup>
 						<SidebarGroupContent>
 							<SidebarGroupLabel>
-								Available Courses
+								{t["available-courses"]}
 							</SidebarGroupLabel>
 							{availableCourses.map((course) => (
 								<SidebarMenuItem key={course.id}>
@@ -120,7 +121,7 @@ export const LearnerSidebar = ({
 				)}
 				<SidebarGroup>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>Courses</SidebarGroupLabel>
+						<SidebarGroupLabel>{t.courses}</SidebarGroupLabel>
 						{courses.map((connection) => (
 							<SidebarMenuItem key={connection.courseId}>
 								<Link
@@ -155,7 +156,7 @@ export const LearnerSidebar = ({
 				</SidebarGroup>
 				<SidebarGroup>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>Collections</SidebarGroupLabel>
+						<SidebarGroupLabel>{t.collections}</SidebarGroupLabel>
 						{collections.map((connection) => (
 							<SidebarMenuItem key={connection.collectionId}>
 								<Link

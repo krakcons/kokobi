@@ -1,3 +1,4 @@
+import { useTranslations } from "@/lib/locale";
 import { useAppForm } from "../ui/form";
 import { UserFormSchema, UserFormType } from "@/types/users";
 
@@ -8,6 +9,7 @@ export const UserForm = ({
 	defaultValues?: UserFormType;
 	onSubmit: (values: UserFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("UserForm");
 	const form = useAppForm({
 		validators: {
 			onSubmit: UserFormSchema,
@@ -26,10 +28,10 @@ export const UserForm = ({
 			<form.BlockNavigation />
 			<form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 				<form.AppField name="firstName">
-					{(field) => <field.TextField label="First Name" />}
+					{(field) => <field.TextField label={t.firstName.label} />}
 				</form.AppField>
 				<form.AppField name="lastName">
-					{(field) => <field.TextField label="Last Name" />}
+					{(field) => <field.TextField label={t.lastName.label} />}
 				</form.AppField>
 				<form.SubmitButton />
 			</form>

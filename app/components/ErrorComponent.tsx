@@ -8,7 +8,7 @@ export const ErrorComponent = ({ error }: ErrorComponentProps) => {
 	const router = useRouter();
 
 	return (
-		<FloatingPage className="gap-8 text-center">
+		<FloatingPage localeToggle={false}>
 			<h1>Something went wrong!</h1>
 			<p>{error.message}</p>
 			<div className="flex flex-row gap-2">

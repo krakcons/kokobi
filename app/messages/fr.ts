@@ -1,7 +1,7 @@
 import { Messages } from "@/lib/locale";
 
 const fr: Messages = {
-	Nav: {
+	AdminSidebar: {
 		top: {
 			editing: "Édition",
 		},
@@ -15,6 +15,17 @@ const fr: Messages = {
 			domains: "Domaines",
 			members: "Membres",
 		},
+	},
+	LearnerSidebar: {
+		dashboard: "Tableau de bord",
+		"available-courses": "Cours disponibles",
+		courses: "Cours",
+		collections: "Collections",
+	},
+	LearnerDashboard: {
+		title: "Tableau de bord",
+		description:
+			"Consultez tous vos cours, collections, tentatives et certificats",
 	},
 	Home: {
 		title: { "1": "Apprentissage moderne", "2": "Moins cher" },
@@ -52,9 +63,11 @@ const fr: Messages = {
 		},
 	},
 	Certificate: {
+		fileName: "certificat.pdf",
 		title: "Certificat de réussite",
 		message: "La présente atteste que vous avez suivi avec succès",
-		download: "Télécharger",
+		download: "Télécharger le certificat",
+		"no-name": "Le certificat nécessite un nom",
 		pdf: {
 			title: "Certificat de réussite",
 			message: "Nouse sommes fiers de remettre ce certificat à",
@@ -63,12 +76,6 @@ const fr: Messages = {
 				"2": "offert par",
 			},
 			date: "Date d'achèvement",
-		},
-		dialog: {
-			title: "Complété !",
-			description:
-				"Vous pouvez maintenant fermer cette fenêtre. Un courriel contenant votre certificat vous sera envoyé dans les plus brefs délais. Vous pouvez également le télécharger ci-dessous :",
-			"dont-show": "Ne le montrez plus",
 		},
 	},
 	Email: {
@@ -114,6 +121,10 @@ const fr: Messages = {
 			passed: "Réussi",
 			failed: "Échec",
 		},
+		status: "Statut",
+		score: "Score",
+		startedAt: "Commencé à",
+		completedAt: "Terminé à",
 	},
 	Role: {
 		owner: "Propriétaire",
@@ -137,6 +148,65 @@ const fr: Messages = {
 	ConnectionTypes: {
 		invite: "Inviter",
 		request: "Demande",
+	},
+	Login: {
+		title: "Se connecter",
+		description:
+			"Entrez votre email ci-dessous et soumettez pour vous connecter",
+	},
+	VerifyEmail: {
+		title: "Vérification de l'email",
+		description:
+			"Entrez le code que nous vous avons envoyé pour vérifier votre email",
+	},
+	UserButton: {
+		theme: {
+			label: "Thème",
+			light: "Clair",
+			dark: "Sombre",
+			system: "Système",
+		},
+		account: "Compte",
+		switch: {
+			admin: "Passer en administrateur",
+			learner: "Passer en apprenant",
+		},
+		signout: "Se déconnecter",
+	},
+	Course: {
+		start: "Commencer",
+		continue: "Continuer",
+	},
+	LoginForm: {
+		email: {
+			label: "E-mail",
+		},
+	},
+	VerifyEmailForm: {
+		code: {
+			label: "Code",
+		},
+	},
+	UserForm: {
+		title: "Compte",
+		description: "Gérez les paramètres de votre compte.",
+		firstName: {
+			label: "Prénom",
+		},
+		lastName: {
+			label: "Nom de famille",
+		},
+	},
+	TeamSwitcher: {
+		title: "Équipes",
+		create: "Créer une équipe",
+	},
+	ConnectionWrapper: {
+		invited: "Vous avez été invité à",
+		request: "Souhaitez-vous demander l'accès à",
+		requested:
+			"Accès demandé, veuillez attendre qu'un administrateur approuve.",
+		rejected: "Un administrateur a rejeté votre demande",
 	},
 };
 

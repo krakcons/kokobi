@@ -514,7 +514,7 @@ export const AdminSidebar = ({
 	role: Role;
 }) => {
 	const { setOpenMobile } = useSidebar();
-	const t = useTranslations("Nav");
+	const t = useTranslations("AdminSidebar");
 	const locale = useLocale();
 
 	return (

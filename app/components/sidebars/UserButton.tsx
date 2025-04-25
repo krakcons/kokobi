@@ -47,7 +47,7 @@ import {
 	useSearch,
 } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { useLocale } from "@/lib/locale";
+import { useLocale, useTranslations } from "@/lib/locale";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -71,6 +71,8 @@ export const UserButton = ({ user }: { user: UserType }) => {
 		from: "__root__",
 	});
 	const navigate = useNavigate();
+	const t = useTranslations("UserButton");
+	const tUserForm = useTranslations("UserForm");
 
 	const learnerAdmin = location.pathname.startsWith(`/${locale}/learner`);
 
@@ -182,16 +184,13 @@ export const UserButton = ({ user }: { user: UserType }) => {
 									}}
 								>
 									<ThemeIcon theme={theme} />
-									Theme (
-									{theme.charAt(0).toUpperCase() +
-										theme.slice(1)}
-									)
+									{t.theme.label} ({t.theme[theme]})
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									onSelect={() => setAccountDialog(true)}
 								>
 									<UserCircleIcon />
-									Account
+									{t.account}
 								</DropdownMenuItem>
 								<DropdownMenuItem asChild>
 									<Link
@@ -205,12 +204,12 @@ export const UserButton = ({ user }: { user: UserType }) => {
 										{learnerAdmin ? (
 											<>
 												<Blocks />
-												Switch to Admin
+												{t.switch.admin}
 											</>
 										) : (
 											<>
 												<Book />
-												Switch to Learner
+												{t.switch.learner}
 											</>
 										)}
 									</Link>
@@ -219,7 +218,7 @@ export const UserButton = ({ user }: { user: UserType }) => {
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onSelect={() => signOut()}>
 								<LogOutIcon />
-								Sign out
+								{t.signout}
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
@@ -231,9 +230,9 @@ export const UserButton = ({ user }: { user: UserType }) => {
 			>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Account</DialogTitle>
+						<DialogTitle>{tUserForm.title}</DialogTitle>
 						<DialogDescription>
-							Manage your account settings.
+							{tUserForm.description}
 						</DialogDescription>
 					</DialogHeader>
 					<UserForm

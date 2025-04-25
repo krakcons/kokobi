@@ -62,7 +62,8 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 function RouteComponent() {
 	const [course, team, attempts, connection, { user }] =
 		Route.useLoaderData();
-	const t = useTranslations("Learner");
+	const t = useTranslations("Course");
+	const tLearner = useTranslations("Learner");
 	const tCert = useTranslations("Certificate");
 	const locale = useLocale();
 	const navigate = Route.useNavigate();
@@ -138,10 +139,12 @@ function RouteComponent() {
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>Status</TableHead>
-									<TableHead>Score</TableHead>
-									<TableHead>Started At</TableHead>
-									<TableHead>Completed At</TableHead>
+									<TableHead>{tLearner.status}</TableHead>
+									<TableHead>{tLearner.score}</TableHead>
+									<TableHead>{tLearner.startedAt}</TableHead>
+									<TableHead>
+										{tLearner.completedAt}
+									</TableHead>
 									<TableHead></TableHead>
 								</TableRow>
 							</TableHeader>
@@ -149,7 +152,7 @@ function RouteComponent() {
 								{attempts.map((attempt) => (
 									<TableRow key={attempt.id}>
 										<TableCell>
-											{t.statuses[attempt.status]}
+											{tLearner.statuses[attempt.status]}
 										</TableCell>
 										<TableCell>
 											{["failed", "passed"].includes(
@@ -191,13 +194,14 @@ function RouteComponent() {
 																	disabled
 																>
 																	<Award />
-																	Download
-																	Certificate
+																	{
+																		tCert.download
+																	}
 																</Button>
 															}
 														>
 															<PDFDownloadLink
-																fileName="certificate.pdf"
+																fileName={`${tCert.fileName}`}
 																document={
 																	<Certificate
 																		certificate={{
@@ -231,8 +235,7 @@ function RouteComponent() {
 																)}
 															>
 																<Award />
-																Download
-																Certificate
+																{tCert.download}
 															</PDFDownloadLink>
 														</ClientOnly>
 													) : (
@@ -249,8 +252,7 @@ function RouteComponent() {
 															}}
 														>
 															<AlertCircle />
-															Certificate Requires
-															Name
+															{tCert["no-name"]}
 														</Button>
 													)}
 												</>
@@ -267,7 +269,7 @@ function RouteComponent() {
 												className={buttonVariants()}
 											>
 												<Play className="size-3.5" />
-												Continue
+												{t.continue}
 											</Link>
 										</TableCell>
 									</TableRow>
@@ -285,7 +287,7 @@ function RouteComponent() {
 							})
 						}
 					>
-						Start Course
+						{t.start}
 					</Button>
 				)}
 			</ConnectionWrapper>

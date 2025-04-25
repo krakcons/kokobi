@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Separator } from "./ui/separator";
+import { LocaleToggle } from "./LocaleToggle";
 
 export const Page = ({ children }: { children: React.ReactNode }) => {
 	return (
@@ -59,9 +60,13 @@ export const PageSubHeader = ({
 export const FloatingPage = ({
 	children,
 	className,
+	contentClassname,
+	localeToggle = true,
 }: {
 	children: React.ReactNode;
+	contentClassname?: string;
 	className?: string;
+	localeToggle?: boolean;
 }) => {
 	return (
 		<div
@@ -70,7 +75,15 @@ export const FloatingPage = ({
 				className,
 			)}
 		>
-			{children}
+			<div
+				className={cn(
+					"flex flex-col gap-4 max-w-md w-full",
+					contentClassname,
+				)}
+			>
+				{localeToggle && <LocaleToggle />}
+				{children}
+			</div>
 		</div>
 	);
 };
