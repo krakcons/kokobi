@@ -112,7 +112,7 @@ export const getLearnerUserTeamsFn = createServerFn({ method: "GET" })
 			userId: user.id,
 			teamId: team.id,
 			connectType: "invite",
-			connectStatus: "pending",
+			connectStatus: "accepted",
 			role: "member",
 			createdAt: new Date(),
 			updatedAt: new Date(),

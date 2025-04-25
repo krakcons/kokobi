@@ -80,7 +80,7 @@ export const hasTeamAccess = async ({
 			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
 		});
 
-		if (!course) {
+		if (!course && access === "root") {
 			throw new Error("Course not found");
 		}
 
@@ -111,7 +111,7 @@ export const hasTeamAccess = async ({
 			},
 		});
 
-		if (!collection) {
+		if (!collection && access === "root") {
 			throw new Error("Collection not found");
 		}
 
