@@ -146,7 +146,7 @@ export const Certificate = ({
 						flexDirection: "row",
 						gap: 20,
 						justifyContent: "center",
-						alignItems: "center",
+						alignItems: "flex-end",
 					}}
 				>
 					<View
@@ -157,13 +157,15 @@ export const Certificate = ({
 							justifyContent: "center",
 						}}
 					>
-						<Image
-							src={teamImageUrl(connectTeam, "logo")}
-							style={{
-								maxHeight: 35,
-								objectFit: "contain",
-							}}
-						/>
+						{connectTeam.logo && (
+							<Image
+								src={teamImageUrl(connectTeam, "logo")}
+								style={{
+									height: 35,
+									objectFit: "contain",
+								}}
+							/>
+						)}
 						<Text style={{ fontSize: 10, fontStyle: "italic" }}>
 							{t.offered + " " + connectTeam.name}
 						</Text>
@@ -177,13 +179,15 @@ export const Certificate = ({
 								justifyContent: "center",
 							}}
 						>
-							<Image
-								src={teamImageUrl(contentTeam, "logo")}
-								style={{
-									maxHeight: 35,
-									objectFit: "contain",
-								}}
-							/>
+							{contentTeam.logo && (
+								<Image
+									src={teamImageUrl(contentTeam, "logo")}
+									style={{
+										height: 35,
+										objectFit: "contain",
+									}}
+								/>
+							)}
 							<Text style={{ fontSize: 10, fontStyle: "italic" }}>
 								{t.created + " " + connectTeam.name}
 							</Text>
