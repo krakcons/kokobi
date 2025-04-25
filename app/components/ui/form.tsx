@@ -62,13 +62,16 @@ export const Optional = ({
 	return <p className="text-muted-foreground text-xs">({t.optional})</p>;
 };
 
-export const Title = (props: DefaultOptions) => {
+export const Title = (props: DefaultOptions & { htmlFor: string }) => {
 	if (!props.label) return null;
 	return (
-		<div className="flex items-center gap-1">
+		<Label
+			htmlFor={props.htmlFor}
+			className="flex flex-row items-center gap-1"
+		>
 			{props.label}
 			<Optional {...props} />
-		</div>
+		</Label>
 	);
 };
 
@@ -90,19 +93,24 @@ export const Error = ({ errors = [] }: { errors?: any[] }) => {
 	));
 };
 
+export const Field = ({ children }: { children: React.ReactNode }) => {
+	return <div className="flex flex-col gap-2 items-start">{children}</div>;
+};
+
 const TextField = (props: React.ComponentProps<"input"> & DefaultOptions) => {
 	const field = useFieldContext<string>();
 	return (
-		<Label>
-			<Title {...props} />
+		<Field>
+			<Title {...props} htmlFor={field.name} />
 			<Input
+				id={field.name}
 				value={field.state.value}
 				onChange={(e) => field.handleChange(e.target.value)}
 				{...props}
 			/>
 			<Description {...props} />
 			<Error errors={field.getMeta().errors} />
-		</Label>
+		</Field>
 	);
 };
 
@@ -111,16 +119,17 @@ const TextAreaField = (
 ) => {
 	const field = useFieldContext<string>();
 	return (
-		<Label>
-			<Title {...props} />
+		<Field>
+			<Title htmlFor={field.name} {...props} />
 			<Textarea
+				id={field.name}
 				value={field.state.value}
 				onChange={(e) => field.handleChange(e.target.value)}
 				{...props}
 			/>
 			<Description {...props} />
 			<Error errors={field.getMeta().errors} />
-		</Label>
+		</Field>
 	);
 };
 
@@ -128,9 +137,10 @@ const CheckboxField = (props: DefaultOptions) => {
 	const field = useFieldContext<boolean>();
 
 	return (
-		<Label>
+		<Field>
 			<div className="flex flex-row items-center gap-2">
 				<Checkbox
+					id={field.name}
 					name={field.name}
 					checked={field.state.value ?? false}
 					onBlur={field.handleBlur}
@@ -138,11 +148,11 @@ const CheckboxField = (props: DefaultOptions) => {
 						field.handleChange(checked)
 					}
 				/>
-				<Title {...props} />
+				<Title htmlFor={field.name} {...props} />
 			</div>
 			<Description {...props} />
 			<Error errors={field.getMeta().errors} />
-		</Label>
+		</Field>
 	);
 };
 
@@ -157,13 +167,13 @@ const SelectField = ({
 }) => {
 	const field = useFieldContext<string>();
 	return (
-		<Label>
-			<Title {...props} />
+		<Field>
+			<Title {...props} htmlFor={field.name} />
 			<Select
 				onValueChange={(value) => field.handleChange(value)}
 				defaultValue={field.state.value}
 			>
-				<SelectTrigger className="gap-1">
+				<SelectTrigger className="gap-1" id={field.name}>
 					<SelectValue />
 				</SelectTrigger>
 				<SelectContent>
@@ -178,7 +188,7 @@ const SelectField = ({
 			</Select>
 			<Description {...props} />
 			<Error errors={field.getMeta().errors} />
-		</Label>
+		</Field>
 	);
 };
 
@@ -190,38 +200,12 @@ const FileField = ({
 }) => {
 	const field = useFieldContext<File | "">();
 	return (
-		<div className="flex flex-col items-start gap-2">
-			<Label>
-				File {field.state.value ? `(${field.state.value.name})` : ""}
-			</Label>
-			<div className="flex items-center gap-2">
-				<Label
-					htmlFor={field.name}
-					className={buttonVariants({
-						size: "sm",
-						variant: "secondary",
-						className: "cursor-pointer",
-					})}
-				>
-					Add {label}
-				</Label>
-				{field.state.value && (
-					<Button
-						size="sm"
-						variant="secondary"
-						onClick={() => {
-							field.handleChange("");
-						}}
-					>
-						Remove
-					</Button>
-				)}
-			</div>
+		<Field>
+			<Title label={label} htmlFor={field.name} />
 			<Input
 				id={field.name}
 				name={field.name}
 				type="file"
-				className="hidden"
 				accept={accept}
 				onChange={(event) => {
 					field.handleChange(
@@ -231,7 +215,7 @@ const FileField = ({
 			/>
 			<Description description={`Accepts: ${accept}`} />
 			<Error errors={field.getMeta().errors} />
-		</div>
+		</Field>
 	);
 };
 
@@ -256,27 +240,29 @@ const ImageField = ({
 		: null;
 
 	return (
-		<div className="flex flex-col items-start gap-2 w-full">
-			<Label>{label}</Label>
-			{imageUrl ? (
-				<img
-					src={imageUrl}
-					height={height}
-					style={{
-						maxHeight: size.height,
-					}}
-					alt={label}
-					className="rounded-md p-2 border"
-				/>
-			) : (
-				<div
-					className="bg-muted rounded-md"
-					style={{
-						width,
-						height,
-					}}
-				/>
-			)}
+		<Field>
+			<Label htmlFor={field.name}>
+				{label}
+				{imageUrl ? (
+					<img
+						src={imageUrl}
+						height={height}
+						style={{
+							maxHeight: size.height,
+						}}
+						alt={label}
+						className="rounded-md border"
+					/>
+				) : (
+					<div
+						className="bg-muted rounded-md"
+						style={{
+							width,
+							height,
+						}}
+					/>
+				)}
+			</Label>
 			<div className="flex items-center gap-2">
 				<Input
 					id={field.name}
@@ -308,13 +294,14 @@ const ImageField = ({
 				/>
 			)}
 			<Error errors={field.getMeta().errors} />
-		</div>
+		</Field>
 	);
 };
 
 export const BlockNavigation = () => {
 	const form = useFormContext();
 	const t = useTranslations("Form");
+
 	const isDirty = useStore(form.store, (formState) => formState.isDirty);
 	const isSubmitting = useStore(
 		form.store,

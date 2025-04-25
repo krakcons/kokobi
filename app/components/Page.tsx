@@ -10,16 +10,19 @@ export const Page = ({ children }: { children: React.ReactNode }) => {
 export const PageHeader = ({
 	title,
 	description,
+	UnderTitle = null,
 	children,
 }: {
 	title: string;
 	description: string;
+	UnderTitle?: React.ReactNode;
 	children?: React.ReactNode;
 }) => (
 	<div className="flex flex-col gap-2">
 		<div className="flex items-end justify-between flex-wrap gap-2">
 			<div className="flex flex-col gap-2">
 				<h1>{title}</h1>
+				{UnderTitle}
 				<p>{description}</p>
 			</div>
 			{children}

@@ -98,8 +98,16 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<ContentBranding contentTeam={course.team} connectTeam={team} />
-			<PageHeader title={course.name} description={course.description}>
+			<PageHeader
+				title={course.name}
+				description={course.description}
+				UnderTitle={
+					<ContentBranding
+						contentTeam={course.team}
+						connectTeam={team}
+					/>
+				}
+			>
 				{connection && (
 					<ConnectionStatusBadge hideOnSuccess {...connection} />
 				)}
