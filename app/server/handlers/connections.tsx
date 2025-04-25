@@ -456,6 +456,7 @@ export const updateUserConnectionFn = createServerFn({ method: "POST" })
 			if (!context.learnerTeamId) {
 				throw new Error("No learner team");
 			}
+
 			await db
 				.update(usersToCourses)
 				.set({
@@ -466,7 +467,7 @@ export const updateUserConnectionFn = createServerFn({ method: "POST" })
 						eq(usersToCourses.userId, user.id),
 						eq(usersToCourses.teamId, context.learnerTeamId),
 						eq(usersToCourses.courseId, id),
-						eq(usersToCollections.connectType, "invite"),
+						eq(usersToCourses.connectType, "invite"),
 					),
 				);
 		}
