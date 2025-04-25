@@ -1,12 +1,13 @@
 import { db } from "@/server/db";
-import { courses, modules } from "@/server/db/schema";
-import { and, desc, eq, max } from "drizzle-orm";
+import { modules } from "@/server/db/schema";
+import { and, desc, eq } from "drizzle-orm";
 import { localeMiddleware, teamMiddleware } from "../lib/middleware";
-import { ModuleFormSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { createS3 } from "@/server/s3";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { getNewModuleVersionNumber } from "../lib/modules";
+import { hasTeamAccess } from "../lib/access";
 
 export const getModulesFn = createServerFn({ method: "GET" })
 	.middleware([localeMiddleware])
@@ -20,58 +21,74 @@ export const getModulesFn = createServerFn({ method: "GET" })
 		return moduleList;
 	});
 
-export const createModuleFn = createServerFn({ method: "POST" })
+export const createModulePresignedURLFn = createServerFn({ method: "POST" })
 	.middleware([localeMiddleware, teamMiddleware()])
-	.validator(z.instanceof(FormData))
-	.handler(async ({ context, data: formData }) => {
-		const locale = context.locale;
-		const teamId = context.teamId;
+	.validator(z.object({ courseId: z.string() }))
+	.handler(async ({ context, data }) => {
+		await hasTeamAccess({
+			id: data.courseId,
+			type: "course",
+			teamId: context.teamId,
+			access: "root",
+		});
 		const s3 = await createS3();
 
-		const data = ModuleFormSchema.extend({ courseId: z.string() }).parse(
-			Object.fromEntries(formData.entries()),
+		const versionNumber = await getNewModuleVersionNumber(
+			context.locale,
+			data.courseId,
 		);
 
-		const course = await db.query.courses.findFirst({
-			where: and(
-				eq(courses.id, data.courseId),
-				eq(courses.teamId, teamId),
-			),
+		const url = s3.presign(
+			`${context.teamId}/courses/${data.courseId}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+			{
+				expiresIn: 3600,
+				method: "PUT",
+				type: "application/zip",
+			},
+		);
+
+		return url;
+	});
+
+export const createModuleFn = createServerFn({ method: "POST" })
+	.middleware([localeMiddleware, teamMiddleware()])
+	.validator(z.object({ courseId: z.string() }))
+	.handler(async ({ context, data }) => {
+		await hasTeamAccess({
+			id: data.courseId,
+			type: "course",
+			teamId: context.teamId,
+			access: "root",
 		});
+		const s3 = await createS3();
 
-		if (!course) {
-			throw new Error("Course not found.");
+		const versionNumber = await getNewModuleVersionNumber(
+			context.locale,
+			data.courseId,
+		);
+
+		const moduleFile = s3.file(
+			`${context.teamId}/courses/${data.courseId}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+		);
+
+		const exists = await moduleFile.exists();
+		if (!exists) {
+			throw new Error("File not found");
 		}
 
-		const moduleFile = data.file;
-		if (moduleFile === "") {
-			throw new Error("Module empty");
-		}
-		const { entries, type } = await validateModule(moduleFile);
+		const buffer = await moduleFile.arrayBuffer();
+		// Delete the file after retrieving the buffer
+		await moduleFile.delete();
 
-		const newestModule = await db
-			.select({
-				versionNumber: max(modules.versionNumber),
-			})
-			.from(modules)
-			.where(
-				and(
-					eq(modules.courseId, data.courseId),
-					eq(modules.locale, locale),
-				),
-			);
+		const { entries, type } = await validateModule(buffer);
 
 		const insertId = Bun.randomUUIDv7();
-		const versionNumber =
-			newestModule.length > 0 && newestModule[0].versionNumber
-				? newestModule[0].versionNumber + 1
-				: 1;
 
 		await db.insert(modules).values({
 			id: insertId,
 			courseId: data.courseId,
 			type,
-			locale,
+			locale: context.locale,
 			versionNumber,
 		});
 
@@ -82,7 +99,7 @@ export const createModuleFn = createServerFn({ method: "POST" })
 				}
 				const blob = await file.blob();
 				s3.write(
-					`${teamId}/courses/${data.courseId}/${locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
+					`${context.teamId}/courses/${data.courseId}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
 					blob,
 				);
 			}),

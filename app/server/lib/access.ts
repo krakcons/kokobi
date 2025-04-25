@@ -80,6 +80,10 @@ export const hasTeamAccess = async ({
 			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
 		});
 
+		if (!course) {
+			throw new Error("Course not found");
+		}
+
 		if (course && access !== "shared") {
 			return "root";
 		}
@@ -106,6 +110,10 @@ export const hasTeamAccess = async ({
 				translations: true,
 			},
 		});
+
+		if (!collection) {
+			throw new Error("Collection not found");
+		}
 
 		if (collection && access !== "shared") {
 			return "root";

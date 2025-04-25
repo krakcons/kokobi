@@ -1,6 +1,5 @@
 import { IMSManifestSchema } from "@/types/scorm/content";
 import { XMLParser } from "fast-xml-parser";
-import { formatBytes } from "./helpers";
 import { Module } from "@/types/module";
 import { unzip } from "unzipit";
 
@@ -11,17 +10,8 @@ const parser = new XMLParser({
 	attributeNamePrefix: "",
 });
 
-export const validateModule = async (file: File) => {
-	if (file.size > MAX_FILE_SIZE) {
-		throw new Error(
-			`Module is too large. Maximum file size is ${formatBytes(
-				MAX_FILE_SIZE,
-			)}.`,
-		);
-	}
-
-	const fileBuffer = await file.arrayBuffer();
-	const { entries } = await unzip(fileBuffer);
+export const validateModule = async (buffer: ArrayBuffer) => {
+	const { entries } = await unzip(buffer);
 
 	// validate imsmanifest.xml exists
 	const manifestFile = entries["imsmanifest.xml"];

@@ -18,6 +18,7 @@ import {
 import { locales } from "@/lib/locale";
 import {
 	createModuleFn,
+	createModulePresignedURLFn,
 	deleteModuleFn,
 	getModulesFn,
 } from "@/server/handlers/courses.modules";
@@ -55,9 +56,13 @@ function RouteComponent() {
 
 	const [open, setOpen] = useState(false);
 
+	const createModulePresignedURL = useMutation({
+		mutationFn: createModulePresignedURLFn,
+	});
 	const createModule = useMutation({
 		mutationFn: createModuleFn,
 		onSuccess: () => {
+			setOpen(false);
 			router.invalidate();
 		},
 	});
@@ -123,25 +128,23 @@ function RouteComponent() {
 						</DialogHeader>
 						<ModuleForm
 							key={modules.length}
-							onSubmit={(values) => {
-								const formData = new FormData();
-								formData.append("file", values.file);
-								formData.append("courseId", param.courseId);
-								return createModule.mutateAsync(
-									{
-										data: formData,
-										headers: {
-											...(search.locale && {
-												locale: search.locale,
-											}),
-										},
+							onSubmit={async (values) => {
+								const url =
+									await createModulePresignedURL.mutateAsync({
+										data: { courseId: param.courseId },
+									});
+								await fetch(url, {
+									method: "PUT",
+									body: values.file,
+								});
+								await createModule.mutateAsync({
+									data: { courseId: param.courseId },
+									headers: {
+										...(search.locale && {
+											locale: search.locale,
+										}),
 									},
-									{
-										onSuccess: () => {
-											setOpen(false);
-										},
-									},
-								);
+								});
 							}}
 						/>
 					</DialogContent>
