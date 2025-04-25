@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "@/lib/locale";
 import { Loader2 } from "lucide-react";
 import {
 	getUserModuleFn,
 	updateUserModuleFn,
 } from "@/server/handlers/users.modules";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
@@ -66,6 +66,12 @@ function RouteComponent() {
 			}
 		},
 	});
+
+	const { setOpen } = useSidebar();
+
+	useEffect(() => {
+		setOpen(false);
+	}, []);
 
 	if (!isApiAvailable) {
 		return <div>LMS not available. Please try again later.</div>;

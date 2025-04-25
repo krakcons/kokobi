@@ -6,8 +6,6 @@ export const LocaleToggle = () => {
 	const navigate = useNavigate();
 	const locale = useLocale();
 
-	console.log(locale);
-
 	return (
 		<Button
 			onClick={() => {

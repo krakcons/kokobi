@@ -53,29 +53,25 @@ function RouteComponent() {
 			)}
 			<div className="flex flex-col gap-4">
 				<h3>{tNav.courses}</h3>
-				<div className="flex flex-row gap-4">
-					{courses?.map((connection) => (
-						<ConnectionComponent
-							key={connection.course!.id}
-							{...connection.course!}
-							type="course"
-							connection={connection}
-						/>
-					))}
-				</div>
+				{courses?.map((connection) => (
+					<ConnectionComponent
+						key={connection.course!.id}
+						{...connection.course!}
+						type="course"
+						connection={connection}
+					/>
+				))}
 			</div>
 			<div className="flex flex-col gap-4">
 				<h3>{tNav.collections}</h3>
-				<div className="flex flex-row gap-4">
-					{collections?.map((connection) => (
-						<ConnectionComponent
-							key={connection.collection!.id}
-							{...connection.collection!}
-							type="collection"
-							connection={connection}
-						/>
-					))}
-				</div>
+				{collections?.map((connection) => (
+					<ConnectionComponent
+						key={connection.collection!.id}
+						{...connection.collection!}
+						type="collection"
+						connection={connection}
+					/>
+				))}
 			</div>
 		</Page>
 	);
