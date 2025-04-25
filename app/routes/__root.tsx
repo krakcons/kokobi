@@ -133,7 +133,7 @@ function RootComponent() {
 			<body>
 				<IntlProvider i18n={i18n}>
 					<HeadContent />
-					<Outlet />
+					<PendingComponent />
 					<Toaster />
 				</IntlProvider>
 				<Scripts />
