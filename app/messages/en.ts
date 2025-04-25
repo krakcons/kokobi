@@ -69,10 +69,9 @@ const en = {
 		pdf: {
 			title: "Certificate of Completion",
 			message: "This certificate is proudly awarded to",
-			congratulations: {
-				"1": "Congratulations! you have successfully completed",
-				"2": "offered by",
-			},
+			congratulations: "Congratulations! you have successfully completed",
+			offered: "Offered by",
+			created: "Created by",
 			date: "Date of Completion",
 		},
 	},

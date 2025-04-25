@@ -1,4 +1,6 @@
+import { teamImageUrl } from "@/lib/file";
 import { Messages } from "@/lib/locale";
+import { Team, TeamTranslation } from "@/types/team";
 import {
 	Document,
 	Font,
@@ -56,20 +58,21 @@ export type CertificateProps = {
 	name: string;
 	course: string;
 	completedAt: string;
-	teamName: string;
-	logo?: string;
+	contentTeam: Team & TeamTranslation;
+	connectTeam: Team & TeamTranslation;
 	t: Messages["Certificate"]["pdf"];
 };
 
 export const Certificate = ({
-	certificate: { name, course, completedAt, teamName, t, logo },
+	certificate: { name, course, completedAt, t, connectTeam, contentTeam },
 }: {
 	certificate: CertificateProps;
 }) => {
+	const sharedCourse = contentTeam.id !== connectTeam.id;
+
 	return (
 		<Document>
 			<PDFPage size="A4" orientation="landscape" style={styles.page}>
-				{/* eslint-disable-next-line jsx-a11y/alt-text */}
 				<Image
 					src="/certificate.png"
 					style={{
@@ -108,7 +111,7 @@ export const Certificate = ({
 								fontStyle: "italic",
 							}}
 						>
-							{t.congratulations["1"]}
+							{t.congratulations}
 						</Text>
 						<Text
 							style={{
@@ -117,21 +120,6 @@ export const Certificate = ({
 							}}
 						>
 							{" " + course}
-						</Text>
-						<Text
-							style={{
-								fontStyle: "italic",
-							}}
-						>
-							{" " + t.congratulations["2"]}
-						</Text>
-						<Text
-							style={{
-								fontWeight: 600,
-								fontStyle: "italic",
-							}}
-						>
-							{" " + teamName}.
 						</Text>
 					</Text>
 				</View>
@@ -153,16 +141,55 @@ export const Certificate = ({
 					/>
 					<Text>{t.date}</Text>
 				</View>
-				{logo && (
-					/* eslint-disable-next-line jsx-a11y/alt-text */
-					<Image
-						src={logo}
+				<View
+					style={{
+						flexDirection: "row",
+						gap: 20,
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<View
 						style={{
-							height: 50,
-							objectFit: "contain",
+							flexDirection: "column",
+							gap: 5,
+							alignItems: "center",
+							justifyContent: "center",
 						}}
-					/>
-				)}
+					>
+						<Image
+							src={teamImageUrl(connectTeam, "logo")}
+							style={{
+								maxHeight: 35,
+								objectFit: "contain",
+							}}
+						/>
+						<Text style={{ fontSize: 10, fontStyle: "italic" }}>
+							{t.offered + " " + connectTeam.name}
+						</Text>
+					</View>
+					{sharedCourse && (
+						<View
+							style={{
+								flexDirection: "column",
+								gap: 5,
+								alignItems: "center",
+								justifyContent: "center",
+							}}
+						>
+							<Image
+								src={teamImageUrl(contentTeam, "logo")}
+								style={{
+									maxHeight: 35,
+									objectFit: "contain",
+								}}
+							/>
+							<Text style={{ fontSize: 10, fontStyle: "italic" }}>
+								{t.created + " " + connectTeam.name}
+							</Text>
+						</View>
+					)}
+				</View>
 			</PDFPage>
 		</Document>
 	);

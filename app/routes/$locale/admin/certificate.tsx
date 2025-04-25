@@ -34,8 +34,8 @@ function RouteComponent() {
 				<PDFViewer className="h-[700px] w-full">
 					<Certificate
 						certificate={{
-							teamName: team?.name,
-							logo: teamImageUrl(team, "logo"),
+							connectTeam: team,
+							contentTeam: team,
 							name: "John Doe",
 							course: "Volunteer Training",
 							completedAt: formatDate({

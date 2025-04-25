@@ -71,11 +71,10 @@ const fr: Messages = {
 		pdf: {
 			title: "Certificat de réussite",
 			message: "Nouse sommes fiers de remettre ce certificat à",
-			congratulations: {
-				"1": "Félicitations ! Vous avez terminé avec succès",
-				"2": "offert par",
-			},
+			congratulations: "Félicitations ! Vous avez terminé avec succès",
 			date: "Date d'achèvement",
+			offered: "Offert par",
+			created: "Créé par",
 		},
 	},
 	Email: {
@@ -91,7 +90,7 @@ const fr: Messages = {
 		Invite: {
 			subject: "Invitation",
 			title: "Invitation",
-			invite: "vous invite à rejoindre les groupes suivants :",
+			invite: "vous invite à vous joindre à :",
 			action: "Voir l'invitation",
 		},
 	},

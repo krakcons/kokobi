@@ -16,8 +16,5 @@ export const teamImageUrl = (
 	team: Team & TeamTranslation,
 	type: "logo" | "favicon",
 ) => {
-	if (team[type]) {
-		return `${env.VITE_SITE_URL}/cdn/${team[type]}?updatedAt=${team.updatedAt.toISOString()}`;
-	}
-	return undefined;
+	return `${env.VITE_SITE_URL}/cdn/${team[type]}?updatedAt=${team.updatedAt.toISOString()}`;
 };
