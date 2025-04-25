@@ -132,6 +132,11 @@ function RouteComponent() {
 								const url =
 									await createModulePresignedURL.mutateAsync({
 										data: { courseId: param.courseId },
+										headers: {
+											...(search.locale && {
+												locale: search.locale,
+											}),
+										},
 									});
 								await fetch(url, {
 									method: "PUT",

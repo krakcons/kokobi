@@ -8,6 +8,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getNewModuleVersionNumber } from "../lib/modules";
 import { hasTeamAccess } from "../lib/access";
+import { env } from "../env";
 
 export const getModulesFn = createServerFn({ method: "GET" })
 	.middleware([localeMiddleware])
@@ -76,36 +77,40 @@ export const createModuleFn = createServerFn({ method: "POST" })
 			throw new Error("File not found");
 		}
 
-		const buffer = await moduleFile.arrayBuffer();
-		// Delete the file after retrieving the buffer
-		await moduleFile.delete();
+		try {
+			const { entries, type } = await validateModule(
+				await moduleFile.arrayBuffer(),
+			);
+			const insertId = Bun.randomUUIDv7();
 
-		const { entries, type } = await validateModule(buffer);
+			await db.insert(modules).values({
+				id: insertId,
+				courseId: data.courseId,
+				type,
+				locale: context.locale,
+				versionNumber,
+			});
 
-		const insertId = Bun.randomUUIDv7();
+			Promise.all(
+				Object.entries(entries).map(async ([key, file]) => {
+					if (shouldIgnoreFile(key)) {
+						return;
+					}
+					const blob = await file.blob();
+					s3.write(
+						`${context.teamId}/courses/${data.courseId}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
+						blob,
+					);
+				}),
+			);
 
-		await db.insert(modules).values({
-			id: insertId,
-			courseId: data.courseId,
-			type,
-			locale: context.locale,
-			versionNumber,
-		});
-
-		Promise.all(
-			Object.entries(entries).map(async ([key, file]) => {
-				if (shouldIgnoreFile(key)) {
-					return;
-				}
-				const blob = await file.blob();
-				s3.write(
-					`${context.teamId}/courses/${data.courseId}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
-					blob,
-				);
-			}),
-		);
-
-		return { id: insertId };
+			return { id: insertId };
+		} catch (error) {
+			await moduleFile.delete();
+			throw error;
+		} finally {
+			await moduleFile.delete();
+		}
 	});
 
 export const deleteModuleFn = createServerFn({ method: "POST" })

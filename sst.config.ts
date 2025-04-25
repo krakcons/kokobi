@@ -98,6 +98,8 @@ export default $config({
 		new sst.aws.Service("TSS", {
 			link: [bucket, aurora, email],
 			cluster,
+			cpu: "0.5 vCPU",
+			memory: "2 GB",
 			loadBalancer: {
 				ports: [{ listen: "443/https", forward: "3000/http" }],
 				domain: {
