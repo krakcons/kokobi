@@ -80,7 +80,7 @@ const en = {
 			get: "Download",
 		},
 		Invite: {
-			subject: "New Invitation",
+			subject: "Invitation",
 			title: "Invitation",
 			invite: "invites you to join the following:",
 			action: "View Invitation",

@@ -3,17 +3,17 @@ import { Messages } from "@/lib/locale";
 const fr: Messages = {
 	Nav: {
 		top: {
-			editing: "Editing",
+			editing: "Édition",
 		},
 		sidebar: {
-			manage: "Manage",
-			dashboard: "Dashboard",
-			team: "Team",
-			edit: "Edit Team",
-			apiKeys: "API Keys",
-			certificate: "Certificate",
-			domains: "Domains",
-			members: "Members",
+			manage: "Gérer",
+			dashboard: "Tableau de bord",
+			team: "Équipe",
+			edit: "Modifier l'équipe",
+			apiKeys: "Clés API",
+			certificate: "Certificat",
+			domains: "Domaines",
+			members: "Membres",
 		},
 	},
 	Home: {
@@ -82,10 +82,10 @@ const fr: Messages = {
 			get: "Télécharger",
 		},
 		Invite: {
-			subject: "New Invitation",
+			subject: "Invitation",
 			title: "Invitation",
-			invite: "invites you to join the following:",
-			action: "View Invitation",
+			invite: "vous invite à rejoindre les groupes suivants :",
+			action: "Voir l'invitation",
 		},
 	},
 	Table: {
@@ -126,17 +126,17 @@ const fr: Messages = {
 		either: "Passé/Complété",
 	},
 	ConnectionActions: {
-		accept: "Accept",
-		reject: "Reject",
+		accept: "Accepter",
+		reject: "Rejeter",
 	},
 	ConnectionStatuses: {
-		accepted: "Accepted",
-		pending: "Pending",
-		rejected: "Rejected",
+		accepted: "Accepté",
+		pending: "En attente",
+		rejected: "Rejetée",
 	},
 	ConnectionTypes: {
-		invite: "Invite",
-		request: "Request",
+		invite: "Inviter",
+		request: "Demande",
 	},
 };
 

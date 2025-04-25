@@ -143,7 +143,6 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 					: attempt.completedAt;
 
 			if (justCompleted) {
-				console.log("just completed");
 				const teamBase = await db.query.teams.findFirst({
 					where: eq(teams.id, context.learnerTeamId),
 					with: {

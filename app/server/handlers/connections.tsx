@@ -1,5 +1,4 @@
 import {
-	authMiddleware,
 	learnerMiddleware,
 	localeMiddleware,
 	protectedMiddleware,
@@ -11,13 +10,10 @@ import {
 	courses,
 	teams,
 	teamsToCourses,
-	users,
 	usersToCollections,
 	usersToCourses,
-	usersToModules,
 	usersToTeams,
 } from "@/server/db/schema";
-import { ExtendLearner } from "@/types/learner";
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -34,6 +30,7 @@ import {
 import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
 import { hasTeamAccess } from "../lib/access";
+import { locales } from "@/lib/locale";
 
 export const getConnectionLinkFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware()])
@@ -204,26 +201,27 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 			id,
 		});
 
-		const teamBase = await db.query.teams.findFirst({
-			where: and(eq(teams.id, context.teamId)),
+		const team = (await db.query.teams.findFirst({
+			where: eq(teams.id, context.teamId),
 			with: {
 				translations: true,
 				domains: true,
 			},
-		});
-
-		const team = handleLocalization(context, teamBase!);
+		}))!;
 
 		const userList = await getUserList({ emails });
 
 		if (type === "course") {
-			const courseBase = await db.query.courses.findFirst({
+			const course = await db.query.courses.findFirst({
 				where: eq(courses.id, id),
 				with: {
 					translations: true,
 				},
 			});
-			const course = handleLocalization(context, courseBase!);
+
+			if (!course) {
+				throw new Error("Course not found");
+			}
 
 			await db
 				.insert(usersToCourses)
@@ -257,37 +255,50 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 			await Promise.all(
 				userList.map(async (user) => {
-					const href = await getConnectionLink({
-						teamId: context.teamId,
-						type: "course",
-						id: course.id,
-						locale: "en",
-					});
-
-					const t = await createTranslator({
-						locale: "en",
-					});
+					const content = await Promise.all(
+						locales.map(async (locale) => {
+							const localizedCourse = handleLocalization(
+								{ locale: locale.value },
+								course,
+							);
+							const localizedTeam = handleLocalization(
+								{ locale: locale.value },
+								team,
+							);
+							const href = await getConnectionLink({
+								teamId: context.teamId,
+								type: "course",
+								id: course.id,
+								locale: locale.value,
+							});
+							const t = await createTranslator({
+								locale: locale.value,
+							});
+							return {
+								name: localizedCourse.name,
+								teamName: localizedTeam.name,
+								logo: teamImageUrl(localizedTeam, "logo"),
+								locale: locale.value,
+								t: t.Email.Invite,
+								href,
+							};
+						}),
+					);
 
 					await sendEmail({
 						to: [user.email],
-						subject: t.Email.Invite.subject,
-						content: (
-							<Invite
-								href={href}
-								name={course.name}
-								teamName={team.name}
-								logo={teamImageUrl(team, "logo")}
-								t={t.Email.Invite}
-							/>
-						),
-						team: emailVerified ? team : undefined,
+						subject: content[0].t.subject,
+						content: <Invite content={content} />,
+						team: emailVerified
+							? handleLocalization({ locale: "en" }, team)
+							: undefined,
 					});
 				}),
 			);
 		}
 
 		if (type === "collection") {
-			const collectionBase = await db.query.collections.findFirst({
+			const collection = await db.query.collections.findFirst({
 				where: and(
 					eq(collections.id, id),
 					eq(collections.teamId, context.teamId),
@@ -296,7 +307,10 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 					translations: true,
 				},
 			});
-			const collection = handleLocalization(context, collectionBase!);
+
+			if (!collection) {
+				throw new Error("Collection not found");
+			}
 
 			await db
 				.insert(usersToCollections)
@@ -330,30 +344,43 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 
 			await Promise.all([
 				userList.map(async (user) => {
-					const href = await getConnectionLink({
-						teamId: context.teamId,
-						type: "collection",
-						id: collection.id,
-						locale: "en",
-					});
-
-					const t = await createTranslator({
-						locale: "en",
-					});
+					const content = await Promise.all(
+						locales.map(async (locale) => {
+							const localizedCollection = handleLocalization(
+								{ locale: locale.value },
+								collection,
+							);
+							const localizedTeam = handleLocalization(
+								{ locale: locale.value },
+								team,
+							);
+							const href = await getConnectionLink({
+								teamId: context.teamId,
+								type: "collection",
+								id: collection.id,
+								locale: locale.value,
+							});
+							const t = await createTranslator({
+								locale: locale.value,
+							});
+							return {
+								name: localizedCollection.name,
+								teamName: localizedTeam.name,
+								logo: teamImageUrl(localizedTeam, "logo"),
+								locale: locale.value,
+								t: t.Email.Invite,
+								href,
+							};
+						}),
+					);
 
 					await sendEmail({
 						to: [user.email],
-						subject: t.Email.Invite.subject,
-						content: (
-							<Invite
-								href={href}
-								name={collection.name}
-								teamName={team.name}
-								logo={teamImageUrl(team, "logo")}
-								t={t.Email.Invite}
-							/>
-						),
-						team: emailVerified ? team : undefined,
+						subject: content[0].t.subject,
+						content: <Invite content={content} />,
+						team: emailVerified
+							? handleLocalization({ locale: "en" }, team)
+							: undefined,
 					});
 				}),
 			]);
