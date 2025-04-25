@@ -6,7 +6,7 @@ export const PendingComponent = () => {
 	useTheme();
 
 	return (
-		<FloatingPage>
+		<FloatingPage localeToggle={false}>
 			<LoaderCircle className="animate-spin size-12" />
 		</FloatingPage>
 	);

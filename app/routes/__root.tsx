@@ -16,6 +16,7 @@ import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { teamImageUrl } from "@/lib/file";
 import { z } from "zod";
+import { PendingComponent } from "@/components/PendingComponent";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -50,11 +51,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			return { locale };
 		},
 		notFoundComponent: NotFound,
-		pendingComponent: () => (
-			<FloatingPage>
-				<LoaderCircle className="animate-spin size-12" />
-			</FloatingPage>
-		),
+		pendingComponent: PendingComponent,
 		component: RootComponent,
 		loader: async ({ context: { locale } }) => {
 			const tenantId = await getTenantFn();
