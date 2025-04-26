@@ -210,9 +210,9 @@ function RouteComponent() {
 																				" " +
 																				user?.lastName,
 																			connectTeam:
-																				course.team,
-																			contentTeam:
 																				team,
+																			contentTeam:
+																				course.team,
 																			course: course.name,
 																			completedAt:
 																				attempt.completedAt &&
