@@ -1,11 +1,16 @@
 import { db } from "@/server/db";
 import {
+	collections,
+	collectionsToCourses,
 	courseTranslations,
 	courses,
+	users,
+	usersToCollections,
+	usersToCourses,
 	usersToModules,
 } from "@/server/db/schema";
 import { CourseFormSchema } from "@/types/course";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale/helpers";
 import { createServerFn } from "@tanstack/react-start";
 import {
@@ -175,20 +180,62 @@ export const deleteCourseFn = createServerFn({ method: "POST" })
 
 export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
-	.validator(z.object({ courseId: z.string() }))
-	.handler(async ({ context, data: { courseId } }) => {
+	.validator(
+		z.object({
+			courseId: z.string(),
+			teamId: z.string().optional(),
+		}),
+	)
+	.handler(async ({ context, data: { courseId, teamId } }) => {
 		const access = await hasTeamAccess({
 			type: "course",
 			id: courseId,
 			teamId: context.teamId,
 		});
 
+		// First, get all user IDs connected to the course (directly or via collections)
+		const directUserIds = await db
+			.select({ userId: usersToCourses.userId })
+			.from(usersToCourses)
+			.where(
+				and(
+					eq(usersToCourses.courseId, courseId),
+					eq(usersToCourses.connectStatus, "accepted"),
+				),
+			);
+		const collectionUserIds = await db
+			.select({ userId: usersToCollections.userId })
+			.from(usersToCollections)
+			.innerJoin(
+				collectionsToCourses,
+				eq(
+					usersToCollections.collectionId,
+					collectionsToCourses.collectionId,
+				),
+			)
+			.where(
+				and(
+					eq(collectionsToCourses.courseId, courseId),
+					eq(usersToCollections.connectStatus, "accepted"),
+				),
+			);
+
+		// Combine all user IDs and remove duplicates
+		const allUserIds = [
+			...directUserIds.map((u) => u.userId),
+			...collectionUserIds.map((u) => u.userId),
+		];
+		const uniqueUserIds = [...new Set(allUserIds)];
+
 		const attemptList = await db.query.usersToModules.findMany({
 			where: and(
 				eq(usersToModules.courseId, courseId),
+				inArray(usersToModules.userId, uniqueUserIds),
 				access === "shared"
 					? eq(usersToModules.teamId, context.teamId)
-					: undefined,
+					: teamId
+						? eq(usersToModules.teamId, teamId)
+						: undefined,
 			),
 			with: {
 				module: true,
@@ -201,12 +248,14 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 
 		const total = attempts.length;
 		const completed = attempts.filter((l) => !!l.completedAt).length;
-		const totalCompletionTime = attempts.reduce((acc, learner) => {
+		const totalCompletionTimeSeconds = attempts.reduce((acc, learner) => {
 			if (learner.completedAt) {
-				acc +=
+				return (
+					acc +
 					(learner.completedAt.getTime() -
 						learner.createdAt.getTime()) /
-					1000;
+						1000
+				);
 			}
 			return acc;
 		}, 0);
@@ -218,7 +267,10 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 				completed > 0
 					? ((completed / total) * 100).toFixed(0)
 					: undefined,
-			completedTimeAverage: (totalCompletionTime / completed).toFixed(1),
+			completedTimeAverage:
+				completed > 0
+					? (totalCompletionTimeSeconds / 60 / completed).toFixed(1)
+					: undefined,
 			charts: {
 				status: attempts.reduce(
 					(acc, learner) => {

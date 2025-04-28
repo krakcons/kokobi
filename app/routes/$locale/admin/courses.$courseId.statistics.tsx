@@ -19,17 +19,33 @@ import {
 import { Pie, PieChart } from "recharts";
 import { learnerStatuses } from "@/types/learner";
 import { useTranslations } from "@/lib/locale";
+import { getTeamConnectionsFn } from "@/server/handlers/connections";
+import { useAppForm } from "@/components/ui/form";
+import { z } from "zod";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/statistics",
 )({
+	validateSearch: z.object({
+		teamId: z.string().optional(),
+	}),
 	component: RouteComponent,
-	loader: ({ params }) =>
-		getCourseStatisticsFn({
-			data: {
-				courseId: params.courseId,
-			},
-		}),
+	loaderDeps: ({ search }) => ({ teamId: search.teamId }),
+	loader: ({ params, deps }) =>
+		Promise.all([
+			getCourseStatisticsFn({
+				data: {
+					courseId: params.courseId,
+					teamId: deps.teamId === "all" ? undefined : deps.teamId,
+				},
+			}),
+			getTeamConnectionsFn({
+				data: {
+					id: params.courseId,
+					type: "from-team",
+				},
+			}),
+		]),
 });
 
 const statusChartConfig: ChartConfig = {
@@ -41,7 +57,9 @@ const statusChartConfig: ChartConfig = {
 };
 
 function RouteComponent() {
-	const statistics = Route.useLoaderData();
+	const [statistics, connections] = Route.useLoaderData();
+	const { teamId = "all" } = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const t = useTranslations("Learner");
 
 	const cards = [
@@ -59,7 +77,7 @@ function RouteComponent() {
 		},
 		{
 			title: "Average Completion Time",
-			value: `${statistics.completedTimeAverage} minutes`,
+			value: `${statistics.completedTimeAverage ?? 0} minutes`,
 			description: "Average time it takes to complete this course.",
 			icon: <Clock className="size-4" />,
 		},
@@ -75,12 +93,52 @@ function RouteComponent() {
 		},
 	];
 
+	const form = useAppForm({
+		defaultValues: {
+			teamId,
+		},
+	});
+
 	return (
 		<Page>
 			<PageHeader
 				title="Statistics"
 				description="View statistics for this course."
-			/>
+			>
+				<form.AppForm>
+					<form
+						onSubmit={(e) => e.preventDefault()}
+						className="flex flex-col gap-8 items-start"
+					>
+						<form.AppField
+							name="teamId"
+							validators={{
+								onChange: ({ value }) => {
+									navigate({
+										search: (prev) => ({
+											...prev,
+											teamId: value,
+										}),
+									});
+								},
+							}}
+						>
+							{(field) => (
+								<field.SelectField
+									label="Filter by Team"
+									options={[
+										{ label: "All Teams", value: "all" },
+										...connections?.map((c) => ({
+											label: c.team.name,
+											value: c.team.id,
+										})),
+									]}
+								/>
+							)}
+						</form.AppField>
+					</form>
+				</form.AppForm>
+			</PageHeader>
 			<div className="flex gap-4 flex-wrap items-start">
 				{cards.map((card) => (
 					<Card
