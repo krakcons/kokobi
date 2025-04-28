@@ -16,6 +16,33 @@ import { UserToTeamType } from "@/types/connections";
 import { throwServerError } from "../lib/error";
 import { createTranslator } from "@/lib/locale/actions";
 
+export const getUserTeamConnectionFn = createServerFn({ method: "GET" })
+	.middleware([protectedMiddleware, localeMiddleware])
+	.validator(
+		z.object({
+			type: z.enum(["learner", "admin"]),
+			teamId: z.string().optional(),
+		}),
+	)
+	.handler(async ({ context, data }) => {
+		const teamId =
+			data.teamId ??
+			(data.type === "learner" ? context.learnerTeamId : context.teamId);
+
+		if (!teamId) {
+			throw new Error("No team id");
+		}
+
+		const connection = await db.query.usersToTeams.findFirst({
+			where: and(
+				eq(usersToTeams.teamId, teamId),
+				eq(usersToTeams.userId, context.user.id),
+			),
+		});
+
+		return connection;
+	});
+
 export const getUserTeamFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware, localeMiddleware])
 	.validator(z.object({ type: z.enum(["learner", "admin"]) }))
@@ -157,7 +184,7 @@ export const updateUserTeamFn = createServerFn({ method: "POST" })
 			if (!team) {
 				const t = await createTranslator(context);
 				throwServerError({
-					...t.Errors.NotAMember,
+					...t.NotAMember,
 					tryAgain: false,
 				});
 			}

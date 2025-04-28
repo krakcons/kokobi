@@ -51,16 +51,28 @@ export const Route = createFileRoute("/$locale/admin")({
 		const tenantId = await getTenantFn();
 		if (tenantId) {
 			if (tenantId !== auth.teamId) {
-				await updateUserTeamFn({
-					data: {
-						teamId: tenantId,
-						type: "admin",
-					},
-				});
-				throw redirect({
-					href: location.href,
-					reloadDocument: true,
-				});
+				try {
+					await updateUserTeamFn({
+						data: {
+							teamId: tenantId,
+							type: "admin",
+						},
+					});
+					throw redirect({
+						href: location.href,
+						reloadDocument: true,
+					});
+				} catch (e) {
+					throw redirect({
+						to: "/$locale/not-admin",
+						search: {
+							teamId: tenantId,
+						},
+						params: {
+							locale: params.locale,
+						},
+					});
+				}
 			}
 		} else {
 			if (!auth.teamId) {

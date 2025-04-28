@@ -114,14 +114,8 @@ function RouteComponent() {
 	});
 	const deleteTeam = useMutation({
 		mutationFn: deleteTeamFn,
-		onSuccess: (data) => {
-			if (data.teamId) {
-				navigate({ to: "/$locale/admin" });
-			} else {
-				navigate({
-					to: "/$locale/create-team",
-				});
-			}
+		onSuccess: () => {
+			navigate({ to: "/$locale/admin" });
 		},
 	});
 	const deleteTeamDomain = useMutation({

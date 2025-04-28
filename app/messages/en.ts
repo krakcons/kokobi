@@ -167,8 +167,8 @@ const en = {
 		},
 		account: "Account",
 		switch: {
-			admin: "Switch to admin",
-			learner: "Switch to learning",
+			admin: "Switch to Admin",
+			learner: "Switch to Learning",
 		},
 		signout: "Sign out",
 	},
@@ -204,22 +204,25 @@ const en = {
 		invited: "You have been invited to",
 		request: "Would you like to request access to",
 		requested: "Requested access, please wait for an admin to approve.",
-		rejected: "An admin has rejected your request",
+		rejected: "You have rejected the invite",
+		adminRejected: "An admin has rejected your request",
 	},
 	Errors: {
 		title: "Something went wrong!",
 		tryAgain: "Try Again",
 		goBack: "Go Back",
-		NotAMember: {
-			title: "Not an admin",
-			message:
-				"You haven't been invited to administer this team. Please contact a team administrator and request an invitation to get access to the team's administration dashboard.",
-		},
 		NotFound: {
 			title: "404",
 			message: "The page you are looking for does not exist.",
 			home: "Home",
 		},
+	},
+	NotAMember: {
+		title: "Not an admin",
+		message:
+			"You haven't been invited to administer this team. Please contact a team administrator and request an invitation to get access to the team's administration dashboard.",
+		inviteMessage:
+			"You have been invited to administer this team. Accept or decline the invitation below.",
 	},
 };
 

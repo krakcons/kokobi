@@ -125,19 +125,6 @@ export const verifyOTPFn = createServerFn({ method: "POST" })
 			path: "/",
 		});
 
-		const team = await db.query.usersToTeams.findFirst({
-			where: eq(usersToTeams.userId, emailVerification.user.id),
-		});
-
-		if (team) {
-			setCookie("teamId", team.teamId, {
-				path: "/",
-				secure: true,
-				httpOnly: true,
-				sameSite: "lax",
-			});
-		}
-
 		await db
 			.delete(emailVerifications)
 			.where(eq(emailVerifications.userId, emailVerification.userId));

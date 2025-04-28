@@ -7,7 +7,7 @@ import {
 } from "@/server/db/schema";
 import { createS3 } from "@/server/s3";
 import { TeamFormSchema } from "@/types/team";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
 	localeMiddleware,
@@ -160,7 +160,6 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 export const deleteTeamFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.handler(async ({ context }) => {
-		const userId = context.user?.id;
 		const teamId = context.teamId;
 		const s3 = await createS3();
 
@@ -177,27 +176,7 @@ export const deleteTeamFn = createServerFn({ method: "POST" })
 		}
 		await db.delete(teams).where(eq(teams.id, teamId));
 
-		// Find next best team or redirect to create team
-		const team = await db.query.usersToTeams.findFirst({
-			where: eq(usersToTeams.userId, userId),
-		});
-
-		if (!team) {
-			deleteCookie("teamId");
-			return {
-				teamId: null,
-			};
-		} else {
-			setCookie("teamId", team.teamId, {
-				path: "/",
-				secure: true,
-				httpOnly: true,
-				sameSite: "lax",
-			});
-			return {
-				teamId: team.teamId,
-			};
-		}
+		deleteCookie("teamId");
 	});
 
 export const getTeamStatsFn = createServerFn({ method: "GET" })
@@ -217,6 +196,6 @@ export const getTeamStatsFn = createServerFn({ method: "GET" })
 export const getTenantFn = createServerFn({ method: "GET" }).handler(
 	async () => {
 		return await getTenant();
-		return "019663b4-85ea-7000-a056-7a9863194546";
+		return "019663b4-9c39-7000-9aa7-9df9fb23654c";
 	},
 );

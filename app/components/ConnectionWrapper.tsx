@@ -6,12 +6,14 @@ export const ConnectionWrapper = ({
 	children,
 	name,
 	connection,
+	allowRequest = true,
 	onRequest,
 	onResponse,
 }: {
 	children: React.ReactNode;
 	name: string;
 	connection?: ConnectionType;
+	allowRequest?: boolean;
 	onRequest: () => void;
 	onResponse: (status: "accepted" | "rejected") => void;
 }) => {
@@ -22,7 +24,7 @@ export const ConnectionWrapper = ({
 		return children;
 	}
 
-	if (!connection || connection.connectType === "request") {
+	if ((!connection || connection.connectType === "request") && allowRequest) {
 		if (connection) {
 			if (connection.connectStatus === "rejected") {
 				return <p>{t.rejected}</p>;
@@ -41,11 +43,16 @@ export const ConnectionWrapper = ({
 		}
 	}
 
-	if (connection.connectType === "invite") {
+	if (connection?.connectType === "invite") {
 		return (
 			<div className="flex flex-col gap-4">
 				<p>
-					{t.invited} "{name}".
+					{connection.connectStatus === "rejected"
+						? connection.connectType === "invite"
+							? t.rejected
+							: t.adminRejected
+						: t.invited}{" "}
+					"{name}"
 				</p>
 				<div className="flex gap-2">
 					{["pending", "rejected"].includes(
@@ -79,4 +86,6 @@ export const ConnectionWrapper = ({
 			</div>
 		);
 	}
+
+	return children;
 };

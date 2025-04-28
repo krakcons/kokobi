@@ -215,16 +215,18 @@ const fr: Messages = {
 		title: "Quelque chose s'est mal passé !",
 		tryAgain: "Essayer à nouveau",
 		goBack: "Retourner",
-		NotAMember: {
-			title: "Pas un administrateur",
-			message:
-				"Vous n'avez pas été invité à administrer cette équipe. Veuillez contacter un administrateur de l'équipe et demander une invitation pour accéder au tableau de bord d'administration de l'équipe.",
-		},
 		NotFound: {
 			title: "404",
 			message: "La page que vous recherchez n'existe pas.",
 			home: "Accueil",
 		},
+	},
+	NotAMember: {
+		title: "Pas un administrateur",
+		message:
+			"Vous n'avez pas été invité à administrer cette équipe. Veuillez contacter un administrateur de l'équipe et demander une invitation pour accéder au tableau de bord d'administration de l'équipe.",
+		inviteMessage:
+			"Vous avez été invité à administrer cette équipe. Veuillez accepter ou refuser l'invitation ci-dessous.",
 	},
 };
 

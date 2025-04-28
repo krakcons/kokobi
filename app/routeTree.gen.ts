@@ -12,6 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as LocaleIndexImport } from './routes/$locale/index'
+import { Route as LocaleNotAdminImport } from './routes/$locale/not-admin'
 import { Route as LocaleLearnerImport } from './routes/$locale/learner'
 import { Route as LocaleCreateTeamImport } from './routes/$locale/create-team'
 import { Route as LocaleAiImport } from './routes/$locale/ai'
@@ -45,6 +46,12 @@ import { Route as LocaleAdminCollectionsCollectionIdCoursesImport } from './rout
 const LocaleIndexRoute = LocaleIndexImport.update({
   id: '/$locale/',
   path: '/$locale/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LocaleNotAdminRoute = LocaleNotAdminImport.update({
+  id: '/$locale/not-admin',
+  path: '/$locale/not-admin',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -253,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/learner'
       fullPath: '/$locale/learner'
       preLoaderRoute: typeof LocaleLearnerImport
+      parentRoute: typeof rootRoute
+    }
+    '/$locale/not-admin': {
+      id: '/$locale/not-admin'
+      path: '/$locale/not-admin'
+      fullPath: '/$locale/not-admin'
+      preLoaderRoute: typeof LocaleNotAdminImport
       parentRoute: typeof rootRoute
     }
     '/$locale/': {
@@ -506,6 +520,7 @@ export interface FileRoutesByFullPath {
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
+  '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -535,6 +550,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
+  '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -567,6 +583,7 @@ export interface FileRoutesById {
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
+  '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
@@ -600,6 +617,7 @@ export interface FileRouteTypes {
     | '/$locale/ai'
     | '/$locale/create-team'
     | '/$locale/learner'
+    | '/$locale/not-admin'
     | '/$locale'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -628,6 +646,7 @@ export interface FileRouteTypes {
   to:
     | '/$locale/ai'
     | '/$locale/create-team'
+    | '/$locale/not-admin'
     | '/$locale'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -658,6 +677,7 @@ export interface FileRouteTypes {
     | '/$locale/ai'
     | '/$locale/create-team'
     | '/$locale/learner'
+    | '/$locale/not-admin'
     | '/$locale/'
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
@@ -690,6 +710,7 @@ export interface RootRouteChildren {
   LocaleAiRoute: typeof LocaleAiRoute
   LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
   LocaleLearnerRoute: typeof LocaleLearnerRouteWithChildren
+  LocaleNotAdminRoute: typeof LocaleNotAdminRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
   LocaleAuthLoginRoute: typeof LocaleAuthLoginRoute
   LocaleAuthVerifyEmailRoute: typeof LocaleAuthVerifyEmailRoute
@@ -700,6 +721,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleAiRoute: LocaleAiRoute,
   LocaleCreateTeamRoute: LocaleCreateTeamRoute,
   LocaleLearnerRoute: LocaleLearnerRouteWithChildren,
+  LocaleNotAdminRoute: LocaleNotAdminRoute,
   LocaleIndexRoute: LocaleIndexRoute,
   LocaleAuthLoginRoute: LocaleAuthLoginRoute,
   LocaleAuthVerifyEmailRoute: LocaleAuthVerifyEmailRoute,
@@ -719,6 +741,7 @@ export const routeTree = rootRoute
         "/$locale/ai",
         "/$locale/create-team",
         "/$locale/learner",
+        "/$locale/not-admin",
         "/$locale/",
         "/$locale/auth/login",
         "/$locale/auth/verify-email"
@@ -760,6 +783,9 @@ export const routeTree = rootRoute
         "/$locale/learner/courses/$courseId/play",
         "/$locale/learner/courses/$courseId/"
       ]
+    },
+    "/$locale/not-admin": {
+      "filePath": "$locale/not-admin.tsx"
     },
     "/$locale/": {
       "filePath": "$locale/index.tsx"
