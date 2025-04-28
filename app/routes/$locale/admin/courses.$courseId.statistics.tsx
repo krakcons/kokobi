@@ -36,7 +36,7 @@ export const Route = createFileRoute(
 			getCourseStatisticsFn({
 				data: {
 					courseId: params.courseId,
-					teamId: deps.teamId === "all" ? undefined : deps.teamId,
+					teamId: deps.teamId,
 				},
 			}),
 			getTeamConnectionsFn({
@@ -97,6 +97,17 @@ function RouteComponent() {
 		defaultValues: {
 			teamId,
 		},
+		validators: {
+			onChange: ({ value }) => {
+				navigate({
+					search: (prev) => ({
+						...prev,
+						teamId:
+							value.teamId === "all" ? undefined : value.teamId,
+					}),
+				});
+			},
+		},
 	});
 
 	return (
@@ -105,39 +116,32 @@ function RouteComponent() {
 				title="Statistics"
 				description="View statistics for this course."
 			>
-				<form.AppForm>
-					<form
-						onSubmit={(e) => e.preventDefault()}
-						className="flex flex-col gap-8 items-start"
-					>
-						<form.AppField
-							name="teamId"
-							validators={{
-								onChange: ({ value }) => {
-									navigate({
-										search: (prev) => ({
-											...prev,
-											teamId: value,
-										}),
-									});
-								},
-							}}
+				{connections && connections.length > 0 && (
+					<form.AppForm>
+						<form
+							onSubmit={(e) => e.preventDefault()}
+							className="flex flex-col gap-8 items-start"
 						>
-							{(field) => (
-								<field.SelectField
-									label="Filter by Team"
-									options={[
-										{ label: "All Teams", value: "all" },
-										...connections?.map((c) => ({
-											label: c.team.name,
-											value: c.team.id,
-										})),
-									]}
-								/>
-							)}
-						</form.AppField>
-					</form>
-				</form.AppForm>
+							<form.AppField name="teamId">
+								{(field) => (
+									<field.SelectField
+										label="Filter by Team"
+										options={[
+											{
+												label: "All Teams",
+												value: "all",
+											},
+											...connections?.map((c) => ({
+												label: c.team.name,
+												value: c.team.id,
+											})),
+										]}
+									/>
+								)}
+							</form.AppField>
+						</form>
+					</form.AppForm>
+				)}
 			</PageHeader>
 			<div className="flex gap-4 flex-wrap items-start">
 				{cards.map((card) => (

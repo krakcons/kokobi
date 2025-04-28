@@ -186,12 +186,14 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 			teamId: z.string().optional(),
 		}),
 	)
-	.handler(async ({ context, data: { courseId, teamId } }) => {
+	.handler(async ({ context, data: { courseId, teamId: customTeamId } }) => {
 		const access = await hasTeamAccess({
 			type: "course",
 			id: courseId,
 			teamId: context.teamId,
 		});
+
+		const teamId = access === "shared" ? context.teamId : customTeamId;
 
 		// First, get all user IDs connected to the course (directly or via collections)
 		const directUserIds = await db
@@ -201,6 +203,7 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 				and(
 					eq(usersToCourses.courseId, courseId),
 					eq(usersToCourses.connectStatus, "accepted"),
+					teamId ? eq(usersToCourses.teamId, teamId) : undefined,
 				),
 			);
 		const collectionUserIds = await db
@@ -217,6 +220,7 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 				and(
 					eq(collectionsToCourses.courseId, courseId),
 					eq(usersToCollections.connectStatus, "accepted"),
+					teamId ? eq(usersToCollections.teamId, teamId) : undefined,
 				),
 			);
 
@@ -231,11 +235,7 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 			where: and(
 				eq(usersToModules.courseId, courseId),
 				inArray(usersToModules.userId, uniqueUserIds),
-				access === "shared"
-					? eq(usersToModules.teamId, context.teamId)
-					: teamId
-						? eq(usersToModules.teamId, teamId)
-						: undefined,
+				teamId ? eq(usersToModules.teamId, teamId) : undefined,
 			),
 			with: {
 				module: true,
