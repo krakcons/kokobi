@@ -18,6 +18,7 @@ import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { teamImageUrl } from "@/lib/file";
 import { z } from "zod";
 import { PendingComponent } from "@/components/PendingComponent";
+import { createTranslator } from "@/lib/locale/actions";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -59,6 +60,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			const tenantId = await getTenantFn();
 			let favicon = "/favicon.ico";
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";
+
+			const i18n = await getI18nFn({
+				headers: {
+					locale,
+				},
+			});
+
 			if (tenantId) {
 				const tenant = await getTeamByIdFn({
 					headers: {
@@ -71,14 +79,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				if (tenant.favicon)
 					favicon = teamImageUrl(tenant, "favicon") || favicon;
 				title = `${tenant.name}`;
+			} else {
+				title = i18n.messages.SEO.title;
 			}
 
 			return {
-				i18n: await getI18nFn({
-					headers: {
-						locale,
-					},
-				}),
+				i18n,
 				meta: {
 					favicon,
 					title,

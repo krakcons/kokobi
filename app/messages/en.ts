@@ -1,4 +1,7 @@
 const en = {
+	SEO: {
+		title: "Kokobi | Learn, Teach, Connect and Grow",
+	},
 	AdminSidebar: {
 		top: {
 			editing: "Editing",

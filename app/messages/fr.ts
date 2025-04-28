@@ -1,6 +1,9 @@
 import { Messages } from "@/lib/locale";
 
 const fr: Messages = {
+	SEO: {
+		title: "Kokobi | Apprendre, Enseigner, Se Connecter et Grandir",
+	},
 	AdminSidebar: {
 		top: {
 			editing: "Édition",
