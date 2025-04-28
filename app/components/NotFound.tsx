@@ -1,12 +1,21 @@
+import { useTranslations } from "@/lib/locale";
 import { FloatingPage } from "./Page";
 import { Button, buttonVariants } from "./ui/button";
 import { ArrowLeft, Home } from "lucide-react";
+import { getI18nFn } from "@/server/handlers/users.i18n";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export function NotFound() {
+	const { data: i18n } = useSuspenseQuery({
+		queryKey: ["i18n"],
+		queryFn: getI18nFn,
+	});
+	const t = useTranslations("Errors", i18n);
+
 	return (
 		<FloatingPage localeToggle={false}>
-			<h1 className="text-7xl font-black">404</h1>
-			<p>The page you are looking for does not exist.</p>
+			<h1 className="text-7xl font-black">{t.NotFound.title}</h1>
+			<p>{t.NotFound.message}</p>
 			<div className="flex flex-row gap-2">
 				<Button
 					className={buttonVariants()}
@@ -16,7 +25,7 @@ export function NotFound() {
 					}}
 				>
 					<ArrowLeft />
-					Go Back
+					{t.goBack}
 				</Button>
 				<a
 					href="/"
@@ -25,7 +34,7 @@ export function NotFound() {
 					})}
 				>
 					<Home />
-					Home
+					{t.NotFound.home}
 				</a>
 			</div>
 		</FloatingPage>

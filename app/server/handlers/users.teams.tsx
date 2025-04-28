@@ -13,6 +13,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { Team, TeamTranslation } from "@/types/team";
 import { env } from "@/server/env";
 import { UserToTeamType } from "@/types/connections";
+import { throwServerError } from "../lib/error";
+import { createTranslator } from "@/lib/locale/actions";
 
 export const getUserTeamFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware, localeMiddleware])
@@ -153,7 +155,11 @@ export const updateUserTeamFn = createServerFn({ method: "POST" })
 			});
 
 			if (!team) {
-				throw new Error("You are not a member of this team");
+				const t = await createTranslator(context);
+				throwServerError({
+					...t.Errors.NotAMember,
+					tryAgain: false,
+				});
 			}
 
 			setCookie("teamId", data.teamId);

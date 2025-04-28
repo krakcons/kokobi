@@ -189,7 +189,7 @@ export const Certificate = ({
 								/>
 							)}
 							<Text style={{ fontSize: 10, fontStyle: "italic" }}>
-								{t.created + " " + connectTeam.name}
+								{t.created + " " + contentTeam.name}
 							</Text>
 						</View>
 					)}

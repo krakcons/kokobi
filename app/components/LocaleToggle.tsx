@@ -9,7 +9,6 @@ export const LocaleToggle = () => {
 	return (
 		<Button
 			onClick={() => {
-				console.log("clicked");
 				navigate({
 					replace: true,
 					to: ".",
@@ -18,6 +17,7 @@ export const LocaleToggle = () => {
 						locale: locale === "en" ? "fr" : "en",
 					}),
 					search: (s: any) => s,
+					reloadDocument: true,
 				});
 			}}
 			size="icon"

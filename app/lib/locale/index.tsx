@@ -3,6 +3,8 @@ import { z } from "zod";
 import type enMessages from "@/messages/en";
 import { createContext, useContext } from "react";
 import { IntlConfig } from "./actions";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { getI18nFn } from "@/server/handlers/users.i18n";
 
 export type Messages = typeof enMessages;
 
@@ -37,8 +39,9 @@ export const useLocale = () => {
 
 export const useTranslations = <TNamespace extends keyof Messages>(
 	namespace?: TNamespace,
+	defaultI18n?: IntlConfig,
 ): TNamespace extends undefined ? Messages : Messages[TNamespace] => {
-	const i18n = useContext(IntlContext);
+	const i18n = useContext(IntlContext) ?? defaultI18n;
 
 	if (!i18n) {
 		throw new Error("useTranslation must be used within an IntlProvider");

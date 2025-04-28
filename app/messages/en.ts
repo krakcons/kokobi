@@ -206,6 +206,21 @@ const en = {
 		requested: "Requested access, please wait for an admin to approve.",
 		rejected: "An admin has rejected your request",
 	},
+	Errors: {
+		title: "Something went wrong!",
+		tryAgain: "Try Again",
+		goBack: "Go Back",
+		NotAMember: {
+			title: "Not an admin",
+			message:
+				"You haven't been invited to administer this team. Please contact a team administrator and request an invitation to get access to the team's administration dashboard.",
+		},
+		NotFound: {
+			title: "404",
+			message: "The page you are looking for does not exist.",
+			home: "Home",
+		},
+	},
 };
 
 export default en;

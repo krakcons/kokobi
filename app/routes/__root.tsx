@@ -6,6 +6,7 @@ import {
 	HeadContent,
 	redirect,
 	Scripts,
+	ErrorComponent,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 import { FloatingPage } from "@/components/Page";
@@ -50,6 +51,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 			return { locale };
 		},
+		errorComponent: ErrorComponent,
 		notFoundComponent: NotFound,
 		pendingComponent: PendingComponent,
 		component: RootComponent,
