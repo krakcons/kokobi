@@ -17,7 +17,6 @@ export const LocaleToggle = () => {
 						locale: locale === "en" ? "fr" : "en",
 					}),
 					search: (s: any) => s,
-					reloadDocument: true,
 				});
 			}}
 			size="icon"
