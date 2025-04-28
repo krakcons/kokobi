@@ -22,15 +22,16 @@ import { useTranslations } from "@/lib/locale";
 import { getTeamConnectionsFn } from "@/server/handlers/connections";
 import { useAppForm } from "@/components/ui/form";
 import { z } from "zod";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/statistics",
 )({
 	validateSearch: z.object({
-		teamId: z.string().optional(),
+		statsTeamId: z.string().optional(),
 	}),
 	component: RouteComponent,
-	loaderDeps: ({ search }) => ({ teamId: search.teamId }),
+	loaderDeps: ({ search }) => ({ teamId: search.statsTeamId }),
 	loader: ({ params, deps }) =>
 		Promise.all([
 			getCourseStatisticsFn({
@@ -45,6 +46,11 @@ export const Route = createFileRoute(
 					type: "from-team",
 				},
 			}),
+			getUserTeamFn({
+				data: {
+					type: "admin",
+				},
+			}),
 		]),
 });
 
@@ -57,8 +63,8 @@ const statusChartConfig: ChartConfig = {
 };
 
 function RouteComponent() {
-	const [statistics, connections] = Route.useLoaderData();
-	const { teamId = "all" } = Route.useSearch();
+	const [statistics, connections, team] = Route.useLoaderData();
+	const { statsTeamId = "all" } = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const t = useTranslations("Learner");
 
@@ -95,15 +101,17 @@ function RouteComponent() {
 
 	const form = useAppForm({
 		defaultValues: {
-			teamId,
+			statsTeamId,
 		},
 		validators: {
 			onChange: ({ value }) => {
 				navigate({
 					search: (prev) => ({
 						...prev,
-						teamId:
-							value.teamId === "all" ? undefined : value.teamId,
+						statsTeamId:
+							value.statsTeamId === "all"
+								? undefined
+								: value.statsTeamId,
 					}),
 				});
 			},
@@ -122,7 +130,7 @@ function RouteComponent() {
 							onSubmit={(e) => e.preventDefault()}
 							className="flex flex-col gap-8 items-start"
 						>
-							<form.AppField name="teamId">
+							<form.AppField name="statsTeamId">
 								{(field) => (
 									<field.SelectField
 										label="Filter by Team"
@@ -130,6 +138,10 @@ function RouteComponent() {
 											{
 												label: "All Teams",
 												value: "all",
+											},
+											{
+												label: team.name + " (Current)",
+												value: team?.id,
 											},
 											...connections?.map((c) => ({
 												label: c.team.name,
