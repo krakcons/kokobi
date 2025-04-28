@@ -46,9 +46,6 @@ export const TeamForm = ({
 	const form = useAppForm({
 		validators: {
 			onSubmit: TeamFormSchema,
-			onChange: ({ value }) => {
-				console.log(value);
-			},
 		},
 		defaultValues: {
 			name: "",

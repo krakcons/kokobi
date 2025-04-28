@@ -16,7 +16,7 @@ import {
 } from "./alert-dialog";
 import { Label } from "./label";
 import { Input } from "./input";
-import { Button, buttonVariants } from "./button";
+import { Button } from "./button";
 import { Textarea } from "./textarea";
 import {
 	Select,
@@ -302,19 +302,17 @@ export const BlockNavigation = () => {
 	const form = useFormContext();
 	const t = useTranslations("Form");
 
-	const isDirty = useStore(form.store, (formState) => formState.isDirty);
-	const isSubmitting = useStore(
+	const shouldBlock = useStore(
 		form.store,
-		(formState) => formState.isSubmitting,
-	);
-	const isSubmitted = useStore(
-		form.store,
-		(formState) => formState.isSubmitted,
+		(formState) =>
+			formState.isDirty &&
+			!(formState.isSubmitting || formState.isSubmitted),
 	);
 
 	return (
 		<Block
-			shouldBlockFn={() => isDirty && !(isSubmitting || isSubmitted)}
+			enableBeforeUnload={() => shouldBlock}
+			shouldBlockFn={() => shouldBlock}
 			withResolver
 		>
 			{({ status, proceed, reset }) => (
