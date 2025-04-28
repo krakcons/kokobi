@@ -12,6 +12,8 @@ import { sendEmail, verifyEmail } from "@/server/lib/email";
 import { getTenant } from "@/server/lib/tenant";
 import { generateRandomString } from "@/server/lib/random";
 import { LoginFormSchema, OTPFormSchema } from "@/types/auth";
+import OTP from "@/emails/OTP";
+import { createTranslator } from "@/lib/locale/actions";
 
 export const requestOTPFn = createServerFn({ method: "POST" })
 	.middleware([localeMiddleware])
@@ -70,17 +72,14 @@ export const requestOTPFn = createServerFn({ method: "POST" })
 
 		const emailVerified = team && (await verifyEmail(team.domains));
 
+		const t = await createTranslator(context);
+
 		// Send verification email
 		await sendEmail({
 			to: [data.email],
-			subject: "Email Verification Code",
+			subject: t.Email.OTP.subject,
 			team: emailVerified ? team : undefined,
-			content: (
-				<div>
-					Here is your verification code:{" "}
-					<b>{emailVerification.code}</b>
-				</div>
-			),
+			content: <OTP code={emailVerification.code} t={t.Email.OTP} />,
 		});
 
 		// Set email verification cookie

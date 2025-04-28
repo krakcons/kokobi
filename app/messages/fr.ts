@@ -93,6 +93,10 @@ const fr: Messages = {
 			invite: "vous invite à vous joindre à :",
 			action: "Voir l'invitation",
 		},
+		OTP: {
+			subject: "Code de vérification de l'e-mail",
+			content: "Voici votre code de vérification :",
+		},
 	},
 	Table: {
 		name: "Nom",

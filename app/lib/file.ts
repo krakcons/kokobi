@@ -16,8 +16,10 @@ export const teamImageUrl = (
 	team: Team & TeamTranslation,
 	type: "logo" | "favicon",
 ) => {
+	// If the team has a logo or favicon, return the URL
 	if (team[type]) {
 		return `${env.VITE_SITE_URL}/cdn/${team[type]}?updatedAt=${team.updatedAt.toISOString()}`;
 	}
+	// Otherwise, return undefined
 	return undefined;
 };

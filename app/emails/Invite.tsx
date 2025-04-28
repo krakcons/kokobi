@@ -8,7 +8,6 @@ import {
 	Button,
 	Container,
 	Head,
-	Heading,
 	Hr,
 	Html,
 	Img,

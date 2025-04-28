@@ -91,6 +91,10 @@ const en = {
 			invite: "invites you to join the following:",
 			action: "View Invitation",
 		},
+		OTP: {
+			subject: "Email Verification Code",
+			content: "Here is your verification code:",
+		},
 	},
 	Table: {
 		empty: "No results.",
