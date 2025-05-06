@@ -35,7 +35,7 @@ export const formatDate = ({
 	locale,
 	type = "readable",
 }: {
-	date: Date;
+	date?: Date;
 	locale: Locale;
 	type?: keyof typeof dateTypes;
 }): string => {

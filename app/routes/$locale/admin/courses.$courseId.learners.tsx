@@ -21,7 +21,6 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { getConnectionLinkFn } from "@/server/handlers/connections";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
@@ -32,6 +31,10 @@ import {
 	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
+import { Module } from "@/types/module";
+import { Learner } from "@/types/learner";
+import { formatDate } from "@/lib/date";
+import { useLocale, useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",
@@ -56,6 +59,13 @@ export const Route = createFileRoute(
 	},
 });
 
+type LearnerTableType = {
+	user: User;
+	connection: UserToCourseType;
+	attempt?: Learner;
+	module: Module | null;
+};
+
 function RouteComponent() {
 	const [open, setOpen] = useState(false);
 	const navigate = Route.useNavigate();
@@ -63,6 +73,8 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const [learners, inviteLink] = Route.useLoaderData();
 	const router = useRouter();
+	const locale = useLocale();
+	const tLearner = useTranslations("Learner");
 
 	const connectionResponse = useMutation({
 		mutationFn: teamConnectionResponseFn,
@@ -83,7 +95,9 @@ function RouteComponent() {
 		},
 	});
 
-	const columns: ColumnDef<UserToCourseType & { user: User }>[] = [
+	console.log(learners);
+
+	const columns: ColumnDef<LearnerTableType>[] = [
 		{
 			accessorKey: "user.email",
 			header: ({ column }) => (
@@ -91,12 +105,12 @@ function RouteComponent() {
 			),
 		},
 		{
-			accessorKey: "connectStatus",
+			accessorKey: "connection.connectStatus",
 			header: ({ column }) => (
 				<DataTableColumnHeader title="Status" column={column} />
 			),
 			cell: ({ row: { original } }) => {
-				return <ConnectionStatusBadge {...original} />;
+				return <ConnectionStatusBadge {...original.connection} />;
 			},
 		},
 		{
@@ -111,41 +125,87 @@ function RouteComponent() {
 				<DataTableColumnHeader title="Last Name" column={column} />
 			),
 		},
-		createDataTableActionsColumn<UserToCourseType & { user: User }>([
+		{
+			accessorKey: "attempt.status",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Status" column={column} />
+			),
+			accessorFn: ({ attempt }) =>
+				attempt && tLearner.statuses[attempt.status],
+		},
+		{
+			accessorKey: "attempt.score",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Score" column={column} />
+			),
+			accessorFn: ({ attempt }) => {
+				attempt &&
+					["failed", "passed"].includes(attempt.status) &&
+					attempt.score &&
+					attempt.score.raw + " / " + attempt.score.max;
+			},
+		},
+		{
+			accessorKey: "attempt.startedAt",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Started At" column={column} />
+			),
+			accessorFn: ({ attempt }) =>
+				formatDate({
+					date: attempt?.createdAt,
+					locale,
+					type: "detailed",
+				}),
+		},
+		{
+			accessorKey: "attempt.completedAt",
+			header: ({ column }) => (
+				<DataTableColumnHeader title="Completed At" column={column} />
+			),
+			accessorFn: ({ attempt }) =>
+				formatDate({
+					date: attempt?.completedAt,
+					locale,
+					type: "detailed",
+				}),
+		},
+		createDataTableActionsColumn<LearnerTableType>([
 			{
 				name: "Accept",
-				onClick: ({ userId }) =>
+				onClick: ({ user }) =>
 					connectionResponse.mutate({
 						data: {
 							id: params.courseId,
 							type: "course",
-							toId: userId,
+							toId: user.id,
 							connectStatus: "accepted",
 						},
 					}),
-				visible: ({ connectType }) => connectType === "request",
+				visible: ({ connection }) =>
+					connection.connectType === "request",
 			},
 			{
 				name: "Reject",
-				onClick: ({ userId }) =>
+				onClick: ({ user }) =>
 					connectionResponse.mutate({
 						data: {
 							id: params.courseId,
 							type: "course",
-							toId: userId,
+							toId: user.id,
 							connectStatus: "rejected",
 						},
 					}),
-				visible: ({ connectType }) => connectType === "request",
+				visible: ({ connection }) =>
+					connection.connectType === "request",
 			},
 			{
 				name: "Delete",
-				onClick: ({ userId }) =>
+				onClick: ({ user }) =>
 					removeConnection.mutate({
 						data: {
 							id: params.courseId,
 							type: "course",
-							toId: userId,
+							toId: user.id,
 						},
 					}),
 			},

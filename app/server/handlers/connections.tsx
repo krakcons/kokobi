@@ -8,10 +8,13 @@ import { db } from "@/server/db";
 import {
 	collections,
 	courses,
+	modules,
 	teams,
 	teamsToCourses,
+	users,
 	usersToCollections,
 	usersToCourses,
+	usersToModules,
 	usersToTeams,
 } from "@/server/db/schema";
 import { createServerFn } from "@tanstack/react-start";
@@ -31,6 +34,7 @@ import Invite from "@/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
 import { hasTeamAccess } from "../lib/access";
 import { locales } from "@/lib/locale";
+import { ExtendLearner } from "@/types/learner";
 
 export const getConnectionLinkFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware()])
@@ -665,17 +669,36 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 	)
 	.handler(async ({ context, data: { type, id } }) => {
 		if (type === "course") {
-			const connections = await db.query.usersToCourses.findMany({
-				where: and(
-					eq(usersToCourses.teamId, context.teamId),
-					id ? eq(usersToCourses.courseId, id) : undefined,
-				),
-				with: {
-					user: true,
-				},
-			});
+			const userList = await db
+				.select({
+					user: users,
+					attempt: usersToModules,
+					module: modules,
+					connection: usersToCourses,
+				})
+				.from(usersToCourses)
+				.where(
+					and(
+						eq(usersToCourses.teamId, context.teamId),
+						id ? eq(usersToCourses.courseId, id) : undefined,
+					),
+				)
+				.innerJoin(users, eq(users.id, usersToCourses.userId))
+				.leftJoin(
+					usersToModules,
+					and(
+						eq(usersToModules.teamId, context.teamId),
+						id ? eq(usersToModules.courseId, id) : undefined,
+					),
+				)
+				.leftJoin(modules, eq(modules.id, usersToModules.moduleId));
 
-			return connections;
+			return userList.map((user) => ({
+				...user,
+				attempt: user.module
+					? ExtendLearner(user.module.type).parse(user.attempt)
+					: undefined,
+			}));
 		}
 
 		if (type === "collection") {
