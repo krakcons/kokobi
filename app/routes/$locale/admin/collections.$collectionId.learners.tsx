@@ -137,6 +137,17 @@ function RouteComponent() {
 				visible: ({ connectType }) => connectType === "request",
 			},
 			{
+				name: "Resend Invite",
+				onClick: ({ user }) =>
+					createConnection.mutate({
+						data: {
+							id: params.collectionId,
+							type: "collection",
+							emails: [user.email],
+						},
+					}),
+			},
+			{
 				name: "Delete",
 				onClick: ({ collectionId, user }) =>
 					removeConnection.mutate({

@@ -126,7 +126,22 @@ function RouteComponent() {
 				);
 			},
 		},
-		createDataTableActionsColumn<UserToTeamType>([
+		createDataTableActionsColumn<UserToTeamType & { user: User }>([
+			// TODO: Needs join team page
+			//{
+			//	name: "Resend Invite",
+			//	onClick: ({ user, role }) =>
+			//		createTeamUsers.mutate({
+			//			data: {
+			//				users: [
+			//					{
+			//						email: user.email,
+			//						role,
+			//					},
+			//				],
+			//			},
+			//		}),
+			//},
 			{
 				name: "Delete",
 				onClick: ({ userId }) => {
