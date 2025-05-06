@@ -95,8 +95,6 @@ function RouteComponent() {
 		},
 	});
 
-	console.log(learners);
-
 	const columns: ColumnDef<LearnerTableType>[] = [
 		{
 			accessorKey: "user.email",
@@ -197,6 +195,17 @@ function RouteComponent() {
 					}),
 				visible: ({ connection }) =>
 					connection.connectType === "request",
+			},
+			{
+				name: "Resend Invite",
+				onClick: ({ user }) =>
+					inviteConnection.mutate({
+						data: {
+							id: params.courseId,
+							type: "course",
+							emails: [user.email],
+						},
+					}),
 			},
 			{
 				name: "Delete",
