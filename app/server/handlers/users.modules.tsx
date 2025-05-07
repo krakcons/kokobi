@@ -135,6 +135,8 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 		// UPDATE LEARNER
 		let completedAt = undefined;
 		if (data.data) {
+			// Send communications in the locale of the module
+			const communicationLocale = attempt.module.locale;
 			const newLearner = ExtendLearner(attempt.module.type).parse({
 				...attempt,
 				data: data.data,
@@ -161,8 +163,14 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 						domains: true,
 					},
 				});
-				const team = handleLocalization(context, teamBase!);
-				const course = handleLocalization(context, attempt.course);
+				const team = handleLocalization(
+					{ locale: communicationLocale },
+					teamBase!,
+				);
+				const course = handleLocalization(
+					{ locale: communicationLocale },
+					attempt.course,
+				);
 
 				const href = await getConnectionLink({
 					teamId: context.learnerTeamId,
@@ -172,7 +180,7 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 				});
 
 				const t = await createTranslator({
-					locale: attempt.module?.locale ?? "en",
+					locale: communicationLocale,
 				});
 
 				const emailVerified = await verifyEmail(team.domains);
@@ -291,8 +299,25 @@ export const resendCompletionEmailFn = createServerFn({ method: "POST" })
 			throw new Error("Attempt not found.");
 		}
 
-		const team = handleLocalization(context, attempt.team);
-		const course = handleLocalization(context, attempt.course);
+		if (!attempt.completedAt) {
+			throw new Error("Attempt not complete.");
+		}
+
+		// Send communications in the locale of the module
+		const communicationLocale = attempt.module.locale;
+
+		const team = handleLocalization(
+			{
+				locale: communicationLocale,
+			},
+			attempt.team,
+		);
+		const course = handleLocalization(
+			{
+				locale: communicationLocale,
+			},
+			attempt.course,
+		);
 
 		const href = await getConnectionLink({
 			teamId: context.teamId,
@@ -302,7 +327,7 @@ export const resendCompletionEmailFn = createServerFn({ method: "POST" })
 		});
 
 		const t = await createTranslator({
-			locale: attempt.module?.locale ?? "en",
+			locale: communicationLocale,
 		});
 
 		const emailVerified = await verifyEmail(team.domains);
