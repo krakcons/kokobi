@@ -1,5 +1,5 @@
 import { IntlProvider, Locale, locales } from "@/lib/locale";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	Outlet,
 	createRootRouteWithContext,
@@ -9,8 +9,6 @@ import {
 	ErrorComponent,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { FloatingPage } from "@/components/Page";
-import { LoaderCircle } from "lucide-react";
 import { getI18nFn, updateI18nFn } from "@/server/handlers/users.i18n";
 import appCss from "@/index.css?url";
 import { NotFound } from "@/components/NotFound";
@@ -18,7 +16,7 @@ import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { teamImageUrl } from "@/lib/file";
 import { z } from "zod";
 import { PendingComponent } from "@/components/PendingComponent";
-import { createTranslator } from "@/lib/locale/actions";
+import { useTheme } from "@/lib/theme";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -132,9 +130,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootComponent() {
 	const { i18n } = Route.useLoaderData();
+	const { theme, systemTheme } = useTheme();
 
 	return (
-		<html>
+		<html className={theme === "system" ? systemTheme : theme}>
 			<head>
 				<HeadContent />
 			</head>

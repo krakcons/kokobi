@@ -1,75 +1,114 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+	queryOptions,
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createServerFn } from "@tanstack/react-start";
+import { getCookie, setCookie } from "@tanstack/react-start/server";
+import { createContext, useContext, useEffect, useMemo } from "react";
+import { z } from "zod";
 
+// Edit to fit your needs (warning: system theme causes flash on initial load when not default, due to non blocking)
+const DEFAULT_THEME: Theme = "system";
+const DEFAULT_SYSTEM_THEME: SystemTheme = "light";
+
+// Types and constants
 export const themes = ["light", "dark", "system"] as const;
-export type Theme = (typeof themes)[number];
+export const themeSchema = z.enum(themes);
 
-type ThemeProviderProps = {
-	children: React.ReactNode;
-	defaultTheme?: Theme;
-	storageKey?: string;
-};
+export type Theme = "light" | "dark" | "system";
+export type SystemTheme = "dark" | "light";
 
 type ThemeProviderState = {
+	systemTheme: SystemTheme;
 	theme: Theme;
 	setTheme: (theme: Theme) => void;
 };
 
-const initialState: ThemeProviderState = {
-	theme: "system",
+// Persistence
+const getThemeFn = createServerFn({ method: "GET" }).handler(() => {
+	return {
+		theme: (getCookie("theme") as Theme | undefined) ?? DEFAULT_THEME,
+		systemTheme:
+			(getCookie("systemTheme") as SystemTheme | undefined) ??
+			DEFAULT_SYSTEM_THEME,
+	};
+});
+const setThemeFn = createServerFn({ method: "POST" })
+	.validator(
+		z.object({
+			theme: z.enum(["light", "dark", "system"]),
+			systemTheme: z.enum(["dark", "light"]),
+		}),
+	)
+	.handler(({ data: { theme, systemTheme } }) => {
+		setCookie("theme", theme);
+		setCookie("systemTheme", systemTheme);
+	});
+export const getThemeQueryOptions = queryOptions({
+	queryKey: ["theme"],
+	queryFn: getThemeFn,
+});
+
+const ThemeProviderContext = createContext<ThemeProviderState>({
+	systemTheme: DEFAULT_SYSTEM_THEME,
+	theme: DEFAULT_THEME,
 	setTheme: () => null,
-};
+});
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
-
-export function ThemeProvider({
-	children,
-	defaultTheme = "system",
-	storageKey = "theme",
-	...props
-}: ThemeProviderProps) {
-	const [theme, setTheme] = useState<Theme>(
-		() =>
-			(typeof localStorage !== "undefined" &&
-				(localStorage.getItem(storageKey) as Theme)) ||
-			defaultTheme,
-	);
-	const [systemTheme, setSystemTheme] = useState<"dark" | "light">("light");
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+	const queryClient = useQueryClient();
+	const {
+		data: { theme, systemTheme },
+	} = useSuspenseQuery(getThemeQueryOptions);
+	const updateTheme = useMutation({
+		mutationFn: setThemeFn,
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: getThemeQueryOptions.queryKey,
+			});
+		},
+	});
 
 	useEffect(() => {
 		const root = window.document.documentElement;
-
 		root.classList.remove("light", "dark");
+		const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+			.matches
+			? "dark"
+			: "light";
 
-		if (theme === "system") {
-			const systemTheme = window.matchMedia(
-				"(prefers-color-scheme: dark)",
-			).matches
-				? "dark"
-				: "light";
-			setSystemTheme(systemTheme);
+		root.classList.add(theme === "system" ? systemTheme : theme);
+		updateTheme.mutate({
+			data: {
+				theme,
+				systemTheme,
+			},
+		});
+	}, [theme, systemTheme]);
 
-			root.classList.add(systemTheme);
-			return;
-		}
-
-		root.classList.add(theme);
-	}, [theme]);
-
-	const value = {
-		systemTheme,
-		theme,
-		setTheme: (theme: Theme) => {
-			localStorage.setItem(storageKey, theme);
-			setTheme(theme);
-		},
-	};
+	const value = useMemo(
+		() => ({
+			systemTheme,
+			theme,
+			setTheme: (theme: Theme) =>
+				updateTheme.mutate({
+					data: {
+						theme,
+						systemTheme,
+					},
+				}),
+		}),
+		[systemTheme, theme, updateTheme],
+	);
 
 	return (
-		<ThemeProviderContext.Provider {...props} value={value}>
+		<ThemeProviderContext.Provider value={value}>
 			{children}
 		</ThemeProviderContext.Provider>
 	);
-}
+};
 
 export const useTheme = () => {
 	const context = useContext(ThemeProviderContext);
