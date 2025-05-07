@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { LayoutDashboard } from "lucide-react";
+import { Book, LayoutDashboard, SquareLibrary } from "lucide-react";
 import { Course, CourseTranslation } from "@/types/course";
 import { Collection, CollectionTranslation } from "@/types/collections";
 import { Team, TeamTranslation } from "@/types/team";
@@ -61,28 +61,30 @@ export const LearnerSidebar = ({
 			/>
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarMenu>
-						<SidebarMenuItem>
-							<Link
-								to="/$locale/learner"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-								activeOptions={{ exact: true }}
-							>
-								{({ isActive }) => (
-									<SidebarMenuButton isActive={isActive}>
-										<LayoutDashboard />
-										{t.dashboard}
-									</SidebarMenuButton>
-								)}
-							</Link>
-						</SidebarMenuItem>
-					</SidebarMenu>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/learner"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+									activeOptions={{ exact: true }}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton isActive={isActive}>
+											<LayoutDashboard />
+											{t.dashboard}
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarGroupContent>
 				</SidebarGroup>
 				{availableCourses.length > 0 && (
 					<SidebarGroup>
@@ -106,9 +108,9 @@ export const LearnerSidebar = ({
 										{({ isActive }) => (
 											<SidebarMenuButton
 												isActive={isActive}
-												className="justify-between"
 											>
-												<p className="truncate">
+												<Book />
+												<p className="truncate flex-1">
 													{course.name}
 												</p>
 											</SidebarMenuButton>
@@ -136,11 +138,9 @@ export const LearnerSidebar = ({
 									}}
 								>
 									{({ isActive }) => (
-										<SidebarMenuButton
-											isActive={isActive}
-											className="justify-between"
-										>
-											<p className="truncate">
+										<SidebarMenuButton isActive={isActive}>
+											<Book />
+											<p className="truncate flex-1">
 												{connection.course.name}
 											</p>
 											<ConnectionStatusBadge
@@ -171,11 +171,9 @@ export const LearnerSidebar = ({
 									}}
 								>
 									{({ isActive }) => (
-										<SidebarMenuButton
-											isActive={isActive}
-											className="justify-between"
-										>
-											<p className="truncate">
+										<SidebarMenuButton isActive={isActive}>
+											<SquareLibrary />
+											<p className="truncate flex-1">
 												{connection.collection.name}
 											</p>
 											<ConnectionStatusBadge

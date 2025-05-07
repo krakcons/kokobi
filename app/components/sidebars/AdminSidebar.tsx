@@ -33,6 +33,7 @@ import {
 	Check,
 	X,
 	ChartNoAxesColumn,
+	SquareLibrary,
 } from "lucide-react";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
@@ -99,6 +100,7 @@ const CourseCollapsible = ({
 			<SidebarMenuItem>
 				<CollapsibleTrigger asChild>
 					<SidebarMenuButton onClick={() => setOpen(!open)}>
+						<Book />
 						<p className="truncate">{course.name}</p>
 						<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 					</SidebarMenuButton>
@@ -267,6 +269,7 @@ const SharedCourseCollapsible = ({
 						className="h-auto"
 					>
 						<div className="flex gap-2 justify-between items-center flex-wrap w-full">
+							<Book />
 							<p className="truncate">{course.name}</p>
 							<ConnectionStatusBadge
 								connectStatus={connection.connectStatus}
@@ -413,6 +416,7 @@ const CollectionCollapsible = ({
 			<SidebarMenuItem>
 				<CollapsibleTrigger asChild>
 					<SidebarMenuButton onClick={() => setOpen(!open)}>
+						<SquareLibrary />
 						{collection.name}
 						<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 					</SidebarMenuButton>
@@ -528,9 +532,6 @@ export const AdminSidebar = ({
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>
-							{t.sidebar.manage}
-						</SidebarGroupLabel>
 						<SidebarMenuItem>
 							<Link
 								to="/$locale/admin"
