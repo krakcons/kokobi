@@ -1,7 +1,18 @@
 import { db } from "@/server/db";
-import { modules, teams, usersToModules } from "@/server/db/schema";
+import {
+	courses,
+	courseTranslations,
+	modules,
+	teams,
+	teamTranslations,
+	usersToModules,
+} from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { learnerMiddleware, localeMiddleware } from "../lib/middleware";
+import {
+	learnerMiddleware,
+	localeMiddleware,
+	teamMiddleware,
+} from "../lib/middleware";
 import { createS3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { handleLocalization } from "@/lib/locale/helpers";
@@ -11,7 +22,7 @@ import CourseCompletion from "@/emails/CourseCompletion";
 import { getInitialScormData } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { hasUserAccess } from "../lib/access";
+import { hasTeamAccess, hasUserAccess } from "../lib/access";
 import { teamImageUrl } from "@/lib/file";
 import { getConnectionLink } from "@/server/lib/connection";
 import { parseIMSManifest } from "../lib/modules";
@@ -236,4 +247,78 @@ export const createUserModuleFn = createServerFn({ method: "POST" })
 		});
 
 		return id;
+	});
+
+export const resendCompletionEmailFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware(), localeMiddleware])
+	.validator(
+		z.object({
+			attemptId: z.string(),
+			courseId: z.string(),
+		}),
+	)
+	.handler(async ({ context, data }) => {
+		await hasTeamAccess({
+			type: "course",
+			id: data.courseId,
+			teamId: context.teamId,
+		});
+
+		const attempt = await db.query.usersToModules.findFirst({
+			where: and(
+				eq(usersToModules.courseId, data.courseId),
+				eq(usersToModules.id, data.attemptId),
+				eq(usersToModules.teamId, context.teamId),
+			),
+			with: {
+				user: true,
+				team: {
+					with: {
+						translations: true,
+						domains: true,
+					},
+				},
+				course: {
+					with: {
+						translations: true,
+					},
+				},
+				module: true,
+			},
+		});
+
+		if (!attempt) {
+			throw new Error("Attempt not found.");
+		}
+
+		const team = handleLocalization(context, attempt.team);
+		const course = handleLocalization(context, attempt.course);
+
+		const href = await getConnectionLink({
+			teamId: context.teamId,
+			id: course.id,
+			type: "course",
+			locale: course.locale,
+		});
+
+		const t = await createTranslator({
+			locale: attempt.module?.locale ?? "en",
+		});
+
+		const emailVerified = await verifyEmail(team.domains);
+
+		await sendEmail({
+			to: [attempt.user.email],
+			subject: t.Email.CourseCompletion.subject,
+			content: (
+				<CourseCompletion
+					name={course.name}
+					teamName={team.name}
+					logo={teamImageUrl(team, "logo")}
+					href={href}
+					t={t.Email.CourseCompletion}
+				/>
+			),
+			team: emailVerified ? team : undefined,
+		});
 	});

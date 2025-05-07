@@ -487,6 +487,10 @@ export const usersToCoursesRelations = relations(usersToCourses, ({ one }) => ({
 }));
 
 export const usersToModulesRelations = relations(usersToModules, ({ one }) => ({
+	team: one(teams, {
+		fields: [usersToModules.teamId],
+		references: [teams.id],
+	}),
 	user: one(users, {
 		fields: [usersToModules.userId],
 		references: [users.id],

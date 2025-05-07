@@ -35,6 +35,7 @@ import { Module } from "@/types/module";
 import { Learner } from "@/types/learner";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
+import { resendCompletionEmailFn } from "@/server/handlers/users.modules";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",
@@ -90,6 +91,12 @@ function RouteComponent() {
 	});
 	const removeConnection = useMutation({
 		mutationFn: removeConnectionFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
+	const resendCompletionEmail = useMutation({
+		mutationFn: resendCompletionEmailFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -206,6 +213,17 @@ function RouteComponent() {
 							emails: [user.email],
 						},
 					}),
+			},
+			{
+				name: "Resend Completion",
+				onClick: ({ attempt }) =>
+					resendCompletionEmail.mutate({
+						data: {
+							attemptId: attempt!.id,
+							courseId: params.courseId,
+						},
+					}),
+				visible: ({ attempt }) => attempt?.completedAt,
 			},
 			{
 				name: "Delete",
