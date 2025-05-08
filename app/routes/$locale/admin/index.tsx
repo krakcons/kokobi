@@ -1,33 +1,30 @@
 import { Page, PageHeader } from "@/components/Page";
-import { PendingComponent } from "@/components/PendingComponent";
 import {
 	Card,
 	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useTranslations } from "@/lib/locale";
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
-import { getTeamStatsFn } from "@/server/handlers/teams";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/")({
 	component: RouteComponent,
-	loader: () =>
-		Promise.all([getCoursesFn(), getCollectionsFn(), getTeamStatsFn()]),
+	loader: () => Promise.all([getCoursesFn(), getCollectionsFn()]),
 });
 
 function RouteComponent() {
-	const [courses, collections, stats] = Route.useLoaderData();
+	const [courses, collections] = Route.useLoaderData();
+	const t = useTranslations("AdminDashboard");
+	const tNav = useTranslations("AdminSidebar");
 
 	return (
 		<Page>
-			<PageHeader
-				title="Dashboard"
-				description="Welcome to the dashboard. Within this admin portal you will be able to create and manage courses, invite learners, and more."
-			/>
-			<h3>Courses</h3>
+			<PageHeader title={t.title} description={t.description} />
+			<h3>{tNav.courses}</h3>
 			{courses.length > 0 ? (
 				courses.map((c) => (
 					<Link
@@ -53,17 +50,16 @@ function RouteComponent() {
 				<Link from="/$locale/admin/" to="/$locale/admin/courses/create">
 					<Card className="flex justify-between items-center">
 						<CardHeader>
-							<CardTitle>Create your first course</CardTitle>
+							<CardTitle>{t.course.title}</CardTitle>
 							<CardDescription>
-								Courses allow you to share learning materials
-								according to the Scorm 1.2 and 2004 standards
+								{t.course.description}
 							</CardDescription>
 						</CardHeader>
 						<ChevronRight className="mr-2 size-6 min-w-6" />
 					</Card>
 				</Link>
 			)}
-			<h3>Collections</h3>
+			<h3>{tNav.collections}</h3>
 			{collections.length > 0 ? (
 				collections.map((c) => (
 					<Link
@@ -92,23 +88,15 @@ function RouteComponent() {
 				>
 					<Card className="flex justify-between items-center">
 						<CardHeader>
-							<CardTitle>Create your first collection</CardTitle>
+							<CardTitle>{t.collection.title}</CardTitle>
 							<CardDescription>
-								Collections are a way to organize a list of
-								courses.
+								{t.collection.description}
 							</CardDescription>
 						</CardHeader>
 						<ChevronRight className="mr-2 size-6 min-w-6" />
 					</Card>
 				</Link>
 			)}
-			<h3>Quick Stats</h3>
-			<Card>
-				<CardHeader>
-					<CardTitle>Learners</CardTitle>
-					<CardDescription>{stats.learnerCount}</CardDescription>
-				</CardHeader>
-			</Card>
 		</Page>
 	);
 }

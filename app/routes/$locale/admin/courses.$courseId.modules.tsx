@@ -15,7 +15,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { locales } from "@/lib/locale";
+import { locales, useTranslations } from "@/lib/locale";
 import {
 	createModuleFn,
 	createModulePresignedURLFn,
@@ -53,6 +53,9 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const modules = Route.useLoaderData();
 	const router = useRouter();
+	const t = useTranslations("Modules");
+	const tActions = useTranslations("Actions");
+	const tForm = useTranslations("ModuleForm");
 
 	const [open, setOpen] = useState(false);
 
@@ -77,7 +80,10 @@ function RouteComponent() {
 		{
 			accessorKey: "versionNumber",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Version" column={column} />
+				<DataTableColumnHeader
+					title={t.table.version}
+					column={column}
+				/>
 			),
 		},
 		{
@@ -85,18 +91,18 @@ function RouteComponent() {
 			accessorFn: ({ locale }) =>
 				locales.find((l) => l.value === locale)?.label,
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Locale" column={column} />
+				<DataTableColumnHeader title={t.table.locale} column={column} />
 			),
 		},
 		{
 			accessorKey: "type",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Type" column={column} />
+				<DataTableColumnHeader title={t.table.type} column={column} />
 			),
 		},
 		createDataTableActionsColumn<Module>([
 			{
-				name: "Delete",
+				name: tActions.delete,
 				onClick: ({ id, courseId }) => {
 					deleteModule.mutate({
 						data: { moduleId: id, courseId },
@@ -108,22 +114,19 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Modules"
-				description="Manage the modules for this course."
-			>
+			<PageHeader title={t.title} description={t.description}>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button>
 							<Plus />
-							Create
+							{tActions.create}
 						</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>Create Module</DialogTitle>
+							<DialogTitle>{tForm.title}</DialogTitle>
 							<DialogDescription>
-								Upload a scorm module below.
+								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
 						<ModuleForm

@@ -1,6 +1,6 @@
 import { TeamForm } from "@/components/forms/TeamForm";
 import { FloatingPage, PageHeader } from "@/components/Page";
-import { useLocale } from "@/lib/locale";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { createTeamFn } from "@/server/handlers/teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/$locale/create-team")({
 
 function RouteComponent() {
 	const locale = useLocale();
+	const t = useTranslations("TeamForm");
 	const navigate = Route.useNavigate();
 	const createTeam = useMutation({
 		mutationFn: createTeamFn,
@@ -28,7 +29,10 @@ function RouteComponent() {
 
 	return (
 		<FloatingPage>
-			<PageHeader title="Create Team" description="Create a new team" />
+			<PageHeader
+				title={t.create.title}
+				description={t.create.description}
+			/>
 			<TeamForm
 				collapsible
 				onSubmit={(values) => {

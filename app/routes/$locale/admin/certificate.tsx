@@ -4,7 +4,6 @@ import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { PendingComponent } from "@/components/PendingComponent";
-import { teamImageUrl } from "@/lib/file";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Certificate } from "@/components/Certificate";
 
@@ -26,10 +25,7 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Certificate"
-				description="View how your certificate will look"
-			/>
+			<PageHeader title={t.title} description={t.description} />
 			<ClientOnly>
 				<PDFViewer className="h-[700px] w-full">
 					<Certificate

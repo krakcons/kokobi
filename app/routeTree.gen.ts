@@ -22,7 +22,6 @@ import { Route as LocaleAdminIndexImport } from './routes/$locale/admin/index'
 import { Route as LocaleAuthVerifyEmailImport } from './routes/$locale/auth/verify-email'
 import { Route as LocaleAuthLoginImport } from './routes/$locale/auth/login'
 import { Route as LocaleAdminSettingsImport } from './routes/$locale/admin/settings'
-import { Route as LocaleAdminOnboardImport } from './routes/$locale/admin/onboard'
 import { Route as LocaleAdminMembersImport } from './routes/$locale/admin/members'
 import { Route as LocaleAdminKeysImport } from './routes/$locale/admin/keys'
 import { Route as LocaleAdminCertificateImport } from './routes/$locale/admin/certificate'
@@ -106,12 +105,6 @@ const LocaleAuthLoginRoute = LocaleAuthLoginImport.update({
 const LocaleAdminSettingsRoute = LocaleAdminSettingsImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => LocaleAdminRoute,
-} as any)
-
-const LocaleAdminOnboardRoute = LocaleAdminOnboardImport.update({
-  id: '/onboard',
-  path: '/onboard',
   getParentRoute: () => LocaleAdminRoute,
 } as any)
 
@@ -297,13 +290,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminMembersImport
       parentRoute: typeof LocaleAdminImport
     }
-    '/$locale/admin/onboard': {
-      id: '/$locale/admin/onboard'
-      path: '/onboard'
-      fullPath: '/$locale/admin/onboard'
-      preLoaderRoute: typeof LocaleAdminOnboardImport
-      parentRoute: typeof LocaleAdminImport
-    }
     '/$locale/admin/settings': {
       id: '/$locale/admin/settings'
       path: '/settings'
@@ -446,7 +432,6 @@ interface LocaleAdminRouteChildren {
   LocaleAdminCertificateRoute: typeof LocaleAdminCertificateRoute
   LocaleAdminKeysRoute: typeof LocaleAdminKeysRoute
   LocaleAdminMembersRoute: typeof LocaleAdminMembersRoute
-  LocaleAdminOnboardRoute: typeof LocaleAdminOnboardRoute
   LocaleAdminSettingsRoute: typeof LocaleAdminSettingsRoute
   LocaleAdminIndexRoute: typeof LocaleAdminIndexRoute
   LocaleAdminCollectionsCreateRoute: typeof LocaleAdminCollectionsCreateRoute
@@ -466,7 +451,6 @@ const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
   LocaleAdminCertificateRoute: LocaleAdminCertificateRoute,
   LocaleAdminKeysRoute: LocaleAdminKeysRoute,
   LocaleAdminMembersRoute: LocaleAdminMembersRoute,
-  LocaleAdminOnboardRoute: LocaleAdminOnboardRoute,
   LocaleAdminSettingsRoute: LocaleAdminSettingsRoute,
   LocaleAdminIndexRoute: LocaleAdminIndexRoute,
   LocaleAdminCollectionsCreateRoute: LocaleAdminCollectionsCreateRoute,
@@ -525,7 +509,6 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
-  '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
@@ -555,7 +538,6 @@ export interface FileRoutesByTo {
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
-  '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
@@ -588,7 +570,6 @@ export interface FileRoutesById {
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
-  '/$locale/admin/onboard': typeof LocaleAdminOnboardRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
@@ -622,7 +603,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
-    | '/$locale/admin/onboard'
     | '/$locale/admin/settings'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
@@ -651,7 +631,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
-    | '/$locale/admin/onboard'
     | '/$locale/admin/settings'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
@@ -682,7 +661,6 @@ export interface FileRouteTypes {
     | '/$locale/admin/certificate'
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
-    | '/$locale/admin/onboard'
     | '/$locale/admin/settings'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
@@ -753,7 +731,6 @@ export const routeTree = rootRoute
         "/$locale/admin/certificate",
         "/$locale/admin/keys",
         "/$locale/admin/members",
-        "/$locale/admin/onboard",
         "/$locale/admin/settings",
         "/$locale/admin/",
         "/$locale/admin/collections/create",
@@ -800,10 +777,6 @@ export const routeTree = rootRoute
     },
     "/$locale/admin/members": {
       "filePath": "$locale/admin/members.tsx",
-      "parent": "/$locale/admin"
-    },
-    "/$locale/admin/onboard": {
-      "filePath": "$locale/admin/onboard.tsx",
       "parent": "/$locale/admin"
     },
     "/$locale/admin/settings": {

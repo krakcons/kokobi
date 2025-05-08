@@ -198,6 +198,7 @@ const FileField = ({
 }: Omit<DefaultOptions, "description"> & {
 	accept: InputHTMLAttributes<HTMLInputElement>["accept"];
 }) => {
+	const t = useTranslations("Form");
 	const field = useFieldContext<File | "">();
 	return (
 		<Field>
@@ -213,7 +214,7 @@ const FileField = ({
 					);
 				}}
 			/>
-			<Description description={`Accepts: ${accept}`} />
+			<Description description={`${t.accepts} ${accept}`} />
 			<Error errors={field.getMeta().errors} />
 		</Field>
 	);
@@ -232,6 +233,8 @@ const ImageField = ({
 	};
 }) => {
 	const { width, height } = size;
+	const t = useTranslations("Form");
+	const tAction = useTranslations("Actions");
 
 	const field = useFieldContext<File | "">();
 
@@ -284,13 +287,13 @@ const ImageField = ({
 							field.handleChange("");
 						}}
 					>
-						Remove
+						{tAction.delete}
 					</Button>
 				)}
 			</div>
 			{size.suggestedWidth && size.suggestedHeight && (
 				<Description
-					description={`Suggested image size: ${size.suggestedWidth}px x ${size.suggestedHeight}px`}
+					description={`${t.suggestedImageSize} ${size.suggestedWidth}px x ${size.suggestedHeight}px`}
 				/>
 			)}
 			<Error errors={field.getMeta().errors} />

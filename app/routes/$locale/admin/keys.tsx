@@ -28,6 +28,7 @@ import {
 	deleteTeamKeyFn,
 	getTeamKeysFn,
 } from "@/server/handlers/teams.keys";
+import { useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute("/$locale/admin/keys")({
 	component: RouteComponent,
@@ -65,6 +66,9 @@ function RouteComponent() {
 	const [open, setOpen] = useState(false);
 	const keys = Route.useLoaderData();
 	const router = useRouter();
+	const t = useTranslations("APIKeys");
+	const tForm = useTranslations("APIKeyForm");
+	const tActions = useTranslations("Actions");
 
 	const createKey = useMutation({
 		mutationFn: createTeamKeyFn,
@@ -83,19 +87,19 @@ function RouteComponent() {
 		{
 			accessorKey: "name",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Name" column={column} />
+				<DataTableColumnHeader title={t.table.name} column={column} />
 			),
 		},
 		{
 			accessorKey: "key",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Key" column={column} />
+				<DataTableColumnHeader title={t.table.key} column={column} />
 			),
 			cell: ({ cell }) => <APIKeyCell secret={cell.row.original.key} />,
 		},
 		createDataTableActionsColumn<Key>([
 			{
-				name: "Delete",
+				name: tActions.delete,
 				onClick: (data) => {
 					deleteKey.mutate({
 						data: {
@@ -109,19 +113,19 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title="Keys" description="Manage your API keys">
+			<PageHeader title={t.title} description={t.description}>
 				<Dialog onOpenChange={setOpen} open={open}>
 					<DialogTrigger asChild>
 						<Button>
 							<Plus />
-							Create
+							{tActions.create}
 						</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>Create API Key</DialogTitle>
+							<DialogTitle>{tForm.title}</DialogTitle>
 							<DialogDescription>
-								Enter the key name below.
+								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
 						<APIKeyForm

@@ -15,6 +15,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { useTranslations } from "@/lib/locale";
 import {
 	createCollectionCourseFn,
 	deleteCollectionCourseFn,
@@ -51,6 +52,9 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const router = useRouter();
+	const t = useTranslations("CollectionCourses");
+	const tActions = useTranslations("Actions");
+	const tForm = useTranslations("CoursesForm");
 
 	const createCourses = useMutation({
 		mutationFn: createCollectionCourseFn,
@@ -69,13 +73,16 @@ function RouteComponent() {
 		{
 			accessorKey: "name",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Name" column={column} />
+				<DataTableColumnHeader title={t.table.name} column={column} />
 			),
 		},
 		{
 			accessorKey: "description",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Description" column={column} />
+				<DataTableColumnHeader
+					title={t.table.description}
+					column={column}
+				/>
 			),
 			cell: ({ cell }) => (
 				<div className="line-clamp-2">
@@ -85,7 +92,7 @@ function RouteComponent() {
 		},
 		createDataTableActionsColumn<Course & CourseTranslation>([
 			{
-				name: "Remove",
+				name: tActions.delete,
 				onClick: ({ id }) =>
 					deleteCourse.mutate({
 						data: {
@@ -105,29 +112,25 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Courses"
-				description="Manage courses for this collection."
-			>
+			<PageHeader title={t.title} description={t.description}>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button>
-							<Plus /> Add
+							<Plus />
+							{tActions.create}
 						</Button>
 					</DialogTrigger>
 					<DialogContent className="sm:max-w-3xl w-full">
 						<DialogHeader>
-							<DialogTitle>Add Courses</DialogTitle>
+							<DialogTitle>{tForm.title}</DialogTitle>
 							<DialogDescription>
-								Select the courses you want to add to this
-								collection below.
+								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
 						{courseFormCourses.length === 0 ? (
 							<div className="flex flex-col gap-2">
 								<p className="text-muted-foreground text-sm">
-									No courses available. Create a course first
-									here:
+									{tForm.empty}
 								</p>
 								<Link
 									to="/$locale/admin/courses/create"
@@ -135,7 +138,7 @@ function RouteComponent() {
 									from={Route.fullPath}
 								>
 									<Button variant="secondary">
-										Create Course
+										{tForm.create}
 									</Button>
 								</Link>
 							</div>

@@ -54,45 +54,52 @@ export const Route = createFileRoute(
 		]),
 });
 
-const statusChartConfig: ChartConfig = {
-	completed: { label: "Completed", color: "#feff5c" },
-	passed: { label: "Passed", color: "#c0ff33" },
-	failed: { label: "Failed", color: "--destructive" },
-	"in-progress": { label: "In Progress", color: "#ffc163" },
-	"not-started": { label: "Not Started", color: "--secondary" },
-};
-
 function RouteComponent() {
 	const [statistics, connections, team] = Route.useLoaderData();
 	const { statsTeamId = "all" } = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const t = useTranslations("Learner");
+	const t = useTranslations("Statistics");
+	const tLearner = useTranslations("Learner");
+
+	const statusChartConfig: ChartConfig = {
+		completed: { label: tLearner.statuses.completed, color: "#feff5c" },
+		passed: { label: tLearner.statuses.passed, color: "#c0ff33" },
+		failed: { label: tLearner.statuses.failed, color: "--destructive" },
+		"in-progress": {
+			label: tLearner.statuses["in-progress"],
+			color: "#ffc163",
+		},
+		"not-started": {
+			label: tLearner.statuses["not-started"],
+			color: "--secondary",
+		},
+	};
 
 	const cards = [
 		{
-			title: "Total Attempts",
+			title: t.totalAttempts.title,
 			value: statistics.total,
-			description: "Total learners that have started this course.",
+			description: t.totalAttempts.description,
 			icon: <Users className="size-4" />,
 		},
 		{
-			title: "Total Completed",
+			title: t.totalCompletions.title,
 			value: `${statistics.completed} ${statistics.completedPercent ? `(${statistics.completedPercent}%)` : ""}`,
-			description: "Total learners that have completed this course.",
+			description: t.totalCompletions.description,
 			icon: <CheckCircle className="size-4" />,
 		},
 		{
-			title: "Average Completion Time",
-			value: `${statistics.completedTimeAverage ?? 0} minutes`,
-			description: "Average time it takes to complete this course.",
+			title: t.averageCompletionTime.title,
+			value: `${statistics.completedTimeAverage ?? 0} ${t.averageCompletionTime.minutes}`,
+			description: t.averageCompletionTime.description,
 			icon: <Clock className="size-4" />,
 		},
 	];
 
 	const charts = [
 		{
-			title: "Attempt Status",
-			description: `Total learners with each status (${learnerStatuses.map((s) => t.statuses[s]).join(", ")})`,
+			title: t.attemptStatus.title,
+			description: `${t.attemptStatus.description} (${learnerStatuses.map((s) => tLearner.statuses[s]).join(", ")})`,
 			icon: <CircleEllipsis className="size-4" />,
 			config: statusChartConfig,
 			data: statistics.charts.status,
@@ -120,10 +127,7 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Statistics"
-				description="View statistics for this course."
-			>
+			<PageHeader title={t.title} description={t.description}>
 				{connections && connections.length > 0 && (
 					<form.AppForm>
 						<form
@@ -133,14 +137,14 @@ function RouteComponent() {
 							<form.AppField name="statsTeamId">
 								{(field) => (
 									<field.SelectField
-										label="Filter by Team"
+										label={t.filter.title}
 										options={[
 											{
-												label: "All Teams",
+												label: t.filter.all,
 												value: "all",
 											},
 											{
-												label: team.name + " (Current)",
+												label: team.name,
 												value: team?.id,
 											},
 											...connections?.map((c) => ({

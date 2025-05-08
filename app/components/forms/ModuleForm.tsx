@@ -1,11 +1,13 @@
 import { ModuleFormType, ModuleFormSchema } from "@/types/module";
 import { useAppForm } from "../ui/form";
+import { useTranslations } from "@/lib/locale";
 
 const ModuleForm = ({
 	onSubmit,
 }: {
 	onSubmit: (module: ModuleFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("ModuleForm");
 	const form = useAppForm({
 		validators: {
 			onSubmit: ModuleFormSchema,
@@ -23,7 +25,7 @@ const ModuleForm = ({
 				<form.AppField name="file">
 					{(field) => (
 						<field.FileField
-							label="File"
+							label={t.file}
 							accept="application/zip"
 						/>
 					)}

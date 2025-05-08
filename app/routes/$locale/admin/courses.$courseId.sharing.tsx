@@ -27,6 +27,8 @@ import {
 import { useState } from "react";
 import { TeamsForm } from "@/components/forms/TeamsForm";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslations } from "@/lib/locale";
+import { Plus } from "lucide-react";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/sharing",
@@ -51,6 +53,9 @@ function RouteComponent() {
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
 	const params = Route.useParams();
+	const t = useTranslations("Sharing");
+	const tActions = useTranslations("Actions");
+	const tForm = useTranslations("TeamsForm");
 
 	const inviteConnection = useMutation({
 		mutationFn: inviteTeamsConnectionFn,
@@ -71,13 +76,13 @@ function RouteComponent() {
 		{
 			accessorKey: "team.name",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Name" column={column} />
+				<DataTableColumnHeader title={t.table.name} column={column} />
 			),
 		},
 		{
 			accessorKey: "connectStatus",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Status" column={column} />
+				<DataTableColumnHeader title={t.table.status} column={column} />
 			),
 			cell: ({ row: { original } }) => {
 				const connectStatus = original.connectStatus;
@@ -96,7 +101,7 @@ function RouteComponent() {
 			TeamToCourseType & { team: Team & TeamTranslation }
 		>([
 			{
-				name: "Delete",
+				name: tActions.delete,
 				onClick: ({ teamId }) =>
 					removeConnection.mutate({
 						data: {
@@ -111,20 +116,19 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Sharing"
-				description="Manage who can deliver this course."
-			>
+			<PageHeader title={t.title} description={t.description}>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
-						<Button>Invite</Button>
+						<Button>
+							<Plus />
+							{tActions.create}
+						</Button>
 					</DialogTrigger>
 					<DialogContent className="sm:max-w-xl w-full">
 						<DialogHeader>
-							<DialogTitle>Share Course</DialogTitle>
+							<DialogTitle>{tForm.title}</DialogTitle>
 							<DialogDescription>
-								Enter the identifier of the teams you want to
-								share this course with.
+								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
 						<TeamsForm

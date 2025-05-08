@@ -18,7 +18,7 @@ export type SelectCourse = z.infer<typeof SelectCourseSchema>;
 export const CourseTranslationSchema = createSelectSchema(courseTranslations);
 export type CourseTranslation = z.infer<typeof CourseTranslationSchema>;
 
-export const completionStatuses = ["passed", "completed", "either"];
+export const completionStatuses = ["passed", "completed", "either"] as const;
 export const CourseFormSchema = z.object({
 	name: z.string().min(1),
 	description: z.string(),

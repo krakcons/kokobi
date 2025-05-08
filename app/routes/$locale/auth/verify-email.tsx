@@ -22,7 +22,7 @@ const OTPForm = ({
 }: {
 	onSubmit: (data: OTPFormType) => Promise<any>;
 }) => {
-	const t = useTranslations("VerifyEmailForm");
+	const t = useTranslations("AuthVerifyEmailForm");
 	const form = useAppForm({
 		defaultValues: {
 			code: "",
@@ -57,7 +57,7 @@ const OTPForm = ({
 function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const t = useTranslations("VerifyEmail");
+	const t = useTranslations("AuthVerifyEmail");
 	const verifyMutation = useMutation({
 		mutationFn: verifyOTPFn,
 		onSuccess: () => {

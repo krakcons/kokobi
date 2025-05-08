@@ -22,6 +22,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute(
 	"/$locale/admin/collections/$collectionId/settings",
@@ -45,11 +46,14 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const collection = Route.useLoaderData();
 	const router = useRouter();
+	const t = useTranslations("CollectionSettings");
+	const tForm = useTranslations("CollectionForm");
+	const tActions = useTranslations("Actions");
 
 	const updateCollection = useMutation({
 		mutationFn: updateCollectionFn,
 		onSuccess: () => {
-			toast.success("Collection updated successfully.");
+			toast.success(tForm.updated);
 			router.invalidate();
 		},
 	});
@@ -63,10 +67,7 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Settings"
-				description="Edit your collection settings"
-			/>
+			<PageHeader title={t.title} description={t.description} />
 			<CollectionForm
 				key={collection.locale}
 				onSubmit={(value) =>
@@ -86,29 +87,27 @@ function RouteComponent() {
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader
-				title="Delete Collection"
-				description="This will delete the collection and all associated data. This action cannot be undone."
+				title={t.delete.title}
+				description={t.delete.description}
 			/>
 			<AlertDialog>
 				<AlertDialogTrigger asChild>
 					<Button variant="destructive" className="self-start">
 						<Trash />
-						Delete
+						{tActions.delete}
 					</Button>
 				</AlertDialogTrigger>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>
-							Are you absolutely sure?
+							{t.delete.confirm.title}
 						</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently
-							delete your collection and remove all related data
-							(ex. courses, learners, etc) from our servers.
+							{t.delete.confirm.description}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogCancel>{tActions.cancel}</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={() => {
 								deleteCollection.mutate({
@@ -116,7 +115,7 @@ function RouteComponent() {
 								});
 							}}
 						>
-							Continue
+							{tActions.continue}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

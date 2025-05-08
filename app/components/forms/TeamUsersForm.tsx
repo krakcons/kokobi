@@ -2,16 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
 import { TeamUsersFormSchema, TeamUsersFormType } from "@/types/team";
+import { useTranslations } from "@/lib/locale";
 
 export const TeamUsersForm = ({
 	onSubmit,
 }: {
 	onSubmit: (values: TeamUsersFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("MembersForm");
+	const tRole = useTranslations("TeamRole");
 	const form = useAppForm({
-		validators: {
-			onSubmit: TeamUsersFormSchema,
-		},
 		defaultValues: {
 			users: [
 				{
@@ -20,6 +20,9 @@ export const TeamUsersForm = ({
 				},
 			],
 		} as TeamUsersFormType,
+		validators: {
+			onSubmit: TeamUsersFormSchema,
+		},
 		onSubmit: ({ value }) => onSubmit(value),
 	});
 
@@ -59,11 +62,11 @@ export const TeamUsersForm = ({
 												options={[
 													{
 														value: "owner",
-														label: "Owner",
+														label: tRole.owner,
 													},
 													{
 														value: "member",
-														label: "Member",
+														label: tRole.member,
 													},
 												]}
 											/>
@@ -93,7 +96,7 @@ export const TeamUsersForm = ({
 									variant="outline"
 								>
 									<Plus />
-									Add Member
+									{t.add}
 								</Button>
 								<form.SubmitButton />
 							</div>

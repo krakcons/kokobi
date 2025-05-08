@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
 import { z } from "zod";
+import { useTranslations } from "@/lib/locale";
 
 export const EmailsFormSchema = z.object({
 	emails: z.string().email().array(),
@@ -12,6 +13,7 @@ export const EmailsForm = ({
 }: {
 	onSubmit: (values: EmailsFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("LearnersForm");
 	const form = useAppForm({
 		validators: {
 			onSubmit: EmailsFormSchema,
@@ -65,7 +67,7 @@ export const EmailsForm = ({
 									variant="outline"
 								>
 									<Plus />
-									Add Email
+									{t.add}
 								</Button>
 								<form.SubmitButton />
 							</div>

@@ -39,6 +39,7 @@ export const CoursesForm = ({
 							<Label key={course.id}>
 								<div className="flex flex-row items-center gap-2">
 									<Checkbox
+										id={course.id}
 										value={course.id}
 										onCheckedChange={() => {
 											const index =
@@ -52,7 +53,10 @@ export const CoursesForm = ({
 											}
 										}}
 									/>
-									<Title label={course.name} />
+									<Title
+										htmlFor={course.id}
+										label={course.name}
+									/>
 								</div>
 							</Label>
 						))

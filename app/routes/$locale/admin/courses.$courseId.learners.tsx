@@ -75,7 +75,12 @@ function RouteComponent() {
 	const [learners, inviteLink] = Route.useLoaderData();
 	const router = useRouter();
 	const locale = useLocale();
+	const t = useTranslations("Learners");
+	const tUser = useTranslations("User");
+	const tConnect = useTranslations("ConnectionActions");
 	const tLearner = useTranslations("Learner");
+	const tActions = useTranslations("Actions");
+	const tForm = useTranslations("LearnersForm");
 
 	const connectionResponse = useMutation({
 		mutationFn: teamConnectionResponseFn,
@@ -106,13 +111,16 @@ function RouteComponent() {
 		{
 			accessorKey: "user.email",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Email" column={column} />
+				<DataTableColumnHeader title={tUser.email} column={column} />
 			),
 		},
 		{
 			accessorKey: "connection.connectStatus",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Status" column={column} />
+				<DataTableColumnHeader
+					title={tLearner.status}
+					column={column}
+				/>
 			),
 			cell: ({ row: { original } }) => {
 				return <ConnectionStatusBadge {...original.connection} />;
@@ -121,19 +129,25 @@ function RouteComponent() {
 		{
 			accessorKey: "user.firstName",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="First Name" column={column} />
+				<DataTableColumnHeader
+					title={tUser.firstName}
+					column={column}
+				/>
 			),
 		},
 		{
 			accessorKey: "user.lastName",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Last Name" column={column} />
+				<DataTableColumnHeader title={tUser.lastName} column={column} />
 			),
 		},
 		{
 			accessorKey: "attempt.status",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Status" column={column} />
+				<DataTableColumnHeader
+					title={tLearner.status}
+					column={column}
+				/>
 			),
 			accessorFn: ({ attempt }) =>
 				attempt && tLearner.statuses[attempt.status],
@@ -141,7 +155,7 @@ function RouteComponent() {
 		{
 			accessorKey: "attempt.score",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Score" column={column} />
+				<DataTableColumnHeader title={tLearner.score} column={column} />
 			),
 			accessorFn: ({ attempt }) => {
 				attempt &&
@@ -153,7 +167,10 @@ function RouteComponent() {
 		{
 			accessorKey: "attempt.startedAt",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Started At" column={column} />
+				<DataTableColumnHeader
+					title={tLearner.startedAt}
+					column={column}
+				/>
 			),
 			accessorFn: ({ attempt }) =>
 				formatDate({
@@ -165,7 +182,10 @@ function RouteComponent() {
 		{
 			accessorKey: "attempt.completedAt",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Completed At" column={column} />
+				<DataTableColumnHeader
+					title={tLearner.completedAt}
+					column={column}
+				/>
 			),
 			accessorFn: ({ attempt }) =>
 				formatDate({
@@ -176,7 +196,7 @@ function RouteComponent() {
 		},
 		createDataTableActionsColumn<LearnerTableType>([
 			{
-				name: "Accept",
+				name: tConnect.accept,
 				onClick: ({ user }) =>
 					connectionResponse.mutate({
 						data: {
@@ -190,7 +210,7 @@ function RouteComponent() {
 					connection.connectType === "request",
 			},
 			{
-				name: "Reject",
+				name: tConnect.reject,
 				onClick: ({ user }) =>
 					connectionResponse.mutate({
 						data: {
@@ -204,7 +224,7 @@ function RouteComponent() {
 					connection.connectType === "request",
 			},
 			{
-				name: "Resend Invite",
+				name: tLearner.resend,
 				onClick: ({ user }) =>
 					inviteConnection.mutate({
 						data: {
@@ -215,7 +235,7 @@ function RouteComponent() {
 					}),
 			},
 			{
-				name: "Resend Completion",
+				name: tLearner.recertify,
 				onClick: ({ attempt }) =>
 					resendCompletionEmail.mutate({
 						data: {
@@ -226,7 +246,7 @@ function RouteComponent() {
 				visible: ({ attempt }) => attempt?.completedAt,
 			},
 			{
-				name: "Delete",
+				name: tActions.delete,
 				onClick: ({ user }) =>
 					removeConnection.mutate({
 						data: {
@@ -241,23 +261,19 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Learners"
-				description="Manage learners for this course."
-			>
+			<PageHeader title={t.title} description={t.description}>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button>
 							<Plus />
-							Create
+							{tActions.create}
 						</Button>
 					</DialogTrigger>
 					<DialogContent className="sm:max-w-xl w-full">
 						<DialogHeader>
-							<DialogTitle>Invite Learners</DialogTitle>
+							<DialogTitle>{tForm.title}</DialogTitle>
 							<DialogDescription>
-								Enter emails below and submit to invite them to
-								the course.
+								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
 						<EmailsForm

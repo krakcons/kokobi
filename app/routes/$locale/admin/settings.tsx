@@ -38,6 +38,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
@@ -64,6 +65,7 @@ const DomainForm = ({
 	defaultValues?: DomainFormType;
 	onSubmit: (values: DomainFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("TeamDomainForm");
 	const form = useAppForm({
 		defaultValues: {
 			hostname: undefined,
@@ -84,7 +86,7 @@ const DomainForm = ({
 				<form.AppField
 					name="hostname"
 					children={(field) => (
-						<field.TextField label="Custom Domain" optional />
+						<field.TextField label={t.domain} optional />
 					)}
 				/>
 				<form.SubmitButton />
@@ -98,6 +100,9 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const [team, domain] = Route.useLoaderData();
 	const router = useRouter();
+	const t = useTranslations("TeamSettings");
+	const tActions = useTranslations("Actions");
+	const tDomain = useTranslations("TeamDomainForm");
 
 	const createDomain = useMutation({
 		mutationFn: createTeamDomainFn,
@@ -146,7 +151,7 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title="Settings" description="Edit your team settings">
+			<PageHeader title={t.title} description={t.description}>
 				<Badge variant="secondary">
 					<p>{team.id}</p>
 					<CopyButton text={team.id} />
@@ -174,8 +179,8 @@ function RouteComponent() {
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader
-				title="Domain"
-				description="Set a custom domain to serve your team's content"
+				title={tDomain.title}
+				description={tDomain.description}
 			>
 				{domain && (
 					<Button
@@ -189,7 +194,7 @@ function RouteComponent() {
 						}
 					>
 						<Trash />
-						Delete
+						{tActions.delete}
 					</Button>
 				)}
 			</PageSubHeader>
@@ -199,10 +204,10 @@ function RouteComponent() {
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>Status</TableHead>
-									<TableHead>Type</TableHead>
-									<TableHead>Name</TableHead>
-									<TableHead>Value</TableHead>
+									<TableHead>{t.domain.status}</TableHead>
+									<TableHead>{t.domain.type}</TableHead>
+									<TableHead>{t.domain.name}</TableHead>
+									<TableHead>{t.domain.value}</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody className="px-2">
@@ -210,6 +215,7 @@ function RouteComponent() {
 									<TableRow key={record.value}>
 										<TableCell>
 											<Badge
+												// TODO: Needs translations
 												variant={
 													record.status.toUpperCase() ===
 													"SUCCESS"
@@ -243,7 +249,7 @@ function RouteComponent() {
 												{record.priority && (
 													<p>
 														<strong>
-															Priority:
+															{t.domain.priority}
 														</strong>
 														{" " + record.priority}
 													</p>
@@ -266,36 +272,33 @@ function RouteComponent() {
 			)}
 			<Separator className="my-4" />
 			<PageSubHeader
-				title="Delete Team"
-				description="This will delete the team and all associated data. This action cannot be undone."
+				title={t.delete.title}
+				description={t.delete.description}
 			/>
 			<AlertDialog>
 				<AlertDialogTrigger asChild>
 					<Button variant="destructive" className="self-start">
 						<Trash />
-						Delete
+						{tActions.delete}
 					</Button>
 				</AlertDialogTrigger>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>
-							Are you absolutely sure?
+							{t.delete.confirm.title}
 						</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently
-							delete your team and remove all your data (ex.
-							collections, courses, learners, etc) from our
-							servers.
+							{t.delete.confirm.description}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogCancel>{tActions.cancel}</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={() => {
 								deleteTeam.mutate({});
 							}}
 						>
-							Continue
+							{tActions.continue}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

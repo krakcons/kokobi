@@ -390,10 +390,11 @@ export const createDataTableActionsColumn = <TData extends object>(
 		visible?: (data: TData) => boolean;
 	}[],
 ) => {
+	const t = useTranslations("Actions");
 	return {
 		id: "actions",
 		header: ({ column }: any) => (
-			<DataTableColumnHeader title="Actions" column={column} />
+			<DataTableColumnHeader title={t.title} column={column} />
 		),
 		cell: ({ cell }: any) => (
 			<DropdownMenu>
@@ -403,7 +404,7 @@ export const createDataTableActionsColumn = <TData extends object>(
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuLabel>Actions</DropdownMenuLabel>
+					<DropdownMenuLabel>{t.title}</DropdownMenuLabel>
 					<DropdownMenuSeparator />
 					{actions.map(
 						(action) =>

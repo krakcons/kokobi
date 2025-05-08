@@ -8,8 +8,10 @@ import {
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { useAppForm } from "../ui/form";
+import { useTranslations } from "@/lib/locale";
 
 const CollapsibleWrapper = ({ children }: { children: React.ReactNode }) => {
+	const t = useTranslations("Form");
 	const [open, setOpen] = useState(false);
 	return (
 		<Collapsible
@@ -19,7 +21,7 @@ const CollapsibleWrapper = ({ children }: { children: React.ReactNode }) => {
 		>
 			<CollapsibleTrigger asChild>
 				<Button variant="link" className="self-start -ml-3 mb-4">
-					Other settings (optional)
+					{t.otherSettings} ({t.optional})
 					<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 				</Button>
 			</CollapsibleTrigger>
@@ -43,6 +45,7 @@ export const TeamForm = ({
 	collapsible?: boolean;
 	onSubmit: (value: TeamFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("TeamForm");
 	const form = useAppForm({
 		validators: {
 			onSubmit: TeamFormSchema,
@@ -66,13 +69,13 @@ export const TeamForm = ({
 			>
 				{!collapsible && <form.BlockNavigation />}
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Name" />}
+					{(field) => <field.TextField label={t.name} />}
 				</form.AppField>
 				<Wrapper>
 					<form.AppField name="logo">
 						{(field) => (
 							<field.ImageField
-								label="Logo"
+								label={t.logo}
 								size={{
 									width: 350,
 									height: 100,
@@ -85,7 +88,7 @@ export const TeamForm = ({
 					<form.AppField name="favicon">
 						{(field) => (
 							<field.ImageField
-								label="Favicon"
+								label={t.favicon}
 								size={{
 									width: 512 / 8,
 									height: 512 / 8,

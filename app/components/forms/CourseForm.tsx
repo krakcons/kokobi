@@ -13,7 +13,8 @@ export const CourseForm = ({
 	defaultValues?: CourseFormType;
 	onSubmit: (values: CourseFormType) => Promise<any>;
 }) => {
-	const t = useTranslations("CompletionStatuses");
+	const t = useTranslations("CourseForm");
+	const tStatus = useTranslations("CompletionStatuses");
 	const form = useAppForm({
 		validators: {
 			onSubmit: CourseFormSchema,
@@ -32,21 +33,19 @@ export const CourseForm = ({
 			<form.BlockNavigation />
 			<form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 				<form.AppField name="name">
-					{(field) => <field.TextField label="Name" />}
+					{(field) => <field.TextField label={t.name} />}
 				</form.AppField>
 				<form.AppField name="description">
-					{(field) => <field.TextAreaField label="Description" />}
+					{(field) => <field.TextAreaField label={t.description} />}
 				</form.AppField>
 				<form.AppField name="completionStatus">
 					{(field) => (
 						<field.SelectField
-							label="Completion Status"
-							description="When the course is considered completed. Certificate is issued and
-			course is locked."
+							label={t.completionStatus.label}
+							description={t.completionStatus.description}
 							options={completionStatuses.map((s) => ({
 								value: s,
-								// @ts-ignore
-								label: t[s],
+								label: tStatus[s],
 							}))}
 						/>
 					)}

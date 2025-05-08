@@ -50,7 +50,10 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
 	const members = Route.useLoaderData();
-	const t = useTranslations("Role");
+	const t = useTranslations("Members");
+	const tForm = useTranslations("MembersForm");
+	const tRole = useTranslations("TeamRole");
+	const tActions = useTranslations("Actions");
 	const router = useRouter();
 
 	const createTeamUsers = useMutation({
@@ -77,13 +80,13 @@ function RouteComponent() {
 		{
 			accessorKey: "user.email",
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Name" />
+				<DataTableColumnHeader column={column} title={t.table.email} />
 			),
 		},
 		{
 			accessorKey: "connectStatus",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Status" column={column} />
+				<DataTableColumnHeader title={t.table.status} column={column} />
 			),
 			cell: ({ row: { original } }) => {
 				return <ConnectionStatusBadge {...original} />;
@@ -91,9 +94,9 @@ function RouteComponent() {
 		},
 		{
 			accessorKey: "role",
-			accessorFn: ({ role }) => t[role],
+			accessorFn: ({ role }) => tRole[role],
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title="Role" />
+				<DataTableColumnHeader column={column} title={t.table.role} />
 			),
 			cell: ({
 				row: {
@@ -118,7 +121,7 @@ function RouteComponent() {
 						<SelectContent>
 							{roles.map((role) => (
 								<SelectItem key={role} value={role}>
-									{t[role]}
+									{tRole[role]}
 								</SelectItem>
 							))}
 						</SelectContent>
@@ -143,7 +146,7 @@ function RouteComponent() {
 			//		}),
 			//},
 			{
-				name: "Delete",
+				name: tActions.delete,
 				onClick: ({ userId }) => {
 					deleteTeamUser.mutate({
 						data: {
@@ -157,20 +160,19 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title="Members" description="Manage your members">
+			<PageHeader title={t.title} description={t.description}>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button>
 							<UserPlus />
-							Invite
+							{tActions.create}
 						</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>Invite Members</DialogTitle>
+							<DialogTitle>{tForm.title}</DialogTitle>
 							<DialogDescription>
-								Enter the emails and roles of the members you
-								want to invite.
+								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
 						<TeamUsersForm

@@ -1,5 +1,6 @@
 import { CourseForm } from "@/components/forms/CourseForm";
 import { Page, PageHeader } from "@/components/Page";
+import { useTranslations } from "@/lib/locale";
 import { createCourseFn } from "@/server/handlers/courses";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -10,6 +11,7 @@ export const Route = createFileRoute("/$locale/admin/courses/create")({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
+	const t = useTranslations("CourseForm");
 	const createCourse = useMutation({
 		mutationFn: createCourseFn,
 		onSuccess: (data) => {
@@ -27,8 +29,8 @@ function RouteComponent() {
 	return (
 		<Page>
 			<PageHeader
-				title="Create Course"
-				description="Enter the details of your course below."
+				title={t.create.title}
+				description={t.create.description}
 			/>
 			<CourseForm
 				onSubmit={(values) =>

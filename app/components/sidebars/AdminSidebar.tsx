@@ -56,6 +56,7 @@ const CourseCollapsible = ({
 	const { setOpenMobile } = useSidebar();
 	const [open, setOpen] = useState(false);
 	const locale = useLocale();
+	const t = useTranslations("AdminSidebar");
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
@@ -122,7 +123,7 @@ const CourseCollapsible = ({
 								{({ isActive }) => (
 									<SidebarMenuSubButton isActive={isActive}>
 										<Users />
-										Learners
+										{t.learners}
 									</SidebarMenuSubButton>
 								)}
 							</Link>
@@ -164,7 +165,7 @@ const CourseCollapsible = ({
 								{({ isActive }) => (
 									<SidebarMenuSubButton isActive={isActive}>
 										<ChartNoAxesColumn />
-										Statistics
+										{t.statistics}
 									</SidebarMenuSubButton>
 								)}
 							</Link>
@@ -184,7 +185,7 @@ const CourseCollapsible = ({
 								{({ isActive }) => (
 									<SidebarMenuSubButton isActive={isActive}>
 										<Share />
-										Sharing
+										{t.sharing}
 									</SidebarMenuSubButton>
 								)}
 							</Link>
@@ -204,7 +205,7 @@ const CourseCollapsible = ({
 								{({ isActive }) => (
 									<SidebarMenuSubButton isActive={isActive}>
 										<Settings />
-										Settings
+										{t.settings}
 									</SidebarMenuSubButton>
 								)}
 							</Link>
@@ -226,6 +227,8 @@ const SharedCourseCollapsible = ({
 	const locale = useLocale();
 	const course = connection.course;
 	const router = useRouter();
+	const t = useTranslations("AdminSidebar");
+	const tConnect = useTranslations("ConnectionActions");
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
@@ -268,14 +271,12 @@ const SharedCourseCollapsible = ({
 						onClick={() => setOpen(!open)}
 						className="h-auto"
 					>
-						<div className="flex gap-2 justify-between items-center flex-wrap w-full">
-							<Book />
-							<p className="truncate">{course.name}</p>
-							<ConnectionStatusBadge
-								connectStatus={connection.connectStatus}
-								connectType={connection.connectType}
-							/>
-						</div>
+						<Book />
+						<p className="truncate">{course.name}</p>
+						<ConnectionStatusBadge
+							connectStatus={connection.connectStatus}
+							connectType={connection.connectType}
+						/>
 						<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 					</SidebarMenuButton>
 				</CollapsibleTrigger>
@@ -302,7 +303,7 @@ const SharedCourseCollapsible = ({
 												isActive={isActive}
 											>
 												<Users />
-												Learners
+												{t.learners}
 											</SidebarMenuSubButton>
 										)}
 									</Link>
@@ -326,7 +327,7 @@ const SharedCourseCollapsible = ({
 												isActive={isActive}
 											>
 												<ChartNoAxesColumn />
-												Statistics
+												{t.statistics}
 											</SidebarMenuSubButton>
 										)}
 									</Link>
@@ -347,7 +348,7 @@ const SharedCourseCollapsible = ({
 									}}
 								>
 									<Check />
-									Accept
+									{tConnect.accept}
 								</SidebarMenuSubButton>
 								<SidebarMenuSubButton
 									onClick={() => {
@@ -362,7 +363,7 @@ const SharedCourseCollapsible = ({
 									}}
 								>
 									<X />
-									Reject
+									{tConnect.reject}
 								</SidebarMenuSubButton>
 							</>
 						)}
@@ -381,6 +382,7 @@ const CollectionCollapsible = ({
 	const [open, setOpen] = useState(false);
 	const locale = useLocale();
 	const { setOpenMobile } = useSidebar();
+	const t = useTranslations("AdminSidebar");
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
@@ -439,7 +441,7 @@ const CollectionCollapsible = ({
 							{({ isActive }) => (
 								<SidebarMenuSubButton isActive={isActive}>
 									<Users />
-									Learners
+									{t.learners}
 								</SidebarMenuSubButton>
 							)}
 						</Link>
@@ -460,7 +462,7 @@ const CollectionCollapsible = ({
 								{({ isActive }) => (
 									<SidebarMenuSubButton isActive={isActive}>
 										<Book />
-										Courses
+										{t.courses}
 									</SidebarMenuSubButton>
 								)}
 							</Link>
@@ -482,7 +484,7 @@ const CollectionCollapsible = ({
 								{({ isActive }) => (
 									<SidebarMenuSubButton isActive={isActive}>
 										<Settings />
-										Settings
+										{t.settings}
 									</SidebarMenuSubButton>
 								)}
 							</Link>
@@ -547,7 +549,7 @@ export const AdminSidebar = ({
 								{({ isActive }) => (
 									<SidebarMenuButton isActive={isActive}>
 										<LayoutDashboard />
-										{t.sidebar.dashboard}
+										{t.dashboard}
 									</SidebarMenuButton>
 								)}
 							</Link>
@@ -556,7 +558,7 @@ export const AdminSidebar = ({
 				</SidebarGroup>
 				<SidebarGroup>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>Courses</SidebarGroupLabel>
+						<SidebarGroupLabel>{t.courses}</SidebarGroupLabel>
 						<SidebarGroupAction title="Create Course" asChild>
 							<Link
 								to="/$locale/admin/courses/create"
@@ -569,7 +571,9 @@ export const AdminSidebar = ({
 								}}
 							>
 								<Plus />{" "}
-								<span className="sr-only">Create Course</span>
+								<span className="sr-only">
+									{t.createCourse}
+								</span>
 							</Link>
 						</SidebarGroupAction>
 						{courses.map((course) => (
@@ -578,11 +582,6 @@ export const AdminSidebar = ({
 								key={course.id}
 							/>
 						))}
-					</SidebarGroupContent>
-				</SidebarGroup>
-				<SidebarGroup>
-					<SidebarGroupContent>
-						<SidebarGroupLabel>Shared Courses</SidebarGroupLabel>
 						{connections.map((connection) => (
 							<SharedCourseCollapsible
 								connection={connection}
@@ -593,7 +592,7 @@ export const AdminSidebar = ({
 				</SidebarGroup>
 				<SidebarGroup>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>Collections</SidebarGroupLabel>
+						<SidebarGroupLabel>{t.collections}</SidebarGroupLabel>
 						<SidebarGroupAction title="Create Collection" asChild>
 							<Link
 								to="/$locale/admin/collections/create"
@@ -607,7 +606,7 @@ export const AdminSidebar = ({
 							>
 								<Plus />{" "}
 								<span className="sr-only">
-									Create Collection
+									{t.createCollection}
 								</span>
 							</Link>
 						</SidebarGroupAction>
@@ -622,9 +621,7 @@ export const AdminSidebar = ({
 				{role === "owner" && (
 					<SidebarGroup>
 						<SidebarGroupContent>
-							<SidebarGroupLabel>
-								{t.sidebar.team}
-							</SidebarGroupLabel>
+							<SidebarGroupLabel>{t.team}</SidebarGroupLabel>
 							<SidebarMenuItem>
 								<Link
 									to="/$locale/admin/keys"
@@ -639,7 +636,7 @@ export const AdminSidebar = ({
 									{({ isActive }) => (
 										<SidebarMenuButton isActive={isActive}>
 											<Key />
-											{t.sidebar.apiKeys}
+											{t.apiKeys}
 										</SidebarMenuButton>
 									)}
 								</Link>
@@ -658,7 +655,7 @@ export const AdminSidebar = ({
 									{({ isActive }) => (
 										<SidebarMenuButton isActive={isActive}>
 											<FileBadge />
-											{t.sidebar.certificate}
+											{t.certificate}
 										</SidebarMenuButton>
 									)}
 								</Link>
@@ -677,7 +674,7 @@ export const AdminSidebar = ({
 									{({ isActive }) => (
 										<SidebarMenuButton isActive={isActive}>
 											<Users />
-											{t.sidebar.members}
+											{t.members}
 										</SidebarMenuButton>
 									)}
 								</Link>
@@ -696,7 +693,7 @@ export const AdminSidebar = ({
 									{({ isActive }) => (
 										<SidebarMenuButton isActive={isActive}>
 											<Settings />
-											Settings
+											{t.settings}
 										</SidebarMenuButton>
 									)}
 								</Link>

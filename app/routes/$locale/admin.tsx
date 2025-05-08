@@ -156,7 +156,7 @@ function RouteComponent() {
 						>
 							<SelectTrigger className="gap-1 min-w-38">
 								<p className="text-sm text-muted-foreground">
-									{t.top.editing}
+									{t.editing}
 								</p>
 								<SelectValue />
 							</SelectTrigger>

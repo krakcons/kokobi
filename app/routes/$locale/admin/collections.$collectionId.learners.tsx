@@ -31,6 +31,7 @@ import { UserToCollectionType } from "@/types/connections";
 import { User } from "@/types/users";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
+import { useTranslations } from "@/lib/locale";
 
 export const Route = createFileRoute(
 	"/$locale/admin/collections/$collectionId/learners",
@@ -60,6 +61,12 @@ function RouteComponent() {
 	const [learners, inviteLink] = Route.useLoaderData();
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
+	const t = useTranslations("Learners");
+	const tUser = useTranslations("User");
+	const tLearner = useTranslations("Learner");
+	const tForm = useTranslations("LearnersForm");
+	const tActions = useTranslations("Actions");
+	const tConnect = useTranslations("ConnectionActions");
 
 	const createConnection = useMutation({
 		mutationFn: inviteUsersConnectionFn,
@@ -85,13 +92,16 @@ function RouteComponent() {
 		{
 			accessorKey: "user.email",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Email" column={column} />
+				<DataTableColumnHeader title={tUser.email} column={column} />
 			),
 		},
 		{
 			accessorKey: "connectStatus",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Status" column={column} />
+				<DataTableColumnHeader
+					title={tLearner.status}
+					column={column}
+				/>
 			),
 			cell: ({ row: { original } }) => (
 				<ConnectionStatusBadge {...original} />
@@ -100,18 +110,21 @@ function RouteComponent() {
 		{
 			accessorKey: "user.firstName",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="First Name" column={column} />
+				<DataTableColumnHeader
+					title={tUser.firstName}
+					column={column}
+				/>
 			),
 		},
 		{
 			accessorKey: "user.lastName",
 			header: ({ column }) => (
-				<DataTableColumnHeader title="Last Name" column={column} />
+				<DataTableColumnHeader title={tUser.lastName} column={column} />
 			),
 		},
 		createDataTableActionsColumn<UserToCollectionType & { user: User }>([
 			{
-				name: "Accept",
+				name: tConnect.accept,
 				onClick: ({ userId }) =>
 					connectionResponse.mutate({
 						data: {
@@ -124,7 +137,7 @@ function RouteComponent() {
 				visible: ({ connectType }) => connectType === "request",
 			},
 			{
-				name: "Reject",
+				name: tConnect.reject,
 				onClick: ({ userId }) =>
 					connectionResponse.mutate({
 						data: {
@@ -137,7 +150,7 @@ function RouteComponent() {
 				visible: ({ connectType }) => connectType === "request",
 			},
 			{
-				name: "Resend Invite",
+				name: tLearner.resend,
 				onClick: ({ user }) =>
 					createConnection.mutate({
 						data: {
@@ -148,7 +161,7 @@ function RouteComponent() {
 					}),
 			},
 			{
-				name: "Delete",
+				name: tActions.delete,
 				onClick: ({ collectionId, user }) =>
 					removeConnection.mutate({
 						data: {
@@ -163,23 +176,19 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader
-				title="Learners"
-				description="Manage learners for this collection."
-			>
+			<PageHeader title={t.title} description={t.description}>
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button>
 							<Plus />
-							Create
+							{tActions.create}
 						</Button>
 					</DialogTrigger>
 					<DialogContent className="sm:max-w-xl w-full">
 						<DialogHeader>
-							<DialogTitle>Invite Learners</DialogTitle>
+							<DialogTitle>{tForm.title}</DialogTitle>
 							<DialogDescription>
-								Enter emails and submit below to invite them to
-								the collection.
+								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
 						<EmailsForm

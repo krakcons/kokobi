@@ -1,71 +1,94 @@
 const en = {
-	SEO: {
-		title: "Kokobi | Learn, Teach, Connect and Grow",
+	Actions: {
+		title: "Actions",
+		delete: "Delete",
+		create: "Create",
+		cancel: "Cancel",
+		continue: "Continue",
 	},
 	AdminSidebar: {
-		top: {
-			editing: "Editing",
-		},
-		sidebar: {
-			manage: "Manage",
-			dashboard: "Dashboard",
-			team: "Team",
-			edit: "Edit Team",
-			apiKeys: "API Keys",
-			certificate: "Certificate",
-			domains: "Domains",
-			members: "Members",
-		},
-	},
-	LearnerSidebar: {
+		editing: "Editing",
+		manage: "Manage",
 		dashboard: "Dashboard",
-		"available-courses": "Available Courses",
+		team: "Team",
+		edit: "Edit Team",
+		apiKeys: "API Keys",
+		certificate: "Certificate",
+		domains: "Domains",
+		members: "Members",
 		courses: "Courses",
+		createCourse: "Create Course",
 		collections: "Collections",
+		createCollection: "Create Collection",
+		settings: "Settings",
+		learners: "Learners",
+		statistics: "Statistics",
+		sharing: "Sharing",
 	},
-	LearnerDashboard: {
+	AdminDashboard: {
 		title: "Dashboard",
 		description:
-			"View all your courses, collections, attempts, and certificates",
-	},
-	Home: {
-		title: { "1": "Modern Learning", "2": "For Less" },
-		description:
-			"Discover modern, affordable, and easy learning management for an empowering educational experience.",
-		"team-description":
-			"Visit either the learning or admin portal to get started.",
-		"go-to-admin": "Go to Admin",
-		"go-to-learning": "Go to Learning",
-	},
-	Join: {
-		"0": { title: "Join" },
-		"1": { title: "Your Info" },
-		continue: "Continue",
-		join: "Join",
-		back: "Back",
-		language: "Language",
-		"language-description":
-			"Once you join you will not be able to change the language, and you will have to re-register (or request a new invitation) in order to do so.",
-	},
-	Form: {
-		learner: {
-			firstName: "First Name",
-			lastName: "Last Name",
-			email: "Email",
-		},
-		optional: "Optional",
-		submit: "Submit",
-		blockNavigation: {
-			title: "Leave without saving?",
+			"Welcome to the dashboard. Within this admin portal you will be able to create and manage courses, invite learners, and more.",
+		course: {
+			title: "Create your first course",
 			description:
-				"Your changes have not been saved. If you leave, you will lose your changes.",
-			confirm: "Confirm",
-			cancel: "Cancel",
+				"Courses allow you to share learning materials according to the Scorm 1.2 and 2004 standards",
+		},
+		collection: {
+			title: "Create your first collection",
+			description: "Collections are a way to organize a list of courses.",
+		},
+	},
+	AuthLoginForm: {
+		email: {
+			label: "Email",
+		},
+	},
+	AuthLogin: {
+		title: "Login",
+		description: "Enter your email below and submit to login",
+	},
+	AuthVerifyEmail: {
+		title: "Verify Email",
+		description: "Enter the code we sent you to verify your email",
+	},
+	AuthVerifyEmailForm: {
+		code: {
+			label: "Code",
+		},
+	},
+	APIKeys: {
+		title: "API Keys",
+		description:
+			"API keys allow you to access your Kokobi instance from external applications using a REST API.",
+		table: {
+			name: "Name",
+			key: "Key",
+		},
+	},
+	APIKeyForm: {
+		title: "Create API Key",
+		description: "Enter the key name below.",
+		name: "Name",
+	},
+	CourseSettings: {
+		title: "Settings",
+		description: "Edit your course settings",
+		delete: {
+			title: "Delete Course",
+			description:
+				"This will delete the course and all associated data. This action cannot be undone.",
+			confirm: {
+				title: "Are you absolutely sure?",
+				description:
+					"This action cannot be undone. This will permanently delete your course and remove all related data (ex. modules, learners, etc) from our servers.",
+			},
 		},
 	},
 	Certificate: {
 		fileName: "certificate.pdf",
 		title: "Certificate of Completion",
+		description: "View a preview of how your certificate will look.",
 		message: "This is to certify that you have successfully completed",
 		download: "Download Certificate",
 		"no-name": "Certificate Requires Name",
@@ -76,6 +99,85 @@ const en = {
 			offered: "Offered by",
 			created: "Created by",
 			date: "Date of Completion",
+		},
+	},
+	CompletionStatuses: {
+		passed: "Passed",
+		completed: "Completed",
+		either: "Passed/Completed",
+	},
+	ConnectionActions: {
+		accept: "Accept",
+		reject: "Reject",
+	},
+	ConnectionStatuses: {
+		accepted: "Accepted",
+		pending: "Pending",
+		rejected: "Rejected",
+	},
+	ConnectionTypes: {
+		invite: "Invite",
+		request: "Request",
+	},
+	ConnectionWrapper: {
+		invited: "You have been invited to",
+		request: "Would you like to request access to",
+		requested: "Requested access, please wait for an admin to approve.",
+		rejected: "You have rejected the invite",
+		adminRejected: "An admin has rejected your request",
+	},
+	Course: {
+		start: "Start",
+		continue: "Continue",
+	},
+	CourseForm: {
+		name: "Name",
+		description: "Description",
+		create: {
+			title: "Create Course",
+			description: "Enter the details of your course below.",
+		},
+		completionStatus: {
+			label: "Completion Status",
+			description:
+				"When the course is considered completed. Certificate is issued and course is locked.",
+		},
+	},
+	CoursesForm: {
+		title: "Add Courses",
+		description: "Select all the courses you want below.",
+		empty: "No courses available. Create a course first here.",
+		create: "Create Course",
+	},
+	CollectionForm: {
+		name: "Name",
+		description: "Description",
+		updated: "Collection updated successfully.",
+		create: {
+			title: "Create Collection",
+			description: "Enter the details of your collection below.",
+		},
+	},
+	CollectionCourses: {
+		title: "Courses",
+		description: "Manage courses for this collection.",
+		table: {
+			name: "Name",
+			description: "Description",
+		},
+	},
+	CollectionSettings: {
+		title: "Settings",
+		description: "Edit your collection settings",
+		delete: {
+			title: "Delete Collection",
+			description:
+				"This will delete the collection and all associated data. This action cannot be undone.",
+			confirm: {
+				title: "Are you absolutely sure?",
+				description:
+					"This action cannot be undone. This will permanently delete your collection and remove all related data (ex. courses, learners, etc) from our servers.",
+			},
 		},
 	},
 	Email: {
@@ -99,6 +201,159 @@ const en = {
 			content: "Here is your verification code:",
 		},
 	},
+	Errors: {
+		title: "Something went wrong!",
+		tryAgain: "Try Again",
+		goBack: "Go Back",
+		NotFound: {
+			title: "404",
+			message: "The page you are looking for does not exist.",
+			home: "Home",
+		},
+	},
+	Form: {
+		optional: "Optional",
+		submit: "Submit",
+		suggestedImageSize: "Suggested image size:",
+		otherSettings: "Other settings",
+		blockNavigation: {
+			title: "Leave without saving?",
+			description:
+				"Your changes have not been saved. If you leave, you will lose your changes.",
+			confirm: "Confirm",
+			cancel: "Cancel",
+		},
+		accepts: "Accepts:",
+	},
+	Home: {
+		title: { "1": "Modern Learning", "2": "For Less" },
+		description:
+			"Discover modern, affordable, and easy learning management for an empowering educational experience.",
+		"team-description":
+			"Visit either the learning or admin portal to get started.",
+		"go-to-admin": "Go to Admin",
+		"go-to-learning": "Go to Learning",
+	},
+	Join: {
+		"0": { title: "Join" },
+		"1": { title: "Your Info" },
+		continue: "Continue",
+		join: "Join",
+		back: "Back",
+		language: "Language",
+		"language-description":
+			"Once you join you will not be able to change the language, and you will have to re-register (or request a new invitation) in order to do so.",
+	},
+	Learners: {
+		title: "Learners",
+		description: "Manage your learners",
+	},
+	LearnerSidebar: {
+		dashboard: "Dashboard",
+		"available-courses": "Available Courses",
+		courses: "Courses",
+		collections: "Collections",
+	},
+	LearnerDashboard: {
+		title: "Dashboard",
+		description:
+			"View all your courses, collections, attempts, and certificates",
+	},
+	Learner: {
+		statuses: {
+			completed: "Completed",
+			"not-started": "Not Started",
+			"in-progress": "In Progress",
+			passed: "Passed",
+			failed: "Failed",
+		},
+		status: "Status",
+		score: "Score",
+		startedAt: "Started At",
+		completedAt: "Completed At",
+		resend: "Resend Invite",
+		recertify: "Resend Completion",
+	},
+	LearnersForm: {
+		title: "Invite Learners",
+		description:
+			"Enter emails below and submit to invite them new learners.",
+		add: "Add Email",
+	},
+	Members: {
+		title: "Members",
+		description:
+			"Manage the members of your team who can access your dashboard.",
+		table: {
+			email: "Email",
+			status: "Status",
+			role: "Role",
+		},
+	},
+	MembersForm: {
+		title: "Invite Members",
+		description:
+			"Enter the emails and roles of the members you want to invite.",
+		add: "Add Member",
+	},
+	Modules: {
+		title: "Modules",
+		description:
+			"Manage the modules for this course. Modules are the actual content of the course in the Scorm 1.2 and 2004 standards.",
+		table: {
+			version: "Version",
+			locale: "Locale",
+			type: "Type",
+		},
+	},
+	ModuleForm: {
+		title: "Create Module",
+		description: "Upload a scorm module below.",
+		file: "File",
+	},
+	NotAMember: {
+		title: "Not an admin",
+		message:
+			"You haven't been invited to administer this team. Please contact a team administrator and request an invitation to get access to the team's administration dashboard.",
+		inviteMessage:
+			"You have been invited to administer this team. Accept or decline the invitation below.",
+	},
+	SEO: {
+		title: "Kokobi | Learn, Teach, Connect and Grow",
+	},
+	Statistics: {
+		title: "Statistics",
+		description: "View your course statistics",
+		filter: {
+			title: "Filter by Team",
+			all: "All Teams",
+		},
+		totalAttempts: {
+			title: "Total Attempts",
+			description: "Total learners that have started this course.",
+		},
+		totalCompletions: {
+			title: "Total Completed",
+			description: "Total learners who have completed this course.",
+		},
+		averageCompletionTime: {
+			title: "Average Completion Time",
+			description: "Average time it takes to complete this course.",
+			minutes: "minutes",
+		},
+		attemptStatus: {
+			title: "Attempt Status",
+			description: "Total learners with each status",
+		},
+	},
+	Sharing: {
+		title: "Sharing",
+		description: "Manage who can deliver this course",
+		table: {
+			name: "Name",
+			status: "Status",
+		},
+	},
 	Table: {
 		empty: "No results.",
 		filter: "Filter results...",
@@ -117,49 +372,69 @@ const en = {
 		goToNextPage: "Go to next page",
 		goToLastPage: "Go to last page",
 	},
-	Learner: {
-		statuses: {
-			completed: "Completed",
-			"not-started": "Not Started",
-			"in-progress": "In Progress",
-			passed: "Passed",
-			failed: "Failed",
+	TeamSettings: {
+		title: "Settings",
+		description: "Edit your team settings",
+		domain: {
+			status: "Status",
+			type: "Type",
+			name: "Name",
+			value: "Value",
+			priority: "Priority:",
 		},
-		status: "Status",
-		score: "Score",
-		startedAt: "Started At",
-		completedAt: "Completed At",
+		delete: {
+			title: "Delete Team",
+			description:
+				"This will delete the team and all associated data. This action cannot be undone.",
+			confirm: {
+				title: "Are you absolutely sure?",
+				description:
+					"This action cannot be undone. This will permanently delete your team and remove all your data (ex. collections, courses, learners, etc) from our servers.",
+			},
+		},
 	},
-	Role: {
+	TeamSwitcher: {
+		title: "Teams",
+		create: "Create team",
+	},
+	TeamsForm: {
+		title: "Invite Teams",
+		description: "Enter the identifiers of the teams you want to invite.",
+		add: "Add Team",
+	},
+	TeamForm: {
+		name: "Name",
+		logo: "Logo",
+		favicon: "Favicon",
+		create: {
+			title: "Create Team",
+			description: "Enter the details of your team below.",
+		},
+	},
+	TeamDomainForm: {
+		title: "Custom Domain",
+		description: "Set a custom domain to serve your team's content",
+		domain: "Domain",
+	},
+	TeamRole: {
 		owner: "Owner",
 		admin: "Admin",
 		member: "Member",
 	},
-	CompletionStatuses: {
-		passed: "Passed",
-		completed: "Completed",
-		either: "Passed/Completed",
+	User: {
+		email: "Email",
+		firstName: "First Name",
+		lastName: "Last Name",
 	},
-	ConnectionActions: {
-		accept: "Accept",
-		reject: "Reject",
-	},
-	ConnectionStatuses: {
-		accepted: "Accepted",
-		pending: "Pending",
-		rejected: "Rejected",
-	},
-	ConnectionTypes: {
-		invite: "Invite",
-		request: "Request",
-	},
-	Login: {
-		title: "Login",
-		description: "Enter your email below and submit to login",
-	},
-	VerifyEmail: {
-		title: "Verify Email",
-		description: "Enter the code we sent you to verify your email",
+	UserForm: {
+		title: "Account",
+		description: "Manage your account settings.",
+		firstName: {
+			label: "First Name",
+		},
+		lastName: {
+			label: "Last Name",
+		},
 	},
 	UserButton: {
 		theme: {
@@ -174,58 +449,6 @@ const en = {
 			learner: "Switch to Learning",
 		},
 		signout: "Sign out",
-	},
-	TeamSwitcher: {
-		title: "Teams",
-		create: "Create team",
-	},
-	Course: {
-		start: "Start",
-		continue: "Continue",
-	},
-	LoginForm: {
-		email: {
-			label: "Email",
-		},
-	},
-	VerifyEmailForm: {
-		code: {
-			label: "Code",
-		},
-	},
-	UserForm: {
-		title: "Account",
-		description: "Manage your account settings.",
-		firstName: {
-			label: "First Name",
-		},
-		lastName: {
-			label: "Last Name",
-		},
-	},
-	ConnectionWrapper: {
-		invited: "You have been invited to",
-		request: "Would you like to request access to",
-		requested: "Requested access, please wait for an admin to approve.",
-		rejected: "You have rejected the invite",
-		adminRejected: "An admin has rejected your request",
-	},
-	Errors: {
-		title: "Something went wrong!",
-		tryAgain: "Try Again",
-		goBack: "Go Back",
-		NotFound: {
-			title: "404",
-			message: "The page you are looking for does not exist.",
-			home: "Home",
-		},
-	},
-	NotAMember: {
-		title: "Not an admin",
-		message:
-			"You haven't been invited to administer this team. Please contact a team administrator and request an invitation to get access to the team's administration dashboard.",
-		inviteMessage:
-			"You have been invited to administer this team. Accept or decline the invitation below.",
 	},
 };
 

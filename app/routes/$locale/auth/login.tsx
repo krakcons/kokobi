@@ -47,7 +47,7 @@ const LoginForm = ({
 	onSubmit: (data: LoginFormType) => Promise<any>;
 	defaultValues?: LoginFormType;
 }) => {
-	const t = useTranslations("LoginForm");
+	const t = useTranslations("AuthLoginForm");
 	const form = useAppForm({
 		defaultValues: {
 			...defaultValues,
@@ -93,7 +93,7 @@ function RouteComponent() {
 		},
 	});
 	const { team } = Route.useLoaderData();
-	const t = useTranslations("Login");
+	const t = useTranslations("AuthLogin");
 
 	return (
 		<FloatingPage>

@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Trash } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
 import { z } from "zod";
+import { useTranslations } from "@/lib/locale";
 
 export const TeamsFormSchema = z.object({
 	teamIds: z.string().array(),
@@ -12,6 +13,7 @@ export const TeamsForm = ({
 }: {
 	onSubmit: (values: TeamsFormType) => Promise<any>;
 }) => {
+	const t = useTranslations("TeamsForm");
 	const form = useAppForm({
 		validators: {
 			onSubmit: TeamsFormSchema,
@@ -64,7 +66,8 @@ export const TeamsForm = ({
 									}}
 									variant="outline"
 								>
-									Add Team
+									<Plus />
+									{t.add}
 								</Button>
 								<form.SubmitButton />
 							</div>
