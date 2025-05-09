@@ -25,7 +25,6 @@ export const createRouter = () => {
 			routeTree,
 			context: { queryClient },
 			defaultPreload: "intent",
-			notFoundMode: "root",
 			scrollRestoration: true,
 			defaultPendingComponent: PendingComponent,
 			defaultErrorComponent: ErrorComponent,
