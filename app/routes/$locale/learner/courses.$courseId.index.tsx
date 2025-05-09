@@ -38,25 +38,6 @@ import { AlertCircle, Award, Play } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
-	loader: ({ params }) => {
-		return Promise.all([
-			getCourseFn({ data: { courseId: params.courseId } }),
-			getUserTeamFn({
-				data: {
-					type: "learner",
-				},
-			}),
-			getUserModulesByCourseFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
-			getConnectionFn({
-				data: { type: "course", id: params.courseId },
-			}),
-			getAuthFn(),
-		]);
-	},
 });
 
 function RouteComponent() {

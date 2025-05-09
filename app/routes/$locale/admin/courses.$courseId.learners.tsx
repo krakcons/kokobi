@@ -21,14 +21,16 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import { getConnectionLinkFn } from "@/server/handlers/connections";
+import {
+	getConnectionLinkFn,
+	updateTeamConnectionFn,
+} from "@/server/handlers/connections";
 import { User } from "@/types/users";
 import { UserToCourseType } from "@/types/connections";
 import {
 	getTeamConnectionsFn,
 	inviteUsersConnectionFn,
 	removeConnectionFn,
-	teamConnectionResponseFn,
 } from "@/server/handlers/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Module } from "@/types/module";
@@ -83,7 +85,7 @@ function RouteComponent() {
 	const tForm = useTranslations("LearnersForm");
 
 	const connectionResponse = useMutation({
-		mutationFn: teamConnectionResponseFn,
+		mutationFn: updateTeamConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},

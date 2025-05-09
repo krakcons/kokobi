@@ -8,9 +8,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
 import {
+	createTeamConnectionFn,
 	getTeamConnectionsFn,
-	inviteTeamsConnectionFn,
 	removeConnectionFn,
+	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
 import { Team, TeamTranslation } from "@/types/team";
 import { TeamToCourseType } from "@/types/connections";
@@ -29,6 +30,8 @@ import { TeamsForm } from "@/components/forms/TeamsForm";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "@/lib/locale";
 import { Plus } from "lucide-react";
+import CopyButton from "@/components/CopyButton";
+import { env } from "@/env";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/sharing",
@@ -55,10 +58,17 @@ function RouteComponent() {
 	const params = Route.useParams();
 	const t = useTranslations("Sharing");
 	const tActions = useTranslations("Actions");
+	const tConnect = useTranslations("ConnectionActions");
 	const tForm = useTranslations("TeamsForm");
 
-	const inviteConnection = useMutation({
-		mutationFn: inviteTeamsConnectionFn,
+	const createTeamConnection = useMutation({
+		mutationFn: createTeamConnectionFn,
+		onSuccess: () => {
+			router.invalidate();
+		},
+	});
+	const updateTeamConnection = useMutation({
+		mutationFn: updateTeamConnectionFn,
 		onSuccess: () => {
 			router.invalidate();
 		},
@@ -101,6 +111,32 @@ function RouteComponent() {
 			TeamToCourseType & { team: Team & TeamTranslation }
 		>([
 			{
+				name: tConnect.accept,
+				onClick: ({ teamId }) =>
+					updateTeamConnection.mutate({
+						data: {
+							id: params.courseId,
+							type: "course-from-team",
+							toId: teamId,
+							connectStatus: "accepted",
+						},
+					}),
+				visible: ({ connectType }) => connectType === "request",
+			},
+			{
+				name: tConnect.reject,
+				onClick: ({ teamId }) =>
+					updateTeamConnection.mutate({
+						data: {
+							id: params.courseId,
+							type: "course-from-team",
+							toId: teamId,
+							connectStatus: "rejected",
+						},
+					}),
+				visible: ({ connectType }) => connectType === "request",
+			},
+			{
 				name: tActions.delete,
 				onClick: ({ teamId }) =>
 					removeConnection.mutate({
@@ -113,6 +149,8 @@ function RouteComponent() {
 			},
 		]),
 	];
+
+	const inviteLink = `${env.VITE_SITE_URL}/admin/courses/${params.courseId}`;
 
 	return (
 		<Page>
@@ -133,10 +171,11 @@ function RouteComponent() {
 						</DialogHeader>
 						<TeamsForm
 							onSubmit={(value) =>
-								inviteConnection.mutateAsync(
+								createTeamConnection.mutateAsync(
 									{
 										data: {
 											...value,
+											connectType: "invite",
 											id: params.courseId,
 											type: "course",
 										},
@@ -150,6 +189,12 @@ function RouteComponent() {
 					</DialogContent>
 				</Dialog>
 			</PageHeader>
+			<div className="bg-secondary rounded flex gap-2 items-center px-3 py-2 overflow-x-auto">
+				<p className="truncate text-sm text-muted-foreground">
+					{inviteLink}
+				</p>
+				<CopyButton text={inviteLink} />
+			</div>
 			<DataTable
 				columns={columns}
 				data={connections}

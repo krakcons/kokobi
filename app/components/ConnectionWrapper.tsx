@@ -1,6 +1,7 @@
 import { ConnectionType } from "@/types/connections";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/locale";
+import { Check, X } from "lucide-react";
 
 export const ConnectionWrapper = ({
 	children,
@@ -65,6 +66,7 @@ export const ConnectionWrapper = ({
 								onResponse("accepted");
 							}}
 						>
+							<Check />
 							{tActions.accept}
 						</Button>
 					)}
@@ -79,6 +81,7 @@ export const ConnectionWrapper = ({
 								onResponse("rejected");
 							}}
 						>
+							<X />
 							{tActions.reject}
 						</Button>
 					)}

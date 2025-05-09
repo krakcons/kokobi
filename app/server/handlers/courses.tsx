@@ -4,6 +4,7 @@ import {
 	collectionsToCourses,
 	courseTranslations,
 	courses,
+	modules,
 	users,
 	usersToCollections,
 	usersToCourses,

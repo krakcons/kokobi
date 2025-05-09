@@ -393,40 +393,6 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
-export const inviteTeamsConnectionFn = createServerFn({ method: "POST" })
-	.middleware([teamMiddleware(), localeMiddleware])
-	.validator(
-		z.object({
-			type: z.enum(["course"]),
-			id: z.string(),
-			teamIds: z.string().array(),
-		}),
-	)
-	.handler(async ({ context, data: { type, id, teamIds } }) => {
-		await hasTeamAccess({
-			teamId: context.teamId,
-			type,
-			id,
-			access: "root",
-		});
-
-		if (teamIds.includes(context.teamId)) {
-			throw new Error("You cannot invite yourself");
-		}
-
-		if (type === "course") {
-			await db.insert(teamsToCourses).values(
-				teamIds.map((teamId) => ({
-					fromTeamId: context.teamId,
-					teamId,
-					courseId: id,
-					connectType: "invite" as ConnectionType["connectType"],
-					connectStatus: "pending" as ConnectionType["connectStatus"],
-				})),
-			);
-		}
-	});
-
 export const requestConnectionFn = createServerFn({ method: "POST" })
 	.middleware([learnerMiddleware, localeMiddleware])
 	.validator(
@@ -540,11 +506,72 @@ export const updateUserConnectionFn = createServerFn({ method: "POST" })
 		return null;
 	});
 
-export const teamConnectionResponseFn = createServerFn({ method: "POST" })
+export const createTeamConnectionFn = createServerFn({ method: "POST" })
+	.middleware([teamMiddleware(), localeMiddleware])
+	.validator(
+		z.object({
+			connectType: z.enum(["invite", "request"]),
+			type: z.enum(["course"]),
+			id: z.string(),
+			teamIds: z.string().array().min(1),
+		}),
+	)
+	.handler(async ({ context, data: { connectType, type, id, teamIds } }) => {
+		if (teamIds.includes(context.teamId)) {
+			throw new Error("You cannot include your own team");
+		}
+
+		// If invite, verify the team has root access to the course
+		if (connectType === "invite") {
+			await hasTeamAccess({
+				teamId: context.teamId,
+				type,
+				id,
+				access: "root",
+			});
+		}
+
+		// If requesting courses, verify the teams have shared/root access to the course
+		if (connectType === "request") {
+			await Promise.all(
+				teamIds.map((teamId) =>
+					hasTeamAccess({
+						teamId,
+						type,
+						id,
+					}),
+				),
+			);
+		}
+
+		if (type === "course") {
+			await db.insert(teamsToCourses).values(
+				teamIds.map((teamId) => ({
+					fromTeamId:
+						connectType === "invite" ? context.teamId : teamId,
+					teamId: connectType === "invite" ? teamId : context.teamId,
+					courseId: id,
+					connectType,
+					connectStatus: "pending" as const,
+				})),
+			);
+		}
+	});
+
+export const updateTeamConnectionFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware()])
 	.validator(
 		z.object({
-			type: z.enum(["course", "collection", "from-team", "to-team"]),
+			type: z.enum([
+				// User request to join course
+				"course",
+				// User request to join collection
+				"collection",
+				// Request from team
+				"course-from-team",
+				// Response to invite
+				"course-to-team",
+			]),
 			id: z.string(),
 			toId: z.string(),
 			connectStatus: z.enum(["accepted", "rejected"]),
@@ -583,7 +610,7 @@ export const teamConnectionResponseFn = createServerFn({ method: "POST" })
 				);
 		}
 
-		if (type === "from-team" || type === "to-team") {
+		if (type === "course-from-team" || type === "course-to-team") {
 			await db
 				.update(teamsToCourses)
 				.set({
@@ -591,7 +618,7 @@ export const teamConnectionResponseFn = createServerFn({ method: "POST" })
 				})
 				.where(
 					and(
-						type === "from-team"
+						type === "course-from-team"
 							? and(
 									eq(teamsToCourses.fromTeamId, teamId),
 									eq(teamsToCourses.teamId, toId),
@@ -668,6 +695,7 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 		}),
 	)
 	.handler(async ({ context, data: { type, id } }) => {
+		// TODO: Refactor into getCourseUsersFn
 		if (type === "course") {
 			const userList = await db
 				.select({
@@ -701,6 +729,7 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 			}));
 		}
 
+		// TODO: Refactor into getCollectionUsersFn
 		if (type === "collection") {
 			const connections = await db.query.usersToCollections.findMany({
 				where: and(
@@ -715,6 +744,7 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 			return connections;
 		}
 
+		// TODO: Refactor into getTeamCourseConnectionsFn
 		if (type === "from-team" || type === "to-team") {
 			const connections = await db.query.teamsToCourses.findMany({
 				where: and(
@@ -741,6 +771,28 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 				...connect,
 				team: handleLocalization(context, connect.team),
 				course: handleLocalization(context, connect.course),
+				access: connect.team.id === context.teamId ? "root" : "shared",
 			}));
 		}
+	});
+
+export const getTeamCourseConnectionFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware()])
+	.validator(
+		z.object({
+			type: z.enum(["from", "to"]),
+			courseId: z.string(),
+		}),
+	)
+	.handler(async ({ context, data: { type, courseId } }) => {
+		const connection = await db.query.teamsToCourses.findFirst({
+			where: and(
+				type === "from"
+					? eq(teamsToCourses.fromTeamId, context.teamId)
+					: eq(teamsToCourses.teamId, context.teamId),
+				eq(teamsToCourses.courseId, courseId),
+			),
+		});
+
+		return connection;
 	});

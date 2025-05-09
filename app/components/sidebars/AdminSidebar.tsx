@@ -12,7 +12,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useMatch, useRouter } from "@tanstack/react-router";
+import { Link, useMatch } from "@tanstack/react-router";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -30,10 +30,9 @@ import {
 	Book,
 	FileBadge,
 	Share,
-	Check,
-	X,
 	ChartNoAxesColumn,
 	SquareLibrary,
+	Square,
 } from "lucide-react";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
@@ -41,8 +40,6 @@ import { Collection, CollectionTranslation } from "@/types/collections";
 import { Team, TeamTranslation } from "@/types/team";
 import { TeamToCourseType, UserToTeamType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { teamConnectionResponseFn } from "@/server/handlers/connections";
-import { useMutation } from "@tanstack/react-query";
 import { TeamSwitcher } from "./TeamSwitcher";
 import { User } from "@/types/users";
 import { UserButton } from "./UserButton";
@@ -226,9 +223,7 @@ const SharedCourseCollapsible = ({
 	const [open, setOpen] = useState(false);
 	const locale = useLocale();
 	const course = connection.course;
-	const router = useRouter();
 	const t = useTranslations("AdminSidebar");
-	const tConnect = useTranslations("ConnectionActions");
 
 	// Match sub routes and open the collapsible if the route matches.
 	const matchLearners = useMatch({
@@ -251,12 +246,37 @@ const SharedCourseCollapsible = ({
 		}
 	}, [matchLearners, matchStatistics]);
 
-	const connectionResponse = useMutation({
-		mutationFn: teamConnectionResponseFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	if (connection.connectStatus !== "accepted") {
+		return (
+			<Link
+				to={"/$locale/admin/courses/$courseId"}
+				params={{
+					locale,
+					courseId: course.id,
+				}}
+				search={(p) => p}
+				onClick={() => {
+					setOpenMobile(false);
+				}}
+				activeOptions={{ exact: true }}
+			>
+				{({ isActive }) => (
+					<SidebarMenuButton
+						onClick={() => setOpen(!open)}
+						className="h-auto"
+						isActive={isActive}
+					>
+						<Book />
+						<p className="truncate">{course.name}</p>
+						<ConnectionStatusBadge
+							connectStatus={connection.connectStatus}
+							connectType={connection.connectType}
+						/>
+					</SidebarMenuButton>
+				)}
+			</Link>
+		);
+	}
 
 	return (
 		<Collapsible
@@ -276,97 +296,55 @@ const SharedCourseCollapsible = ({
 						<ConnectionStatusBadge
 							connectStatus={connection.connectStatus}
 							connectType={connection.connectType}
+							hideOnSuccess
 						/>
 						<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 					</SidebarMenuButton>
 				</CollapsibleTrigger>
 				<CollapsibleContent>
 					<SidebarMenuSub>
-						{connection.connectStatus === "accepted" ? (
-							<>
-								<SidebarMenuSubItem>
-									<Link
-										to={
-											"/$locale/admin/courses/$courseId/learners"
-										}
-										params={{
-											locale,
-											courseId: course.id,
-										}}
-										search={(p) => p}
-										onClick={() => {
-											setOpenMobile(false);
-										}}
-									>
-										{({ isActive }) => (
-											<SidebarMenuSubButton
-												isActive={isActive}
-											>
-												<Users />
-												{t.learners}
-											</SidebarMenuSubButton>
-										)}
-									</Link>
-								</SidebarMenuSubItem>
-								<SidebarMenuSubItem>
-									<Link
-										to={
-											"/$locale/admin/courses/$courseId/statistics"
-										}
-										params={{
-											locale,
-											courseId: course.id,
-										}}
-										search={(p) => p}
-										onClick={() => {
-											setOpenMobile(false);
-										}}
-									>
-										{({ isActive }) => (
-											<SidebarMenuSubButton
-												isActive={isActive}
-											>
-												<ChartNoAxesColumn />
-												{t.statistics}
-											</SidebarMenuSubButton>
-										)}
-									</Link>
-								</SidebarMenuSubItem>
-							</>
-						) : (
-							<>
-								<SidebarMenuSubButton
-									onClick={() => {
-										connectionResponse.mutate({
-											data: {
-												type: "to-team",
-												id: course.id,
-												toId: connection.fromTeamId,
-												connectStatus: "accepted",
-											},
-										});
-									}}
-								>
-									<Check />
-									{tConnect.accept}
-								</SidebarMenuSubButton>
-								<SidebarMenuSubButton
-									onClick={() => {
-										connectionResponse.mutate({
-											data: {
-												type: "to-team",
-												id: course.id,
-												toId: connection.fromTeamId,
-												connectStatus: "rejected",
-											},
-										});
-									}}
-								>
-									<X />
-									{tConnect.reject}
-								</SidebarMenuSubButton>
-							</>
-						)}
+						<SidebarMenuSubItem>
+							<Link
+								to={"/$locale/admin/courses/$courseId/learners"}
+								params={{
+									locale,
+									courseId: course.id,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuSubButton isActive={isActive}>
+										<Users />
+										{t.learners}
+									</SidebarMenuSubButton>
+								)}
+							</Link>
+						</SidebarMenuSubItem>
+						<SidebarMenuSubItem>
+							<Link
+								to={
+									"/$locale/admin/courses/$courseId/statistics"
+								}
+								params={{
+									locale,
+									courseId: course.id,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuSubButton isActive={isActive}>
+										<ChartNoAxesColumn />
+										{t.statistics}
+									</SidebarMenuSubButton>
+								)}
+							</Link>
+						</SidebarMenuSubItem>
 					</SidebarMenuSub>
 				</CollapsibleContent>
 			</SidebarMenuItem>
@@ -425,26 +403,28 @@ const CollectionCollapsible = ({
 				</CollapsibleTrigger>
 				<CollapsibleContent>
 					<SidebarMenuSub>
-						<Link
-							to={
-								"/$locale/admin/collections/$collectionId/learners"
-							}
-							params={{
-								locale,
-								collectionId: collection.id,
-							}}
-							search={(p) => p}
-							onClick={() => {
-								setOpenMobile(false);
-							}}
-						>
-							{({ isActive }) => (
-								<SidebarMenuSubButton isActive={isActive}>
-									<Users />
-									{t.learners}
-								</SidebarMenuSubButton>
-							)}
-						</Link>
+						<SidebarMenuSubItem>
+							<Link
+								to={
+									"/$locale/admin/collections/$collectionId/learners"
+								}
+								params={{
+									locale,
+									collectionId: collection.id,
+								}}
+								search={(p) => p}
+								onClick={() => {
+									setOpenMobile(false);
+								}}
+							>
+								{({ isActive }) => (
+									<SidebarMenuSubButton isActive={isActive}>
+										<Users />
+										{t.learners}
+									</SidebarMenuSubButton>
+								)}
+							</Link>
+						</SidebarMenuSubItem>
 						<SidebarMenuSubItem>
 							<Link
 								to={
