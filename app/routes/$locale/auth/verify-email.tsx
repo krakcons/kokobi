@@ -45,7 +45,10 @@ const OTPForm = ({
 				<form.AppField
 					name="code"
 					children={(field) => (
-						<field.TextField label={t.code.label} />
+						<field.TextField
+							label={t.code.label}
+							autoComplete="off"
+						/>
 					)}
 				/>
 				<form.SubmitButton />
