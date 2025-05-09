@@ -92,17 +92,15 @@ function RouteComponent() {
 					});
 				}}
 			>
-				<div className="flex flex-col gap-4">
-					<h3>Courses</h3>
-					{courses.map((course) => (
-						<ConnectionComponent
-							key={course.id}
-							connection={connection!}
-							{...course}
-							type="course"
-						/>
-					))}
-				</div>
+				<h3>Courses</h3>
+				{courses.map((course) => (
+					<ConnectionComponent
+						key={course.id}
+						connection={connection!}
+						{...course}
+						type="course"
+					/>
+				))}
 			</ConnectionWrapper>
 		</Page>
 	);

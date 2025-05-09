@@ -1,8 +1,15 @@
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { PageSubHeader } from "@/components/Page";
 import { useLocale } from "@/lib/locale";
 import { ConnectionType } from "@/types/connections";
 import { Link } from "@tanstack/react-router";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "./ui/card";
+import { ChevronRight } from "lucide-react";
 
 export const ConnectionComponent = ({
 	name,
@@ -30,17 +37,19 @@ export const ConnectionComponent = ({
 				collectionId: id,
 				courseId: id,
 			}}
-			className="w-full rounded-lg p-4 border flex flex-col gap-4"
 		>
-			<PageSubHeader
-				title={name}
-				description={description}
-				className="items-start"
-			>
-				{connection && (
-					<ConnectionStatusBadge {...connection} hideOnSuccess />
-				)}
-			</PageSubHeader>
+			<Card className="flex justify-between items-center">
+				<CardHeader>
+					<CardTitle>{name}</CardTitle>
+					{description && (
+						<CardDescription>{description}</CardDescription>
+					)}
+					{connection && (
+						<ConnectionStatusBadge {...connection} hideOnSuccess />
+					)}
+				</CardHeader>
+				<ChevronRight className="mr-2 size-6 min-w-6" />
+			</Card>
 		</Link>
 	);
 };
