@@ -260,6 +260,16 @@ const en = {
 		title: "Dashboard",
 		description:
 			"View all your courses, collections, attempts, and certificates",
+		course: {
+			title: "No courses available",
+			description:
+				"You haven't joined any courses yet. To join a course, request access from a team or get a team to invite you.",
+		},
+		collection: {
+			title: "No collections available",
+			description:
+				"You haven't joined any collections yet. To join a collection, request access from a team or get a team to invite you.",
+		},
 	},
 	Learner: {
 		statuses: {

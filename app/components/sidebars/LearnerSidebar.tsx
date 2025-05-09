@@ -215,9 +215,7 @@ export const LearnerSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<SidebarMenuItem>
-						<UserButton user={user} />
-					</SidebarMenuItem>
+					<UserButton user={user} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

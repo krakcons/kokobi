@@ -28,7 +28,7 @@ export const Route = createFileRoute(
 			}),
 			getCollectionCoursesFn({
 				data: {
-					id: params.collectionId,
+					collectionId: params.collectionId,
 				},
 			}),
 			getConnectionFn({
@@ -57,53 +57,53 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<div className="flex flex-col gap-8 w-full">
-				<ContentBranding
-					contentTeam={collection.team}
-					connectTeam={team}
-				/>
-				<PageHeader
-					title={collection.name}
-					description={collection.description}
-				>
-					{connection && (
-						<ConnectionStatusBadge hideOnSuccess {...connection} />
-					)}
-				</PageHeader>
-				<ConnectionWrapper
-					name={collection.name}
-					connection={connection}
-					onRequest={() =>
-						requestConnection.mutate({
-							data: {
-								type: "collection",
-								id: collection.id,
-							},
-						})
-					}
-					onResponse={(status) => {
-						connectionResponse.mutate({
-							data: {
-								type: "collection",
-								id: collection.id,
-								connectStatus: status,
-							},
-						});
-					}}
-				>
-					<div className="flex flex-col gap-4">
-						<h3>Courses</h3>
-						{courses.map((course) => (
-							<ConnectionComponent
-								key={course.id}
-								connection={connection!}
-								{...course}
-								type="course"
-							/>
-						))}
-					</div>
-				</ConnectionWrapper>
-			</div>
+			<PageHeader
+				title={collection.name}
+				description={collection.description}
+				UnderTitle={
+					<ContentBranding
+						contentTeam={collection.team}
+						connectTeam={team}
+					/>
+				}
+			>
+				{connection && (
+					<ConnectionStatusBadge hideOnSuccess {...connection} />
+				)}
+			</PageHeader>
+			<ConnectionWrapper
+				name={collection.name}
+				connection={connection}
+				onRequest={() =>
+					requestConnection.mutate({
+						data: {
+							type: "collection",
+							id: collection.id,
+						},
+					})
+				}
+				onResponse={(status) => {
+					connectionResponse.mutate({
+						data: {
+							type: "collection",
+							id: collection.id,
+							connectStatus: status,
+						},
+					});
+				}}
+			>
+				<div className="flex flex-col gap-4">
+					<h3>Courses</h3>
+					{courses.map((course) => (
+						<ConnectionComponent
+							key={course.id}
+							connection={connection!}
+							{...course}
+							type="course"
+						/>
+					))}
+				</div>
+			</ConnectionWrapper>
 		</Page>
 	);
 }

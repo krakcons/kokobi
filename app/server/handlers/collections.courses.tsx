@@ -8,12 +8,11 @@ import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { createServerFn } from "@tanstack/react-start";
 
 export const getCollectionCoursesFn = createServerFn({ method: "GET" })
-	.middleware([teamMiddleware(), localeMiddleware])
-	.validator(z.object({ id: z.string() }))
-	.handler(async ({ context, data: { id } }) => {
-		const { teamId } = context;
+	.middleware([localeMiddleware])
+	.validator(z.object({ collectionId: z.string() }))
+	.handler(async ({ context, data: { collectionId } }) => {
 		const collection = await db.query.collections.findFirst({
-			where: and(eq(collections.id, id), eq(collections.teamId, teamId)),
+			where: eq(collections.id, collectionId),
 			with: {
 				translations: true,
 				collectionsToCourses: {

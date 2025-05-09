@@ -38,7 +38,7 @@ export const Route = createFileRoute(
 		Promise.all([
 			getCollectionCoursesFn({
 				data: {
-					id: params.collectionId,
+					collectionId: params.collectionId,
 				},
 			}),
 			getCoursesFn(),
