@@ -7,6 +7,7 @@ const en = {
 		continue: "Continue",
 	},
 	AdminSidebar: {
+		switchToLearner: "Switch to Learner",
 		editing: "Editing",
 		manage: "Manage",
 		dashboard: "Dashboard",
@@ -249,6 +250,7 @@ const en = {
 		description: "Manage your learners",
 	},
 	LearnerSidebar: {
+		switchToAdmin: "Switch to Admin",
 		dashboard: "Dashboard",
 		"available-courses": "Available Courses",
 		courses: "Courses",
@@ -444,10 +446,6 @@ const en = {
 			system: "System",
 		},
 		account: "Account",
-		switch: {
-			admin: "Switch to Admin",
-			learner: "Switch to Learning",
-		},
 		signout: "Sign out",
 	},
 };

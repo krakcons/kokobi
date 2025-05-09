@@ -9,6 +9,7 @@ const fr: Messages = {
 		continue: "Continuer",
 	},
 	AdminSidebar: {
+		switchToLearner: "Passer en Apprenant",
 		editing: "Edition",
 		manage: "Gérer",
 		dashboard: "Tableau de bord",
@@ -258,6 +259,7 @@ const fr: Messages = {
 		description: "Gérez vos apprenants",
 	},
 	LearnerSidebar: {
+		switchToAdmin: "Passer en Administrateur",
 		dashboard: "Tableau de bord",
 		"available-courses": "Cours disponibles",
 		courses: "Cours",
@@ -455,10 +457,6 @@ const fr: Messages = {
 			system: "Système",
 		},
 		account: "Compte",
-		switch: {
-			admin: "Passer en administrateur",
-			learner: "Passer en apprenant",
-		},
 		signout: "Se déconnecter",
 	},
 };

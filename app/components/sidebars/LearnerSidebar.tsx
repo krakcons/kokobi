@@ -1,6 +1,7 @@
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
@@ -24,6 +25,7 @@ import { TeamSwitcher } from "./TeamSwitcher";
 import { User } from "@/types/users";
 import { UserButton } from "./UserButton";
 import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
+import { Separator } from "../ui/separator";
 
 export const LearnerSidebar = ({
 	tenantId,
@@ -88,17 +90,52 @@ export const LearnerSidebar = ({
 				</SidebarGroup>
 				{availableCourses.length > 0 && (
 					<SidebarGroup>
+						<SidebarGroupLabel>
+							{t["available-courses"]}
+						</SidebarGroupLabel>
 						<SidebarGroupContent>
-							<SidebarGroupLabel>
-								{t["available-courses"]}
-							</SidebarGroupLabel>
-							{availableCourses.map((course) => (
-								<SidebarMenuItem key={course.id}>
+							<SidebarMenu>
+								{availableCourses.map((course) => (
+									<SidebarMenuItem key={course.id}>
+										<Link
+											to="/$locale/learner/courses/$courseId"
+											params={{
+												locale,
+												courseId: course.id,
+											}}
+											search={(p) => p}
+											onClick={() => {
+												setOpenMobile(false);
+											}}
+										>
+											{({ isActive }) => (
+												<SidebarMenuButton
+													isActive={isActive}
+												>
+													<Book />
+													<p className="truncate flex-1">
+														{course.name}
+													</p>
+												</SidebarMenuButton>
+											)}
+										</Link>
+									</SidebarMenuItem>
+								))}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
+				<SidebarGroup>
+					<SidebarGroupLabel>{t.courses}</SidebarGroupLabel>
+					<SidebarGroupContent>
+						<SidebarMenu>
+							{courses.map((connection) => (
+								<SidebarMenuItem key={connection.courseId}>
 									<Link
 										to="/$locale/learner/courses/$courseId"
 										params={{
 											locale,
-											courseId: course.id,
+											courseId: connection.course.id,
 										}}
 										search={(p) => p}
 										onClick={() => {
@@ -111,84 +148,78 @@ export const LearnerSidebar = ({
 											>
 												<Book />
 												<p className="truncate flex-1">
-													{course.name}
+													{connection.course.name}
 												</p>
+												<ConnectionStatusBadge
+													hideOnSuccess
+													{...connection}
+												/>
 											</SidebarMenuButton>
 										)}
 									</Link>
 								</SidebarMenuItem>
 							))}
-						</SidebarGroupContent>
-					</SidebarGroup>
-				)}
-				<SidebarGroup>
-					<SidebarGroupContent>
-						<SidebarGroupLabel>{t.courses}</SidebarGroupLabel>
-						{courses.map((connection) => (
-							<SidebarMenuItem key={connection.courseId}>
-								<Link
-									to="/$locale/learner/courses/$courseId"
-									params={{
-										locale,
-										courseId: connection.course.id,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									{({ isActive }) => (
-										<SidebarMenuButton isActive={isActive}>
-											<Book />
-											<p className="truncate flex-1">
-												{connection.course.name}
-											</p>
-											<ConnectionStatusBadge
-												hideOnSuccess
-												{...connection}
-											/>
-										</SidebarMenuButton>
-									)}
-								</Link>
-							</SidebarMenuItem>
-						))}
+						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 				<SidebarGroup>
+					<SidebarGroupLabel>{t.collections}</SidebarGroupLabel>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>{t.collections}</SidebarGroupLabel>
-						{collections.map((connection) => (
-							<SidebarMenuItem key={connection.collectionId}>
-								<Link
-									to="/$locale/learner/collections/$collectionId"
-									params={{
-										locale,
-										collectionId: connection.collectionId,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									{({ isActive }) => (
-										<SidebarMenuButton isActive={isActive}>
-											<SquareLibrary />
-											<p className="truncate flex-1">
-												{connection.collection.name}
-											</p>
-											<ConnectionStatusBadge
-												hideOnSuccess
-												{...connection}
-											/>
-										</SidebarMenuButton>
-									)}
-								</Link>
-							</SidebarMenuItem>
-						))}
+						<SidebarMenu>
+							{collections.map((connection) => (
+								<SidebarMenuItem key={connection.collectionId}>
+									<Link
+										to="/$locale/learner/collections/$collectionId"
+										params={{
+											locale,
+											collectionId:
+												connection.collectionId,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+											>
+												<SquareLibrary />
+												<p className="truncate flex-1">
+													{connection.collection.name}
+												</p>
+												<ConnectionStatusBadge
+													hideOnSuccess
+													{...connection}
+												/>
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+							))}
+						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 			</SidebarContent>
-			<UserButton user={user} />
+			<SidebarFooter>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<Link to={"/$locale/admin"} params={{ locale }}>
+							<SidebarMenuButton
+								variant="outline"
+								className="justify-center"
+							>
+								<LayoutDashboard />
+								{t.switchToAdmin}
+							</SidebarMenuButton>
+						</Link>
+					</SidebarMenuItem>
+					<Separator className="my-2" />
+					<SidebarMenuItem>
+						<UserButton user={user} />
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarFooter>
 		</Sidebar>
 	);
 };

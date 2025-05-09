@@ -1,10 +1,12 @@
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupAction,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarMenuSub,
@@ -44,6 +46,7 @@ import { TeamSwitcher } from "./TeamSwitcher";
 import { User } from "@/types/users";
 import { UserButton } from "./UserButton";
 import { Role } from "@/types/team";
+import { Separator } from "../ui/separator";
 
 const CourseCollapsible = ({
 	course,
@@ -514,175 +517,205 @@ export const AdminSidebar = ({
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupContent>
-						<SidebarMenuItem>
-							<Link
-								to="/$locale/admin"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-								activeOptions={{ exact: true }}
-							>
-								{({ isActive }) => (
-									<SidebarMenuButton isActive={isActive}>
-										<LayoutDashboard />
-										{t.dashboard}
-									</SidebarMenuButton>
-								)}
-							</Link>
-						</SidebarMenuItem>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<Link
+									to="/$locale/admin"
+									params={{
+										locale,
+									}}
+									search={(p) => p}
+									onClick={() => {
+										setOpenMobile(false);
+									}}
+									activeOptions={{ exact: true }}
+								>
+									{({ isActive }) => (
+										<SidebarMenuButton isActive={isActive}>
+											<LayoutDashboard />
+											{t.dashboard}
+										</SidebarMenuButton>
+									)}
+								</Link>
+							</SidebarMenuItem>
+						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 				<SidebarGroup>
+					<SidebarGroupLabel>{t.courses}</SidebarGroupLabel>
+					<SidebarGroupAction title="Create Course" asChild>
+						<Link
+							to="/$locale/admin/courses/create"
+							params={{
+								locale,
+							}}
+							search={(p) => p}
+							onClick={() => {
+								setOpenMobile(false);
+							}}
+						>
+							<Plus />{" "}
+							<span className="sr-only">{t.createCourse}</span>
+						</Link>
+					</SidebarGroupAction>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>{t.courses}</SidebarGroupLabel>
-						<SidebarGroupAction title="Create Course" asChild>
-							<Link
-								to="/$locale/admin/courses/create"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								<Plus />{" "}
-								<span className="sr-only">
-									{t.createCourse}
-								</span>
-							</Link>
-						</SidebarGroupAction>
-						{courses.map((course) => (
-							<CourseCollapsible
-								course={course}
-								key={course.id}
-							/>
-						))}
-						{connections.map((connection) => (
-							<SharedCourseCollapsible
-								connection={connection}
-								key={connection.courseId}
-							/>
-						))}
+						<SidebarMenu>
+							{courses.map((course) => (
+								<CourseCollapsible
+									course={course}
+									key={course.id}
+								/>
+							))}
+							{connections.map((connection) => (
+								<SharedCourseCollapsible
+									connection={connection}
+									key={connection.courseId}
+								/>
+							))}
+						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 				<SidebarGroup>
+					<SidebarGroupLabel>{t.collections}</SidebarGroupLabel>
+					<SidebarGroupAction title="Create Collection" asChild>
+						<Link
+							to="/$locale/admin/collections/create"
+							params={{
+								locale,
+							}}
+							search={(p) => p}
+							onClick={() => {
+								setOpenMobile(false);
+							}}
+						>
+							<Plus />{" "}
+							<span className="sr-only">
+								{t.createCollection}
+							</span>
+						</Link>
+					</SidebarGroupAction>
 					<SidebarGroupContent>
-						<SidebarGroupLabel>{t.collections}</SidebarGroupLabel>
-						<SidebarGroupAction title="Create Collection" asChild>
-							<Link
-								to="/$locale/admin/collections/create"
-								params={{
-									locale,
-								}}
-								search={(p) => p}
-								onClick={() => {
-									setOpenMobile(false);
-								}}
-							>
-								<Plus />{" "}
-								<span className="sr-only">
-									{t.createCollection}
-								</span>
-							</Link>
-						</SidebarGroupAction>
-						{collections.map((collection) => (
-							<CollectionCollapsible
-								collection={collection}
-								key={collection.id}
-							/>
-						))}
+						<SidebarMenu>
+							{collections.map((collection) => (
+								<CollectionCollapsible
+									collection={collection}
+									key={collection.id}
+								/>
+							))}
+						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
 				{role === "owner" && (
 					<SidebarGroup>
+						<SidebarGroupLabel>{t.team}</SidebarGroupLabel>
 						<SidebarGroupContent>
-							<SidebarGroupLabel>{t.team}</SidebarGroupLabel>
-							<SidebarMenuItem>
-								<Link
-									to="/$locale/admin/keys"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									{({ isActive }) => (
-										<SidebarMenuButton isActive={isActive}>
-											<Key />
-											{t.apiKeys}
-										</SidebarMenuButton>
-									)}
-								</Link>
-							</SidebarMenuItem>
-							<SidebarMenuItem>
-								<Link
-									to="/$locale/admin/certificate"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									{({ isActive }) => (
-										<SidebarMenuButton isActive={isActive}>
-											<FileBadge />
-											{t.certificate}
-										</SidebarMenuButton>
-									)}
-								</Link>
-							</SidebarMenuItem>
-							<SidebarMenuItem>
-								<Link
-									to="/$locale/admin/members"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									{({ isActive }) => (
-										<SidebarMenuButton isActive={isActive}>
-											<Users />
-											{t.members}
-										</SidebarMenuButton>
-									)}
-								</Link>
-							</SidebarMenuItem>
-							<SidebarMenuItem>
-								<Link
-									to="/$locale/admin/settings"
-									params={{
-										locale,
-									}}
-									search={(p) => p}
-									onClick={() => {
-										setOpenMobile(false);
-									}}
-								>
-									{({ isActive }) => (
-										<SidebarMenuButton isActive={isActive}>
-											<Settings />
-											{t.settings}
-										</SidebarMenuButton>
-									)}
-								</Link>
-							</SidebarMenuItem>
+							<SidebarMenu>
+								<SidebarMenuItem>
+									<Link
+										to="/$locale/admin/keys"
+										params={{
+											locale,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+											>
+												<Key />
+												{t.apiKeys}
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+								<SidebarMenuItem>
+									<Link
+										to="/$locale/admin/certificate"
+										params={{
+											locale,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+											>
+												<FileBadge />
+												{t.certificate}
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+								<SidebarMenuItem>
+									<Link
+										to="/$locale/admin/members"
+										params={{
+											locale,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+											>
+												<Users />
+												{t.members}
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+								<SidebarMenuItem>
+									<Link
+										to="/$locale/admin/settings"
+										params={{
+											locale,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+											>
+												<Settings />
+												{t.settings}
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+							</SidebarMenu>
 						</SidebarGroupContent>
 					</SidebarGroup>
 				)}
 			</SidebarContent>
-			<UserButton user={user} />
+			<SidebarFooter>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<Link to={"/$locale/learner"} params={{ locale }}>
+							<SidebarMenuButton
+								className="justify-center"
+								variant="outline"
+							>
+								<Book />
+								{t.switchToLearner}
+							</SidebarMenuButton>
+						</Link>
+					</SidebarMenuItem>
+					<Separator className="my-2" />
+					<UserButton user={user} />
+				</SidebarMenu>
+			</SidebarFooter>
 		</Sidebar>
 	);
 };
