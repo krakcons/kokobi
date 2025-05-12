@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LocaleIndexImport } from './routes/$locale/index'
 import { Route as LocaleNotAdminImport } from './routes/$locale/not-admin'
 import { Route as LocaleLearnerImport } from './routes/$locale/learner'
+import { Route as LocaleIframeTestImport } from './routes/$locale/iframe-test'
 import { Route as LocaleCreateTeamImport } from './routes/$locale/create-team'
 import { Route as LocaleAiImport } from './routes/$locale/ai'
 import { Route as LocaleAdminImport } from './routes/$locale/admin'
@@ -58,6 +59,12 @@ const LocaleNotAdminRoute = LocaleNotAdminImport.update({
 const LocaleLearnerRoute = LocaleLearnerImport.update({
   id: '/$locale/learner',
   path: '/$locale/learner',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const LocaleIframeTestRoute = LocaleIframeTestImport.update({
+  id: '/$locale/iframe-test',
+  path: '/$locale/iframe-test',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -254,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/create-team'
       fullPath: '/$locale/create-team'
       preLoaderRoute: typeof LocaleCreateTeamImport
+      parentRoute: typeof rootRoute
+    }
+    '/$locale/iframe-test': {
+      id: '/$locale/iframe-test'
+      path: '/$locale/iframe-test'
+      fullPath: '/$locale/iframe-test'
+      preLoaderRoute: typeof LocaleIframeTestImport
       parentRoute: typeof rootRoute
     }
     '/$locale/learner': {
@@ -520,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
+  '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale': typeof LocaleIndexRoute
@@ -551,6 +566,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
+  '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
@@ -583,6 +599,7 @@ export interface FileRoutesById {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
+  '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale/': typeof LocaleIndexRoute
@@ -617,6 +634,7 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale/ai'
     | '/$locale/create-team'
+    | '/$locale/iframe-test'
     | '/$locale/learner'
     | '/$locale/not-admin'
     | '/$locale'
@@ -647,6 +665,7 @@ export interface FileRouteTypes {
   to:
     | '/$locale/ai'
     | '/$locale/create-team'
+    | '/$locale/iframe-test'
     | '/$locale/not-admin'
     | '/$locale'
     | '/$locale/admin/certificate'
@@ -677,6 +696,7 @@ export interface FileRouteTypes {
     | '/$locale/admin'
     | '/$locale/ai'
     | '/$locale/create-team'
+    | '/$locale/iframe-test'
     | '/$locale/learner'
     | '/$locale/not-admin'
     | '/$locale/'
@@ -710,6 +730,7 @@ export interface RootRouteChildren {
   LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
   LocaleAiRoute: typeof LocaleAiRoute
   LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
+  LocaleIframeTestRoute: typeof LocaleIframeTestRoute
   LocaleLearnerRoute: typeof LocaleLearnerRouteWithChildren
   LocaleNotAdminRoute: typeof LocaleNotAdminRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
@@ -721,6 +742,7 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleAdminRoute: LocaleAdminRouteWithChildren,
   LocaleAiRoute: LocaleAiRoute,
   LocaleCreateTeamRoute: LocaleCreateTeamRoute,
+  LocaleIframeTestRoute: LocaleIframeTestRoute,
   LocaleLearnerRoute: LocaleLearnerRouteWithChildren,
   LocaleNotAdminRoute: LocaleNotAdminRoute,
   LocaleIndexRoute: LocaleIndexRoute,
@@ -741,6 +763,7 @@ export const routeTree = rootRoute
         "/$locale/admin",
         "/$locale/ai",
         "/$locale/create-team",
+        "/$locale/iframe-test",
         "/$locale/learner",
         "/$locale/not-admin",
         "/$locale/",
@@ -775,6 +798,9 @@ export const routeTree = rootRoute
     },
     "/$locale/create-team": {
       "filePath": "$locale/create-team.tsx"
+    },
+    "/$locale/iframe-test": {
+      "filePath": "$locale/iframe-test.tsx"
     },
     "/$locale/learner": {
       "filePath": "$locale/learner.tsx",

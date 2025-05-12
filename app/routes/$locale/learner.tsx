@@ -7,7 +7,9 @@ import {
 	createFileRoute,
 	Outlet,
 	redirect,
+	useLocation,
 	useMatch,
+	useRouter,
 } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import {
@@ -21,6 +23,15 @@ import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
 import { env } from "@/env";
 import { getAvailableCoursesFn } from "@/server/handlers/courses";
+import { UserButton } from "@/components/sidebars/UserButton";
+import { createServerFn } from "@tanstack/react-start";
+import { getHeader } from "@tanstack/react-start/server";
+import { useLocale } from "@/lib/locale";
+
+const getIsIframeFn = createServerFn().handler(() => {
+	const secFestDest = getHeader("sec-fetch-dest");
+	return secFestDest === "iframe";
+});
 
 export const Route = createFileRoute("/$locale/learner")({
 	component: RouteComponent,
@@ -82,9 +93,14 @@ export const Route = createFileRoute("/$locale/learner")({
 				reloadDocument: true,
 			});
 		}
+		return {
+			isIframe:
+				(await getIsIframeFn()) ||
+				(typeof window !== "undefined" && window.self !== window.top),
+		};
 	},
-	loader: () =>
-		Promise.all([
+	loader: () => {
+		return Promise.all([
 			getAuthFn(),
 			getLearnerUserTeamsFn(),
 			getConnectionsFn({
@@ -99,12 +115,17 @@ export const Route = createFileRoute("/$locale/learner")({
 			}),
 			getTenantFn(),
 			getAvailableCoursesFn(),
-		]),
+		]);
+	},
 });
 
 function RouteComponent() {
 	const [auth, teams, courses, collections, tenantId, availableCourses] =
 		Route.useLoaderData();
+	const locale = useLocale();
+	const location = useLocation();
+
+	const { isIframe } = Route.useRouteContext();
 
 	const play = useMatch({
 		from: "/$locale/learner/courses/$courseId/play",
@@ -113,21 +134,31 @@ function RouteComponent() {
 
 	return (
 		<SidebarProvider>
-			<LearnerSidebar
-				tenantId={tenantId ?? undefined}
-				teamId={auth.learnerTeamId!}
-				teams={teams}
-				availableCourses={availableCourses.filter(
-					(c) => !courses?.some(({ course }) => course?.id === c.id),
-				)}
-				courses={courses}
-				collections={collections}
-				user={auth.user!}
-			/>
+			{!isIframe && (
+				<LearnerSidebar
+					tenantId={tenantId ?? undefined}
+					teamId={auth.learnerTeamId!}
+					teams={teams}
+					availableCourses={availableCourses.filter(
+						(c) =>
+							!courses?.some(({ course }) => course?.id === c.id),
+					)}
+					courses={courses}
+					collections={collections}
+					user={auth.user!}
+				/>
+			)}
 			<SidebarInset className="max-w-full overflow-hidden">
 				{!play && (
-					<header className="p-4 flex flex-row items-center justify-between">
-						<SidebarTrigger />
+					<header className="p-4 h-20 flex flex-row items-center justify-between">
+						{!isIframe ? (
+							<SidebarTrigger />
+						) : (
+							<UserButton
+								user={auth.user!}
+								signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
+							/>
+						)}
 						<LocaleToggle />
 					</header>
 				)}

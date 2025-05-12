@@ -3,6 +3,7 @@ import { invalidateSession } from "@/server/lib/auth";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie } from "@tanstack/react-start/server";
 import { redirect } from "@tanstack/react-router";
+import { z } from "zod";
 
 export const getAuthFn = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
@@ -12,14 +13,27 @@ export const getAuthFn = createServerFn({ method: "GET" })
 
 export const deleteAuthFn = createServerFn()
 	.middleware([authMiddleware, localeMiddleware])
-	.handler(async ({ context }) => {
+	.validator(
+		z
+			.object({
+				redirect: z.string().optional(),
+			})
+			.optional(),
+	)
+	.handler(async ({ context, data }) => {
 		if (!context.user || !context.session) return;
 		deleteCookie("auth_session");
 		deleteCookie("teamId");
 		deleteCookie("learnerTeamId");
 		invalidateSession(context.session.id);
-		throw redirect({
-			to: "/$locale/auth/login",
-			params: { locale: context.locale },
-		});
+		if (data && data.redirect) {
+			throw redirect({
+				href: data.redirect,
+			});
+		} else {
+			throw redirect({
+				to: "/$locale/auth/login",
+				params: { locale: context.locale },
+			});
+		}
 	});

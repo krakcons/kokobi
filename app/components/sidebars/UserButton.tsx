@@ -39,15 +39,9 @@ import {
 } from "../ui/dialog";
 import { UserForm } from "../forms/UserForm";
 import { useMutation } from "@tanstack/react-query";
-import {
-	Link,
-	useLocation,
-	useNavigate,
-	useRouter,
-	useSearch,
-} from "@tanstack/react-router";
+import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { useLocale, useTranslations } from "@/lib/locale";
+import { useTranslations } from "@/lib/locale";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -60,21 +54,23 @@ const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	}
 };
 
-export const UserButton = ({ user }: { user: UserType }) => {
+export const UserButton = ({
+	user,
+	signOutRedirect,
+}: {
+	user: UserType;
+	signOutRedirect?: string;
+}) => {
 	const { theme, setTheme } = useTheme();
 	const { isMobile } = useSidebar();
 	const signOut = useServerFn(deleteAuthFn);
 	const router = useRouter();
-	const location = useLocation();
-	const locale = useLocale();
 	const { accountDialog = false } = useSearch({
 		from: "__root__",
 	});
 	const navigate = useNavigate();
 	const t = useTranslations("UserButton");
 	const tUserForm = useTranslations("UserForm");
-
-	const learnerAdmin = location.pathname.startsWith(`/${locale}/learner`);
 
 	const name =
 		user.firstName && user.lastName
@@ -192,7 +188,15 @@ export const UserButton = ({ user }: { user: UserType }) => {
 						</DropdownMenuItem>
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onSelect={() => signOut()}>
+					<DropdownMenuItem
+						onSelect={() =>
+							signOut({
+								data: {
+									redirect: signOutRedirect,
+								},
+							})
+						}
+					>
 						<LogOutIcon />
 						{t.signout}
 					</DropdownMenuItem>
