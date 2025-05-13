@@ -13,6 +13,8 @@ import { CheckCircle, CircleEllipsis, Clock, Users } from "lucide-react";
 import {
 	ChartConfig,
 	ChartContainer,
+	ChartLegend,
+	ChartLegendContent,
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -64,14 +66,17 @@ function RouteComponent() {
 	const statusChartConfig: ChartConfig = {
 		completed: { label: tLearner.statuses.completed, color: "#feff5c" },
 		passed: { label: tLearner.statuses.passed, color: "#c0ff33" },
-		failed: { label: tLearner.statuses.failed, color: "--destructive" },
+		failed: {
+			label: tLearner.statuses.failed,
+			color: "var(--destructive)",
+		},
 		"in-progress": {
 			label: tLearner.statuses["in-progress"],
 			color: "#ffc163",
 		},
 		"not-started": {
 			label: tLearner.statuses["not-started"],
-			color: "--secondary",
+			color: "var(--secondary)",
 		},
 	};
 
@@ -99,7 +104,7 @@ function RouteComponent() {
 	const charts = [
 		{
 			title: t.attemptStatus.title,
-			description: `${t.attemptStatus.description} (${learnerStatuses.map((s) => tLearner.statuses[s]).join(", ")})`,
+			description: `${t.attemptStatus.description}`,
 			icon: <CircleEllipsis className="size-4" />,
 			config: statusChartConfig,
 			data: statistics.charts.status,
@@ -200,6 +205,10 @@ function RouteComponent() {
 										content={
 											<ChartTooltipContent hideLabel />
 										}
+									/>
+									<ChartLegend
+										content={<ChartLegendContent />}
+										className="-ml-1 justify-start flex-wrap gap-2"
 									/>
 									<Pie
 										data={chart.data.map((d) => ({
