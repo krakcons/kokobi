@@ -131,11 +131,13 @@ const fr: Messages = {
 		request: "Souhaitez-vous demander l'accès à",
 		requested:
 			"Accès demandé, veuillez attendre qu'un administrateur approuve.",
-		rejected: "Un administrateur a rejeté votre demande",
+		adminRejected: "Un administrateur a rejeté votre demande",
+		rejected: "Vous avez rejeté l'invitation",
 	},
 	Course: {
 		start: "Commencer",
 		continue: "Continuer",
+		review: "Revoir",
 	},
 	CourseForm: {
 		name: "Nom",
@@ -269,6 +271,16 @@ const fr: Messages = {
 		title: "Tableau de bord",
 		description:
 			"Consultez tous vos cours, collections, tentatives et certificats",
+		course: {
+			title: "Aucun cours disponible",
+			description:
+				"Vous n'avez encore rejoint aucun cours. Pour rejoindre un cours, demandez l'accès à une équipe ou demandez-lui de vous inviter.",
+		},
+		collection: {
+			title: "Aucune collection disponible",
+			description:
+				"Vous n'avez encore rejoint aucune collection. Pour rejoindre une collection, demandez l'accès à une équipe ou demandez-lui de vous inviter.",
+		},
 	},
 	Learner: {
 		statuses: {

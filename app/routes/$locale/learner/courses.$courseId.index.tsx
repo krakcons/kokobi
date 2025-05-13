@@ -34,7 +34,7 @@ import {
 	Link,
 	useRouter,
 } from "@tanstack/react-router";
-import { AlertCircle, Award, Play } from "lucide-react";
+import { AlertCircle, Award, Eye, Play } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
@@ -270,8 +270,17 @@ function RouteComponent() {
 												}}
 												className={buttonVariants()}
 											>
-												<Play className="size-3.5" />
-												{t.continue}
+												{attempt.completedAt ? (
+													<>
+														<Eye className="size-3.5" />
+														{t.review}
+													</>
+												) : (
+													<>
+														<Play className="size-3.5" />
+														{t.continue}
+													</>
+												)}
 											</Link>
 										</TableCell>
 									</TableRow>
