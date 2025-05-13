@@ -26,15 +26,10 @@ import {
 } from "@/server/handlers/users.modules";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
-import {
-	ClientOnly,
-	createFileRoute,
-	Link,
-	useRouter,
-} from "@tanstack/react-router";
-import { AlertCircle, Award, Eye, Play } from "lucide-react";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { AlertCircle, Eye, FileBadge2, Play } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
@@ -187,59 +182,80 @@ function RouteComponent() {
 												<>
 													{user?.firstName &&
 													user?.lastName ? (
-														<ClientOnly
-															fallback={
-																<Button
-																	variant="outline"
-																	disabled
-																>
-																	<Award />
-																	{
-																		tCert.download
-																	}
-																</Button>
-															}
-														>
-															<PDFDownloadLink
-																fileName={`${tCert.fileName}`}
-																document={
-																	<Certificate
-																		certificate={{
-																			name:
-																				user?.firstName +
-																				" " +
-																				user?.lastName,
-																			connectTeam:
-																				team,
-																			contentTeam:
-																				course.team,
-																			course: course.name,
-																			completedAt:
-																				attempt.completedAt &&
-																				formatDate(
-																					{
-																						date: new Date(
-																							attempt.completedAt,
+														<Button
+															variant="outline"
+															onClick={async () => {
+																let url = "";
+																try {
+																	const blob =
+																		await pdf(
+																			<Certificate
+																				certificate={{
+																					name:
+																						user?.firstName +
+																						" " +
+																						user?.lastName,
+																					connectTeam:
+																						team,
+																					contentTeam:
+																						course.team,
+																					course: course.name,
+																					completedAt:
+																						attempt.completedAt &&
+																						formatDate(
+																							{
+																								date: new Date(
+																									attempt.completedAt,
+																								),
+																								locale,
+																								type: "readable",
+																							},
 																						),
-																						locale,
-																						type: "readable",
-																					},
-																				),
-																			t: tCert.pdf,
-																		}}
-																	/>
+																					t: tCert.pdf,
+																				}}
+																			/>,
+																		).toBlob();
+																	url =
+																		URL.createObjectURL(
+																			blob,
+																		);
+
+																	const response =
+																		await fetch(
+																			url,
+																		);
+																	const blobData =
+																		await response.blob();
+																	const blobUrl =
+																		window.URL.createObjectURL(
+																			blobData,
+																		);
+
+																	const link =
+																		document.createElement(
+																			"a",
+																		);
+																	link.href =
+																		blobUrl;
+																	link.download =
+																		tCert.fileName;
+																	link.click();
+																} catch (error) {
+																	console.error(
+																		"Error in download process:",
+																		error,
+																	);
+																} finally {
+																	if (url)
+																		URL.revokeObjectURL(
+																			url,
+																		);
 																}
-																className={buttonVariants(
-																	{
-																		variant:
-																			"outline",
-																	},
-																)}
-															>
-																<Award />
-																{tCert.download}
-															</PDFDownloadLink>
-														</ClientOnly>
+															}}
+														>
+															<FileBadge2 />
+															{tCert.download}
+														</Button>
 													) : (
 														<Button
 															variant="outline"

@@ -35,6 +35,7 @@ import {
 	ChartNoAxesColumn,
 	SquareLibrary,
 	Square,
+	FileBadge2,
 } from "lucide-react";
 import { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
@@ -646,7 +647,7 @@ export const AdminSidebar = ({
 											<SidebarMenuButton
 												isActive={isActive}
 											>
-												<FileBadge />
+												<FileBadge2 />
 												{t.certificate}
 											</SidebarMenuButton>
 										)}
