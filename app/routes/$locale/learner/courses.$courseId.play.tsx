@@ -93,32 +93,27 @@ function RouteComponent() {
 				{!isIframe ? (
 					<SidebarTrigger />
 				) : (
-					<>
-						<div className="flex flex-row items-center gap-2">
-							<Link
-								to="/$locale/learner/courses/$courseId"
-								params={{
-									locale,
-									courseId: attempt.courseId,
-								}}
-								className={buttonVariants({
-									variant: "ghost",
-									size: "icon",
-								})}
-							>
-								<ChevronLeft
-									aria-label="Back"
-									className="size-6"
-								/>
-							</Link>
-							<UserButton
-								user={auth.user!}
-								signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}
-							/>
-						</div>
-						<Badge>{t.statuses[attempt.status]}</Badge>
-					</>
+					<div className="flex flex-row items-center gap-2">
+						<Link
+							to="/$locale/learner/courses/$courseId"
+							params={{
+								locale,
+								courseId: attempt.courseId,
+							}}
+							className={buttonVariants({
+								variant: "ghost",
+								size: "icon",
+							})}
+						>
+							<ChevronLeft aria-label="Back" className="size-6" />
+						</Link>
+						<UserButton
+							user={auth.user!}
+							signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}
+						/>
+					</div>
 				)}
+				<Badge>{t.statuses[attempt.status]}</Badge>
 			</header>
 			{loading && (
 				<div className="absolute flex h-screen w-full items-center justify-center bg-background">
