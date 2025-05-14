@@ -1,12 +1,5 @@
 import { db } from "@/server/db";
-import {
-	courses,
-	courseTranslations,
-	modules,
-	teams,
-	teamTranslations,
-	usersToModules,
-} from "@/server/db/schema";
+import { modules, teams, usersToModules } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import {
 	learnerMiddleware,
@@ -15,9 +8,8 @@ import {
 } from "../lib/middleware";
 import { createS3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
-import { handleLocalization } from "@/lib/locale/helpers";
 import { sendEmail, verifyEmail } from "../lib/email";
-import { createTranslator } from "@/lib/locale/actions";
+import { createTranslator, handleLocalization } from "@/lib/locale";
 import CourseCompletion from "@/emails/CourseCompletion";
 import { getInitialScormData } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";

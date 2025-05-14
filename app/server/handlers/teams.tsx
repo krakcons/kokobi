@@ -14,7 +14,7 @@ import {
 	protectedMiddleware,
 	teamMiddleware,
 } from "../lib/middleware";
-import { handleLocalization } from "@/lib/locale/helpers";
+import { handleLocalization } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, setCookie } from "@tanstack/react-start/server";
 import { getTenant } from "../lib/tenant";

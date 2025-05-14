@@ -1,9 +1,7 @@
 import { localeMiddleware } from "../lib/middleware";
 import { db } from "@/server/db";
-import { teams, users, usersToTeams } from "@/server/db/schema";
+import { teams, users } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { handleLocalization } from "@/lib/locale/helpers";
-import { z } from "zod";
 import { getCookie, setCookie } from "@tanstack/react-start/server";
 import { createSession } from "@/server/lib/auth";
 import { createServerFn } from "@tanstack/react-start";
@@ -13,7 +11,7 @@ import { getTenant } from "@/server/lib/tenant";
 import { generateRandomString } from "@/server/lib/random";
 import { LoginFormSchema, OTPFormSchema } from "@/types/auth";
 import OTP from "@/emails/OTP";
-import { createTranslator } from "@/lib/locale/actions";
+import { createTranslator, handleLocalization } from "@/lib/locale";
 
 export const requestOTPFn = createServerFn({ method: "POST" })
 	.middleware([localeMiddleware])

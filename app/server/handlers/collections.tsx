@@ -8,7 +8,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { localeMiddleware, teamMiddleware } from "../lib/middleware";
 import { CollectionFormSchema } from "@/types/collections";
-import { handleLocalization } from "@/lib/locale/helpers";
+import { handleLocalization } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 
 export const getCollectionsFn = createServerFn({ method: "GET" })

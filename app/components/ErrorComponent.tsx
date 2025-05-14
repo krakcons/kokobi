@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import { ErrorSchema } from "@/server/lib/error";
 import { useTranslations } from "@/lib/locale";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { getI18nFn } from "@/server/handlers/users.i18n";
+import { getI18nFn } from "@/server/handlers/i18n";
 
 export const ErrorComponent = ({ error }: ErrorComponentProps) => {
 	const router = useRouter();

@@ -6,7 +6,6 @@ import {
 import { db } from "@/server/db";
 import { teams, usersToTeams } from "@/server/db/schema";
 import { and, eq, or } from "drizzle-orm";
-import { handleLocalization } from "@/lib/locale/helpers";
 import { z } from "zod";
 import { setCookie } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
@@ -14,7 +13,7 @@ import { Team, TeamTranslation } from "@/types/team";
 import { env } from "@/server/env";
 import { UserToTeamType } from "@/types/connections";
 import { throwServerError } from "../lib/error";
-import { createTranslator } from "@/lib/locale/actions";
+import { createTranslator, handleLocalization } from "@/lib/locale";
 
 export const getUserTeamConnectionFn = createServerFn({ method: "GET" })
 	.middleware([protectedMiddleware, localeMiddleware])

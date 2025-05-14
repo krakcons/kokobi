@@ -1,5 +1,5 @@
 import { localeMiddleware } from "../lib/middleware";
-import { createI18n } from "@/lib/locale/actions";
+import { createI18n } from "@/lib/locale";
 import { z } from "zod";
 import { LocaleSchema } from "@/lib/locale";
 import { setCookie } from "@tanstack/react-start/server";

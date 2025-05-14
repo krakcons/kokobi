@@ -21,8 +21,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { sendEmail, verifyEmail } from "../lib/email";
-import { createTranslator } from "@/lib/locale/actions";
-import { handleLocalization } from "@/lib/locale/helpers";
+import { createTranslator, handleLocalization } from "@/lib/locale";
 import { ConnectionType, GetConnectionSchema } from "@/types/connections";
 import { env } from "@/server/env";
 import {

@@ -1,6 +1,6 @@
 import { getAuth } from "@/server/lib/auth";
 import { createMiddleware } from "@tanstack/react-start";
-import { LocalizedInputSchema } from "@/lib/locale/types";
+import { LocalizedInputSchema } from "@/lib/locale";
 import { getCookie, getHeader } from "@tanstack/react-start/server";
 import { Role, roles } from "@/types/team";
 

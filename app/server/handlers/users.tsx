@@ -6,7 +6,7 @@ import {
 import { db } from "@/server/db";
 import { teams, users, usersToTeams } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
-import { handleLocalization } from "@/lib/locale/helpers";
+import { handleLocalization } from "@/lib/locale";
 import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { Team, TeamTranslation } from "@/types/team";

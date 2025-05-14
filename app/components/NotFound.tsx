@@ -2,7 +2,7 @@ import { useTranslations } from "@/lib/locale";
 import { FloatingPage } from "./Page";
 import { Button, buttonVariants } from "./ui/button";
 import { ArrowLeft, Home } from "lucide-react";
-import { getI18nFn } from "@/server/handlers/users.i18n";
+import { getI18nFn } from "@/server/handlers/i18n";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 export function NotFound() {

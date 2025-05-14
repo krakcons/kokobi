@@ -2,7 +2,6 @@
 import { defineConfig } from "@tanstack/react-start/config";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
-import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig({
 	vite: {

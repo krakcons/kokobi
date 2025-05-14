@@ -1,5 +1,5 @@
 import { IntlProvider, Locale, locales } from "@/lib/locale";
-import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
 	createRootRouteWithContext,
@@ -9,7 +9,7 @@ import {
 	ErrorComponent,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { getI18nFn, updateI18nFn } from "@/server/handlers/users.i18n";
+import { getI18nFn, updateI18nFn } from "@/server/handlers/i18n";
 import appCss from "@/index.css?url";
 import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";

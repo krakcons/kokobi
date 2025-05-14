@@ -1,18 +1,15 @@
 import { db } from "@/server/db";
 import {
-	collections,
 	collectionsToCourses,
 	courseTranslations,
 	courses,
-	modules,
-	users,
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
 } from "@/server/db/schema";
 import { CourseFormSchema } from "@/types/course";
 import { and, eq, inArray } from "drizzle-orm";
-import { handleLocalization } from "@/lib/locale/helpers";
+import { handleLocalization } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 import {
 	learnerMiddleware,
