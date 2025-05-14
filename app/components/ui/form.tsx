@@ -244,7 +244,7 @@ const ImageField = ({
 
 	return (
 		<Field>
-			<Label htmlFor={field.name}>
+			<Label htmlFor={field.name} className="items-start">
 				{label}
 				{imageUrl ? (
 					<img
