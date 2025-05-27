@@ -94,7 +94,11 @@ export default $config({
 			});
 		}
 
-		const cluster = new sst.aws.Cluster("Cluster", { vpc });
+		const cluster = new sst.aws.Cluster("Cluster", {
+			vpc,
+			forceUpgrade: "v2",
+		});
+
 		new sst.aws.Service("TSS", {
 			link: [bucket, aurora, email],
 			cluster,

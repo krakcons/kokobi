@@ -715,6 +715,7 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 					usersToModules,
 					and(
 						eq(usersToModules.teamId, context.teamId),
+						eq(usersToModules.userId, users.id),
 						id ? eq(usersToModules.courseId, id) : undefined,
 					),
 				)
