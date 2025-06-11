@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const LoginFormSchema = z.object({
-	email: z.string().email(),
+	email: z.string().email().toLowerCase(),
 });
 export type LoginFormType = z.infer<typeof LoginFormSchema>;
 

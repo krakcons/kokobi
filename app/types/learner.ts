@@ -69,7 +69,7 @@ export const LearnersFormSchema = z.object({
 	learners: z
 		.array(
 			z.object({
-				email: z.string().email(),
+				email: z.string().email().toLowerCase(),
 				sendEmail: z.boolean().optional(),
 				inviteLocale: LocaleSchema.optional(),
 			}),

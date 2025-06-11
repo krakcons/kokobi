@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useTranslations } from "@/lib/locale";
 
 export const EmailsFormSchema = z.object({
-	emails: z.string().email().array(),
+	emails: z.string().email().toLowerCase().array(),
 });
 export type EmailsFormType = z.infer<typeof EmailsFormSchema>;
 export const EmailsForm = ({
