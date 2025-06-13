@@ -4,7 +4,9 @@ import { LocalizedInputSchema } from "@/lib/locale";
 import { getCookie, getHeader } from "@tanstack/react-start/server";
 import { Role, roles } from "@/types/team";
 
-export const authMiddleware = createMiddleware().server(async ({ next }) => {
+export const authMiddleware = createMiddleware({
+	type: "function",
+}).server(async ({ next }) => {
 	const sessionId = getCookie("auth_session");
 	const auth = await getAuth(sessionId);
 
@@ -13,7 +15,9 @@ export const authMiddleware = createMiddleware().server(async ({ next }) => {
 	});
 });
 
-export const protectedMiddleware = createMiddleware()
+export const protectedMiddleware = createMiddleware({
+	type: "function",
+})
 	.middleware([authMiddleware])
 	.server(async ({ context, next }) => {
 		const { session, user } = context;
@@ -31,7 +35,9 @@ export const protectedMiddleware = createMiddleware()
 	});
 
 export const teamMiddleware = ({ role = "member" }: { role?: Role } = {}) =>
-	createMiddleware()
+	createMiddleware({
+		type: "function",
+	})
 		.middleware([protectedMiddleware])
 		.server(async ({ context, next }) => {
 			const { teamId, role: teamRole } = context;
@@ -51,7 +57,9 @@ export const teamMiddleware = ({ role = "member" }: { role?: Role } = {}) =>
 			});
 		});
 
-export const learnerMiddleware = createMiddleware()
+export const learnerMiddleware = createMiddleware({
+	type: "function",
+})
 	.middleware([protectedMiddleware])
 	.server(async ({ context, next }) => {
 		const { learnerTeamId } = context;
@@ -67,11 +75,16 @@ export const learnerMiddleware = createMiddleware()
 		});
 	});
 
-export const localeMiddleware = createMiddleware().server(async ({ next }) => {
+export const localeMiddleware = createMiddleware({
+	type: "function",
+}).server(async ({ next }) => {
+	const locale = getHeader("locale") ?? getCookie("locale");
+	const fallbackLocale = getHeader("fallbackLocale");
 	return next({
 		context: LocalizedInputSchema.parse({
-			locale: getHeader("locale") ?? getCookie("locale") ?? "en",
-			fallbackLocale: getHeader("fallbackLocale"),
+			locale: locale === "undefined" ? undefined : locale,
+			fallbackLocale:
+				fallbackLocale === "undefined" ? undefined : fallbackLocale,
 		}),
 	});
 });

@@ -55,6 +55,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 		pendingComponent: PendingComponent,
 		component: RootComponent,
 		loader: async ({ context: { locale } }) => {
+			console.log("loader 1");
 			const tenantId = await getTenantFn();
 			let favicon = "/favicon.ico";
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";
@@ -99,13 +100,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					content: "width=device-width, initial-scale=1",
 				},
 				{
-					title: loaderData.meta.title,
+					title: loaderData?.meta.title,
 				},
 			],
 			links: [
 				{
 					rel: "icon",
-					href: loaderData.meta.favicon,
+					href: loaderData?.meta.favicon,
 				},
 				{
 					rel: "preconnect",
