@@ -16,7 +16,6 @@ import { Route as LocaleNotAdminRouteImport } from './routes/$locale/not-admin'
 import { Route as LocaleLearnerRouteImport } from './routes/$locale/learner'
 import { Route as LocaleIframeTestRouteImport } from './routes/$locale/iframe-test'
 import { Route as LocaleCreateTeamRouteImport } from './routes/$locale/create-team'
-import { Route as LocaleAiRouteImport } from './routes/$locale/ai'
 import { Route as LocaleAdminRouteImport } from './routes/$locale/admin'
 import { Route as LocaleLearnerIndexRouteImport } from './routes/$locale/learner/index'
 import { Route as LocaleAdminIndexRouteImport } from './routes/$locale/admin/index'
@@ -68,11 +67,6 @@ const LocaleIframeTestRoute = LocaleIframeTestRouteImport.update({
 const LocaleCreateTeamRoute = LocaleCreateTeamRouteImport.update({
   id: '/$locale/create-team',
   path: '/$locale/create-team',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocaleAiRoute = LocaleAiRouteImport.update({
-  id: '/$locale/ai',
-  path: '/$locale/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleAdminRoute = LocaleAdminRouteImport.update({
@@ -218,7 +212,6 @@ const CdnSplatServerRoute = CdnSplatServerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
-  '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
@@ -249,7 +242,6 @@ export interface FileRoutesByFullPath {
   '/$locale/learner/courses/$courseId': typeof LocaleLearnerCoursesCourseIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/not-admin': typeof LocaleNotAdminRoute
@@ -281,7 +273,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
-  '/$locale/ai': typeof LocaleAiRoute
   '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
@@ -315,7 +306,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/$locale/admin'
-    | '/$locale/ai'
     | '/$locale/create-team'
     | '/$locale/iframe-test'
     | '/$locale/learner'
@@ -346,7 +336,6 @@ export interface FileRouteTypes {
     | '/$locale/learner/courses/$courseId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/$locale/ai'
     | '/$locale/create-team'
     | '/$locale/iframe-test'
     | '/$locale/not-admin'
@@ -377,7 +366,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/$locale/admin'
-    | '/$locale/ai'
     | '/$locale/create-team'
     | '/$locale/iframe-test'
     | '/$locale/learner'
@@ -410,7 +398,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
-  LocaleAiRoute: typeof LocaleAiRoute
   LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
   LocaleIframeTestRoute: typeof LocaleIframeTestRoute
   LocaleLearnerRoute: typeof LocaleLearnerRouteWithChildren
@@ -476,13 +463,6 @@ declare module '@tanstack/react-router' {
       path: '/$locale/create-team'
       fullPath: '/$locale/create-team'
       preLoaderRoute: typeof LocaleCreateTeamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$locale/ai': {
-      id: '/$locale/ai'
-      path: '/$locale/ai'
-      fullPath: '/$locale/ai'
-      preLoaderRoute: typeof LocaleAiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/admin': {
@@ -742,7 +722,6 @@ const LocaleLearnerRouteWithChildren = LocaleLearnerRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   LocaleAdminRoute: LocaleAdminRouteWithChildren,
-  LocaleAiRoute: LocaleAiRoute,
   LocaleCreateTeamRoute: LocaleCreateTeamRoute,
   LocaleIframeTestRoute: LocaleIframeTestRoute,
   LocaleLearnerRoute: LocaleLearnerRouteWithChildren,

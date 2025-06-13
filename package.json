@@ -52,7 +52,7 @@
 		"clsx": "^2.1.1",
 		"dotenv": "^16.5.0",
 		"drizzle-orm": "^0.44.2",
-		"drizzle-zod": "^0.8.2",
+		"drizzle-zod": "^0.7.1",
 		"export-to-csv": "^1.4.0",
 		"fast-xml-parser": "^5.2.5",
 		"lucide-react": "^0.515.0",
