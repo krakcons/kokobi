@@ -5,11 +5,11 @@ import {
 	proxyRequest,
 } from "@tanstack/react-start/server";
 
+// TODO: move into a proxy
+
 export default defineMiddleware({
 	onRequest: async (event) => {
 		const url = getRequestURL(event);
-
-		console.log("MIDDLEWARE", url.pathname);
 
 		if (url.pathname.startsWith("/cdn")) {
 			if (url.pathname.endsWith("/scormcontent/0")) {
