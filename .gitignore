@@ -24,3 +24,5 @@ dist
 
 # sst
 .sst
+.tanstack
+.output

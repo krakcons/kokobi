@@ -101,7 +101,7 @@ const fr: Messages = {
 		"no-name": "Le certificat nécessite un nom",
 		pdf: {
 			title: "Certificat de réussite",
-			message: "Nouse sommes fiers de remettre ce certificat à",
+			message: "Nous sommes fiers de remettre ce certificat à",
 			congratulations: "Félicitations ! Vous avez terminé avec succès",
 			date: "Date d'achèvement",
 			offered: "Offert par",
