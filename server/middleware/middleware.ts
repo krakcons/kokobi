@@ -1,9 +1,15 @@
 import { Resource } from "sst";
-import { defineMiddleware, getRequestURL, proxyRequest } from "vinxi/http";
+import {
+	defineMiddleware,
+	getRequestURL,
+	proxyRequest,
+} from "@tanstack/react-start/server";
 
 export default defineMiddleware({
 	onRequest: async (event) => {
 		const url = getRequestURL(event);
+
+		console.log("MIDDLEWARE", url.pathname);
 
 		if (url.pathname.startsWith("/cdn")) {
 			if (url.pathname.endsWith("/scormcontent/0")) {
