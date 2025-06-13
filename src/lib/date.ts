@@ -38,8 +38,8 @@ export const formatDate = ({
 	date?: Date;
 	locale: Locale;
 	type?: keyof typeof dateTypes;
-}): string => {
-	if (!date) return "";
+}): string | undefined => {
+	if (!date) return undefined;
 
 	const dateType = dateTypes[type];
 	const dateString = new Intl.DateTimeFormat(locale, dateType.date).format(
@@ -50,4 +50,11 @@ export const formatDate = ({
 		: undefined;
 
 	return `${dateString}${timeString ? ` ${timeString}` : ""}`;
+};
+
+export const dateSortingFn = (a?: Date, b?: Date): number => {
+	if (!a && !b) return 0;
+	if (!a) return 1;
+	if (!b) return -1;
+	return a.getTime() - b.getTime();
 };

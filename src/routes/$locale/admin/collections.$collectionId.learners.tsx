@@ -115,12 +115,16 @@ function RouteComponent() {
 					column={column}
 				/>
 			),
+			accessorFn: ({ user }) => user.firstName ?? undefined,
+			sortUndefined: "last",
 		},
 		{
 			accessorKey: "user.lastName",
 			header: ({ column }) => (
 				<DataTableColumnHeader title={tUser.lastName} column={column} />
 			),
+			accessorFn: ({ user }) => user.lastName ?? undefined,
+			sortUndefined: "last",
 		},
 		createDataTableActionsColumn<UserToCollectionType & { user: User }>([
 			{

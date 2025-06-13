@@ -35,7 +35,7 @@ import {
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Module } from "@/types/module";
 import { Learner } from "@/types/learner";
-import { formatDate } from "@/lib/date";
+import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { resendCompletionEmailFn } from "@/server/handlers/users.modules";
 
@@ -136,12 +136,16 @@ function RouteComponent() {
 					column={column}
 				/>
 			),
+			accessorFn: ({ user }) => user.firstName ?? undefined,
+			sortUndefined: "last",
 		},
 		{
 			accessorKey: "user.lastName",
 			header: ({ column }) => (
 				<DataTableColumnHeader title={tUser.lastName} column={column} />
 			),
+			accessorFn: ({ user }) => user.lastName ?? undefined,
+			sortUndefined: "last",
 		},
 		{
 			accessorKey: "attempt.status",
@@ -151,6 +155,7 @@ function RouteComponent() {
 					column={column}
 				/>
 			),
+			sortUndefined: "last",
 			accessorFn: ({ attempt }) =>
 				attempt && tLearner.statuses[attempt.status],
 		},
@@ -159,12 +164,16 @@ function RouteComponent() {
 			header: ({ column }) => (
 				<DataTableColumnHeader title={tLearner.score} column={column} />
 			),
-			accessorFn: ({ attempt }) => {
+			accessorFn: ({ attempt }) =>
 				attempt &&
-					["failed", "passed"].includes(attempt.status) &&
-					attempt.score &&
-					attempt.score.raw + " / " + attempt.score.max;
-			},
+				["failed", "passed"].includes(attempt.status) &&
+				attempt.score
+					? attempt.score.raw + " / " + attempt.score.max
+					: undefined,
+			sortingFn: (a, b) =>
+				Number(a.original.attempt?.score?.raw) -
+				Number(b.original.attempt?.score?.raw),
+			sortUndefined: "last",
 		},
 		{
 			accessorKey: "attempt.startedAt",
@@ -180,6 +189,12 @@ function RouteComponent() {
 					locale,
 					type: "detailed",
 				}),
+			sortUndefined: "last",
+			sortingFn: (a, b) =>
+				dateSortingFn(
+					a.original.attempt?.createdAt,
+					b.original.attempt?.createdAt,
+				),
 		},
 		{
 			accessorKey: "attempt.completedAt",
@@ -195,6 +210,12 @@ function RouteComponent() {
 					locale,
 					type: "detailed",
 				}),
+			sortUndefined: "last",
+			sortingFn: (a, b) =>
+				dateSortingFn(
+					a.original.attempt?.completedAt,
+					b.original.attempt?.completedAt,
+				),
 		},
 		createDataTableActionsColumn<LearnerTableType>([
 			{
