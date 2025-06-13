@@ -7,26 +7,38 @@ import {
 } from "@/components/ui/card";
 import { useTranslations } from "@/lib/locale";
 import { getCollectionsFn } from "@/server/handlers/collections";
+import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/")({
 	component: RouteComponent,
-	loader: () => Promise.all([getCoursesFn(), getCollectionsFn()]),
+	loader: () =>
+		Promise.all([
+			getCoursesFn(),
+			getCollectionsFn(),
+			getTeamCourseConnectionsFn({
+				data: {
+					type: "to",
+				},
+			}),
+		]),
 });
 
 function RouteComponent() {
-	const [courses, collections] = Route.useLoaderData();
+	const [courses, collections, connections] = Route.useLoaderData();
 	const t = useTranslations("AdminDashboard");
 	const tNav = useTranslations("AdminSidebar");
+
+	const allCourses = [...courses, ...connections.map((c) => c.course)];
 
 	return (
 		<Page>
 			<PageHeader title={t.title} description={t.description} />
 			<h3>{tNav.courses}</h3>
-			{courses.length > 0 ? (
-				courses.map((c) => (
+			{allCourses.length > 0 ? (
+				allCourses.map((c) => (
 					<Link
 						key={c.id}
 						from="/$locale/admin/"

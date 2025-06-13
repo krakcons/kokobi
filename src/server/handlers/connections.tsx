@@ -689,7 +689,7 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
 	.validator(
 		z.object({
-			type: z.enum(["course", "collection", "from-team", "to-team"]),
+			type: z.enum(["course", "collection"]),
 			id: z.string().optional(),
 		}),
 	)
@@ -743,37 +743,44 @@ export const getTeamConnectionsFn = createServerFn({ method: "GET" })
 
 			return connections;
 		}
+	});
 
-		// TODO: Refactor into getTeamCourseConnectionsFn
-		if (type === "from-team" || type === "to-team") {
-			const connections = await db.query.teamsToCourses.findMany({
-				where: and(
-					type === "from-team"
-						? eq(teamsToCourses.fromTeamId, context.teamId)
-						: eq(teamsToCourses.teamId, context.teamId),
-					id ? eq(teamsToCourses.courseId, id) : undefined,
-				),
-				with: {
-					course: {
-						with: {
-							translations: true,
-						},
-					},
-					team: {
-						with: {
-							translations: true,
-						},
+export const getTeamCourseConnectionsFn = createServerFn({ method: "GET" })
+	.middleware([teamMiddleware(), localeMiddleware])
+	.validator(
+		z.object({
+			type: z.enum(["from", "to"]),
+			id: z.string().optional(),
+		}),
+	)
+	.handler(async ({ context, data: { type, id } }) => {
+		const connections = await db.query.teamsToCourses.findMany({
+			where: and(
+				type === "from"
+					? eq(teamsToCourses.fromTeamId, context.teamId)
+					: eq(teamsToCourses.teamId, context.teamId),
+				id ? eq(teamsToCourses.courseId, id) : undefined,
+			),
+			with: {
+				course: {
+					with: {
+						translations: true,
 					},
 				},
-			});
+				team: {
+					with: {
+						translations: true,
+					},
+				},
+			},
+		});
 
-			return connections.map((connect) => ({
-				...connect,
-				team: handleLocalization(context, connect.team),
-				course: handleLocalization(context, connect.course),
-				access: connect.team.id === context.teamId ? "root" : "shared",
-			}));
-		}
+		return connections.map((connect) => ({
+			...connect,
+			team: handleLocalization(context, connect.team),
+			course: handleLocalization(context, connect.course),
+			access: connect.team.id === context.teamId ? "root" : "shared",
+		}));
 	});
 
 export const getTeamCourseConnectionFn = createServerFn({ method: "GET" })

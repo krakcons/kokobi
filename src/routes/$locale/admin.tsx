@@ -28,7 +28,10 @@ import {
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { EditingLocaleSchema } from "@/types/router";
-import { getTeamConnectionsFn } from "@/server/handlers/connections";
+import {
+	getTeamConnectionsFn,
+	getTeamCourseConnectionsFn,
+} from "@/server/handlers/connections";
 import { getTenantFn } from "@/server/handlers/teams";
 
 export const Route = createFileRoute("/$locale/admin")({
@@ -108,9 +111,9 @@ export const Route = createFileRoute("/$locale/admin")({
 			getAdminUserTeamsFn(),
 			getCoursesFn(),
 			getCollectionsFn(),
-			getTeamConnectionsFn({
+			getTeamCourseConnectionsFn({
 				data: {
-					type: "to-team",
+					type: "to",
 				},
 			}),
 			getTenantFn(),

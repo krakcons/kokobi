@@ -19,9 +19,8 @@ import {
 	ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Pie, PieChart } from "recharts";
-import { learnerStatuses } from "@/types/learner";
 import { useTranslations } from "@/lib/locale";
-import { getTeamConnectionsFn } from "@/server/handlers/connections";
+import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { useAppForm } from "@/components/ui/form";
 import { z } from "zod";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
@@ -42,10 +41,10 @@ export const Route = createFileRoute(
 					teamId: deps.teamId,
 				},
 			}),
-			getTeamConnectionsFn({
+			getTeamCourseConnectionsFn({
 				data: {
 					id: params.courseId,
-					type: "from-team",
+					type: "from",
 				},
 			}),
 			getUserTeamFn({

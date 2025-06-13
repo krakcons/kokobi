@@ -10,6 +10,7 @@ import { Page, PageHeader } from "@/components/Page";
 import {
 	createTeamConnectionFn,
 	getTeamConnectionsFn,
+	getTeamCourseConnectionsFn,
 	removeConnectionFn,
 	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
@@ -40,10 +41,10 @@ export const Route = createFileRoute(
 	validateSearch: TableSearchSchema,
 	loader: async ({ params }) =>
 		Promise.all([
-			getTeamConnectionsFn({
+			getTeamCourseConnectionsFn({
 				data: {
 					id: params.courseId,
-					type: "from-team",
+					type: "from",
 				},
 			}),
 		]),
