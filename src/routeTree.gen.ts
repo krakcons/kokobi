@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createServerRootRoute } from '@tanstack/react-start/server'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LocaleIndexRouteImport } from './routes/$locale/index'
 import { Route as LocaleNotAdminRouteImport } from './routes/$locale/not-admin'
@@ -39,6 +41,9 @@ import { Route as LocaleAdminCoursesCourseIdLearnersRouteImport } from './routes
 import { Route as LocaleAdminCollectionsCollectionIdSettingsRouteImport } from './routes/$locale/admin/collections.$collectionId.settings'
 import { Route as LocaleAdminCollectionsCollectionIdLearnersRouteImport } from './routes/$locale/admin/collections.$collectionId.learners'
 import { Route as LocaleAdminCollectionsCollectionIdCoursesRouteImport } from './routes/$locale/admin/collections.$collectionId.courses'
+import { ServerRoute as CdnSplatServerRouteImport } from './routes/cdn.$'
+
+const rootServerRouteImport = createServerRootRoute()
 
 const LocaleIndexRoute = LocaleIndexRouteImport.update({
   id: '/$locale/',
@@ -205,6 +210,11 @@ const LocaleAdminCollectionsCollectionIdCoursesRoute =
     path: '/collections/$collectionId/courses',
     getParentRoute: () => LocaleAdminRoute,
   } as any)
+const CdnSplatServerRoute = CdnSplatServerRouteImport.update({
+  id: '/cdn/$',
+  path: '/cdn/$',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
@@ -408,6 +418,27 @@ export interface RootRouteChildren {
   LocaleIndexRoute: typeof LocaleIndexRoute
   LocaleAuthLoginRoute: typeof LocaleAuthLoginRoute
   LocaleAuthVerifyEmailRoute: typeof LocaleAuthVerifyEmailRoute
+}
+export interface FileServerRoutesByFullPath {
+  '/cdn/$': typeof CdnSplatServerRoute
+}
+export interface FileServerRoutesByTo {
+  '/cdn/$': typeof CdnSplatServerRoute
+}
+export interface FileServerRoutesById {
+  __root__: typeof rootServerRouteImport
+  '/cdn/$': typeof CdnSplatServerRoute
+}
+export interface FileServerRouteTypes {
+  fileServerRoutesByFullPath: FileServerRoutesByFullPath
+  fullPaths: '/cdn/$'
+  fileServerRoutesByTo: FileServerRoutesByTo
+  to: '/cdn/$'
+  id: '__root__' | '/cdn/$'
+  fileServerRoutesById: FileServerRoutesById
+}
+export interface RootServerRouteChildren {
+  CdnSplatServerRoute: typeof CdnSplatServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -624,6 +655,17 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+declare module '@tanstack/react-start/server' {
+  interface ServerFileRoutesByPath {
+    '/cdn/$': {
+      id: '/cdn/$'
+      path: '/cdn/$'
+      fullPath: '/cdn/$'
+      preLoaderRoute: typeof CdnSplatServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+  }
+}
 
 interface LocaleAdminRouteChildren {
   LocaleAdminCertificateRoute: typeof LocaleAdminCertificateRoute
@@ -712,3 +754,9 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+const rootServerRouteChildren: RootServerRouteChildren = {
+  CdnSplatServerRoute: CdnSplatServerRoute,
+}
+export const serverRouteTree = rootServerRouteImport
+  ._addFileChildren(rootServerRouteChildren)
+  ._addFileTypes<FileServerRouteTypes>()
