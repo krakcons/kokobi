@@ -4,6 +4,7 @@ const PROFILE = "krak";
 const LOCAL_STAGES = ["billyhawkes"];
 const ROOT_DOMAIN = "kokobi.org";
 const STAGES = ["prod", "dev", ...LOCAL_STAGES];
+const CLOUDFLARE_ZONE_ID = "8fd088f50358e4042b4351e589b1aaaf";
 
 const WELCOME_TEAM_ID = {
 	billyhawkes: "019663b4-85ea-7000-a056-7a9863194546",
@@ -44,16 +45,13 @@ export default $config({
 		const dns = sst.cloudflare.dns({
 			proxy: true,
 		});
-		const cloudflareZone = cloudflare.getZoneOutput({
-			name: ROOT_DOMAIN,
-		});
 		const bucket = new sst.aws.Bucket("Bucket", {
 			access: "public",
 		});
 
 		const environment = {
 			CLOUDFLARE_API_TOKEN: new sst.Secret("CLOUDFLARE_API_TOKEN").value,
-			CLOUDFLARE_ZONE_ID: cloudflareZone.id,
+			CLOUDFLARE_ZONE_ID,
 			OPENAI_API_KEY: new sst.Secret("OPENAI_API_KEY").value,
 			// Bun adapters
 			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-${$app.stage}`,
@@ -80,16 +78,18 @@ export default $config({
 				domain,
 			});
 			new cloudflare.Record("MX", {
-				zoneId: cloudflareZone.id,
+				zoneId: CLOUDFLARE_ZONE_ID,
 				name: emailDomain,
 				type: "MX",
 				priority: 10,
+				ttl: 1,
 				value: "feedback-smtp.ca-central-1.amazonses.com",
 			});
 			new cloudflare.Record("TXT", {
-				zoneId: cloudflareZone.id,
+				zoneId: CLOUDFLARE_ZONE_ID,
 				name: emailDomain,
 				type: "TXT",
+				ttl: 1,
 				value: '"v=spf1 include:amazonses.com ~all"',
 			});
 		}
