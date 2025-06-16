@@ -38,6 +38,7 @@ import { Learner } from "@/types/learner";
 import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { resendCompletionEmailFn } from "@/server/handlers/users.modules";
+import ExportCSVButton from "@/components/ExportCSVButton";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",
@@ -121,7 +122,7 @@ function RouteComponent() {
 			accessorKey: "connection.connectStatus",
 			header: ({ column }) => (
 				<DataTableColumnHeader
-					title={tLearner.status}
+					title={tLearner.connectStatus}
 					column={column}
 				/>
 			),

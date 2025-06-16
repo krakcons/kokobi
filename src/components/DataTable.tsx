@@ -1,4 +1,4 @@
-import { Table as TanstackTable } from "@tanstack/react-table";
+import { Header, Row, Table as TanstackTable } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -48,6 +48,7 @@ import {
 	ArrowDown,
 	ArrowUp,
 	EyeOff,
+	Download,
 } from "lucide-react";
 
 export const TableSearchSchema = z.object({
@@ -71,6 +72,79 @@ interface DataTableProps<TData, TValue> {
 	search: TableParams;
 	onSearchChange: (search: TableParams) => void;
 }
+
+export const getHeaderNames = (headers: Header<any, unknown>[]): string[] =>
+	headers.map((header) => {
+		if (typeof header.column.columnDef.header === "function") {
+			const headerContext = header.column.columnDef.header(
+				header.getContext(),
+			);
+			if (typeof headerContext === "string") {
+				return headerContext;
+			}
+			return headerContext.props.title;
+		} else {
+			return header.column.columnDef.header ?? header.id;
+		}
+	});
+
+const getRowsData = (rows: Row<any>[]): string[][] => {
+	return rows.map((row: Row<any>) => {
+		const cells = row.getAllCells();
+		const cellsContent = cells
+			.filter((x) => x.column.getIsVisible())
+			.map((x) => (x.getValue() ? (x.getValue() as string) : ""));
+		return cellsContent;
+	});
+};
+
+const escapeCsvValue = (value: string) => {
+	if (value === null || value === undefined) return "";
+	const stringValue = String(value);
+	if (
+		stringValue.includes(",") ||
+		stringValue.includes('"') ||
+		stringValue.includes("\n")
+	) {
+		return `"${stringValue.replace(/"/g, '""')}"`;
+	}
+	return stringValue;
+};
+
+const getCsvBlob = (
+	headers: Header<any, unknown>[],
+
+	rows: Row<any>[],
+): Blob => {
+	let csvContent = "";
+	const headerNames = getHeaderNames(headers).filter(
+		(h) => !["Actions", "Actes"].includes(h),
+	);
+	csvContent += headerNames.join(",") + "\n";
+
+	const data = getRowsData(rows);
+	data.forEach((row) => {
+		const escapedRow = row.slice(0, headerNames.length).map(escapeCsvValue);
+		csvContent += escapedRow.join(",") + "\n";
+	});
+
+	return new Blob([csvContent], { type: "text/csv" });
+};
+
+const exportToCsv = (
+	fileName = "data",
+	headers: Header<any, unknown>[],
+	rows: Row<any>[],
+): void => {
+	const blob = getCsvBlob(headers, rows);
+	const link = document.createElement("a");
+	const url = window.URL.createObjectURL(blob);
+	link.href = url;
+	link.setAttribute("download", fileName);
+	document.body.appendChild(link);
+	link.click();
+	link.remove();
+};
 
 export function DataTable<TData, TValue>({
 	columns,
@@ -151,7 +225,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="w-[calc(100vw-32px)] rounded-md sm:w-full">
-			<div className="flex items-center pb-4">
+			<div className="flex items-center pb-4 gap-2 justify-between">
 				<Input
 					placeholder={t.filter}
 					defaultValue={globalFilter}
@@ -160,6 +234,22 @@ export function DataTable<TData, TValue>({
 					}
 					className="max-w-sm"
 				/>
+				<Button
+					variant="outline"
+					onClick={() =>
+						exportToCsv(
+							"users.csv",
+							table
+								.getHeaderGroups()
+								.map((x) => x.headers)
+								.flat(),
+							table.getRowModel().rows,
+						)
+					}
+				>
+					<Download size={18} />
+					Export
+				</Button>
 			</div>
 			<ScrollArea>
 				<Table>

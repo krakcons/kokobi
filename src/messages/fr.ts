@@ -290,6 +290,7 @@ const fr: Messages = {
 			passed: "Réussi",
 			failed: "Échec",
 		},
+		connectStatus: "État de la connexion",
 		status: "Statut",
 		score: "Score",
 		startedAt: "Commencé à",

@@ -289,6 +289,7 @@ const en = {
 		moduleLocale: "Locale",
 		moduleVersion: "Version",
 		connectedAt: "Invited/Requested At",
+		connectStatus: "Connection Status",
 	},
 	LearnersForm: {
 		title: "Invite Learners",
