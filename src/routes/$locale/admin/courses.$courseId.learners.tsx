@@ -217,6 +217,27 @@ function RouteComponent() {
 					b.original.attempt?.completedAt,
 				),
 		},
+		{
+			accessorKey: "connection.createdAt",
+			header: ({ column }) => (
+				<DataTableColumnHeader
+					title={tLearner.connectedAt}
+					column={column}
+				/>
+			),
+			accessorFn: ({ connection }) =>
+				formatDate({
+					date: connection?.createdAt,
+					locale,
+					type: "detailed",
+				}),
+			sortUndefined: "last",
+			sortingFn: (a, b) =>
+				dateSortingFn(
+					a.original.connection.createdAt,
+					b.original.connection.createdAt,
+				),
+		},
 		createDataTableActionsColumn<LearnerTableType>([
 			{
 				name: tConnect.accept,

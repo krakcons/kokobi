@@ -286,6 +286,7 @@ const en = {
 		completedAt: "Completed At",
 		resend: "Resend Invite",
 		recertify: "Resend Completion",
+		connectedAt: "Invited/Requested At",
 	},
 	LearnersForm: {
 		title: "Invite Learners",

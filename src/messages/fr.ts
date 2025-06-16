@@ -296,6 +296,7 @@ const fr: Messages = {
 		completedAt: "Terminé à",
 		resend: "Renvoyer l'invitation",
 		recertify: "Renvoyer l'achèvement",
+		connectedAt: "Invité/Demandé à",
 	},
 	LearnersForm: {
 		title: "Inviter des apprenants",

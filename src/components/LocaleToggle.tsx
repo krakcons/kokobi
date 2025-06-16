@@ -11,12 +11,13 @@ export const LocaleToggle = () => {
 			onClick={() => {
 				navigate({
 					replace: true,
-					to: ".",
-					params: (prev: any) => ({
+					// @ts-ignore
+					params: (prev) => ({
 						...prev,
 						locale: locale === "en" ? "fr" : "en",
 					}),
-					search: (s: any) => s,
+					// @ts-ignore
+					search: (s) => s,
 				});
 			}}
 			size="icon"
