@@ -28,10 +28,7 @@ import {
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { EditingLocaleSchema } from "@/types/router";
-import {
-	getTeamConnectionsFn,
-	getTeamCourseConnectionsFn,
-} from "@/server/handlers/connections";
+import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { getTenantFn } from "@/server/handlers/teams";
 
 export const Route = createFileRoute("/$locale/admin")({
@@ -122,6 +119,7 @@ export const Route = createFileRoute("/$locale/admin")({
 
 function RouteComponent() {
 	const t = useTranslations("AdminSidebar");
+	const tLocales = useTranslations("Locales");
 	const locale = useLocale();
 	const search = Route.useSearch();
 	const navigate = useNavigate();
@@ -164,9 +162,9 @@ function RouteComponent() {
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{locales.map(({ label, value }) => (
+								{locales.map(({ value }) => (
 									<SelectItem key={value} value={value}>
-										{label}
+										{tLocales[value]}
 									</SelectItem>
 								))}
 							</SelectContent>

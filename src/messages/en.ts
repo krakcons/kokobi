@@ -286,6 +286,8 @@ const en = {
 		completedAt: "Completed At",
 		resend: "Resend Invite",
 		recertify: "Resend Completion",
+		moduleLocale: "Locale",
+		moduleVersion: "Version",
 		connectedAt: "Invited/Requested At",
 	},
 	LearnersForm: {
@@ -293,6 +295,10 @@ const en = {
 		description:
 			"Enter emails below and submit to invite them new learners.",
 		add: "Add Email",
+	},
+	Locales: {
+		en: "English",
+		fr: "French",
 	},
 	Members: {
 		title: "Members",

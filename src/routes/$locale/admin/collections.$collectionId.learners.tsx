@@ -31,7 +31,8 @@ import { UserToCollectionType } from "@/types/connections";
 import { User } from "@/types/users";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { useTranslations } from "@/lib/locale";
+import { useLocale, useTranslations } from "@/lib/locale";
+import { dateSortingFn, formatDate } from "@/lib/date";
 
 export const Route = createFileRoute(
 	"/$locale/admin/collections/$collectionId/learners",
@@ -67,6 +68,7 @@ function RouteComponent() {
 	const tForm = useTranslations("LearnersForm");
 	const tActions = useTranslations("Actions");
 	const tConnect = useTranslations("ConnectionActions");
+	const locale = useLocale();
 
 	const createConnection = useMutation({
 		mutationFn: inviteUsersConnectionFn,
@@ -125,6 +127,24 @@ function RouteComponent() {
 			),
 			accessorFn: ({ user }) => user.lastName ?? undefined,
 			sortUndefined: "last",
+		},
+		{
+			accessorKey: "connection.createdAt",
+			header: ({ column }) => (
+				<DataTableColumnHeader
+					title={tLearner.connectedAt}
+					column={column}
+				/>
+			),
+			accessorFn: ({ createdAt }) =>
+				formatDate({
+					date: createdAt,
+					locale,
+					type: "detailed",
+				}),
+			sortUndefined: "last",
+			sortingFn: (a, b) =>
+				dateSortingFn(a.original.createdAt, b.original.createdAt),
 		},
 		createDataTableActionsColumn<UserToCollectionType & { user: User }>([
 			{

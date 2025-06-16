@@ -82,6 +82,7 @@ function RouteComponent() {
 	const tConnect = useTranslations("ConnectionActions");
 	const tLearner = useTranslations("Learner");
 	const tActions = useTranslations("Actions");
+	const tLocales = useTranslations("Locales");
 	const tForm = useTranslations("LearnersForm");
 
 	const connectionResponse = useMutation({
@@ -237,6 +238,27 @@ function RouteComponent() {
 					a.original.connection.createdAt,
 					b.original.connection.createdAt,
 				),
+		},
+		{
+			accessorKey: "module.language",
+			header: ({ column }) => (
+				<DataTableColumnHeader
+					title={tLearner.moduleLocale}
+					column={column}
+				/>
+			),
+			sortUndefined: "last",
+			accessorFn: ({ module }) => module && tLocales[module.locale],
+		},
+		{
+			accessorKey: "module.versionNumber",
+			header: ({ column }) => (
+				<DataTableColumnHeader
+					title={tLearner.moduleVersion}
+					column={column}
+				/>
+			),
+			sortUndefined: "last",
 		},
 		createDataTableActionsColumn<LearnerTableType>([
 			{

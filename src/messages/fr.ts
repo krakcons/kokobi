@@ -297,12 +297,18 @@ const fr: Messages = {
 		resend: "Renvoyer l'invitation",
 		recertify: "Renvoyer l'achèvement",
 		connectedAt: "Invité/Demandé à",
+		moduleLocale: "Lieu",
+		moduleVersion: "Version",
 	},
 	LearnersForm: {
 		title: "Inviter des apprenants",
 		description:
 			"Saisissez vos adresses e-mail ci-dessous et soumettez-les pour inviter de nouveaux apprenants.",
 		add: "Ajouter un e-mail",
+	},
+	Locales: {
+		en: "Anglais",
+		fr: "Français",
 	},
 	Members: {
 		title: "Membres",

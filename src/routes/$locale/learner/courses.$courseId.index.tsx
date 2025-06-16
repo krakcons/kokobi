@@ -60,6 +60,7 @@ function RouteComponent() {
 	const t = useTranslations("Course");
 	const tLearner = useTranslations("Learner");
 	const tCert = useTranslations("Certificate");
+	const tLocales = useTranslations("Locales");
 	const locale = useLocale();
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
@@ -91,6 +92,8 @@ function RouteComponent() {
 			router.invalidate();
 		},
 	});
+
+	console.log(attempts);
 
 	return (
 		<Page>
@@ -140,6 +143,12 @@ function RouteComponent() {
 									<TableHead>
 										{tLearner.completedAt}
 									</TableHead>
+									<TableHead>
+										{tLearner.moduleLocale}
+									</TableHead>
+									<TableHead>
+										{tLearner.moduleVersion}
+									</TableHead>
 									<TableHead></TableHead>
 								</TableRow>
 							</TableHeader>
@@ -176,6 +185,14 @@ function RouteComponent() {
 													locale,
 													type: "detailed",
 												})}
+										</TableCell>
+										<TableCell className="text-nowrap">
+											{attempt.module &&
+												tLocales[attempt.module.locale]}
+										</TableCell>
+										<TableCell className="text-nowrap">
+											{attempt.module &&
+												attempt.module.versionNumber}
 										</TableCell>
 										<TableCell className="flex justify-end items-center gap-2">
 											{attempt.completedAt && (

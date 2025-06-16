@@ -79,9 +79,10 @@ export const getUserModulesByCourseFn = createServerFn({ method: "GET" })
 			},
 		});
 
-		return moduleList.map((attempt) =>
-			ExtendLearner(attempt.module.type).parse(attempt),
-		);
+		return moduleList.map((attempt) => ({
+			...ExtendLearner(attempt.module.type).parse(attempt),
+			module: attempt.module,
+		}));
 	});
 
 export const updateUserModuleFn = createServerFn({ method: "POST" })
