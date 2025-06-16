@@ -1,6 +1,6 @@
 import { db } from "@/server/db";
 import { modules, teams, usersToModules } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import {
 	learnerMiddleware,
 	localeMiddleware,
@@ -227,6 +227,7 @@ export const createUserModuleFn = createServerFn({ method: "POST" })
 
 		const moduleList = await db.query.modules.findMany({
 			where: eq(modules.courseId, courseId),
+			orderBy: desc(modules.createdAt),
 		});
 
 		if (moduleList.length === 0) {
