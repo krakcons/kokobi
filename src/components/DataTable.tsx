@@ -113,7 +113,6 @@ const escapeCsvValue = (value: string) => {
 
 const getCsvBlob = (
 	headers: Header<any, unknown>[],
-
 	rows: Row<any>[],
 ): Blob => {
 	let csvContent = "";
@@ -238,7 +237,7 @@ export function DataTable<TData, TValue>({
 					variant="outline"
 					onClick={() =>
 						exportToCsv(
-							"users.csv",
+							"table.csv",
 							table
 								.getHeaderGroups()
 								.map((x) => x.headers)

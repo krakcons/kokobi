@@ -24,6 +24,7 @@ import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { useAppForm } from "@/components/ui/form";
 import { z } from "zod";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
+import ExportCSVButton from "@/components/ExportCSVButton";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/statistics",
@@ -129,39 +130,52 @@ function RouteComponent() {
 		},
 	});
 
+	const statExport: Record<string, string | number> = {};
+	cards.forEach((stat) => {
+		statExport[stat.title] = stat.value;
+	});
+	charts.forEach((chart) => {
+		chart.data.forEach((stat) => {
+			statExport[chart.title + " (" + stat.name + ")"] = stat.value;
+		});
+	});
+
 	return (
 		<Page>
 			<PageHeader title={t.title} description={t.description}>
-				{connections && connections.length > 0 && (
-					<form.AppForm>
-						<form
-							onSubmit={(e) => e.preventDefault()}
-							className="flex flex-col gap-8 items-start"
-						>
-							<form.AppField name="statsTeamId">
-								{(field) => (
-									<field.SelectField
-										label={t.filter.title}
-										options={[
-											{
-												label: t.filter.all,
-												value: "all",
-											},
-											{
-												label: team.name,
-												value: team?.id,
-											},
-											...connections?.map((c) => ({
-												label: c.team.name,
-												value: c.team.id,
-											})),
-										]}
-									/>
-								)}
-							</form.AppField>
-						</form>
-					</form.AppForm>
-				)}
+				<div className="flex items-end gap-2">
+					<ExportCSVButton data={[statExport]} filename="stats" />
+					{connections && connections.length > 0 && (
+						<form.AppForm>
+							<form
+								onSubmit={(e) => e.preventDefault()}
+								className="flex flex-col gap-8 items-start"
+							>
+								<form.AppField name="statsTeamId">
+									{(field) => (
+										<field.SelectField
+											label={t.filter.title}
+											options={[
+												{
+													label: t.filter.all,
+													value: "all",
+												},
+												{
+													label: team.name,
+													value: team?.id,
+												},
+												...connections?.map((c) => ({
+													label: c.team.name,
+													value: c.team.id,
+												})),
+											]}
+										/>
+									)}
+								</form.AppField>
+							</form>
+						</form.AppForm>
+					)}
+				</div>
 			</PageHeader>
 			<div className="flex gap-4 flex-wrap items-start">
 				{cards.map((card) => (
