@@ -1,10 +1,8 @@
 import { Module } from "@/types/module";
 
 export const getInitialScormData = (
-	version: Module["type"]
+	version: Module["type"],
 ): Record<string, string> => {
-	console.log(version);
-	console.log(typeof version);
 	if (version === "1.2") {
 		return {
 			"cmi.core.lesson_status": "not attempted",

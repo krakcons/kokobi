@@ -57,8 +57,6 @@ function RouteComponent() {
 		},
 	});
 
-	console.log(connection);
-
 	return (
 		<FloatingPage>
 			<PageHeader

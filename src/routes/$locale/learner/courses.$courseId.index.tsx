@@ -93,8 +93,6 @@ function RouteComponent() {
 		},
 	});
 
-	console.log(attempts);
-
 	return (
 		<Page>
 			<PageHeader
