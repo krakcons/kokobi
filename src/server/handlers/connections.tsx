@@ -194,7 +194,7 @@ export const inviteUsersConnectionFn = createServerFn({ method: "POST" })
 		z.object({
 			type: z.enum(["course", "collection"]),
 			id: z.string(),
-			emails: z.string().email().toLowerCase().array(),
+			emails: z.email().toLowerCase().array(),
 		}),
 	)
 	.handler(async ({ context, data: { type, id, emails } }) => {

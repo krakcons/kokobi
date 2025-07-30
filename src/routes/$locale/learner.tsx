@@ -9,7 +9,6 @@ import {
 	redirect,
 	useLocation,
 	useMatch,
-	useRouter,
 } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import {

@@ -32,8 +32,8 @@ export type Role = z.infer<typeof RoleSchema>;
 export const TeamUsersFormSchema = z.object({
 	users: z
 		.object({
-			email: z.string().email().toLowerCase(),
-			role: z.enum(["owner", "member"]).optional().default("member"),
+			email: z.email().toLowerCase(),
+			role: z.enum(["owner", "member"]).optional(),
 		})
 		.array(),
 });

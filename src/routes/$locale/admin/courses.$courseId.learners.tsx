@@ -38,7 +38,6 @@ import { Learner } from "@/types/learner";
 import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { resendCompletionEmailFn } from "@/server/handlers/users.modules";
-import ExportCSVButton from "@/components/ExportCSVButton";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",
@@ -208,15 +207,15 @@ function RouteComponent() {
 			),
 			accessorFn: ({ attempt }) =>
 				formatDate({
-					date: attempt?.completedAt,
+					date: attempt?.completedAt ?? undefined,
 					locale,
 					type: "detailed",
 				}),
 			sortUndefined: "last",
 			sortingFn: (a, b) =>
 				dateSortingFn(
-					a.original.attempt?.completedAt,
-					b.original.attempt?.completedAt,
+					a.original.attempt?.completedAt ?? undefined,
+					b.original.attempt?.completedAt ?? undefined,
 				),
 		},
 		{
@@ -310,7 +309,7 @@ function RouteComponent() {
 							courseId: params.courseId,
 						},
 					}),
-				visible: ({ attempt }) => attempt?.completedAt,
+				visible: ({ attempt }) => !!attempt?.completedAt,
 			},
 			{
 				name: tActions.delete,

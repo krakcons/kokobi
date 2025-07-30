@@ -257,9 +257,7 @@ export const usersToModules = pgTable("users_to_modules", {
 		}),
 	completedAt: timestamp("completedAt", {
 		withTimezone: true,
-	})
-		.default(sql`null`)
-		.$type<Date | null>(),
+	}).default(sql`null`),
 	data: jsonb("data").$type<Record<string, string>>().notNull().default({}),
 	...dates,
 });

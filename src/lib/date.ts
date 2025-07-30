@@ -30,16 +30,16 @@ const dateTypes: Record<
 	},
 };
 
-export const formatDate = ({
+export const formatDate = <T extends Date | undefined>({
 	date,
 	locale,
 	type = "readable",
 }: {
-	date?: Date;
+	date: T;
 	locale: Locale;
 	type?: keyof typeof dateTypes;
-}): string | undefined => {
-	if (!date) return undefined;
+}): T extends Date ? string : undefined => {
+	if (!date) return undefined as any;
 
 	const dateType = dateTypes[type];
 	const dateString = new Intl.DateTimeFormat(locale, dateType.date).format(
@@ -49,7 +49,7 @@ export const formatDate = ({
 		? new Intl.DateTimeFormat(locale, dateType.time).format(date)
 		: undefined;
 
-	return `${dateString}${timeString ? ` ${timeString}` : ""}`;
+	return `${dateString}${timeString ? ` ${timeString}` : ""}` as any;
 };
 
 export const dateSortingFn = (a?: Date, b?: Date): number => {

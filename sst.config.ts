@@ -77,20 +77,20 @@ export default $config({
 				mailFromDomain: emailDomain,
 				domain,
 			});
-			new cloudflare.Record("MX", {
+			new cloudflare.DnsRecord("MX", {
 				zoneId: CLOUDFLARE_ZONE_ID,
 				name: emailDomain,
 				type: "MX",
 				priority: 10,
 				ttl: 1,
-				value: "feedback-smtp.ca-central-1.amazonses.com",
+				content: "feedback-smtp.ca-central-1.amazonses.com",
 			});
-			new cloudflare.Record("TXT", {
+			new cloudflare.DnsRecord("TXT", {
 				zoneId: CLOUDFLARE_ZONE_ID,
 				name: emailDomain,
 				type: "TXT",
 				ttl: 1,
-				value: '"v=spf1 include:amazonses.com ~all"',
+				content: '"v=spf1 include:amazonses.com ~all"',
 			});
 		}
 

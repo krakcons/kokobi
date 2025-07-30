@@ -7,7 +7,7 @@ import { Scorm2004DataSchema } from "./scorm/versions/2004";
 import { LocaleSchema } from "./translations";
 
 export const BaseLearnerSchema = createSelectSchema(usersToModules, {
-	data: z.record(z.string()),
+	data: z.record(z.string(), z.string()),
 });
 export type BaseLearner = z.infer<typeof BaseLearnerSchema>;
 
@@ -69,7 +69,7 @@ export const LearnersFormSchema = z.object({
 	learners: z
 		.array(
 			z.object({
-				email: z.string().email().toLowerCase(),
+				email: z.email().toLowerCase(),
 				sendEmail: z.boolean().optional(),
 				inviteLocale: LocaleSchema.optional(),
 			}),
@@ -80,6 +80,6 @@ export type LearnersFormType = z.infer<typeof LearnersFormSchema>;
 
 export const LearnerUpdateSchema = z.object({
 	// Can update data
-	data: z.record(z.string()),
+	data: z.record(z.string(), z.string()),
 });
 export type LearnerUpdateType = z.infer<typeof LearnerUpdateSchema>;
