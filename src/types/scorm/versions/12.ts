@@ -87,9 +87,9 @@ export const Scorm12DataSchema = z
 				"not attempted",
 			])
 			.default("not attempted"),
-		"cmi.core.score.raw": z.coerce.number().default(0),
-		"cmi.core.score.max": z.coerce.number().default(100),
-		"cmi.core.score.min": z.coerce.number().default(0),
+		"cmi.core.score.raw": z.coerce.number().optional(),
+		"cmi.core.score.max": z.coerce.number().optional(),
+		"cmi.core.score.min": z.coerce.number().optional(),
 	})
 	.transform((data) => {
 		const statusMapping: Record<string, Learner["status"]> = {

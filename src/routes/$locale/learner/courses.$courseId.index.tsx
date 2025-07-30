@@ -93,6 +93,8 @@ function RouteComponent() {
 		},
 	});
 
+	console.log(attempts);
+
 	return (
 		<Page>
 			<PageHeader
@@ -160,9 +162,13 @@ function RouteComponent() {
 											{["failed", "passed"].includes(
 												attempt.status,
 											) &&
-												attempt.score.raw +
+											attempt.score &&
+											attempt.score.raw !== undefined &&
+											attempt.score.max !== undefined
+												? attempt.score.raw +
 													" / " +
-													attempt.score.max}
+													attempt.score.max
+												: undefined}
 										</TableCell>
 										<TableCell className="text-nowrap">
 											{attempt.createdAt &&

@@ -51,11 +51,6 @@ export const ExtendLearner = (type?: Module["type"]) => {
 				: {
 						...data,
 						status: "not-started" as const,
-						score: {
-							raw: 0,
-							max: 100,
-							min: 0,
-						},
 					};
 	}).refine((learner) => {
 		if (learner.status === "not-started" && learner.completedAt) {

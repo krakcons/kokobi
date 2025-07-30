@@ -171,9 +171,9 @@ export const Scorm2004DataSchema = z
 		"cmi.success_status": z
 			.enum(["passed", "failed", "unknown"])
 			.default("unknown"),
-		"cmi.score.raw": z.coerce.number().default(0),
-		"cmi.score.max": z.coerce.number().default(100),
-		"cmi.score.min": z.coerce.number().default(0),
+		"cmi.score.raw": z.coerce.number().optional(),
+		"cmi.score.max": z.coerce.number().optional(),
+		"cmi.score.min": z.coerce.number().optional(),
 	})
 	.transform((data) => {
 		const statusMapping: Record<string, Learner["status"]> = {
