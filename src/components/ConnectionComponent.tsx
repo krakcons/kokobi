@@ -38,8 +38,8 @@ export const ConnectionComponent = ({
 				courseId: id,
 			}}
 		>
-			<Card className="flex justify-between items-center">
-				<CardHeader>
+			<Card className="flex flex-row justify-between items-center">
+				<CardHeader className="flex-1">
 					<CardTitle>{name}</CardTitle>
 					{description && (
 						<CardDescription>{description}</CardDescription>

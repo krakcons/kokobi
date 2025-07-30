@@ -45,8 +45,8 @@ function RouteComponent() {
 						to="/$locale/admin/courses/$courseId/learners"
 						params={(p) => ({ ...p, courseId: c.id })}
 					>
-						<Card className="flex justify-between items-center">
-							<CardHeader>
+						<Card className="flex flex-row justify-between items-center">
+							<CardHeader className="flex-1">
 								<CardTitle>{c.name}</CardTitle>
 								{c.description && (
 									<CardDescription>
@@ -60,8 +60,8 @@ function RouteComponent() {
 				))
 			) : (
 				<Link from="/$locale/admin/" to="/$locale/admin/courses/create">
-					<Card className="flex justify-between items-center">
-						<CardHeader>
+					<Card className="flex flex-row justify-between items-center">
+						<CardHeader className="flex-1">
 							<CardTitle>{t.course.title}</CardTitle>
 							<CardDescription>
 								{t.course.description}
@@ -80,8 +80,8 @@ function RouteComponent() {
 						to="/$locale/admin/collections/$collectionId/learners"
 						params={(p) => ({ ...p, collectionId: c.id })}
 					>
-						<Card className="flex justify-between items-center">
-							<CardHeader>
+						<Card className="flex flex-row justify-between items-center">
+							<CardHeader className="flex-1">
 								<CardTitle>{c.name}</CardTitle>
 								{c.description && (
 									<CardDescription>
@@ -98,8 +98,8 @@ function RouteComponent() {
 					from="/$locale/admin/"
 					to="/$locale/admin/collections/create"
 				>
-					<Card className="flex justify-between items-center">
-						<CardHeader>
+					<Card className="flex flex-row justify-between items-center">
+						<CardHeader className="flex-1">
 							<CardTitle>{t.collection.title}</CardTitle>
 							<CardDescription>
 								{t.collection.description}
