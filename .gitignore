@@ -27,3 +27,5 @@ dist
 .tanstack
 .output
 .nitro
+
+seed.ts
