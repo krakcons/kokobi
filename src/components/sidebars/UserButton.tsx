@@ -1,5 +1,4 @@
 import {
-	SidebarFooter,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
@@ -10,8 +9,6 @@ import { deleteAuthFn } from "@/server/handlers/auth";
 import { useServerFn } from "@tanstack/react-start";
 import type { User as UserType } from "@/types/users";
 import {
-	Blocks,
-	Book,
 	LogOutIcon,
 	Moon,
 	MoreVerticalIcon,
@@ -63,7 +60,6 @@ export const UserButton = ({
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { isMobile } = useSidebar();
-	const signOut = useServerFn(deleteAuthFn);
 	const router = useRouter();
 	const { accountDialog = false } = useSearch({
 		from: "__root__",
@@ -189,13 +185,19 @@ export const UserButton = ({
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
-						onSelect={() =>
-							signOut({
-								data: {
-									redirect: signOutRedirect,
-								},
-							})
-						}
+						onSelect={() => {
+							deleteAuthFn().then(() =>
+								signOutRedirect
+									? navigate({
+											href: signOutRedirect,
+											reloadDocument: true,
+										})
+									: navigate({
+											to: "/$locale/auth/login",
+											reloadDocument: true,
+										}),
+							);
+						}}
 					>
 						<LogOutIcon />
 						{t.signout}
