@@ -159,10 +159,7 @@ function RouteComponent() {
 											{tLearner.statuses[attempt.status]}
 										</TableCell>
 										<TableCell>
-											{["failed", "passed"].includes(
-												attempt.status,
-											) &&
-											attempt.score &&
+											{attempt.score &&
 											attempt.score.raw !== undefined &&
 											attempt.score.max !== undefined
 												? attempt.score.raw +

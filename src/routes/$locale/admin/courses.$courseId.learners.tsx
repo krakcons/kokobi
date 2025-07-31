@@ -167,7 +167,6 @@ function RouteComponent() {
 			),
 			accessorFn: ({ attempt }) =>
 				attempt &&
-				["failed", "passed"].includes(attempt.status) &&
 				attempt.score &&
 				attempt.score.raw !== undefined &&
 				attempt.score.max !== undefined
