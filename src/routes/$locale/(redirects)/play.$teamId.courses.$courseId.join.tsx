@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-	"/$locale/(old)/play/$teamId/courses/$courseId",
+	"/$locale/(redirects)/play/$teamId/courses/$courseId/join",
 )({
 	component: () => <></>,
 	loader: ({ params }) => {
@@ -12,6 +12,6 @@ export const Route = createFileRoute(
 				locale: params.locale,
 			},
 			search: { teamId: params.teamId },
-		});
+		})
 	},
 });
