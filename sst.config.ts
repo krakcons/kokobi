@@ -54,7 +54,7 @@ export default $config({
 			CLOUDFLARE_ZONE_ID,
 			OPENAI_API_KEY: new sst.Secret("OPENAI_API_KEY").value,
 			// Bun adapters
-			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-prod`,
+			DATABASE_URL: $interpolate`postgres://${aurora.username}:${aurora.password}@${aurora.host}:${aurora.port}/${$app.name}-${$app.stage}`,
 			S3_BUCKET: bucket.name,
 			// URLS
 			VITE_SITE_URL: LOCAL_STAGES.includes($app.stage)

@@ -29,7 +29,7 @@ export const getCollectionsFn = createServerFn({ method: "GET" })
 	});
 
 export const getCollectionByIdFn = createServerFn({ method: "GET" })
-	.middleware([teamMiddleware(), localeMiddleware])
+	.middleware([localeMiddleware])
 	.validator(z.object({ id: z.string() }))
 	.handler(async ({ context, data: { id } }) => {
 		const collection = await db.query.collections.findFirst({
