@@ -40,7 +40,7 @@ export const Route = createFileRoute("/$locale/admin")({
 		if (!auth.user) {
 			throw redirect({
 				to: "/$locale/auth/login",
-				search: (s) => ({
+				search: (s: any) => ({
 					...s,
 					redirect: location.pathname,
 				}),

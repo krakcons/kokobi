@@ -7,7 +7,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getNewModuleVersionNumber } from "../lib/modules";
 import { hasTeamAccess } from "../lib/access";
-import { env } from "../env";
 import { s3 } from "../s3";
 
 export const getModulesFn = createServerFn({ method: "GET" })
