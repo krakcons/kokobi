@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-	VITE_SITE_URL: z.string().url(),
+	VITE_SITE_URL: z.url(),
 	VITE_ROOT_DOMAIN: z.string().min(1),
 	NODE_ENV: z.string().optional(),
 	CLOUDFLARE_API_TOKEN: z.string().min(1),
