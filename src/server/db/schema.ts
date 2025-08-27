@@ -8,17 +8,17 @@ import {
 
 // Enums
 
-export const moduleTypeEnum = text("module_type", { enum: ["1.2", "2004"] });
-export const localeEnum = text("locale", { enum: ["en", "fr"] });
-export const roleEnum = text("role", { enum: ["owner", "member"] });
+export const moduleTypeEnum = text({ enum: ["1.2", "2004"] });
+export const localeEnum = text({ enum: ["en", "fr"] });
+export const roleEnum = text({ enum: ["owner", "member"] });
 
 const dates = {
-	createdAt: integer({
+	createdAt: integer("created_at", {
 		mode: "timestamp",
 	})
 		.notNull()
 		.default(sql`(unixepoch())`),
-	updatedAt: integer({
+	updatedAt: integer("updated_at", {
 		mode: "timestamp",
 	})
 		.notNull()
@@ -26,10 +26,10 @@ const dates = {
 };
 
 const sharing = {
-	connectType: text("connect-type", {
+	connectType: text("connect_type", {
 		enum: ["invite", "request"],
 	}).notNull(),
-	connectStatus: text("connect-status", {
+	connectStatus: text("connect_status", {
 		enum: ["pending", "accepted", "rejected"],
 	}).notNull(),
 };
@@ -37,32 +37,32 @@ const sharing = {
 // USERS //
 
 export const users = sqliteTable("users", {
-	id: text("id").primaryKey(),
-	email: text("email").unique().notNull(),
-	firstName: text("firstName"),
-	lastName: text("lastName"),
+	id: text().primaryKey(),
+	email: text().unique().notNull(),
+	firstName: text("first_name"),
+	lastName: text("last_name"),
 	...dates,
 });
 export const sessions = sqliteTable("sessions", {
-	id: text("id").primaryKey(),
-	userId: text("userId")
-		.notNull()
-		.references(() => users.id, {
-			onDelete: "cascade",
-		}),
-	expiresAt: integer({
-		mode: "timestamp",
-	}).notNull(),
-});
-export const emailVerifications = sqliteTable("email_verifications", {
-	id: text("id").primaryKey(),
+	id: text().primaryKey(),
 	userId: text("user_id")
 		.notNull()
 		.references(() => users.id, {
 			onDelete: "cascade",
 		}),
-	code: text("code").notNull(),
-	expiresAt: integer({
+	expiresAt: integer("expires_at", {
+		mode: "timestamp",
+	}).notNull(),
+});
+export const emailVerifications = sqliteTable("email_verifications", {
+	id: text().primaryKey(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, {
+			onDelete: "cascade",
+		}),
+	code: text().notNull(),
+	expiresAt: integer("expires_at", {
 		mode: "timestamp",
 	})
 		.$default(() => new Date(Date.now() + 1000 * 60 * 15))
@@ -72,58 +72,58 @@ export const emailVerifications = sqliteTable("email_verifications", {
 // TEAMS //
 
 export const teams = sqliteTable("teams", {
-	id: text("id").primaryKey(),
+	id: text().primaryKey(),
 	...dates,
 });
 export const teamTranslations = sqliteTable(
 	"team_translations",
 	{
-		teamId: text("teamId")
+		teamId: text("team_id")
 			.notNull()
 			.references(() => teams.id, {
 				onDelete: "cascade",
 			}),
 		locale: localeEnum.notNull(),
-		name: text("name").notNull(),
-		logo: text("logo"),
-		favicon: text("favicon"),
+		name: text().notNull(),
+		logo: text(),
+		favicon: text(),
 		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.teamId, t.locale] })],
 );
 export const domains = sqliteTable("domains", {
-	id: text("id").primaryKey(),
-	teamId: text("teamId")
+	id: text().primaryKey(),
+	teamId: text("team_id")
 		.notNull()
 		.references(() => teams.id, {
 			onDelete: "cascade",
 		}),
-	hostname: text("hostname").unique().notNull(),
-	hostnameId: text("hostnameId").notNull(),
+	hostname: text().unique().notNull(),
+	hostnameId: text("hostname_id").notNull(),
 	...dates,
 });
 export const keys = sqliteTable("keys", {
-	id: text("id").primaryKey().notNull(),
-	teamId: text("teamId")
+	id: text().primaryKey().notNull(),
+	teamId: text("team_id")
 		.notNull()
 		.references(() => teams.id, {
 			onDelete: "cascade",
 		}),
-	name: text("name").notNull(),
-	key: text("key").notNull(),
+	name: text().notNull(),
+	key: text().notNull(),
 	...dates,
 });
 
 // COURSES //
 
 export const courses = sqliteTable("courses", {
-	id: text("id").primaryKey().notNull(),
-	teamId: text("teamId")
+	id: text().primaryKey().notNull(),
+	teamId: text("team_id")
 		.notNull()
 		.references(() => teams.id, {
 			onDelete: "cascade",
 		}),
-	completionStatus: text("completionStatus", {
+	completionStatus: text("completion_status", {
 		enum: ["passed", "completed", "either"],
 	})
 		.notNull()
@@ -133,36 +133,36 @@ export const courses = sqliteTable("courses", {
 export const courseTranslations = sqliteTable(
 	"course_translations",
 	{
-		courseId: text("courseId")
+		courseId: text("course_id")
 			.notNull()
 			.references(() => courses.id, {
 				onDelete: "cascade",
 			}),
 		locale: localeEnum.notNull(),
-		name: text("name").notNull(),
-		description: text("description").notNull(),
+		name: text().notNull(),
+		description: text().notNull(),
 		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.courseId, t.locale] })],
 );
 export const modules = sqliteTable("modules", {
-	id: text("id").primaryKey().notNull(),
-	courseId: text("courseId")
+	id: text().primaryKey().notNull(),
+	courseId: text("course_id")
 		.notNull()
 		.references(() => courses.id, {
 			onDelete: "cascade",
 		}),
 	locale: localeEnum.notNull(),
 	type: moduleTypeEnum.notNull(),
-	versionNumber: integer("versionNumber").notNull().default(1),
+	versionNumber: integer("version_number").notNull().default(1),
 	...dates,
 });
 
 // COLLECTIONS //
 
 export const collections = sqliteTable("collections", {
-	id: text("id").primaryKey().notNull(),
-	teamId: text("teamId")
+	id: text().primaryKey().notNull(),
+	teamId: text("team_id")
 		.notNull()
 		.references(() => teams.id, {
 			onDelete: "cascade",
@@ -172,14 +172,14 @@ export const collections = sqliteTable("collections", {
 export const collectionTranslations = sqliteTable(
 	"collection_translations",
 	{
-		collectionId: text("collectionId")
+		collectionId: text("collection_id")
 			.notNull()
 			.references(() => collections.id, {
 				onDelete: "cascade",
 			}),
 		locale: localeEnum.notNull(),
-		name: text("name").notNull(),
-		description: text("description").notNull(),
+		name: text().notNull(),
+		description: text().notNull(),
 		...dates,
 	},
 	(t) => [primaryKey({ columns: [t.collectionId, t.locale] })],
@@ -188,12 +188,12 @@ export const collectionTranslations = sqliteTable(
 export const collectionsToCourses = sqliteTable(
 	"collections_to_courses",
 	{
-		collectionId: text("collectionId")
+		collectionId: text("collection_id")
 			.notNull()
 			.references(() => collections.id, {
 				onDelete: "cascade",
 			}),
-		courseId: text("courseId")
+		courseId: text("course_id")
 			.notNull()
 			.references(() => courses.id, {
 				onDelete: "cascade",
@@ -208,17 +208,17 @@ export const collectionsToCourses = sqliteTable(
 export const usersToCourses = sqliteTable(
 	"users_to_courses",
 	{
-		userId: text("userId")
+		userId: text("user_id")
 			.notNull()
 			.references(() => users.id, {
 				onDelete: "cascade",
 			}),
-		teamId: text("teamId")
+		teamId: text("team_id")
 			.notNull()
 			.references(() => teams.id, {
 				onDelete: "cascade",
 			}),
-		courseId: text("courseId")
+		courseId: text("course_id")
 			.notNull()
 			.references(() => courses.id, {
 				onDelete: "cascade",
@@ -230,31 +230,31 @@ export const usersToCourses = sqliteTable(
 );
 
 export const usersToModules = sqliteTable("users_to_modules", {
-	id: text("id").primaryKey(),
-	userId: text("userId")
+	id: text().primaryKey(),
+	userId: text("user_id")
 		.notNull()
 		.references(() => users.id, {
 			onDelete: "cascade",
 		}),
-	teamId: text("teamId")
+	teamId: text("team_id")
 		.notNull()
 		.references(() => teams.id, {
 			onDelete: "cascade",
 		}),
-	moduleId: text("moduleId")
+	moduleId: text("module_id")
 		.notNull()
 		.references(() => modules.id, {
 			onDelete: "cascade",
 		}),
-	courseId: text("courseId")
+	courseId: text("course_id")
 		.notNull()
 		.references(() => courses.id, {
 			onDelete: "cascade",
 		}),
-	completedAt: integer({
+	completedAt: integer("completed_at", {
 		mode: "timestamp",
 	}).default(sql`null`),
-	data: text("data", {
+	data: text({
 		mode: "json",
 	})
 		.$type<Record<string, string>>()
@@ -266,17 +266,17 @@ export const usersToModules = sqliteTable("users_to_modules", {
 export const usersToCollections = sqliteTable(
 	"users_to_collections",
 	{
-		userId: text("userId")
+		userId: text("user_id")
 			.notNull()
 			.references(() => users.id, {
 				onDelete: "cascade",
 			}),
-		teamId: text("teamId")
+		teamId: text("team_id")
 			.notNull()
 			.references(() => teams.id, {
 				onDelete: "cascade",
 			}),
-		collectionId: text("collectionId")
+		collectionId: text("collection_id")
 			.notNull()
 			.references(() => collections.id, {
 				onDelete: "cascade",
@@ -290,8 +290,8 @@ export const usersToCollections = sqliteTable(
 export const usersToTeams = sqliteTable(
 	"users_to_teams",
 	{
-		userId: text("userId").notNull(),
-		teamId: text("teamId")
+		userId: text("user_id").notNull(),
+		teamId: text("team_id")
 			.notNull()
 			.references(() => teams.id, {
 				onDelete: "cascade",
@@ -308,17 +308,17 @@ export const usersToTeams = sqliteTable(
 export const teamsToCourses = sqliteTable(
 	"teams_to_courses",
 	{
-		fromTeamId: text("fromTeamId")
+		fromTeamId: text("from_team_id")
 			.notNull()
 			.references(() => teams.id, {
 				onDelete: "cascade",
 			}),
-		teamId: text("teamId")
+		teamId: text("team_id")
 			.notNull()
 			.references(() => teams.id, {
 				onDelete: "cascade",
 			}),
-		courseId: text("courseId")
+		courseId: text("course_id")
 			.notNull()
 			.references(() => courses.id, {
 				onDelete: "cascade",
