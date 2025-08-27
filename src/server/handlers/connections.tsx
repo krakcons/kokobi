@@ -29,7 +29,7 @@ import {
 	getConnectionLink,
 	getUserList,
 } from "@/server/lib/connection";
-import Invite from "@/emails/Invite";
+import Invite from "@/components/emails/Invite";
 import { teamImageUrl } from "@/lib/file";
 import { hasTeamAccess } from "../lib/access";
 import { locales } from "@/lib/locale";

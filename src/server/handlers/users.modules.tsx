@@ -9,7 +9,7 @@ import {
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator, handleLocalization } from "@/lib/locale";
-import CourseCompletion from "@/emails/CourseCompletion";
+import CourseCompletion from "@/components/emails/CourseCompletion";
 import { getInitialScormData } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";

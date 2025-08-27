@@ -10,7 +10,7 @@ import { sendEmail, verifyEmail } from "@/server/lib/email";
 import { getTenant } from "@/server/lib/tenant";
 import { generateRandomString } from "@/server/lib/random";
 import { LoginFormSchema, OTPFormSchema } from "@/types/auth";
-import OTP from "@/emails/OTP";
+import OTP from "@/components/emails/OTP";
 import { createTranslator, handleLocalization } from "@/lib/locale";
 
 export const requestOTPFn = createServerFn({ method: "POST" })

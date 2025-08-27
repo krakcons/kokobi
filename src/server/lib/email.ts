@@ -4,9 +4,9 @@ import {
 	GetEmailIdentityCommand,
 	SendEmailCommand,
 } from "@aws-sdk/client-sesv2";
-import { render } from "@react-email/components";
 import { ReactElement } from "react";
 import { ses } from "../ses";
+import { renderToString } from "react-dom/server";
 
 export const verifyEmail = async (domains: Domain[]) => {
 	if (domains.length === 0) return false;
@@ -46,7 +46,7 @@ export async function sendEmail({
 		const domain = team.domains[0];
 		fromAddress = `${team.name} <noreply@${domain.hostname}>`;
 	}
-	const html = await render(content);
+	const html = renderToString(content);
 	const command = new SendEmailCommand({
 		FromEmailAddress: fromAddress,
 		Destination: {
