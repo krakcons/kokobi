@@ -6,7 +6,6 @@ import {
 import { Theme, themes, useTheme } from "@/lib/theme";
 import { updateUserFn } from "@/server/handlers/users";
 import { deleteAuthFn } from "@/server/handlers/auth";
-import { useServerFn } from "@tanstack/react-start";
 import type { User as UserType } from "@/types/users";
 import {
 	LogOutIcon,

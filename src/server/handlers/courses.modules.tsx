@@ -3,12 +3,11 @@ import { modules } from "@/server/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { localeMiddleware, teamMiddleware } from "../lib/middleware";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
-import { createS3 } from "@/server/s3";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getNewModuleVersionNumber } from "../lib/modules";
 import { hasTeamAccess } from "../lib/access";
-import { env } from "../env";
+import { s3 } from "../s3";
 
 export const getModulesFn = createServerFn({ method: "GET" })
 	.middleware([localeMiddleware])
@@ -32,7 +31,6 @@ export const createModulePresignedURLFn = createServerFn({ method: "POST" })
 			teamId: context.teamId,
 			access: "root",
 		});
-		const s3 = await createS3();
 
 		const versionNumber = await getNewModuleVersionNumber(
 			context.locale,
@@ -61,7 +59,6 @@ export const createModuleFn = createServerFn({ method: "POST" })
 			teamId: context.teamId,
 			access: "root",
 		});
-		const s3 = await createS3();
 
 		const versionNumber = await getNewModuleVersionNumber(
 			context.locale,
@@ -118,7 +115,6 @@ export const deleteModuleFn = createServerFn({ method: "POST" })
 	.validator(z.object({ courseId: z.string(), moduleId: z.string() }))
 	.handler(async ({ context, data: { courseId, moduleId } }) => {
 		const teamId = context.teamId;
-		const s3 = await createS3();
 
 		const moduleExists = await db.query.modules.findFirst({
 			where: and(

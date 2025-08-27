@@ -6,7 +6,6 @@ import {
 	localeMiddleware,
 	teamMiddleware,
 } from "../lib/middleware";
-import { createS3 } from "@/server/s3";
 import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator, handleLocalization } from "@/lib/locale";
@@ -18,12 +17,12 @@ import { hasTeamAccess, hasUserAccess } from "../lib/access";
 import { teamImageUrl } from "@/lib/file";
 import { getConnectionLink } from "@/server/lib/connection";
 import { parseIMSManifest } from "../lib/modules";
+import { s3 } from "../s3";
 
 export const getUserModuleFn = createServerFn({ method: "GET" })
 	.middleware([learnerMiddleware])
 	.validator(z.object({ courseId: z.string(), attemptId: z.string() }))
 	.handler(async ({ context, data: { courseId, attemptId } }) => {
-		const s3 = await createS3();
 		const attempt = await db.query.usersToModules.findFirst({
 			where: and(
 				eq(usersToModules.courseId, courseId),
