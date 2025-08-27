@@ -18,9 +18,9 @@ import {
 } from "../lib/middleware";
 import { z } from "zod";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
-import { createS3 } from "../s3";
 import { env } from "@/server/env";
 import { hasTeamAccess } from "../lib/access";
+import { s3 } from "../s3";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -149,8 +149,6 @@ export const deleteCourseFn = createServerFn({ method: "POST" })
 			teamId: context.teamId,
 			access: "root",
 		});
-
-		const s3 = await createS3();
 
 		await db
 			.delete(courses)

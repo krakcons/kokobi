@@ -5,7 +5,6 @@ import {
 	usersToCourses,
 	usersToTeams,
 } from "@/server/db/schema";
-import { createS3 } from "@/server/s3";
 import { TeamFormSchema } from "@/types/team";
 import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -18,6 +17,7 @@ import { handleLocalization } from "@/lib/locale";
 import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, setCookie } from "@tanstack/react-start/server";
 import { getTenant } from "../lib/tenant";
+import { s3 } from "../s3";
 
 export const getTeamByIdFn = createServerFn({ method: "GET" })
 	.middleware([localeMiddleware])
@@ -44,7 +44,6 @@ export const createTeamFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const userId = context.user.id;
-		const s3 = await createS3();
 
 		const data = TeamFormSchema.parse(
 			Object.fromEntries(formData.entries()),
@@ -105,7 +104,6 @@ export const updateTeamFn = createServerFn({ method: "POST" })
 	.handler(async ({ context, data: formData }) => {
 		const locale = context.locale;
 		const teamId = context.teamId;
-		const s3 = await createS3();
 
 		const data = TeamFormSchema.parse(
 			Object.fromEntries(formData.entries()),
@@ -161,7 +159,6 @@ export const deleteTeamFn = createServerFn({ method: "POST" })
 	.middleware([teamMiddleware({ role: "owner" })])
 	.handler(async ({ context }) => {
 		const teamId = context.teamId;
-		const s3 = await createS3();
 
 		const files = await s3.list({
 			prefix: `${teamId}/`,

@@ -1,12 +1,10 @@
 import { InferSelectModel, relations, sql } from "drizzle-orm";
 import {
 	integer,
-	jsonb,
-	pgTable,
+	sqliteTable,
 	primaryKey,
 	text,
-	timestamp,
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/sqlite-core";
 
 // Enums
 
@@ -15,16 +13,16 @@ export const localeEnum = text("locale", { enum: ["en", "fr"] });
 export const roleEnum = text("role", { enum: ["owner", "member"] });
 
 const dates = {
-	createdAt: timestamp("created_at", {
-		withTimezone: true,
+	createdAt: integer({
+		mode: "timestamp",
 	})
 		.notNull()
-		.default(sql`now()`),
-	updatedAt: timestamp("updated_at", {
-		withTimezone: true,
+		.default(sql`(unixepoch())`),
+	updatedAt: integer({
+		mode: "timestamp",
 	})
 		.notNull()
-		.default(sql`now()`),
+		.default(sql`(unixepoch())`),
 };
 
 const sharing = {
@@ -38,26 +36,25 @@ const sharing = {
 
 // USERS //
 
-export const users = pgTable("users", {
+export const users = sqliteTable("users", {
 	id: text("id").primaryKey(),
 	email: text("email").unique().notNull(),
 	firstName: text("firstName"),
 	lastName: text("lastName"),
 	...dates,
 });
-export const sessions = pgTable("sessions", {
+export const sessions = sqliteTable("sessions", {
 	id: text("id").primaryKey(),
 	userId: text("userId")
 		.notNull()
 		.references(() => users.id, {
 			onDelete: "cascade",
 		}),
-	expiresAt: timestamp("expiresAt", {
-		withTimezone: true,
-		mode: "date",
+	expiresAt: integer({
+		mode: "timestamp",
 	}).notNull(),
 });
-export const emailVerifications = pgTable("email_verifications", {
+export const emailVerifications = sqliteTable("email_verifications", {
 	id: text("id").primaryKey(),
 	userId: text("user_id")
 		.notNull()
@@ -65,9 +62,8 @@ export const emailVerifications = pgTable("email_verifications", {
 			onDelete: "cascade",
 		}),
 	code: text("code").notNull(),
-	expiresAt: timestamp("expires_at", {
-		withTimezone: true,
-		mode: "date",
+	expiresAt: integer({
+		mode: "timestamp",
 	})
 		.$default(() => new Date(Date.now() + 1000 * 60 * 15))
 		.notNull(),
@@ -75,11 +71,11 @@ export const emailVerifications = pgTable("email_verifications", {
 
 // TEAMS //
 
-export const teams = pgTable("teams", {
+export const teams = sqliteTable("teams", {
 	id: text("id").primaryKey(),
 	...dates,
 });
-export const teamTranslations = pgTable(
+export const teamTranslations = sqliteTable(
 	"team_translations",
 	{
 		teamId: text("teamId")
@@ -95,7 +91,7 @@ export const teamTranslations = pgTable(
 	},
 	(t) => [primaryKey({ columns: [t.teamId, t.locale] })],
 );
-export const domains = pgTable("domains", {
+export const domains = sqliteTable("domains", {
 	id: text("id").primaryKey(),
 	teamId: text("teamId")
 		.notNull()
@@ -106,7 +102,7 @@ export const domains = pgTable("domains", {
 	hostnameId: text("hostnameId").notNull(),
 	...dates,
 });
-export const keys = pgTable("keys", {
+export const keys = sqliteTable("keys", {
 	id: text("id").primaryKey().notNull(),
 	teamId: text("teamId")
 		.notNull()
@@ -120,7 +116,7 @@ export const keys = pgTable("keys", {
 
 // COURSES //
 
-export const courses = pgTable("courses", {
+export const courses = sqliteTable("courses", {
 	id: text("id").primaryKey().notNull(),
 	teamId: text("teamId")
 		.notNull()
@@ -134,7 +130,7 @@ export const courses = pgTable("courses", {
 		.default("either"),
 	...dates,
 });
-export const courseTranslations = pgTable(
+export const courseTranslations = sqliteTable(
 	"course_translations",
 	{
 		courseId: text("courseId")
@@ -149,7 +145,7 @@ export const courseTranslations = pgTable(
 	},
 	(t) => [primaryKey({ columns: [t.courseId, t.locale] })],
 );
-export const modules = pgTable("modules", {
+export const modules = sqliteTable("modules", {
 	id: text("id").primaryKey().notNull(),
 	courseId: text("courseId")
 		.notNull()
@@ -164,7 +160,7 @@ export const modules = pgTable("modules", {
 
 // COLLECTIONS //
 
-export const collections = pgTable("collections", {
+export const collections = sqliteTable("collections", {
 	id: text("id").primaryKey().notNull(),
 	teamId: text("teamId")
 		.notNull()
@@ -173,7 +169,7 @@ export const collections = pgTable("collections", {
 		}),
 	...dates,
 });
-export const collectionTranslations = pgTable(
+export const collectionTranslations = sqliteTable(
 	"collection_translations",
 	{
 		collectionId: text("collectionId")
@@ -189,7 +185,7 @@ export const collectionTranslations = pgTable(
 	(t) => [primaryKey({ columns: [t.collectionId, t.locale] })],
 );
 
-export const collectionsToCourses = pgTable(
+export const collectionsToCourses = sqliteTable(
 	"collections_to_courses",
 	{
 		collectionId: text("collectionId")
@@ -209,7 +205,7 @@ export const collectionsToCourses = pgTable(
 
 // CONNECTIONS //
 
-export const usersToCourses = pgTable(
+export const usersToCourses = sqliteTable(
 	"users_to_courses",
 	{
 		userId: text("userId")
@@ -233,7 +229,7 @@ export const usersToCourses = pgTable(
 	(t) => [primaryKey({ columns: [t.userId, t.courseId, t.teamId] })],
 );
 
-export const usersToModules = pgTable("users_to_modules", {
+export const usersToModules = sqliteTable("users_to_modules", {
 	id: text("id").primaryKey(),
 	userId: text("userId")
 		.notNull()
@@ -255,14 +251,19 @@ export const usersToModules = pgTable("users_to_modules", {
 		.references(() => courses.id, {
 			onDelete: "cascade",
 		}),
-	completedAt: timestamp("completedAt", {
-		withTimezone: true,
+	completedAt: integer({
+		mode: "timestamp",
 	}).default(sql`null`),
-	data: jsonb("data").$type<Record<string, string>>().notNull().default({}),
+	data: text("data", {
+		mode: "json",
+	})
+		.$type<Record<string, string>>()
+		.notNull()
+		.default({}),
 	...dates,
 });
 
-export const usersToCollections = pgTable(
+export const usersToCollections = sqliteTable(
 	"users_to_collections",
 	{
 		userId: text("userId")
@@ -286,7 +287,7 @@ export const usersToCollections = pgTable(
 	(t) => [primaryKey({ columns: [t.userId, t.collectionId, t.teamId] })],
 );
 
-export const usersToTeams = pgTable(
+export const usersToTeams = sqliteTable(
 	"users_to_teams",
 	{
 		userId: text("userId").notNull(),
@@ -304,7 +305,7 @@ export const usersToTeams = pgTable(
 
 // CONNECTIONS (TEAM)
 
-export const teamsToCourses = pgTable(
+export const teamsToCourses = sqliteTable(
 	"teams_to_courses",
 	{
 		fromTeamId: text("fromTeamId")

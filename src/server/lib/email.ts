@@ -6,7 +6,6 @@ import {
 } from "@aws-sdk/client-sesv2";
 import { render } from "@react-email/components";
 import { ReactElement } from "react";
-import { Resource } from "sst";
 import { ses } from "../ses";
 
 export const verifyEmail = async (domains: Domain[]) => {
@@ -42,7 +41,7 @@ export async function sendEmail({
 	content: ReactElement;
 	team?: Team & TeamTranslation & { domains: Domain[] };
 }): Promise<void> {
-	let fromAddress = `Kokobi <noreply@${Resource.Email.sender.replace("email.", "")}>`;
+	let fromAddress = "Kokobi <noreply@kokobi.org>";
 	if (team && team.domains.length > 0) {
 		const domain = team.domains[0];
 		fromAddress = `${team.name} <noreply@${domain.hostname}>`;
