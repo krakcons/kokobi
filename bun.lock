@@ -34,6 +34,7 @@
         "cloudflare": "^4.5.0",
         "clsx": "^2.1.1",
         "dotenv": "^17.2.1",
+        "drizzle-kit": "^0.31.4",
         "drizzle-orm": "^0.44.5",
         "drizzle-zod": "^0.8.3",
         "export-to-csv": "^1.4.0",
@@ -59,7 +60,6 @@
         "@types/react-dom": "^19.1.8",
         "@vitejs/plugin-react": "^5.0.1",
         "autoprefixer": "^10.4.21",
-        "drizzle-kit": "^0.31.4",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-unused-imports": "^4.2.0",
         "prettier": "^3.6.2",
@@ -1153,7 +1153,7 @@
 
     "ee-first": ["ee-first@1.1.1", "", {}, "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow=="],
 
-    "electron-to-chromium": ["electron-to-chromium@1.5.210", "", {}, "sha512-20kSVv1tyNBN2VFsjCIJZfyvxqo7ylHPrJLME040f/030lzNMA7uQNpxtqJjWSNpccD8/2sqe53EAjrFPvQmjw=="],
+    "electron-to-chromium": ["electron-to-chromium@1.5.211", "", {}, "sha512-IGBvimJkotaLzFnwIVgW9/UD/AOJ2tByUmeOrtqBfACSbAw5b1G0XpvdaieKyc7ULmbwXVx+4e4Be8pOPBrYkw=="],
 
     "emoji-regex": ["emoji-regex@10.4.0", "", {}, "sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw=="],
 
