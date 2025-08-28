@@ -30,6 +30,8 @@ import { pdf } from "@react-pdf/renderer";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { AlertCircle, Eye, FileBadge2, Play } from "lucide-react";
+import { useMemo } from "react";
+import { isModuleSuccessful } from "@/lib/scorm";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
@@ -93,7 +95,14 @@ function RouteComponent() {
 		},
 	});
 
-	console.log(attempts);
+	const isSuccess = useMemo(() => {
+		return attempts.length > 0
+			? isModuleSuccessful({
+					completionStatus: course.completionStatus,
+					status: attempts[0].status,
+				})
+			: false;
+	}, [attempts]);
 
 	return (
 		<Page>
@@ -196,7 +205,7 @@ function RouteComponent() {
 												attempt.module.versionNumber}
 										</TableCell>
 										<TableCell className="flex justify-end items-center gap-2">
-											{attempt.completedAt && (
+											{isSuccess && (
 												<>
 													{user?.firstName &&
 													user?.lastName ? (
@@ -219,11 +228,11 @@ function RouteComponent() {
 																						course.team,
 																					course: course.name,
 																					completedAt:
-																						attempt.completedAt &&
+																						attempt.completedAt! &&
 																						formatDate(
 																							{
 																								date: new Date(
-																									attempt.completedAt,
+																									attempt.completedAt!,
 																								),
 																								locale,
 																								type: "readable",
@@ -281,8 +290,7 @@ function RouteComponent() {
 																navigate({
 																	to: ".",
 																	search: {
-																		accountDialog:
-																			true,
+																		accountDialog: true,
 																	},
 																});
 															}}

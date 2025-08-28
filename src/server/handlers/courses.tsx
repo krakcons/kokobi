@@ -21,6 +21,7 @@ import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { env } from "@/server/env";
 import { hasTeamAccess } from "../lib/access";
 import { s3 } from "../s3";
+import { isModuleSuccessful } from "@/lib/scorm";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])
@@ -190,6 +191,17 @@ export const getCourseStatisticsFn = createServerFn({ method: "GET" })
 		});
 
 		const teamId = access === "shared" ? context.teamId : customTeamId;
+
+		const course = await db.query.courses.findFirst({
+			where: and(
+				eq(courses.id, courseId),
+				teamId ? eq(courses.teamId, teamId) : undefined,
+			),
+		});
+
+		if (!course) {
+			throw new Error("Course not found");
+		}
 
 		// First, get all user IDs connected to the course (directly or via collections)
 		const directUserIds = await db

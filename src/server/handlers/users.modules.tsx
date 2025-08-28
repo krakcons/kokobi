@@ -10,7 +10,7 @@ import { ExtendLearner, LearnerUpdateSchema } from "@/types/learner";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator, handleLocalization } from "@/lib/locale";
 import CourseCompletion from "@/components/emails/CourseCompletion";
-import { getInitialScormData } from "@/lib/scorm";
+import { getInitialScormData, isModuleSuccessful } from "@/lib/scorm";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { hasTeamAccess, hasUserAccess } from "../lib/access";
@@ -134,20 +134,21 @@ export const updateUserModuleFn = createServerFn({ method: "POST" })
 				data: data.data,
 			});
 
-			const isEitherStatus =
-				attempt.course.completionStatus === "either" &&
-				["completed", "passed"].includes(newLearner.status);
-			const justCompleted =
-				!attempt.completedAt &&
-				(attempt.course.completionStatus === newLearner.status ||
-					isEitherStatus);
+			const isComplete = ["failed", "completed", "passed"].includes(
+				newLearner.status,
+			);
+			const isSuccess = isModuleSuccessful({
+				completionStatus: attempt.course.completionStatus,
+				status: newLearner.status,
+			});
+			const justCompleted = !attempt.completedAt && isComplete;
 
 			completedAt =
 				attempt.module && justCompleted
 					? new Date()
 					: attempt.completedAt;
 
-			if (justCompleted) {
+			if (justCompleted && isSuccess) {
 				const teamBase = await db.query.teams.findFirst({
 					where: eq(teams.id, context.learnerTeamId),
 					with: {
@@ -292,7 +293,15 @@ export const resendCompletionEmailFn = createServerFn({ method: "POST" })
 			throw new Error("Attempt not found.");
 		}
 
-		if (!attempt.completedAt) {
+		const learner = ExtendLearner(attempt.module.type).parse(attempt);
+
+		if (
+			!attempt.completedAt ||
+			!isModuleSuccessful({
+				completionStatus: attempt.course.completionStatus,
+				status: learner.status,
+			})
+		) {
 			throw new Error("Attempt not complete.");
 		}
 

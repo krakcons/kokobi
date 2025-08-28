@@ -1,4 +1,18 @@
+import { Course } from "@/types/course";
+import { Learner } from "@/types/learner";
 import { Module } from "@/types/module";
+
+export const isModuleSuccessful = ({
+	completionStatus,
+	status,
+}: {
+	completionStatus: Course["completionStatus"];
+	status: Learner["status"];
+}): boolean => {
+	return completionStatus === "either"
+		? ["completed", "passed"].includes(status)
+		: completionStatus === status;
+};
 
 export const getInitialScormData = (
 	version: Module["type"],

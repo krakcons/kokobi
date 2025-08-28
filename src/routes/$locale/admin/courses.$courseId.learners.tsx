@@ -38,6 +38,8 @@ import { Learner } from "@/types/learner";
 import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { resendCompletionEmailFn } from "@/server/handlers/users.modules";
+import { isModuleSuccessful } from "@/lib/scorm";
+import { getCourseFn } from "@/server/handlers/courses";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",
@@ -58,6 +60,11 @@ export const Route = createFileRoute(
 					id: params.courseId,
 				},
 			}),
+			getCourseFn({
+				data: {
+					courseId: params.courseId,
+				},
+			}),
 		]);
 	},
 });
@@ -74,7 +81,7 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const [learners, inviteLink] = Route.useLoaderData();
+	const [learners, inviteLink, course] = Route.useLoaderData();
 	const router = useRouter();
 	const locale = useLocale();
 	const t = useTranslations("Learners");
@@ -310,7 +317,12 @@ function RouteComponent() {
 							courseId: params.courseId,
 						},
 					}),
-				visible: ({ attempt }) => !!attempt?.completedAt,
+				visible: ({ attempt }) =>
+					!!attempt &&
+					isModuleSuccessful({
+						completionStatus: course.completionStatus,
+						status: attempt.status,
+					}),
 			},
 			{
 				name: tActions.delete,
