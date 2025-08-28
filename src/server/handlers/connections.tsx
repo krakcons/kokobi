@@ -7,6 +7,7 @@ import {
 import { db } from "@/server/db";
 import {
 	collections,
+	collectionsToCourses,
 	courses,
 	modules,
 	teams,
@@ -18,7 +19,7 @@ import {
 	usersToTeams,
 } from "@/server/db/schema";
 import { createServerFn } from "@tanstack/react-start";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator, handleLocalization } from "@/lib/locale";
@@ -647,6 +648,7 @@ export const removeConnectionFn = createServerFn({ method: "POST" })
 		const teamId = context.teamId;
 
 		if (type === "course") {
+			// Delete connections
 			await db
 				.delete(usersToCourses)
 				.where(
@@ -680,6 +682,19 @@ export const removeConnectionFn = createServerFn({ method: "POST" })
 						eq(teamsToCourses.teamId, toId),
 					),
 				);
+			// Remove from collections
+			const collectionList = await db.query.collections.findMany({
+				where: eq(collections.teamId, toId),
+			});
+			await db.delete(collectionsToCourses).where(
+				and(
+					eq(collectionsToCourses.courseId, id),
+					inArray(
+						collectionsToCourses.collectionId,
+						collectionList.map((c) => c.id),
+					),
+				),
+			);
 		}
 
 		return null;

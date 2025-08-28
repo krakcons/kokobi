@@ -9,7 +9,6 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
 import {
 	createTeamConnectionFn,
-	getTeamConnectionsFn,
 	getTeamCourseConnectionsFn,
 	removeConnectionFn,
 	updateTeamConnectionFn,

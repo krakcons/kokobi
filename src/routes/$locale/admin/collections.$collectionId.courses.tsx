@@ -21,6 +21,7 @@ import {
 	deleteCollectionCourseFn,
 	getCollectionCoursesFn,
 } from "@/server/handlers/collections.courses";
+import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { getCoursesFn } from "@/server/handlers/courses";
 import { Course, CourseTranslation } from "@/types/course";
 import { useMutation } from "@tanstack/react-query";
@@ -42,13 +43,18 @@ export const Route = createFileRoute(
 				},
 			}),
 			getCoursesFn(),
+			getTeamCourseConnectionsFn({
+				data: {
+					type: "to",
+				},
+			}),
 		]),
 });
 
 function RouteComponent() {
 	const [open, setOpen] = useState(false);
 	const params = Route.useParams();
-	const [collectionCourses, courses] = Route.useLoaderData();
+	const [collectionCourses, courses, sharedCourses] = Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const router = useRouter();
@@ -105,10 +111,13 @@ function RouteComponent() {
 	];
 
 	const courseFormCourses = useMemo(() => {
-		return courses.filter((c) =>
+		return [
+			...courses,
+			...sharedCourses.map(({ course }) => course),
+		].filter((c) =>
 			collectionCourses.find((cc) => cc.id === c.id) ? false : true,
 		);
-	}, [courses, collectionCourses]);
+	}, [courses, collectionCourses, sharedCourses]);
 
 	return (
 		<Page>
