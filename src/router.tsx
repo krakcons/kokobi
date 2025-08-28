@@ -7,6 +7,7 @@ import { NotFound } from "./components/NotFound";
 import { toast } from "sonner";
 import { ErrorComponent } from "./components/ErrorComponent";
 import { PendingComponent } from "./components/PendingComponent";
+import "./styles.css";
 
 export const createRouter = () => {
 	const queryClient = new QueryClient({
