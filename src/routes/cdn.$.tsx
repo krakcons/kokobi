@@ -17,7 +17,12 @@ export const ServerRoute = createServerFileRoute("/cdn/$").methods({
 				return undefined;
 			}
 			const file = await s3.file(path).arrayBuffer();
-			return new Response(file);
+			return new Response(file, {
+				headers: {
+					"Access-Control-Allow-Origin": "*",
+					"Access-Control-Allow-Methods": "GET",
+				},
+			});
 		}
 	},
 });
