@@ -30,7 +30,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 			// Handle locale
 			let pathLocale = location.pathname.split("/")[1];
-			if (!["api", "cdn"].includes(pathLocale)) {
+			if (!["api", "cdn", "assets"].includes(pathLocale)) {
 				if (!locales.some(({ value }) => value === pathLocale)) {
 					throw redirect({
 						replace: true,
