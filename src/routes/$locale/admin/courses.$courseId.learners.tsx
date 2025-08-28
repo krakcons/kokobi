@@ -39,14 +39,14 @@ import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { resendCompletionEmailFn } from "@/server/handlers/users.modules";
 import { isModuleSuccessful } from "@/lib/scorm";
-import { getCourseFn } from "@/server/handlers/courses";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",
 )({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: ({ params }) => {
+	loader: async ({ params, context: { queryClient } }) => {
 		return Promise.all([
 			getTeamConnectionsFn({
 				data: {
@@ -60,11 +60,13 @@ export const Route = createFileRoute(
 					id: params.courseId,
 				},
 			}),
-			getCourseFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.course.getId.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 		]);
 	},
 });

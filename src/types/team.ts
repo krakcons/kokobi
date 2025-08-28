@@ -12,11 +12,13 @@ export const validDomainSchema = z
 		"Invalid domain format, use format (example.com)",
 	);
 
-export const TeamSchema = createSelectSchema(teams);
-export type Team = z.infer<typeof TeamSchema>;
+export const BaseTeamSchema = createSelectSchema(teams);
 
 export const TeamTranslationSchema = createSelectSchema(teamTranslations);
 export type TeamTranslation = z.infer<typeof TeamTranslationSchema>;
+
+export const TeamSchema = BaseTeamSchema.extend(TeamTranslationSchema.shape);
+export type Team = z.infer<typeof TeamSchema>;
 
 export const TeamFormSchema = z.object({
 	name: z.string(),

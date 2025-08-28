@@ -48,6 +48,8 @@ import { Route as LocaleredirectsPlayTeamIdCoursesCourseIdRouteImport } from './
 import { Route as LocaleredirectsPlayTeamIdCoursesCourseIdJoinRouteImport } from './routes/$locale/(redirects)/play.$teamId.courses.$courseId.join'
 import { Route as LocaleredirectsPlayTeamIdCoursesCourseIdCertificateRouteImport } from './routes/$locale/(redirects)/play.$teamId.courses.$courseId.certificate'
 import { ServerRoute as CdnSplatServerRouteImport } from './routes/cdn.$'
+import { ServerRoute as ApiSplatServerRouteImport } from './routes/api.$'
+import { ServerRoute as ApiRpcSplatServerRouteImport } from './routes/api.rpc.$'
 
 const rootServerRouteImport = createServerRootRoute()
 
@@ -255,6 +257,16 @@ const LocaleredirectsPlayTeamIdCoursesCourseIdCertificateRoute =
 const CdnSplatServerRoute = CdnSplatServerRouteImport.update({
   id: '/cdn/$',
   path: '/cdn/$',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
+const ApiSplatServerRoute = ApiSplatServerRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
+const ApiRpcSplatServerRoute = ApiRpcSplatServerRouteImport.update({
+  id: '/api/rpc/$',
+  path: '/api/rpc/$',
   getParentRoute: () => rootServerRouteImport,
 } as any)
 
@@ -500,25 +512,33 @@ export interface RootRouteChildren {
   LocaleredirectsPlayTeamIdCoursesCourseIdRoute: typeof LocaleredirectsPlayTeamIdCoursesCourseIdRouteWithChildren
 }
 export interface FileServerRoutesByFullPath {
+  '/api/$': typeof ApiSplatServerRoute
   '/cdn/$': typeof CdnSplatServerRoute
+  '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRoutesByTo {
+  '/api/$': typeof ApiSplatServerRoute
   '/cdn/$': typeof CdnSplatServerRoute
+  '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
+  '/api/$': typeof ApiSplatServerRoute
   '/cdn/$': typeof CdnSplatServerRoute
+  '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/cdn/$'
+  fullPaths: '/api/$' | '/cdn/$' | '/api/rpc/$'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/cdn/$'
-  id: '__root__' | '/cdn/$'
+  to: '/api/$' | '/cdn/$' | '/api/rpc/$'
+  id: '__root__' | '/api/$' | '/cdn/$' | '/api/rpc/$'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
+  ApiSplatServerRoute: typeof ApiSplatServerRoute
   CdnSplatServerRoute: typeof CdnSplatServerRoute
+  ApiRpcSplatServerRoute: typeof ApiRpcSplatServerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -786,6 +806,20 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof CdnSplatServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/rpc/$': {
+      id: '/api/rpc/$'
+      path: '/api/rpc/$'
+      fullPath: '/api/rpc/$'
+      preLoaderRoute: typeof ApiRpcSplatServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
   }
 }
 
@@ -917,7 +951,9 @@ export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
+  ApiSplatServerRoute: ApiSplatServerRoute,
   CdnSplatServerRoute: CdnSplatServerRoute,
+  ApiRpcSplatServerRoute: ApiRpcSplatServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport
   ._addFileChildren(rootServerRouteChildren)

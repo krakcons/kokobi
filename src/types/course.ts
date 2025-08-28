@@ -2,21 +2,15 @@ import { courseTranslations, courses } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const CourseSchema = createSelectSchema(courses);
-export type Course = z.infer<typeof CourseSchema>;
-
-export const DeleteCourseSchema = CourseSchema.pick({
-	id: true,
-});
-export type DeleteCourse = z.infer<typeof DeleteCourseSchema>;
-
-export const SelectCourseSchema = CourseSchema.pick({
-	id: true,
-});
-export type SelectCourse = z.infer<typeof SelectCourseSchema>;
+export const BaseCourseSchema = createSelectSchema(courses);
 
 export const CourseTranslationSchema = createSelectSchema(courseTranslations);
 export type CourseTranslation = z.infer<typeof CourseTranslationSchema>;
+
+export const CourseSchema = BaseCourseSchema.extend(
+	CourseTranslationSchema.shape,
+);
+export type Course = z.infer<typeof CourseSchema>;
 
 export const completionStatuses = ["passed", "completed", "either"] as const;
 export const CourseFormSchema = z.object({
