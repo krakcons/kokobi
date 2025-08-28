@@ -37,6 +37,16 @@ const nextConfig: NextConfig = {
 	async headers() {
 		return [
 			{
+				source: "/cdn/:slug*",
+				headers: [
+					{ key: "Access-Control-Allow-Origin", value: "*" },
+					{
+						key: "Access-Control-Allow-Methods",
+						value: "GET,HEAD,OPTIONS",
+					},
+				],
+			},
+			{
 				source: "/api/:path*",
 				headers: [
 					{ key: "Access-Control-Allow-Origin", value: "*" }, // replace this your actual origin
