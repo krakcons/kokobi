@@ -140,10 +140,9 @@ function RootComponent() {
 			</head>
 			<body>
 				<IntlProvider i18n={i18n}>
-					<HeadContent />
 					<Outlet />
-					<Toaster />
 				</IntlProvider>
+				<Toaster />
 				<Scripts />
 			</body>
 		</html>
