@@ -134,7 +134,10 @@ function RootComponent() {
 	const { theme, systemTheme } = useTheme();
 
 	return (
-		<html className={theme === "system" ? systemTheme : theme}>
+		<html
+			className={theme === "system" ? systemTheme : theme}
+			suppressHydrationWarning
+		>
 			<head>
 				<HeadContent />
 			</head>
