@@ -1,4 +1,4 @@
-import { Learner } from "@/types/learner";
+import type { Learner } from "@/types/learner";
 import { z } from "zod";
 
 export enum Scorm2004ErrorCode {

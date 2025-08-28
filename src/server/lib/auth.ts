@@ -1,9 +1,15 @@
 // Based on: https://thecopenhagenbook.com
 import { and, eq } from "drizzle-orm";
 import { db } from "../db";
-import { Session, sessions, User, users, usersToTeams } from "../db/schema";
+import {
+	type Session,
+	sessions,
+	type User,
+	users,
+	usersToTeams,
+} from "../db/schema";
 import { deleteCookie, getCookie } from "@tanstack/react-start/server";
-import { Role } from "@/types/team";
+import type { Role } from "@/types/team";
 
 export type AuthResult =
 	| {

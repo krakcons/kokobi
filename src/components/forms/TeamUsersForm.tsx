@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
-import { TeamUsersFormSchema, TeamUsersFormType } from "@/types/team";
+import { TeamUsersFormSchema, type TeamUsersFormType } from "@/types/team";
 import { useTranslations } from "@/lib/locale";
 
 export const TeamUsersForm = ({

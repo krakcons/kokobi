@@ -26,7 +26,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes } from "react";
 import { Checkbox } from "./checkbox";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "@/lib/locale";

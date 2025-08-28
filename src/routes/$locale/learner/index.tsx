@@ -10,7 +10,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,

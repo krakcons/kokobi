@@ -22,10 +22,10 @@ import {
 	deleteModuleFn,
 	getModulesFn,
 } from "@/server/handlers/courses.modules";
-import { Module } from "@/types/module";
+import type { Module } from "@/types/module";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 

@@ -30,23 +30,21 @@ import {
 	Users,
 	Files,
 	Book,
-	FileBadge,
 	Share,
 	ChartNoAxesColumn,
 	SquareLibrary,
-	Square,
 	FileBadge2,
 } from "lucide-react";
-import { Course, CourseTranslation } from "@/types/course";
+import type { Course, CourseTranslation } from "@/types/course";
 import { useEffect, useState } from "react";
-import { Collection, CollectionTranslation } from "@/types/collections";
-import { Team, TeamTranslation } from "@/types/team";
-import { TeamToCourseType, UserToTeamType } from "@/types/connections";
+import type { Collection, CollectionTranslation } from "@/types/collections";
+import type { Team, TeamTranslation } from "@/types/team";
+import type { TeamToCourseType, UserToTeamType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { TeamSwitcher } from "./TeamSwitcher";
-import { User } from "@/types/users";
+import type { User } from "@/types/users";
 import { UserButton } from "./UserButton";
-import { Role } from "@/types/team";
+import type { Role } from "@/types/team";
 import { Separator } from "../ui/separator";
 
 const CourseCollapsible = ({

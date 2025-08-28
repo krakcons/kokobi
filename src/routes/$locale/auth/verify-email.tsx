@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { RedirectSchema } from "./login";
 import { verifyOTPFn } from "@/server/handlers/auth.otp";
-import { OTPFormSchema, OTPFormType } from "@/types/auth";
+import { OTPFormSchema, type OTPFormType } from "@/types/auth";
 import { getAuthFn } from "@/server/handlers/auth";
 import { useTranslations } from "@/lib/locale";
 

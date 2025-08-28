@@ -10,7 +10,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Locale, locales } from "@/lib/locale";
+import { type Locale, locales } from "@/lib/locale";
 import {
 	createFileRoute,
 	Outlet,

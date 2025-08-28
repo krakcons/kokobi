@@ -1,14 +1,8 @@
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { useLocale } from "@/lib/locale";
-import { ConnectionType } from "@/types/connections";
+import type { ConnectionType } from "@/types/connections";
 import { Link } from "@tanstack/react-router";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "./ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ChevronRight } from "lucide-react";
 
 export const ConnectionComponent = ({

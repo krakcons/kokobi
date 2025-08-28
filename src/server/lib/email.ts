@@ -1,10 +1,10 @@
-import { Domain } from "@/types/domains";
-import { Team, TeamTranslation } from "@/types/team";
+import type { Domain } from "@/types/domains";
+import type { Team, TeamTranslation } from "@/types/team";
 import {
 	GetEmailIdentityCommand,
 	SendEmailCommand,
 } from "@aws-sdk/client-sesv2";
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
 import { ses } from "../ses";
 import { renderToString } from "react-dom/server";
 

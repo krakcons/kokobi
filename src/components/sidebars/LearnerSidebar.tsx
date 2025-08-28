@@ -13,16 +13,16 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Book, LayoutDashboard, SquareLibrary } from "lucide-react";
-import { Course, CourseTranslation } from "@/types/course";
-import { Collection, CollectionTranslation } from "@/types/collections";
-import { Team, TeamTranslation } from "@/types/team";
-import {
+import type { Course, CourseTranslation } from "@/types/course";
+import type { Collection, CollectionTranslation } from "@/types/collections";
+import type { Team, TeamTranslation } from "@/types/team";
+import type {
 	UserToCollectionType,
 	UserToCourseType,
 	UserToTeamType,
 } from "@/types/connections";
 import { TeamSwitcher } from "./TeamSwitcher";
-import { User } from "@/types/users";
+import type { User } from "@/types/users";
 import { UserButton } from "./UserButton";
 import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
 import { Separator } from "../ui/separator";

@@ -23,10 +23,10 @@ import {
 } from "@/server/handlers/collections.courses";
 import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { getCoursesFn } from "@/server/handlers/courses";
-import { Course, CourseTranslation } from "@/types/course";
+import type { Course, CourseTranslation } from "@/types/course";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 

@@ -1,4 +1,4 @@
-import { Team, TeamTranslation } from "@/types/team";
+import type { Team, TeamTranslation } from "@/types/team";
 import { TeamIcon } from "./TeamIcon";
 import { teamImageUrl } from "@/lib/file";
 

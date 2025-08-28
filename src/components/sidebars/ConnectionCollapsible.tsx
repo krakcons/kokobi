@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronRight, Check, X } from "lucide-react";
 import { useState } from "react";
-import { ConnectionType } from "@/types/connections";
+import type { ConnectionType } from "@/types/connections";
 import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
 
 export const ConnectionCollapsible = ({

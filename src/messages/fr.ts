@@ -1,4 +1,4 @@
-import { Messages } from "@/lib/locale";
+import type { Messages } from "@/lib/locale";
 
 const fr: Messages = {
 	Actions: {

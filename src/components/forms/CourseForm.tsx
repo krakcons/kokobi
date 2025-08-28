@@ -1,5 +1,5 @@
 import {
-	CourseFormType,
+	type CourseFormType,
 	CourseFormSchema,
 	completionStatuses,
 } from "@/types/course";

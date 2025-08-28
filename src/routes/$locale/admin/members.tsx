@@ -12,10 +12,10 @@ import {
 	getTeamUsersFn,
 	updateTeamUserFn,
 } from "@/server/handlers/teams.users";
-import { User } from "@/types/users";
+import type { User } from "@/types/users";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import {
 	Dialog,
@@ -28,7 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 import { TeamUsersForm } from "@/components/forms/TeamUsersForm";
-import { UserToTeamType } from "@/types/connections";
+import type { UserToTeamType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import {
 	Select,
@@ -36,7 +36,7 @@ import {
 	SelectItem,
 	SelectTrigger,
 } from "@/components/ui/select";
-import { Role, roles } from "@/types/team";
+import { type Role, roles } from "@/types/team";
 import { SelectValue } from "@radix-ui/react-select";
 
 export const Route = createFileRoute("/$locale/admin/members")({

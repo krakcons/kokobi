@@ -11,7 +11,7 @@ import {
 	deleteTeamDomainFn,
 	getTeamDomainFn,
 } from "@/server/handlers/teams.domains";
-import { DomainFormSchema, DomainFormType } from "@/types/domains";
+import { DomainFormSchema, type DomainFormType } from "@/types/domains";
 import { deleteTeamFn, updateTeamFn } from "@/server/handlers/teams";
 import { useAppForm } from "@/components/ui/form";
 import {

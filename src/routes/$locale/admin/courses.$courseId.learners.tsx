@@ -25,16 +25,16 @@ import {
 	getConnectionLinkFn,
 	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
-import { User } from "@/types/users";
-import { UserToCourseType } from "@/types/connections";
+import type { User } from "@/types/users";
+import type { UserToCourseType } from "@/types/connections";
 import {
 	getTeamConnectionsFn,
 	inviteUsersConnectionFn,
 	removeConnectionFn,
 } from "@/server/handlers/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { Module } from "@/types/module";
-import { Learner } from "@/types/learner";
+import type { Module } from "@/types/module";
+import type { Learner } from "@/types/learner";
 import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { resendCompletionEmailFn } from "@/server/handlers/users.modules";

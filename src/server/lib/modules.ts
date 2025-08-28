@@ -1,10 +1,10 @@
 import { XMLParser } from "fast-xml-parser";
-import { IMSManifestSchema, Resource } from "@/types/scorm/content";
-import { S3File } from "bun";
+import { IMSManifestSchema, type Resource } from "@/types/scorm/content";
+import type { S3File } from "bun";
 import { db } from "../db";
 import { and, eq, max } from "drizzle-orm";
 import { modules } from "../db/schema";
-import { Locale } from "@/lib/locale";
+import type { Locale } from "@/lib/locale";
 
 const parser = new XMLParser({
 	ignoreAttributes: false,

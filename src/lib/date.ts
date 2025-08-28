@@ -1,4 +1,4 @@
-import { Locale } from "./locale";
+import type { Locale } from "./locale";
 
 const dateTypes: Record<
 	"readable" | "detailed",

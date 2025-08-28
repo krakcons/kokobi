@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import { Team, TeamTranslation } from "@/types/team";
+import type { Team, TeamTranslation } from "@/types/team";
 
 export const fetchFile = async (fileUrl?: string): Promise<File | ""> => {
 	if (!fileUrl) return "";

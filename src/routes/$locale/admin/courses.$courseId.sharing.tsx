@@ -4,7 +4,7 @@ import {
 	DataTableColumnHeader,
 	TableSearchSchema,
 } from "@/components/DataTable";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
 import {
@@ -13,8 +13,8 @@ import {
 	removeConnectionFn,
 	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
-import { Team, TeamTranslation } from "@/types/team";
-import { TeamToCourseType } from "@/types/connections";
+import type { Team, TeamTranslation } from "@/types/team";
+import type { TeamToCourseType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Button } from "@/components/ui/button";
 import {

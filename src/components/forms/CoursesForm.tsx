@@ -2,7 +2,7 @@ import { Title, useAppForm } from "../ui/form";
 import { z } from "zod";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
-import { Course, CourseTranslation } from "@/types/course";
+import type { Course, CourseTranslation } from "@/types/course";
 
 export const CoursesFormSchema = z.object({
 	courseIds: z.string().array().min(1),

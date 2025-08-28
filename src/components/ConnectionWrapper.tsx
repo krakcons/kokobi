@@ -1,4 +1,4 @@
-import { ConnectionType } from "@/types/connections";
+import type { ConnectionType } from "@/types/connections";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/locale";
 import { Check, X } from "lucide-react";

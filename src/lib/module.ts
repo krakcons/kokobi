@@ -1,6 +1,6 @@
 import { IMSManifestSchema } from "@/types/scorm/content";
 import { XMLParser } from "fast-xml-parser";
-import { Module } from "@/types/module";
+import type { Module } from "@/types/module";
 import { unzip } from "unzipit";
 
 export const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1GB

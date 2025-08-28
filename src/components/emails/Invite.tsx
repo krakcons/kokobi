@@ -1,4 +1,4 @@
-import { Locale, Messages } from "@/lib/locale";
+import type { Locale, Messages } from "@/lib/locale";
 import en from "@/messages/en";
 import fr from "@/messages/fr";
 import { Container } from "./Container";

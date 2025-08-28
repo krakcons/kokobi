@@ -1,4 +1,4 @@
-import { ModuleFormType, ModuleFormSchema } from "@/types/module";
+import { type ModuleFormType, ModuleFormSchema } from "@/types/module";
 import { useAppForm } from "../ui/form";
 import { useTranslations } from "@/lib/locale";
 

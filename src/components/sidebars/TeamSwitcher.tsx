@@ -16,12 +16,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Team, TeamTranslation } from "@/types/team";
+import type { Team, TeamTranslation } from "@/types/team";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { useMutation } from "@tanstack/react-query";
 import { updateUserTeamFn } from "@/server/handlers/users.teams";
 import { teamImageUrl } from "@/lib/file";
-import { UserToTeamType } from "@/types/connections";
+import type { UserToTeamType } from "@/types/connections";
 import { ConnectionActions } from "../ConnectionActions";
 import { updateUserConnectionFn } from "@/server/handlers/connections";
 

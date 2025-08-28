@@ -1,6 +1,9 @@
 import { useAppForm } from "@/components/ui/form";
 import { useTranslations } from "@/lib/locale";
-import { CollectionFormSchema, CollectionFormType } from "@/types/collections";
+import {
+	CollectionFormSchema,
+	type CollectionFormType,
+} from "@/types/collections";
 
 export const CollectionForm = ({
 	defaultValues,

@@ -1,4 +1,4 @@
-import { Module } from "@/types/module";
+import type { Module } from "@/types/module";
 import {
 	Scorm12ErrorCode,
 	Scorm12ErrorMessage,

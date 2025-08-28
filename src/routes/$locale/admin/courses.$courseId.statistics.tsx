@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { CheckCircle, CircleEllipsis, Clock, Users } from "lucide-react";
 import {
-	ChartConfig,
+	type ChartConfig,
 	ChartContainer,
 	ChartLegend,
 	ChartLegendContent,

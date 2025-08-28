@@ -6,7 +6,7 @@ import {
 	usersToTeams,
 } from "@/server/db/schema";
 import { TeamFormSchema } from "@/types/team";
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
 	localeMiddleware,
@@ -193,6 +193,5 @@ export const getTeamStatsFn = createServerFn({ method: "GET" })
 export const getTenantFn = createServerFn({ method: "GET" }).handler(
 	async () => {
 		return await getTenant();
-		return "019663b4-9c39-7000-9aa7-9df9fb23654c";
 	},
 );

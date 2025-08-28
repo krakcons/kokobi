@@ -1,6 +1,6 @@
-import { Course } from "@/types/course";
-import { Learner } from "@/types/learner";
-import { Module } from "@/types/module";
+import type { Course } from "@/types/course";
+import type { Learner } from "@/types/learner";
+import type { Module } from "@/types/module";
 
 export const isModuleSuccessful = ({
 	completionStatus,

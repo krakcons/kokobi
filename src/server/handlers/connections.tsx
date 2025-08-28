@@ -23,7 +23,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { createTranslator, handleLocalization } from "@/lib/locale";
-import { ConnectionType, GetConnectionSchema } from "@/types/connections";
+import { type ConnectionType, GetConnectionSchema } from "@/types/connections";
 import { env } from "@/server/env";
 import {
 	ConnectionLinkSchema,

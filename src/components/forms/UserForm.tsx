@@ -1,6 +1,6 @@
 import { useTranslations } from "@/lib/locale";
 import { useAppForm } from "../ui/form";
-import { UserFormSchema, UserFormType } from "@/types/users";
+import { UserFormSchema, type UserFormType } from "@/types/users";
 
 export const UserForm = ({
 	defaultValues,

@@ -2,13 +2,13 @@ import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { requestOTPFn } from "@/server/handlers/auth.otp";
-import { LoginFormSchema, LoginFormType } from "@/types/auth";
+import { LoginFormSchema, type LoginFormType } from "@/types/auth";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { TeamIcon } from "@/components/TeamIcon";
 import { teamImageUrl } from "@/lib/file";
-import { Team, TeamTranslation } from "@/types/team";
+import type { Team, TeamTranslation } from "@/types/team";
 import { getAuthFn } from "@/server/handlers/auth";
 import { useTranslations } from "@/lib/locale";
 

@@ -1,4 +1,4 @@
-import { ConnectionType } from "@/types/connections";
+import type { ConnectionType } from "@/types/connections";
 import { Button } from "./ui/button";
 import { Check, Trash } from "lucide-react";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";

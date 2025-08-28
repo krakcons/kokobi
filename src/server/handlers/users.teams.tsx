@@ -9,9 +9,9 @@ import { and, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { setCookie } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
-import { Team, TeamTranslation } from "@/types/team";
+import type { Team, TeamTranslation } from "@/types/team";
 import { env } from "@/server/env";
-import { UserToTeamType } from "@/types/connections";
+import type { UserToTeamType } from "@/types/connections";
 import { throwServerError } from "../lib/error";
 import { createTranslator, handleLocalization } from "@/lib/locale";
 

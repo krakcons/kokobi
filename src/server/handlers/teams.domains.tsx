@@ -14,7 +14,7 @@ import {
 	GetEmailIdentityCommand,
 	PutEmailIdentityMailFromAttributesCommand,
 } from "@aws-sdk/client-sesv2";
-import { DomainFormSchema, DomainRecord } from "@/types/domains";
+import { DomainFormSchema, type DomainRecord } from "@/types/domains";
 
 export const getTeamDomainFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware({ role: "owner" })])

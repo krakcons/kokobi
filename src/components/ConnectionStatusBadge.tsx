@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "@/lib/locale";
-import { ConnectionType } from "@/types/connections";
+import type { ConnectionType } from "@/types/connections";
 
 export const ConnectionStatusBadge = ({
 	connectStatus,

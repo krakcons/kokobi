@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { TeamFormType, TeamFormSchema } from "@/types/team";
+import { type TeamFormType, TeamFormSchema } from "@/types/team";
 import {
 	Collapsible,
 	CollapsibleContent,

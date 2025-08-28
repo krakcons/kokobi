@@ -27,8 +27,8 @@ import {
 	removeConnectionFn,
 	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
-import { UserToCollectionType } from "@/types/connections";
-import { User } from "@/types/users";
+import type { UserToCollectionType } from "@/types/connections";
+import type { User } from "@/types/users";
 import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { useLocale, useTranslations } from "@/lib/locale";

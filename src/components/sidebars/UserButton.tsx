@@ -3,7 +3,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Theme, themes, useTheme } from "@/lib/theme";
+import { type Theme, themes, useTheme } from "@/lib/theme";
 import { updateUserFn } from "@/server/handlers/users";
 import { deleteAuthFn } from "@/server/handlers/auth";
 import type { User as UserType } from "@/types/users";

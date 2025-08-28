@@ -21,7 +21,6 @@ import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { env } from "@/server/env";
 import { hasTeamAccess } from "../lib/access";
 import { s3 } from "../s3";
-import { isModuleSuccessful } from "@/lib/scorm";
 
 export const getCoursesFn = createServerFn({ method: "GET" })
 	.middleware([teamMiddleware(), localeMiddleware])

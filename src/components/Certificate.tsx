@@ -1,6 +1,6 @@
 import { teamImageUrl } from "@/lib/file";
-import { Messages } from "@/lib/locale";
-import { Team, TeamTranslation } from "@/types/team";
+import type { Messages } from "@/lib/locale";
+import type { Team, TeamTranslation } from "@/types/team";
 import {
 	Document,
 	Font,

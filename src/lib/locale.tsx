@@ -2,8 +2,10 @@ import { z } from "zod";
 
 import type enMessages from "@/messages/en";
 import { createContext, useContext } from "react";
-
-// For best use, pair with a server handler users.locales to manage the user locale
+import { redirect, type ParsedLocation } from "@tanstack/react-router";
+import { createMiddleware, createServerFn } from "@tanstack/react-start";
+import { getCookie, getHeader, setCookie } from "@tanstack/react-start/server";
+import { QueryClient, queryOptions } from "@tanstack/react-query";
 
 // TYPES
 export type Messages = typeof enMessages;
@@ -63,7 +65,9 @@ export const useTranslations = <TNamespace extends keyof Messages>(
 	const i18n = useContext(IntlContext) ?? defaultI18n;
 
 	if (!i18n) {
-		throw new Error("useTranslation must be used within an IntlProvider");
+		throw new Error(
+			`useTranslation must be used within an IntlProvider (Namespace: ${namespace})`,
+		);
 	}
 
 	if (namespace) {
@@ -74,6 +78,53 @@ export const useTranslations = <TNamespace extends keyof Messages>(
 	// @ts-expect-error
 	return i18n.messages;
 };
+
+// MIDDLEWARE
+export const rootLocaleMiddleware = async ({
+	location,
+	ignorePaths,
+	queryClient,
+}: {
+	location: ParsedLocation;
+	ignorePaths?: string[];
+	queryClient: QueryClient;
+}) => {
+	const i18n = await queryClient.ensureQueryData(i18nQueryOptions({}));
+	let locale = i18n.locale;
+
+	// Handle locale
+	let pathLocale = location.pathname.split("/")[1];
+	if (!ignorePaths || !ignorePaths.includes(pathLocale)) {
+		if (!locales.some(({ value }) => value === pathLocale)) {
+			throw redirect({
+				replace: true,
+				reloadDocument: true,
+				href: `/${locale}${location.href}`,
+			});
+		}
+
+		if (pathLocale !== locale) {
+			locale = pathLocale as Locale;
+			await updateI18nFn({
+				data: {
+					locale,
+				},
+			});
+		}
+	}
+
+	return { locale };
+};
+export const localeMiddleware = createMiddleware({
+	type: "function",
+}).server(async ({ next }) => {
+	return next({
+		context: LocalizedInputSchema.parse({
+			locale: getHeader("locale") ?? getCookie("locale") ?? "en",
+			fallbackLocale: getHeader("fallbackLocale"),
+		}),
+	});
+});
 
 // API
 export const createI18n = async ({ locale }: { locale: Locale }) => {
@@ -88,6 +139,21 @@ export const createTranslator = async ({ locale }: { locale: Locale }) => {
 	const i18n = await createI18n({ locale });
 	return i18n.messages;
 };
+
+export const getI18nFn = createServerFn({ method: "GET" })
+	.middleware([localeMiddleware])
+	.handler(async ({ context }) => {
+		const locale = context.locale;
+		const i18n = await createI18n({ locale });
+		return i18n;
+	});
+
+export const updateI18nFn = createServerFn({ method: "POST" })
+	.validator(z.object({ locale: LocaleSchema }))
+	.handler(async ({ data: { locale } }) => {
+		setCookie("locale", locale);
+		return { locale };
+	});
 
 export const getLocalizedField = <T,>(
 	obj: LocalizationObject<T>,
@@ -143,3 +209,9 @@ export const handleLocalization = <
 		...(translation ?? {}),
 	} as TResult;
 };
+
+export const i18nQueryOptions = ({ locale }: { locale?: Locale }) =>
+	queryOptions({
+		queryKey: ["locale"],
+		queryFn: () => getI18nFn(locale ? { headers: { locale } } : {}),
+	});

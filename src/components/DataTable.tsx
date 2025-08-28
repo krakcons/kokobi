@@ -1,4 +1,8 @@
-import { Header, Row, Table as TanstackTable } from "@tanstack/react-table";
+import type {
+	Header,
+	Row,
+	Table as TanstackTable,
+} from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -8,7 +12,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import {
-	ColumnDef,
+	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -28,7 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/locale";
 import { Input } from "@/components/ui/input";
-import { Column } from "@tanstack/react-table";
+import type { Column } from "@tanstack/react-table";
 import {
 	DropdownMenu,
 	DropdownMenuContent,

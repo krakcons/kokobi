@@ -1,17 +1,15 @@
-import { IntlProvider, Locale, locales } from "@/lib/locale";
+import { IntlProvider, rootLocaleMiddleware } from "@/lib/locale";
 import { QueryClient } from "@tanstack/react-query";
 import {
 	Outlet,
 	createRootRouteWithContext,
 	HeadContent,
-	redirect,
 	Scripts,
 	ErrorComponent,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { getI18nFn, updateI18nFn } from "@/server/handlers/i18n";
-// @ts-ignore
-import appCss from "@/index.css?url";
+import { getI18nFn } from "@/server/handlers/i18n";
+import appCss from "../styles.css?url";
 import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { teamImageUrl } from "@/lib/file";
@@ -24,32 +22,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 		validateSearch: z.object({
 			accountDialog: z.boolean().optional(),
 		}),
-		beforeLoad: async ({ location }) => {
-			const i18n = await getI18nFn();
-			let locale = i18n.locale;
-
-			// Handle locale
-			let pathLocale = location.pathname.split("/")[1];
-			if (!["api", "cdn", "assets"].includes(pathLocale)) {
-				if (!locales.some(({ value }) => value === pathLocale)) {
-					throw redirect({
-						replace: true,
-						reloadDocument: true,
-						href: `/${locale}${location.href}`,
-					});
-				}
-
-				if (pathLocale !== locale) {
-					locale = pathLocale as Locale;
-					await updateI18nFn({
-						data: {
-							locale,
-						},
-					});
-				}
-			}
-
-			return { locale };
+		beforeLoad: async ({ location, context: { queryClient } }) => {
+			return rootLocaleMiddleware({
+				location,
+				ignorePaths: ["api", "cdn", "assets"],
+				queryClient,
+			});
 		},
 		errorComponent: ErrorComponent,
 		notFoundComponent: NotFound,

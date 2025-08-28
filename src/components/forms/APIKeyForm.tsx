@@ -1,4 +1,4 @@
-import { APIKeyFormType, APIKeyFormSchema } from "@/types/keys";
+import { type APIKeyFormType, APIKeyFormSchema } from "@/types/keys";
 import { useAppForm } from "../ui/form";
 import { useTranslations } from "@/lib/locale";
 
