@@ -21,15 +21,10 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import {
-	getConnectionLinkFn,
-	updateTeamConnectionFn,
-} from "@/server/handlers/connections";
 import type { User } from "@/types/users";
 import type { UserToCourseType } from "@/types/connections";
 import {
 	getTeamConnectionsFn,
-	inviteUsersConnectionFn,
 	removeConnectionFn,
 } from "@/server/handlers/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
@@ -54,12 +49,13 @@ export const Route = createFileRoute(
 					id: params.courseId,
 				},
 			}),
-			getConnectionLinkFn({
-				data: {
-					type: "course",
-					id: params.courseId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.course.connection.link.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 			queryClient.ensureQueryData(
 				orpc.course.id.queryOptions({
 					input: {
@@ -94,18 +90,20 @@ function RouteComponent() {
 	const tLocales = useTranslations("Locales");
 	const tForm = useTranslations("LearnersForm");
 
-	const connectionResponse = useMutation({
-		mutationFn: updateTeamConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const inviteConnection = useMutation({
-		mutationFn: inviteUsersConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
+	const createConnection = useMutation(
+		orpc.connection.create.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 	const removeConnection = useMutation({
 		mutationFn: removeConnectionFn,
 		onSuccess: () => {
@@ -274,13 +272,12 @@ function RouteComponent() {
 			{
 				name: tConnect.accept,
 				onClick: ({ user }) =>
-					connectionResponse.mutate({
-						data: {
-							id: params.courseId,
-							type: "course",
-							toId: user.id,
-							connectStatus: "accepted",
-						},
+					updateConnection.mutate({
+						id: params.courseId,
+						senderType: "user",
+						recipientType: "course",
+						connectToId: user.id,
+						connectStatus: "accepted",
 					}),
 				visible: ({ connection }) =>
 					connection.connectType === "request",
@@ -288,13 +285,12 @@ function RouteComponent() {
 			{
 				name: tConnect.reject,
 				onClick: ({ user }) =>
-					connectionResponse.mutate({
-						data: {
-							id: params.courseId,
-							type: "course",
-							toId: user.id,
-							connectStatus: "rejected",
-						},
+					updateConnection.mutate({
+						id: params.courseId,
+						senderType: "user",
+						recipientType: "course",
+						connectToId: user.id,
+						connectStatus: "rejected",
 					}),
 				visible: ({ connection }) =>
 					connection.connectType === "request",
@@ -302,12 +298,11 @@ function RouteComponent() {
 			{
 				name: tLearner.resend,
 				onClick: ({ user }) =>
-					inviteConnection.mutate({
-						data: {
-							id: params.courseId,
-							type: "course",
-							emails: [user.email],
-						},
+					createConnection.mutate({
+						senderType: "course",
+						recipientType: "user",
+						id: params.courseId,
+						emails: [user.email],
 					}),
 			},
 			{
@@ -359,13 +354,12 @@ function RouteComponent() {
 						</DialogHeader>
 						<EmailsForm
 							onSubmit={(value) =>
-								inviteConnection.mutateAsync(
+								createConnection.mutateAsync(
 									{
-										data: {
-											...value,
-											id: params.courseId,
-											type: "course",
-										},
+										senderType: "course",
+										recipientType: "user",
+										...value,
+										id: params.courseId,
 									},
 									{
 										onSuccess: () => setOpen(false),

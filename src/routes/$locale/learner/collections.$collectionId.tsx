@@ -4,11 +4,6 @@ import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { ContentBranding } from "@/components/ContentBranding";
 import { Page, PageHeader } from "@/components/Page";
 import { orpc } from "@/server/client";
-import {
-	getConnectionFn,
-	requestConnectionFn,
-	updateUserConnectionFn,
-} from "@/server/handlers/connections";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
@@ -34,9 +29,15 @@ export const Route = createFileRoute(
 					input: { id: params.collectionId },
 				}),
 			),
-			getConnectionFn({
-				data: { type: "collection", id: params.collectionId },
-			}),
+			queryClient.ensureQueryData(
+				orpc.connection.getOne.queryOptions({
+					input: {
+						senderType: "user",
+						recipientType: "collection",
+						id: params.collectionId,
+					},
+				}),
+			),
 		]);
 	},
 });
@@ -45,18 +46,20 @@ function RouteComponent() {
 	const [collection, team, courses, connection] = Route.useLoaderData();
 	const router = useRouter();
 
-	const requestConnection = useMutation({
-		mutationFn: requestConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const connectionResponse = useMutation({
-		mutationFn: updateUserConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const createConnection = useMutation(
+		orpc.connection.create.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 
 	return (
 		<Page>
@@ -78,20 +81,18 @@ function RouteComponent() {
 				name={collection.name}
 				connection={connection}
 				onRequest={() =>
-					requestConnection.mutate({
-						data: {
-							type: "collection",
-							id: collection.id,
-						},
+					createConnection.mutate({
+						senderType: "user",
+						recipientType: "collection",
+						id: collection.id,
 					})
 				}
 				onResponse={(status) => {
-					connectionResponse.mutate({
-						data: {
-							type: "collection",
-							id: collection.id,
-							connectStatus: status,
-						},
+					updateConnection.mutate({
+						senderType: "collection",
+						recipientType: "user",
+						id: collection.id,
+						connectStatus: status,
 					});
 				}}
 			>

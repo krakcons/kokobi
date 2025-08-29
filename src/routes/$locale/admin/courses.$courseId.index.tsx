@@ -1,11 +1,7 @@
 import { TableSearchSchema } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import {
-	createTeamConnectionFn,
-	getTeamCourseConnectionFn,
-	updateTeamConnectionFn,
-} from "@/server/handlers/connections";
+import { getTeamCourseConnectionFn } from "@/server/handlers/connections";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useMutation } from "@tanstack/react-query";
@@ -53,18 +49,20 @@ function RouteComponent() {
 	const { course, connection } = Route.useLoaderData();
 	const router = useRouter();
 
-	const respondToConnection = useMutation({
-		mutationFn: updateTeamConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const requestConnection = useMutation({
-		mutationFn: createTeamConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
+	const createConnection = useMutation(
+		orpc.connection.create.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 
 	return (
 		<Page>
@@ -73,23 +71,19 @@ function RouteComponent() {
 				name={course.name}
 				connection={connection}
 				onRequest={() =>
-					requestConnection.mutate({
-						data: {
-							connectType: "request",
-							type: "course",
-							id: course.id,
-							teamIds: [course.teamId],
-						},
+					createConnection.mutate({
+						senderType: "team",
+						recipientType: "course",
+						id: course.id,
 					})
 				}
 				onResponse={(response) =>
-					respondToConnection.mutate({
-						data: {
-							type: "course-to-team",
-							id: course.id,
-							toId: connection!.fromTeamId,
-							connectStatus: response,
-						},
+					updateConnection.mutate({
+						senderType: "course",
+						recipientType: "team",
+						id: course.id,
+						connectToId: connection!.fromTeamId,
+						connectStatus: response,
 					})
 				}
 			>

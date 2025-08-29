@@ -16,7 +16,6 @@ import {
 	updateUserTeamFn,
 } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
-import { getConnectionsFn } from "@/server/handlers/connections";
 import { getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
@@ -102,16 +101,10 @@ export const Route = createFileRoute("/$locale/learner")({
 		return Promise.all([
 			getAuthFn(),
 			getLearnerUserTeamsFn(),
-			getConnectionsFn({
-				data: {
-					type: "course",
-				},
-			}),
-			getConnectionsFn({
-				data: {
-					type: "collection",
-				},
-			}),
+			queryClient.ensureQueryData(orpc.learner.course.get.queryOptions()),
+			queryClient.ensureQueryData(
+				orpc.learner.collection.get.queryOptions(),
+			),
 			getTenantFn(),
 			queryClient.ensureQueryData(orpc.course.available.queryOptions()),
 		]);

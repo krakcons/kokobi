@@ -15,23 +15,18 @@ import {
 	courseTranslations,
 	courses,
 	modules,
-	teams,
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
 } from "@/server/db/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { createTranslator, handleLocalization, locales } from "@/lib/locale";
+import { handleLocalization } from "@/lib/locale";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { env } from "../env";
 import { ModuleSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { getNewModuleVersionNumber } from "../lib/modules";
-import { getConnectionLink, getUserList } from "../lib/connection";
-import { sendEmail, verifyEmail } from "../lib/email";
-import { teamImageUrl } from "@/lib/file";
-import Invite from "@/components/emails/Invite";
-import type { ConnectionType } from "@/types/connections";
+import { getConnectionLink } from "../lib/connection";
 
 export const courseRouter = {
 	get: teamProcedure()
@@ -78,7 +73,11 @@ export const courseRouter = {
 				id: z.string().min(1),
 			}),
 		)
-		.output(CourseSchema.extend({ team: TeamSchema }))
+		.output(
+			CourseSchema.extend({
+				team: TeamSchema,
+			}),
+		)
 		.handler(async ({ context, input: { id } }) => {
 			console.log("ID", id);
 			const course = await db.query.courses.findFirst({
@@ -93,8 +92,6 @@ export const courseRouter = {
 				},
 			});
 
-			console.log("COURSE", course);
-
 			if (!course) {
 				throw new ORPCError("NOT_FOUND");
 			}
@@ -105,7 +102,7 @@ export const courseRouter = {
 			};
 		}),
 	update: teamProcedure()
-		.route({ method: "POST", path: "/courses/{id}" })
+		.route({ method: "PUT", path: "/courses/{id}" })
 		.input(
 			CourseFormSchema.extend({
 				id: z.string().min(1),
@@ -346,145 +343,24 @@ export const courseRouter = {
 				handleLocalization(context, course),
 			);
 		}),
-	invite: teamProcedure()
-		.route({ method: "POST", path: "/courses/{id}/invite" })
-		.input(
-			z.object({
-				id: z.string(),
-				emails: z.email().toLowerCase().array(),
-			}),
-		)
-		.output(z.null())
-		.handler(async ({ context, input: { id, emails } }) => {
-			await hasTeamAccess({
-				teamId: context.teamId,
-				type: "course",
-				id,
-			});
-
-			const team = (await db.query.teams.findFirst({
-				where: eq(teams.id, context.teamId),
-				with: {
-					translations: true,
-					domains: true,
-				},
-			}))!;
-
-			const userList = await getUserList({ emails });
-
-			const course = await db.query.courses.findFirst({
-				where: eq(courses.id, id),
-				with: {
-					translations: true,
-				},
-			});
-
-			if (!course) {
-				throw new Error("Course not found");
-			}
-
-			await db
-				.insert(usersToCourses)
-				.values(
-					userList.map((u) => ({
-						userId: u.id,
-						teamId: context.teamId,
-						courseId: id,
-						connectType: "invite" as ConnectionType["connectType"],
-						connectStatus:
-							"pending" as ConnectionType["connectStatus"],
-					})),
-				)
-				.onConflictDoUpdate({
-					target: [
-						usersToCourses.userId,
-						usersToCourses.courseId,
-						usersToCourses.teamId,
-					],
-					set: {
-						connectStatus: "accepted",
-						updatedAt: new Date(),
-					},
-					setWhere: and(
-						eq(usersToCourses.connectType, "request"),
-						eq(usersToCourses.connectStatus, "pending"),
-					),
-				});
-
-			const emailVerified = await verifyEmail(team.domains);
-
-			await Promise.all(
-				userList.map(async (user) => {
-					const content = await Promise.all(
-						locales.map(async (locale) => {
-							const localizedCourse = handleLocalization(
-								{ locale: locale.value },
-								course,
-							);
-							const localizedTeam = handleLocalization(
-								{ locale: locale.value },
-								team,
-							);
-							const href = await getConnectionLink({
-								teamId: context.teamId,
-								type: "course",
-								id: course.id,
-								locale: locale.value,
-							});
-							const t = await createTranslator({
-								locale: locale.value,
-							});
-							return {
-								name: localizedCourse.name,
-								teamName: localizedTeam.name,
-								logo: teamImageUrl(localizedTeam, "logo"),
-								locale: locale.value,
-								t: t.Email.Invite,
-								href,
-							};
-						}),
-					);
-
-					await sendEmail({
-						to: [user.email],
-						subject: content[0].t.subject,
-						content: <Invite content={content} />,
-						team: emailVerified
-							? handleLocalization({ locale: "en" }, team)
-							: undefined,
-					});
+	connection: {
+		link: teamProcedure()
+			.route({ method: "GET", path: "/courses/{id}/link" })
+			.input(
+				z.object({
+					id: z.string(),
 				}),
-			);
-
-			return null;
-		}),
-	request: learnerProcedure
-		.route({ method: "POST", path: "/courses/{id}/request" })
-		.input(
-			z.object({
-				id: z.string(),
+			)
+			.output(z.string())
+			.handler(async ({ context, input: { id } }) => {
+				return await getConnectionLink({
+					type: "course",
+					id,
+					teamId: context.teamId,
+					locale: context.locale,
+				});
 			}),
-		)
-		.output(z.null())
-		.handler(async ({ context, input: { id } }) => {
-			const user = context.user;
-
-			await db
-				.insert(usersToCourses)
-				.values({
-					userId: user.id,
-					teamId: context.learnerTeamId,
-					connectType: "request",
-					connectStatus:
-						context.learnerTeamId !== env.WELCOME_TEAM_ID
-							? "pending"
-							: "accepted",
-					courseId: id,
-				})
-				.onConflictDoNothing();
-
-			return null;
-		}),
+	},
 	modules: {
 		get: teamProcedure()
 			.route({ method: "GET", path: "/courses/{id}/modules" })

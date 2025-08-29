@@ -15,11 +15,6 @@ import {
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import {
-	getConnectionFn,
-	requestConnectionFn,
-	updateUserConnectionFn,
-} from "@/server/handlers/connections";
-import {
 	createUserModuleFn,
 	getUserModulesByCourseFn,
 } from "@/server/handlers/users.modules";
@@ -54,9 +49,15 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 					courseId: params.courseId,
 				},
 			}),
-			getConnectionFn({
-				data: { type: "course", id: params.courseId },
-			}),
+			queryClient.ensureQueryData(
+				orpc.connection.getOne.queryOptions({
+					input: {
+						senderType: "user",
+						recipientType: "course",
+						id: params.courseId,
+					},
+				}),
+			),
 			getAuthFn(),
 		]);
 	},
@@ -88,18 +89,22 @@ function RouteComponent() {
 			});
 		},
 	});
-	const requestConnection = useMutation({
-		mutationFn: requestConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const connectionResponse = useMutation({
-		mutationFn: updateUserConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+
+	const createConnection = useMutation(
+		orpc.connection.create.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
+
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 
 	const isSuccess = useMemo(() => {
 		return attempts.length > 0
@@ -130,20 +135,18 @@ function RouteComponent() {
 				name={course.name}
 				connection={connection}
 				onRequest={() =>
-					requestConnection.mutate({
-						data: {
-							type: "course",
-							id: course.id,
-						},
+					createConnection.mutate({
+						senderType: "user",
+						recipientType: "course",
+						id: course.id,
 					})
 				}
 				onResponse={(status) => {
-					connectionResponse.mutate({
-						data: {
-							type: "course",
-							id: course.id,
-							connectStatus: status,
-						},
+					updateConnection.mutate({
+						senderType: "course",
+						recipientType: "user",
+						id: course.id,
+						connectStatus: status,
 					});
 				}}
 			>

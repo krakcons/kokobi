@@ -14,6 +14,7 @@ import { TeamSchema } from "@/types/team";
 import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { CourseSchema } from "@/types/course";
 import { ORPCError } from "@orpc/client";
+import { getConnectionLink } from "../lib/connection";
 
 export const collectionRouter = {
 	get: teamProcedure()
@@ -63,6 +64,7 @@ export const collectionRouter = {
 				team: handleLocalization(context, collection.team),
 			};
 		}),
+
 	create: teamProcedure()
 		.route({ method: "POST", path: "/collections" })
 		.input(CollectionFormSchema)
@@ -84,7 +86,7 @@ export const collectionRouter = {
 			return { collectionId };
 		}),
 	update: teamProcedure()
-		.route({ method: "POST", path: "/collections/{id}" })
+		.route({ method: "PUT", path: "/collections/{id}" })
 		.input(
 			CollectionFormSchema.extend({
 				id: z.string(),
@@ -238,5 +240,23 @@ export const collectionRouter = {
 					return null;
 				},
 			),
+	},
+	connection: {
+		link: teamProcedure()
+			.route({ method: "GET", path: "/collections/{id}/link" })
+			.input(
+				z.object({
+					id: z.string(),
+				}),
+			)
+			.output(z.string())
+			.handler(async ({ context, input: { id } }) => {
+				return await getConnectionLink({
+					type: "collection",
+					id,
+					teamId: context.teamId,
+					locale: context.locale,
+				});
+			}),
 	},
 };

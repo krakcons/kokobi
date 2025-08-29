@@ -21,11 +21,8 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import {
-	getConnectionLinkFn,
 	getTeamConnectionsFn,
-	inviteUsersConnectionFn,
 	removeConnectionFn,
-	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
 import type { UserToCollectionType } from "@/types/connections";
 import type { User } from "@/types/users";
@@ -33,13 +30,14 @@ import CopyButton from "@/components/CopyButton";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { dateSortingFn, formatDate } from "@/lib/date";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute(
 	"/$locale/admin/collections/$collectionId/learners",
 )({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: ({ params }) =>
+	loader: ({ params, context: { queryClient } }) =>
 		Promise.all([
 			getTeamConnectionsFn({
 				data: {
@@ -47,12 +45,13 @@ export const Route = createFileRoute(
 					id: params.collectionId,
 				},
 			}),
-			getConnectionLinkFn({
-				data: {
-					type: "collection",
-					id: params.collectionId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.collection.connection.link.queryOptions({
+					input: {
+						id: params.collectionId,
+					},
+				}),
+			),
 		]),
 });
 
@@ -70,18 +69,20 @@ function RouteComponent() {
 	const tConnect = useTranslations("ConnectionActions");
 	const locale = useLocale();
 
-	const createConnection = useMutation({
-		mutationFn: inviteUsersConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const connectionResponse = useMutation({
-		mutationFn: updateTeamConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const createConnection = useMutation(
+		orpc.connection.create.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 	const removeConnection = useMutation({
 		mutationFn: removeConnectionFn,
 		onSuccess: () => {
@@ -150,26 +151,24 @@ function RouteComponent() {
 			{
 				name: tConnect.accept,
 				onClick: ({ userId }) =>
-					connectionResponse.mutate({
-						data: {
-							id: params.collectionId,
-							type: "collection",
-							toId: userId,
-							connectStatus: "accepted",
-						},
+					updateConnection.mutate({
+						id: params.collectionId,
+						senderType: "user",
+						recipientType: "collection",
+						connectToId: userId,
+						connectStatus: "accepted",
 					}),
 				visible: ({ connectType }) => connectType === "request",
 			},
 			{
 				name: tConnect.reject,
 				onClick: ({ userId }) =>
-					connectionResponse.mutate({
-						data: {
-							id: params.collectionId,
-							type: "collection",
-							toId: userId,
-							connectStatus: "rejected",
-						},
+					updateConnection.mutate({
+						id: params.collectionId,
+						senderType: "user",
+						recipientType: "collection",
+						connectToId: userId,
+						connectStatus: "rejected",
 					}),
 				visible: ({ connectType }) => connectType === "request",
 			},
@@ -177,11 +176,10 @@ function RouteComponent() {
 				name: tLearner.resend,
 				onClick: ({ user }) =>
 					createConnection.mutate({
-						data: {
-							id: params.collectionId,
-							type: "collection",
-							emails: [user.email],
-						},
+						senderType: "collection",
+						recipientType: "user",
+						id: params.collectionId,
+						emails: [user.email],
 					}),
 			},
 			{
@@ -219,11 +217,10 @@ function RouteComponent() {
 							onSubmit={(value) =>
 								createConnection.mutateAsync(
 									{
-										data: {
-											type: "collection",
-											id: params.collectionId,
-											...value,
-										},
+										senderType: "collection",
+										recipientType: "user",
+										id: params.collectionId,
+										...value,
 									},
 									{
 										onSuccess: () => setOpen(false),

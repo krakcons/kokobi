@@ -8,10 +8,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
 import {
-	createTeamConnectionFn,
 	getTeamCourseConnectionsFn,
 	removeConnectionFn,
-	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
 import type { Team, TeamTranslation } from "@/types/team";
 import type { TeamToCourseType } from "@/types/connections";
@@ -32,6 +30,7 @@ import { useTranslations } from "@/lib/locale";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { env } from "@/env";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/sharing",
@@ -61,18 +60,20 @@ function RouteComponent() {
 	const tConnect = useTranslations("ConnectionActions");
 	const tForm = useTranslations("TeamsForm");
 
-	const createTeamConnection = useMutation({
-		mutationFn: createTeamConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const updateTeamConnection = useMutation({
-		mutationFn: updateTeamConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const createConnection = useMutation(
+		orpc.connection.create.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 	const removeConnection = useMutation({
 		mutationFn: removeConnectionFn,
 		onSuccess: () => {
@@ -113,26 +114,24 @@ function RouteComponent() {
 			{
 				name: tConnect.accept,
 				onClick: ({ teamId }) =>
-					updateTeamConnection.mutate({
-						data: {
-							id: params.courseId,
-							type: "course-from-team",
-							toId: teamId,
-							connectStatus: "accepted",
-						},
+					updateConnection.mutate({
+						senderType: "team",
+						recipientType: "course",
+						id: params.courseId,
+						connectToId: teamId,
+						connectStatus: "accepted",
 					}),
 				visible: ({ connectType }) => connectType === "request",
 			},
 			{
 				name: tConnect.reject,
 				onClick: ({ teamId }) =>
-					updateTeamConnection.mutate({
-						data: {
-							id: params.courseId,
-							type: "course-from-team",
-							toId: teamId,
-							connectStatus: "rejected",
-						},
+					updateConnection.mutate({
+						senderType: "team",
+						recipientType: "course",
+						id: params.courseId,
+						connectToId: teamId,
+						connectStatus: "rejected",
 					}),
 				visible: ({ connectType }) => connectType === "request",
 			},
@@ -171,14 +170,12 @@ function RouteComponent() {
 						</DialogHeader>
 						<TeamsForm
 							onSubmit={(value) =>
-								createTeamConnection.mutateAsync(
+								createConnection.mutateAsync(
 									{
-										data: {
-											...value,
-											connectType: "invite",
-											id: params.courseId,
-											type: "course",
-										},
+										...value,
+										senderType: "course",
+										recipientType: "team",
+										id: params.courseId,
 									},
 									{
 										onSuccess: () => setOpen(false),
