@@ -1,7 +1,7 @@
 import { CollectionForm } from "@/components/forms/CollectionForm";
 import { Page, PageHeader } from "@/components/Page";
 import { useTranslations } from "@/lib/locale";
-import { createCollectionFn } from "@/server/handlers/collections";
+import { orpc } from "@/server/client";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -12,20 +12,26 @@ export const Route = createFileRoute("/$locale/admin/collections/create")({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const t = useTranslations("CollectionForm");
-	const createCollection = useMutation({
-		mutationFn: createCollectionFn,
-		onSuccess: (data) => {
-			navigate({
-				to: "/$locale/admin/collections/$collectionId/learners",
-				params: (p) => ({
-					...p,
-					collectionId: data.collectionId,
-				}),
-				search: (s) => s,
-			});
-		},
-	});
 	const search = Route.useSearch();
+	const createCollection = useMutation(
+		orpc.collection.create.mutationOptions({
+			onSuccess: (data) => {
+				navigate({
+					to: "/$locale/admin/collections/$collectionId/learners",
+					params: (p) => ({
+						...p,
+						collectionId: data.collectionId,
+					}),
+					search: (s) => s,
+				});
+			},
+			context: {
+				headers: {
+					locale: search.locale,
+				},
+			},
+		}),
+	);
 
 	return (
 		<Page>
@@ -36,12 +42,7 @@ function RouteComponent() {
 			<CollectionForm
 				onSubmit={(value) =>
 					createCollection.mutateAsync({
-						data: {
-							...value,
-						},
-						headers: {
-							...(search.locale && { locale: search.locale }),
-						},
+						...value,
 					})
 				}
 			/>

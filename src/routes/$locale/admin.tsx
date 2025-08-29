@@ -25,7 +25,6 @@ import {
 	getAdminUserTeamsFn,
 	updateUserTeamFn,
 } from "@/server/handlers/users.teams";
-import { getCollectionsFn } from "@/server/handlers/collections";
 import { EditingLocaleSchema } from "@/types/router";
 import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { getTenantFn } from "@/server/handlers/teams";
@@ -107,7 +106,7 @@ export const Route = createFileRoute("/$locale/admin")({
 			getAuthFn(),
 			getAdminUserTeamsFn(),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
-			getCollectionsFn(),
+			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
 			getTeamCourseConnectionsFn({
 				data: {
 					type: "to",

@@ -3,8 +3,7 @@ import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { ContentBranding } from "@/components/ContentBranding";
 import { Page, PageHeader } from "@/components/Page";
-import { getCollectionByIdFn } from "@/server/handlers/collections";
-import { getCollectionCoursesFn } from "@/server/handlers/collections.courses";
+import { orpc } from "@/server/client";
 import {
 	getConnectionFn,
 	requestConnectionFn,
@@ -18,19 +17,23 @@ export const Route = createFileRoute(
 	"/$locale/learner/collections/$collectionId",
 )({
 	component: RouteComponent,
-	loader: ({ params }) => {
+	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			getCollectionByIdFn({ data: { id: params.collectionId } }),
+			queryClient.ensureQueryData(
+				orpc.collection.id.queryOptions({
+					input: { id: params.collectionId },
+				}),
+			),
 			getUserTeamFn({
 				data: {
 					type: "learner",
 				},
 			}),
-			getCollectionCoursesFn({
-				data: {
-					collectionId: params.collectionId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.collection.courses.get.queryOptions({
+					input: { id: params.collectionId },
+				}),
+			),
 			getConnectionFn({
 				data: { type: "collection", id: params.collectionId },
 			}),

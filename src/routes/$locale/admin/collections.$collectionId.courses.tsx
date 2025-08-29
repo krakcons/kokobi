@@ -17,15 +17,14 @@ import {
 } from "@/components/ui/dialog";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import {
-	createCollectionCourseFn,
-	deleteCollectionCourseFn,
-	getCollectionCoursesFn,
-} from "@/server/handlers/collections.courses";
 import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import type { Course, CourseTranslation } from "@/types/course";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -37,11 +36,11 @@ export const Route = createFileRoute(
 	validateSearch: TableSearchSchema,
 	loader: ({ params, context: { queryClient } }) =>
 		Promise.all([
-			getCollectionCoursesFn({
-				data: {
-					collectionId: params.collectionId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.collection.courses.get.queryOptions({
+					input: { id: params.collectionId },
+				}),
+			),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			getTeamCourseConnectionsFn({
 				data: {
@@ -54,26 +53,43 @@ export const Route = createFileRoute(
 function RouteComponent() {
 	const [open, setOpen] = useState(false);
 	const params = Route.useParams();
-	const [collectionCourses, courses, sharedCourses] = Route.useLoaderData();
+	const { data: collectionCourses } = useSuspenseQuery(
+		orpc.collection.courses.get.queryOptions({
+			input: { id: params.collectionId },
+		}),
+	);
+	const { data: courses } = useSuspenseQuery(orpc.course.get.queryOptions());
+	const [_a, _b, sharedCourses] = Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const router = useRouter();
 	const t = useTranslations("CollectionCourses");
 	const tActions = useTranslations("Actions");
 	const tForm = useTranslations("CoursesForm");
+	const queryClient = useQueryClient();
 
-	const createCourses = useMutation({
-		mutationFn: createCollectionCourseFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const deleteCourse = useMutation({
-		mutationFn: deleteCollectionCourseFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const createCourses = useMutation(
+		orpc.collection.courses.create.mutationOptions({
+			onSuccess: () => {
+				setOpen(false);
+				queryClient.invalidateQueries(
+					orpc.collection.courses.get.queryOptions({
+						input: { id: params.collectionId },
+					}),
+				);
+			},
+		}),
+	);
+	const deleteCourse = useMutation(
+		orpc.collection.courses.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					orpc.collection.courses.get.queryOptions({
+						input: { id: params.collectionId },
+					}),
+				);
+			},
+		}),
+	);
 
 	const columns: ColumnDef<Course & CourseTranslation>[] = [
 		{
@@ -101,10 +117,8 @@ function RouteComponent() {
 				name: tActions.delete,
 				onClick: ({ id }) =>
 					deleteCourse.mutate({
-						data: {
-							id: params.collectionId,
-							courseId: id,
-						},
+						id: params.collectionId,
+						courseId: id,
 					}),
 			},
 		]),
@@ -154,17 +168,10 @@ function RouteComponent() {
 						) : (
 							<CoursesForm
 								onSubmit={(value) =>
-									createCourses.mutateAsync(
-										{
-											data: {
-												id: params.collectionId,
-												...value,
-											},
-										},
-										{
-											onSuccess: () => setOpen(false),
-										},
-									)
+									createCourses.mutateAsync({
+										id: params.collectionId,
+										...value,
+									})
 								}
 								courses={courseFormCourses}
 							/>

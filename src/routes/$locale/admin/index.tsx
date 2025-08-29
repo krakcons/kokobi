@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/card";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { getCollectionsFn } from "@/server/handlers/collections";
 import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
@@ -17,7 +16,7 @@ export const Route = createFileRoute("/$locale/admin/")({
 	loader: ({ context: { queryClient } }) =>
 		Promise.all([
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
-			getCollectionsFn(),
+			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
 			getTeamCourseConnectionsFn({
 				data: {
 					type: "to",
