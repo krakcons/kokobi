@@ -19,7 +19,6 @@ import {
 	requestConnectionFn,
 	updateUserConnectionFn,
 } from "@/server/handlers/connections";
-import { getCourseFn } from "@/server/handlers/courses";
 import {
 	createUserModuleFn,
 	getUserModulesByCourseFn,
@@ -32,12 +31,19 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { AlertCircle, Eye, FileBadge2, Play } from "lucide-react";
 import { useMemo } from "react";
 import { isModuleSuccessful } from "@/lib/scorm";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
-	loader: ({ params }) => {
+	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			getCourseFn({ data: { courseId: params.courseId } }),
+			queryClient.ensureQueryData(
+				orpc.course.id.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 			getUserTeamFn({
 				data: {
 					type: "learner",

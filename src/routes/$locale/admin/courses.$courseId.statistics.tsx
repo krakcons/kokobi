@@ -1,5 +1,4 @@
 import { Page, PageHeader } from "@/components/Page";
-import { getCourseStatisticsFn } from "@/server/handlers/courses";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	Card,
@@ -25,6 +24,7 @@ import { useAppForm } from "@/components/ui/form";
 import { z } from "zod";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import ExportCSVButton from "@/components/ExportCSVButton";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/statistics",
@@ -34,14 +34,16 @@ export const Route = createFileRoute(
 	}),
 	component: RouteComponent,
 	loaderDeps: ({ search }) => ({ teamId: search.statsTeamId }),
-	loader: ({ params, deps }) =>
+	loader: ({ params, deps, context: { queryClient } }) =>
 		Promise.all([
-			getCourseStatisticsFn({
-				data: {
-					courseId: params.courseId,
-					teamId: deps.teamId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.course.statistics.queryOptions({
+					input: {
+						id: params.courseId,
+						teamId: deps.teamId,
+					},
+				}),
+			),
 			getTeamCourseConnectionsFn({
 				data: {
 					id: params.courseId,

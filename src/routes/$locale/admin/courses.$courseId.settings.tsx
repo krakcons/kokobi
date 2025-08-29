@@ -2,11 +2,6 @@ import { CourseForm } from "@/components/forms/CourseForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-	deleteCourseFn,
-	getCourseFn,
-	updateCourseFn,
-} from "@/server/handlers/courses";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
@@ -23,22 +18,25 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/settings",
 )({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: ({ params, deps }) =>
-		getCourseFn({
-			data: {
-				courseId: params.courseId,
-			},
-			headers: {
-				...(deps.locale && { locale: deps.locale }),
-				fallbackLocale: "none",
-			},
-		}),
+	loader: ({ params, deps, context: { queryClient } }) =>
+		queryClient.ensureQueryData(
+			orpc.course.id.queryOptions({
+				input: {
+					id: params.courseId,
+				},
+				headers: {
+					...(deps.locale && { locale: deps.locale }),
+					fallbackLocale: "none",
+				},
+			}),
+		),
 });
 
 function RouteComponent() {
@@ -50,20 +48,25 @@ function RouteComponent() {
 	const t = useTranslations("CourseSettings");
 	const tActions = useTranslations("Actions");
 
-	const updateCourse = useMutation({
-		mutationFn: updateCourseFn,
-		onSuccess: () => {
-			toast.success("Course updated");
-			router.invalidate();
-		},
-	});
+	const updateCourse = useMutation(
+		orpc.course.update.mutationOptions({
+			context: {
+				...(search.locale && { locale: search.locale }),
+			},
+			onSuccess: () => {
+				toast.success("Course updated");
+				router.invalidate();
+			},
+		}),
+	);
 
-	const deleteCourse = useMutation({
-		mutationFn: deleteCourseFn,
-		onSuccess: () => {
-			navigate({ to: "/$locale/admin" });
-		},
-	});
+	const deleteCourse = useMutation(
+		orpc.course.delete.mutationOptions({
+			onSuccess: () => {
+				navigate({ to: "/$locale/admin" });
+			},
+		}),
+	);
 
 	return (
 		<Page>
@@ -73,13 +76,8 @@ function RouteComponent() {
 				defaultValues={course}
 				onSubmit={(values) =>
 					updateCourse.mutateAsync({
-						data: {
-							...values,
-							id: params.courseId,
-						},
-						headers: {
-							...(search.locale && { locale: search.locale }),
-						},
+						...values,
+						id: params.courseId,
 					})
 				}
 			/>
@@ -109,7 +107,7 @@ function RouteComponent() {
 						<AlertDialogAction
 							onClick={() => {
 								deleteCourse.mutate({
-									data: { courseId: params.courseId },
+									id: params.courseId,
 								});
 							}}
 						>

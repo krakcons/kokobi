@@ -6,26 +6,28 @@ import {
 	getTeamCourseConnectionFn,
 	updateTeamConnectionFn,
 } from "@/server/handlers/connections";
-import { getCourseFn } from "@/server/handlers/courses";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useMutation } from "@tanstack/react-query";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: async ({ params }) => {
+	loader: async ({ params, context: { queryClient } }) => {
 		const [team, course, connection] = await Promise.all([
 			getUserTeamFn({
 				data: {
 					type: "admin",
 				},
 			}),
-			getCourseFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.course.id.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 			getTeamCourseConnectionFn({
 				data: {
 					type: "to",

@@ -9,7 +9,7 @@ import { and, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { setCookie } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
-import type { Team, TeamTranslation } from "@/types/team";
+import type { BaseTeam, Team, TeamTranslation } from "@/types/team";
 import { env } from "@/server/env";
 import type { UserToTeamType } from "@/types/connections";
 import { throwServerError } from "../lib/error";
@@ -132,7 +132,7 @@ export const getLearnerUserTeamsFn = createServerFn({ method: "GET" })
 		});
 
 		const createAutoUserTeam = (
-			team: Team & { translations: TeamTranslation[] },
+			team: BaseTeam & { translations: TeamTranslation[] },
 		): UserToTeamType & {
 			team: Team & TeamTranslation;
 		} => ({

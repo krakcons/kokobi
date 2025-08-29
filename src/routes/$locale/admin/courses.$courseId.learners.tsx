@@ -61,7 +61,7 @@ export const Route = createFileRoute(
 				},
 			}),
 			queryClient.ensureQueryData(
-				orpc.course.getId.queryOptions({
+				orpc.course.id.queryOptions({
 					input: {
 						id: params.courseId,
 					},

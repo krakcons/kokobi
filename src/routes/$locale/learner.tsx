@@ -21,11 +21,11 @@ import { getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
 import { env } from "@/env";
-import { getAvailableCoursesFn } from "@/server/handlers/courses";
 import { UserButton } from "@/components/sidebars/UserButton";
 import { createServerFn } from "@tanstack/react-start";
 import { getHeader } from "@tanstack/react-start/server";
 import { useLocale } from "@/lib/locale";
+import { orpc } from "@/server/client";
 
 const getIsIframeFn = createServerFn().handler(() => {
 	const secFestDest = getHeader("sec-fetch-dest");
@@ -98,7 +98,7 @@ export const Route = createFileRoute("/$locale/learner")({
 				(typeof window !== "undefined" && window.self !== window.top),
 		};
 	},
-	loader: () => {
+	loader: ({ context: { queryClient } }) => {
 		return Promise.all([
 			getAuthFn(),
 			getLearnerUserTeamsFn(),
@@ -113,7 +113,7 @@ export const Route = createFileRoute("/$locale/learner")({
 				},
 			}),
 			getTenantFn(),
-			getAvailableCoursesFn(),
+			queryClient.ensureQueryData(orpc.course.available.queryOptions()),
 		]);
 	},
 });

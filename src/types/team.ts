@@ -13,6 +13,7 @@ export const validDomainSchema = z
 	);
 
 export const BaseTeamSchema = createSelectSchema(teams);
+export type BaseTeam = z.infer<typeof BaseTeamSchema>;
 
 export const TeamTranslationSchema = createSelectSchema(teamTranslations);
 export type TeamTranslation = z.infer<typeof TeamTranslationSchema>;

@@ -16,13 +16,13 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
 import {
 	createCollectionCourseFn,
 	deleteCollectionCourseFn,
 	getCollectionCoursesFn,
 } from "@/server/handlers/collections.courses";
 import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
-import { getCoursesFn } from "@/server/handlers/courses";
 import type { Course, CourseTranslation } from "@/types/course";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
@@ -35,14 +35,14 @@ export const Route = createFileRoute(
 )({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: ({ params }) =>
+	loader: ({ params, context: { queryClient } }) =>
 		Promise.all([
 			getCollectionCoursesFn({
 				data: {
 					collectionId: params.collectionId,
 				},
 			}),
-			getCoursesFn(),
+			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			getTeamCourseConnectionsFn({
 				data: {
 					type: "to",

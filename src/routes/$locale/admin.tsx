@@ -26,10 +26,10 @@ import {
 	updateUserTeamFn,
 } from "@/server/handlers/users.teams";
 import { getCollectionsFn } from "@/server/handlers/collections";
-import { getCoursesFn } from "@/server/handlers/courses";
 import { EditingLocaleSchema } from "@/types/router";
 import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { getTenantFn } from "@/server/handlers/teams";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -102,11 +102,11 @@ export const Route = createFileRoute("/$locale/admin")({
 			}
 		}
 	},
-	loader: () =>
+	loader: ({ context: { queryClient } }) =>
 		Promise.all([
 			getAuthFn(),
 			getAdminUserTeamsFn(),
-			getCoursesFn(),
+			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			getCollectionsFn(),
 			getTeamCourseConnectionsFn({
 				data: {

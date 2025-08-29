@@ -2,7 +2,6 @@ import { ConnectionComponent } from "@/components/ConnectionComponent";
 import { Page, PageHeader } from "@/components/Page";
 import { useTranslations } from "@/lib/locale";
 import { getConnectionsFn } from "@/server/handlers/connections";
-import { getAvailableCoursesFn } from "@/server/handlers/courses";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	Card,
@@ -10,10 +9,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
-	loader: () =>
+	loader: ({ context: { queryClient } }) =>
 		Promise.all([
 			getConnectionsFn({
 				data: {
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/$locale/learner/")({
 					type: "collection",
 				},
 			}),
-			getAvailableCoursesFn(),
+			queryClient.ensureQueryData(orpc.course.available.queryOptions()),
 		]),
 });
 

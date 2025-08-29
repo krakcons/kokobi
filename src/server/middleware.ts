@@ -1,47 +1,61 @@
-import { LocalizedInputSchema } from "@/lib/locale";
-import { os } from "@orpc/server";
-import { getCookie, getHeader } from "@tanstack/react-start/server";
-import { getAuth, type AuthResult } from "@/server/lib/auth";
+import { ORPCError, os } from "@orpc/server";
+import { roles, type Role } from "@/types/team";
+import type { OrpcContext } from "./context";
 
-export const localeMiddleware = os.middleware(async ({ next }) => {
-	const locale = getHeader("locale") ?? getCookie("locale");
-	const fallbackLocale = getHeader("fallbackLocale");
-	return next({
-		context: LocalizedInputSchema.parse({
-			locale: locale === "undefined" ? undefined : locale,
-			fallbackLocale:
-				fallbackLocale === "undefined" ? undefined : fallbackLocale,
-		}),
-	});
-});
+export const base = os.$context<OrpcContext>();
 
-export const authMiddleware = os.middleware(async ({ next }) => {
-	const sessionId = getCookie("auth_session");
-	const auth = await getAuth(sessionId);
+export const publicProcedure = base;
 
-	return next({
-		context: auth,
-	});
-});
+export const protectedProcedure = base.use(
+	base.middleware(async ({ next, context }) => {
+		const { session, user } = context;
+		if (!session || !user) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
 
-export const publicProcedure = os.use(localeMiddleware).use(authMiddleware);
+		return next({
+			context: {
+				...context,
+				session,
+				user,
+			},
+		});
+	}),
+);
 
-export const protectedProcedure = os
-	.use(localeMiddleware)
-	.use(authMiddleware)
-	.use(
-		os.$context<AuthResult>().middleware(async ({ next, context }) => {
-			const { session, user } = context;
-			if (!session || !user) {
-				throw new Error("Unauthorized");
+export const teamProcedure = ({ role = "member" }: { role?: Role } = {}) =>
+	protectedProcedure.use(
+		base.middleware(async ({ context, next }) => {
+			const { teamId, role: teamRole } = context;
+			if (
+				!teamId ||
+				(teamRole && roles.indexOf(teamRole) > roles.indexOf(role))
+			) {
+				throw new Error("No admin team or role not permitted");
 			}
 
 			return next({
 				context: {
 					...context,
-					session,
-					user,
+					teamId,
+					role: teamRole,
 				},
 			});
 		}),
 	);
+
+export const learnerProcedure = protectedProcedure.use(
+	base.middleware(async ({ context, next }) => {
+		const { learnerTeamId } = context;
+		if (!learnerTeamId) {
+			throw new Error("No learner team");
+		}
+
+		return next({
+			context: {
+				...context,
+				learnerTeamId,
+			},
+		});
+	}),
+);

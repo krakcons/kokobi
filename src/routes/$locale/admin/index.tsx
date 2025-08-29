@@ -6,17 +6,17 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
 import { getCollectionsFn } from "@/server/handlers/collections";
 import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
-import { getCoursesFn } from "@/server/handlers/courses";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/admin/")({
 	component: RouteComponent,
-	loader: () =>
+	loader: ({ context: { queryClient } }) =>
 		Promise.all([
-			getCoursesFn(),
+			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			getCollectionsFn(),
 			getTeamCourseConnectionsFn({
 				data: {

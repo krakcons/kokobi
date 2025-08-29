@@ -3,6 +3,7 @@ import { createServerFileRoute } from "@tanstack/react-start/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
+import { createOrpcContext } from "@/server/context";
 
 const handler = new OpenAPIHandler(router, {
 	plugins: [
@@ -22,7 +23,7 @@ const handler = new OpenAPIHandler(router, {
 async function handle({ request }: { request: Request }) {
 	const { response } = await handler.handle(request, {
 		prefix: "/api",
-		context: {}, // Provide initial context if needed
+		context: await createOrpcContext(),
 	});
 
 	return response ?? new Response("Not Found", { status: 404 });
