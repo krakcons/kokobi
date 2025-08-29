@@ -26,7 +26,6 @@ import {
 	updateUserTeamFn,
 } from "@/server/handlers/users.teams";
 import { EditingLocaleSchema } from "@/types/router";
-import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { getTenantFn } from "@/server/handlers/teams";
 import { orpc } from "@/server/client";
 
@@ -107,11 +106,6 @@ export const Route = createFileRoute("/$locale/admin")({
 			getAdminUserTeamsFn(),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
-			getTeamCourseConnectionsFn({
-				data: {
-					type: "to",
-				},
-			}),
 			getTenantFn(),
 		]),
 });
@@ -123,8 +117,7 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = useNavigate();
 	const editingLocale = search.locale ?? locale;
-	const [auth, teams, courses, collections, connections, tenantId] =
-		Route.useLoaderData();
+	const [auth, teams, courses, collections, tenantId] = Route.useLoaderData();
 
 	return (
 		<SidebarProvider>
@@ -134,7 +127,6 @@ function RouteComponent() {
 				teams={teams}
 				courses={courses}
 				collections={collections}
-				connections={connections}
 				user={auth.user!}
 				role={auth.role!}
 			/>

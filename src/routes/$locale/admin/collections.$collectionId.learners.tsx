@@ -20,10 +20,6 @@ import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import {
-	getTeamConnectionsFn,
-	removeConnectionFn,
-} from "@/server/handlers/connections";
 import type { UserToCollectionType } from "@/types/connections";
 import type { User } from "@/types/users";
 import CopyButton from "@/components/CopyButton";
@@ -39,12 +35,13 @@ export const Route = createFileRoute(
 	validateSearch: TableSearchSchema,
 	loader: ({ params, context: { queryClient } }) =>
 		Promise.all([
-			getTeamConnectionsFn({
-				data: {
-					type: "collection",
-					id: params.collectionId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.collection.learners.queryOptions({
+					input: {
+						id: params.collectionId,
+					},
+				}),
+			),
 			queryClient.ensureQueryData(
 				orpc.collection.connection.link.queryOptions({
 					input: {
@@ -83,12 +80,13 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const removeConnection = useMutation({
-		mutationFn: removeConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const removeConnection = useMutation(
+		orpc.connection.delete.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 	const navigate = Route.useNavigate();
 
 	const columns: ColumnDef<UserToCollectionType & { user: User }>[] = [
@@ -186,11 +184,10 @@ function RouteComponent() {
 				name: tActions.delete,
 				onClick: ({ collectionId, user }) =>
 					removeConnection.mutate({
-						data: {
-							type: "collection",
-							id: collectionId,
-							toId: user.id,
-						},
+						senderType: "collection",
+						recipientType: "user",
+						id: collectionId,
+						connectToId: user.id,
 					}),
 			},
 		]),

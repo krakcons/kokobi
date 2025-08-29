@@ -35,11 +35,11 @@ import {
 	SquareLibrary,
 	FileBadge2,
 } from "lucide-react";
-import type { Course, CourseTranslation } from "@/types/course";
+import type { Course } from "@/types/course";
 import { useEffect, useState } from "react";
 import type { Collection, CollectionTranslation } from "@/types/collections";
 import type { Team, TeamTranslation } from "@/types/team";
-import type { TeamToCourseType, UserToTeamType } from "@/types/connections";
+import type { UserToTeamType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { TeamSwitcher } from "./TeamSwitcher";
 import type { User } from "@/types/users";
@@ -47,11 +47,7 @@ import { UserButton } from "./UserButton";
 import type { Role } from "@/types/team";
 import { Separator } from "../ui/separator";
 
-const CourseCollapsible = ({
-	course,
-}: {
-	course: Course & CourseTranslation;
-}) => {
+const CourseCollapsible = ({ course }: { course: Course }) => {
 	const { setOpenMobile } = useSidebar();
 	const [open, setOpen] = useState(false);
 	const locale = useLocale();
@@ -216,15 +212,10 @@ const CourseCollapsible = ({
 	);
 };
 
-const SharedCourseCollapsible = ({
-	connection,
-}: {
-	connection: TeamToCourseType & { course: Course & CourseTranslation };
-}) => {
+const SharedCourseCollapsible = ({ course }: { course: Required<Course> }) => {
 	const { setOpenMobile } = useSidebar();
 	const [open, setOpen] = useState(false);
 	const locale = useLocale();
-	const course = connection.course;
 	const t = useTranslations("AdminSidebar");
 
 	// Match sub routes and open the collapsible if the route matches.
@@ -248,7 +239,7 @@ const SharedCourseCollapsible = ({
 		}
 	}, [matchLearners, matchStatistics]);
 
-	if (connection.connectStatus !== "accepted") {
+	if (course.connection.connectStatus !== "accepted") {
 		return (
 			<Link
 				to={"/$locale/admin/courses/$courseId"}
@@ -271,8 +262,8 @@ const SharedCourseCollapsible = ({
 						<Book />
 						<p className="truncate">{course.name}</p>
 						<ConnectionStatusBadge
-							connectStatus={connection.connectStatus}
-							connectType={connection.connectType}
+							connectStatus={course.connection.connectStatus}
+							connectType={course.connection.connectType}
 						/>
 					</SidebarMenuButton>
 				)}
@@ -296,8 +287,8 @@ const SharedCourseCollapsible = ({
 						<Book />
 						<p className="truncate">{course.name}</p>
 						<ConnectionStatusBadge
-							connectStatus={connection.connectStatus}
-							connectType={connection.connectType}
+							connectStatus={course.connection.connectStatus}
+							connectType={course.connection.connectType}
 							hideOnSuccess
 						/>
 						<ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -484,19 +475,14 @@ export const AdminSidebar = ({
 	teams,
 	courses,
 	collections,
-	connections,
 	user,
 	role,
 }: {
 	tenantId?: string;
 	teamId: string;
 	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
-	courses: (Course & CourseTranslation)[];
+	courses: Course[];
 	collections: (Collection & CollectionTranslation)[];
-	connections: (TeamToCourseType & {
-		course: Course & CourseTranslation;
-		team: Team & TeamTranslation;
-	})[];
 	teamConnections: (UserToTeamType & { team: Team & TeamTranslation })[];
 	user: User;
 	role: Role;
@@ -559,18 +545,22 @@ export const AdminSidebar = ({
 					</SidebarGroupAction>
 					<SidebarGroupContent>
 						<SidebarMenu>
-							{courses.map((course) => (
-								<CourseCollapsible
-									course={course}
-									key={course.id}
-								/>
-							))}
-							{connections.map((connection) => (
-								<SharedCourseCollapsible
-									connection={connection}
-									key={connection.courseId}
-								/>
-							))}
+							{courses.map((course) =>
+								course.connection ? (
+									<SharedCourseCollapsible
+										course={{
+											...course,
+											connection: course.connection,
+										}}
+										key={course.id}
+									/>
+								) : (
+									<CourseCollapsible
+										course={course}
+										key={course.id}
+									/>
+								),
+							)}
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>

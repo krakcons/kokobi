@@ -2,7 +2,7 @@ import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/locale";
-import { updateUserConnectionFn } from "@/server/handlers/connections";
+import { orpc } from "@/server/client";
 import { getTeamByIdFn } from "@/server/handlers/teams";
 import { getUserTeamConnectionFn } from "@/server/handlers/users.teams";
 import { useMutation } from "@tanstack/react-query";
@@ -48,14 +48,15 @@ function RouteComponent() {
 	const tError = useTranslations("Errors");
 	const navigate = Route.useNavigate();
 
-	const updateUserTeamConnection = useMutation({
-		mutationFn: updateUserConnectionFn,
-		onSuccess: () => {
-			navigate({
-				to: "/$locale/admin",
-			});
-		},
-	});
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				navigate({
+					to: "/$locale/admin",
+				});
+			},
+		}),
+	);
 
 	return (
 		<FloatingPage>
@@ -69,12 +70,11 @@ function RouteComponent() {
 				connection={connection}
 				onRequest={() => {}}
 				onResponse={(status) => {
-					updateUserTeamConnection.mutate({
-						data: {
-							type: "team",
-							id: team.id,
-							connectStatus: status,
-						},
+					updateConnection.mutate({
+						senderType: "team",
+						recipientType: "user",
+						id: team.id,
+						connectStatus: status,
 					});
 				}}
 			>

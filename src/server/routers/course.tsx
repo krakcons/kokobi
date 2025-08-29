@@ -1,9 +1,5 @@
 import { db } from "@/server/db";
-import {
-	publicProcedure,
-	teamProcedure,
-	learnerProcedure,
-} from "../middleware";
+import { publicProcedure, teamProcedure } from "../middleware";
 import { z } from "zod";
 import { ORPCError } from "@orpc/client";
 import { CourseFormSchema, CourseSchema } from "@/types/course";
@@ -15,6 +11,8 @@ import {
 	courseTranslations,
 	courses,
 	modules,
+	teamsToCourses,
+	users,
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
@@ -40,9 +38,27 @@ export const courseRouter = {
 				},
 			});
 
-			return courseList.map((course) =>
-				handleLocalization(context, course),
-			);
+			const connections = await db.query.teamsToCourses.findMany({
+				where: and(eq(teamsToCourses.teamId, context.teamId)),
+				with: {
+					course: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
+
+			return [
+				...courseList,
+				...connections.map(({ course, ...connect }) => ({
+					...course,
+					connection: {
+						connectStatus: connect.connectStatus,
+						connectType: connect.connectType,
+					},
+				})),
+			].map((course) => handleLocalization(context, course));
 		}),
 	create: teamProcedure()
 		.route({ method: "POST", path: "/courses" })
@@ -179,6 +195,77 @@ export const courseRouter = {
 			}
 
 			return null;
+		}),
+	learners: teamProcedure()
+		.route({ method: "GET", path: "/courses/{id}/learners" })
+		.input(
+			z.object({
+				id: z.string(),
+			}),
+		)
+		.handler(async ({ context, input: { id } }) => {
+			const userList = await db
+				.select({
+					user: users,
+					attempt: usersToModules,
+					module: modules,
+					connection: usersToCourses,
+				})
+				.from(usersToCourses)
+				.where(
+					and(
+						eq(usersToCourses.teamId, context.teamId),
+						id ? eq(usersToCourses.courseId, id) : undefined,
+					),
+				)
+				.innerJoin(users, eq(users.id, usersToCourses.userId))
+				.leftJoin(
+					usersToModules,
+					and(
+						eq(usersToModules.teamId, context.teamId),
+						eq(usersToModules.userId, users.id),
+						id ? eq(usersToModules.courseId, id) : undefined,
+					),
+				)
+				.leftJoin(modules, eq(modules.id, usersToModules.moduleId));
+
+			return userList.map((user) => ({
+				...user,
+				attempt: user.module
+					? ExtendLearner(user.module.type).parse(user.attempt)
+					: undefined,
+			}));
+		}),
+	sharedTeams: teamProcedure()
+		.route({ method: "GET", path: "/courses/{id}/shared-teams" })
+		.input(
+			z.object({
+				id: z.string(),
+			}),
+		)
+		.output(TeamSchema.array())
+		.handler(async ({ context, input: { id } }) => {
+			const connections = await db.query.teamsToCourses.findMany({
+				where: and(
+					eq(teamsToCourses.fromTeamId, context.teamId),
+					id ? eq(teamsToCourses.courseId, id) : undefined,
+				),
+				with: {
+					team: {
+						with: {
+							translations: true,
+						},
+					},
+				},
+			});
+
+			return connections.map((connect) => ({
+				...handleLocalization(context, connect.team),
+				connection: {
+					connectStatus: connect.connectStatus,
+					connectType: connect.connectType,
+				},
+			}));
 		}),
 	statistics: teamProcedure()
 		.route({ method: "GET", path: "/courses/{id}/statistics" })

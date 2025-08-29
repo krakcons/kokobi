@@ -23,10 +23,6 @@ import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import type { User } from "@/types/users";
 import type { UserToCourseType } from "@/types/connections";
-import {
-	getTeamConnectionsFn,
-	removeConnectionFn,
-} from "@/server/handlers/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import type { Module } from "@/types/module";
 import type { Learner } from "@/types/learner";
@@ -43,12 +39,13 @@ export const Route = createFileRoute(
 	validateSearch: TableSearchSchema,
 	loader: async ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			getTeamConnectionsFn({
-				data: {
-					type: "course",
-					id: params.courseId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.course.learners.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 			queryClient.ensureQueryData(
 				orpc.course.connection.link.queryOptions({
 					input: {
@@ -104,12 +101,13 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const removeConnection = useMutation({
-		mutationFn: removeConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const removeConnection = useMutation(
+		orpc.connection.delete.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 	const resendCompletionEmail = useMutation({
 		mutationFn: resendCompletionEmailFn,
 		onSuccess: () => {
@@ -325,11 +323,10 @@ function RouteComponent() {
 				name: tActions.delete,
 				onClick: ({ user }) =>
 					removeConnection.mutate({
-						data: {
-							id: params.courseId,
-							type: "course",
-							toId: user.id,
-						},
+						senderType: "course",
+						recipientType: "user",
+						id: params.courseId,
+						connectToId: user.id,
 					}),
 			},
 		]),

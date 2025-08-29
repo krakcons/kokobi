@@ -17,8 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
-import type { Course, CourseTranslation } from "@/types/course";
+import type { Course } from "@/types/course";
 import {
 	useMutation,
 	useQueryClient,
@@ -42,11 +41,6 @@ export const Route = createFileRoute(
 				}),
 			),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
-			getTeamCourseConnectionsFn({
-				data: {
-					type: "to",
-				},
-			}),
 		]),
 });
 
@@ -59,7 +53,6 @@ function RouteComponent() {
 		}),
 	);
 	const { data: courses } = useSuspenseQuery(orpc.course.get.queryOptions());
-	const [_a, _b, sharedCourses] = Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const t = useTranslations("CollectionCourses");
@@ -91,7 +84,7 @@ function RouteComponent() {
 		}),
 	);
 
-	const columns: ColumnDef<Course & CourseTranslation>[] = [
+	const columns: ColumnDef<Course>[] = [
 		{
 			accessorKey: "name",
 			header: ({ column }) => (
@@ -112,7 +105,7 @@ function RouteComponent() {
 				</div>
 			),
 		},
-		createDataTableActionsColumn<Course & CourseTranslation>([
+		createDataTableActionsColumn<Course>([
 			{
 				name: tActions.delete,
 				onClick: ({ id }) =>
@@ -125,13 +118,10 @@ function RouteComponent() {
 	];
 
 	const courseFormCourses = useMemo(() => {
-		return [
-			...courses,
-			...sharedCourses.map(({ course }) => course),
-		].filter((c) =>
+		return courses.filter((c) =>
 			collectionCourses.find((cc) => cc.id === c.id) ? false : true,
 		);
-	}, [courses, collectionCourses, sharedCourses]);
+	}, [courses, collectionCourses]);
 
 	return (
 		<Page>

@@ -3,6 +3,7 @@ import { protectedProcedure } from "../middleware";
 import { db } from "../db";
 import {
 	collections,
+	collectionsToCourses,
 	courses,
 	teams,
 	teamsToCourses,
@@ -11,7 +12,7 @@ import {
 } from "../db/schema";
 import { ORPCError } from "@orpc/client";
 import { env } from "../env";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { hasTeamAccess } from "../lib/access";
 import { getConnectionLink, getUserList } from "../lib/connection";
 import type { ConnectionType } from "@/types/connections";
@@ -37,7 +38,7 @@ export const connectionRouter = {
 		.input(SelectConnectionSchema)
 		.handler(
 			async ({
-				context: { user, learnerTeamId },
+				context: { user, learnerTeamId, teamId },
 				input: { senderType, recipientType, id },
 			}) => {
 				if (senderType === "user") {
@@ -104,6 +105,25 @@ export const connectionRouter = {
 										usersToCollections.teamId,
 										learnerTeamId,
 									),
+								),
+							});
+
+						return connection ?? null;
+					}
+				}
+
+				if (senderType === "team") {
+					if (!teamId) {
+						throw new ORPCError("UNAUTHORIZED");
+					}
+
+					// TEAM COURSE INVITE
+					if (recipientType === "course") {
+						const connection =
+							await db.query.teamsToCourses.findFirst({
+								where: and(
+									eq(teamsToCourses.teamId, teamId),
+									eq(teamsToCourses.courseId, id),
 								),
 							});
 
@@ -539,6 +559,22 @@ export const connectionRouter = {
 								),
 							);
 					}
+
+					// TEAM INVITE
+					if (senderType === "team") {
+						await db
+							.update(usersToTeams)
+							.set({
+								connectStatus,
+							})
+							.where(
+								and(
+									eq(usersToTeams.userId, user.id),
+									eq(usersToTeams.teamId, id),
+									eq(usersToTeams.connectType, "invite"),
+								),
+							);
+					}
 				}
 
 				// TEAM INVITE RESPONSE
@@ -624,6 +660,91 @@ export const connectionRouter = {
 							);
 					}
 				}
+			},
+		),
+	delete: protectedProcedure
+		.route({ method: "DELETE", path: "/connections" })
+		.input(
+			SelectConnectionSchema.extend({
+				connectToId: z.string().optional(),
+			}),
+		)
+		.output(z.null())
+		.handler(
+			async ({
+				context: { teamId },
+				input: { senderType, recipientType, id, connectToId },
+			}) => {
+				// USER INVITE
+				if (recipientType === "user") {
+					if (!teamId || !connectToId) {
+						throw new ORPCError("UNAUTHORIZED");
+					}
+
+					// USER COURSE INVITE
+					if (senderType === "course") {
+						await db
+							.delete(usersToCourses)
+							.where(
+								and(
+									eq(usersToCourses.courseId, id),
+									eq(usersToCourses.teamId, teamId),
+									eq(usersToCourses.userId, connectToId),
+								),
+							);
+						return null;
+					}
+
+					// USER COLLECTION INVITE
+					if (senderType === "collection") {
+						await db
+							.delete(usersToCollections)
+							.where(
+								and(
+									eq(usersToCollections.collectionId, id),
+									eq(usersToCollections.teamId, teamId),
+									eq(usersToCollections.userId, connectToId),
+								),
+							);
+						return null;
+					}
+				}
+
+				if (senderType === "team") {
+					if (!teamId || !connectToId) {
+						throw new ORPCError("UNAUTHORIZED");
+					}
+
+					// TEAM COURSE INVITE
+					if (recipientType === "course") {
+						await db
+							.delete(teamsToCourses)
+							.where(
+								and(
+									eq(teamsToCourses.fromTeamId, teamId),
+									eq(teamsToCourses.courseId, id),
+									eq(teamsToCourses.teamId, connectToId),
+								),
+							);
+						// Remove from collections
+						const collectionList =
+							await db.query.collections.findMany({
+								where: eq(collections.teamId, connectToId),
+							});
+						await db.delete(collectionsToCourses).where(
+							and(
+								eq(collectionsToCourses.courseId, id),
+								inArray(
+									collectionsToCourses.collectionId,
+									collectionList.map((c) => c.id),
+								),
+							),
+						);
+						return null;
+					}
+				}
+
+				throw new ORPCError("NOT_FOUND");
 			},
 		),
 };

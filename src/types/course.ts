@@ -1,6 +1,7 @@
 import { courseTranslations, courses } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { ConnectionSchema } from "./connections";
 
 export const BaseCourseSchema = createSelectSchema(courses);
 
@@ -9,7 +10,9 @@ export type CourseTranslation = z.infer<typeof CourseTranslationSchema>;
 
 export const CourseSchema = BaseCourseSchema.extend(
 	CourseTranslationSchema.shape,
-);
+).extend({
+	connection: ConnectionSchema.optional(),
+});
 export type Course = z.infer<typeof CourseSchema>;
 
 export const completionStatuses = ["passed", "completed", "either"] as const;

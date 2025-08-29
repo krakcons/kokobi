@@ -7,12 +7,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
-import {
-	getTeamCourseConnectionsFn,
-	removeConnectionFn,
-} from "@/server/handlers/connections";
-import type { Team, TeamTranslation } from "@/types/team";
-import type { TeamToCourseType } from "@/types/connections";
+import type { Team } from "@/types/team";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,14 +32,15 @@ export const Route = createFileRoute(
 )({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: async ({ params }) =>
+	loader: async ({ params, context: { queryClient } }) =>
 		Promise.all([
-			getTeamCourseConnectionsFn({
-				data: {
-					id: params.courseId,
-					type: "from",
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.course.sharedTeams.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 		]),
 });
 
@@ -74,16 +70,15 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const removeConnection = useMutation({
-		mutationFn: removeConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const removeConnection = useMutation(
+		orpc.connection.delete.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 
-	const columns: ColumnDef<
-		TeamToCourseType & { team: Team & TeamTranslation }
-	>[] = [
+	const columns: ColumnDef<Team>[] = [
 		{
 			accessorKey: "team.name",
 			header: ({ column }) => (
@@ -96,8 +91,11 @@ function RouteComponent() {
 				<DataTableColumnHeader title={t.table.status} column={column} />
 			),
 			cell: ({ row: { original } }) => {
-				const connectStatus = original.connectStatus;
-				const connectType = original.connectType;
+				const connectStatus = original.connection?.connectStatus;
+				const connectType = original.connection?.connectType;
+				if (!connectStatus || !connectType) {
+					return null;
+				}
 				return (
 					<div className="flex items-center gap-2">
 						<ConnectionStatusBadge
@@ -108,9 +106,7 @@ function RouteComponent() {
 				);
 			},
 		},
-		createDataTableActionsColumn<
-			TeamToCourseType & { team: Team & TeamTranslation }
-		>([
+		createDataTableActionsColumn<Team>([
 			{
 				name: tConnect.accept,
 				onClick: ({ teamId }) =>
@@ -121,7 +117,8 @@ function RouteComponent() {
 						connectToId: teamId,
 						connectStatus: "accepted",
 					}),
-				visible: ({ connectType }) => connectType === "request",
+				visible: ({ connection }) =>
+					connection?.connectType === "request",
 			},
 			{
 				name: tConnect.reject,
@@ -133,17 +130,17 @@ function RouteComponent() {
 						connectToId: teamId,
 						connectStatus: "rejected",
 					}),
-				visible: ({ connectType }) => connectType === "request",
+				visible: ({ connection }) =>
+					connection?.connectType === "request",
 			},
 			{
 				name: tActions.delete,
 				onClick: ({ teamId }) =>
 					removeConnection.mutate({
-						data: {
-							id: params.courseId,
-							type: "from-team",
-							toId: teamId,
-						},
+						senderType: "course",
+						recipientType: "team",
+						id: params.courseId,
+						connectToId: teamId,
 					}),
 			},
 		]),

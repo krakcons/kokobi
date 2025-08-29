@@ -19,12 +19,12 @@ import {
 } from "@/components/ui/chart";
 import { Pie, PieChart } from "recharts";
 import { useTranslations } from "@/lib/locale";
-import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
 import { useAppForm } from "@/components/ui/form";
 import { z } from "zod";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import { orpc } from "@/server/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/statistics",
@@ -33,23 +33,24 @@ export const Route = createFileRoute(
 		statsTeamId: z.string().optional(),
 	}),
 	component: RouteComponent,
-	loaderDeps: ({ search }) => ({ teamId: search.statsTeamId }),
+	loaderDeps: ({ search }) => ({ statsTeamId: search.statsTeamId }),
 	loader: ({ params, deps, context: { queryClient } }) =>
 		Promise.all([
 			queryClient.ensureQueryData(
 				orpc.course.statistics.queryOptions({
 					input: {
 						id: params.courseId,
-						teamId: deps.teamId,
+						teamId: deps.statsTeamId,
 					},
 				}),
 			),
-			getTeamCourseConnectionsFn({
-				data: {
-					id: params.courseId,
-					type: "from",
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.course.sharedTeams.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 			getUserTeamFn({
 				data: {
 					type: "admin",
@@ -59,8 +60,27 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const [statistics, connections, team] = Route.useLoaderData();
+	const [_0, _1, team] = Route.useLoaderData();
 	const { statsTeamId = "all" } = Route.useSearch();
+	const params = Route.useParams();
+
+	const { data: statistics } = useSuspenseQuery(
+		orpc.course.statistics.queryOptions({
+			input: {
+				id: params.courseId,
+				teamId: statsTeamId,
+			},
+		}),
+	);
+
+	const { data: teams } = useSuspenseQuery(
+		orpc.course.sharedTeams.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+
 	const navigate = Route.useNavigate();
 	const t = useTranslations("Statistics");
 	const tLearner = useTranslations("Learner");
@@ -147,7 +167,7 @@ function RouteComponent() {
 			<PageHeader title={t.title} description={t.description}>
 				<div className="flex items-end gap-2">
 					<ExportCSVButton data={[statExport]} filename="stats" />
-					{connections && connections.length > 0 && (
+					{teams && teams.length > 0 && (
 						<form.AppForm>
 							<form
 								onSubmit={(e) => e.preventDefault()}
@@ -166,9 +186,9 @@ function RouteComponent() {
 													label: team.name,
 													value: team?.id,
 												},
-												...connections?.map((c) => ({
-													label: c.team.name,
-													value: c.team.id,
+												...teams.map((c) => ({
+													label: c.name,
+													value: c.id,
 												})),
 											]}
 										/>

@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { getTeamCourseConnectionsFn } from "@/server/handlers/connections";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 
@@ -17,27 +17,24 @@ export const Route = createFileRoute("/$locale/admin/")({
 		Promise.all([
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
-			getTeamCourseConnectionsFn({
-				data: {
-					type: "to",
-				},
-			}),
 		]),
 });
 
 function RouteComponent() {
-	const [courses, collections, connections] = Route.useLoaderData();
 	const t = useTranslations("AdminDashboard");
 	const tNav = useTranslations("AdminSidebar");
 
-	const allCourses = [...courses, ...connections.map((c) => c.course)];
+	const { data: courses } = useSuspenseQuery(orpc.course.get.queryOptions());
+	const { data: collections } = useSuspenseQuery(
+		orpc.collection.get.queryOptions(),
+	);
 
 	return (
 		<Page>
 			<PageHeader title={t.title} description={t.description} />
 			<h3>{tNav.courses}</h3>
-			{allCourses.length > 0 ? (
-				allCourses.map((c) => (
+			{courses.length > 0 ? (
+				courses.map((c) => (
 					<Link
 						key={c.id}
 						from="/$locale/admin/"

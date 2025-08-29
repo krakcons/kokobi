@@ -1,7 +1,6 @@
 import { TableSearchSchema } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
 import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
-import { getTeamCourseConnectionFn } from "@/server/handlers/connections";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useMutation } from "@tanstack/react-query";
@@ -24,12 +23,15 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 					},
 				}),
 			),
-			getTeamCourseConnectionFn({
-				data: {
-					type: "to",
-					courseId: params.courseId,
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.connection.getOne.queryOptions({
+					input: {
+						senderType: "team",
+						recipientType: "course",
+						id: params.courseId,
+					},
+				}),
+			),
 		]);
 
 		const access = team.id === course.teamId ? "root" : "shared";

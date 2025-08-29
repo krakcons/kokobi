@@ -5,6 +5,7 @@ import {
 	collectionTranslations,
 	collections,
 	collectionsToCourses,
+	usersToCollections,
 } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -150,6 +151,26 @@ export const collectionRouter = {
 				);
 
 			return null;
+		}),
+	learners: teamProcedure()
+		.route({ method: "GET", path: "/collections/{id}/learners" })
+		.input(
+			z.object({
+				id: z.string(),
+			}),
+		)
+		.handler(async ({ context, input: { id } }) => {
+			const connections = await db.query.usersToCollections.findMany({
+				where: and(
+					eq(usersToCollections.teamId, context.teamId),
+					id ? eq(usersToCollections.collectionId, id) : undefined,
+				),
+				with: {
+					user: true,
+				},
+			});
+
+			return connections;
 		}),
 	courses: {
 		get: teamProcedure()

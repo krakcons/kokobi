@@ -2,6 +2,7 @@ import { ImageSchema } from "@/types/file";
 import { teamTranslations, teams } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { ConnectionSchema } from "./connections";
 
 export const validDomainSchema = z
 	.string()
@@ -18,7 +19,11 @@ export type BaseTeam = z.infer<typeof BaseTeamSchema>;
 export const TeamTranslationSchema = createSelectSchema(teamTranslations);
 export type TeamTranslation = z.infer<typeof TeamTranslationSchema>;
 
-export const TeamSchema = BaseTeamSchema.extend(TeamTranslationSchema.shape);
+export const TeamSchema = BaseTeamSchema.extend(
+	TeamTranslationSchema.shape,
+).extend({
+	connection: ConnectionSchema.optional(),
+});
 export type Team = z.infer<typeof TeamSchema>;
 
 export const TeamFormSchema = z.object({

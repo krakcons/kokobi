@@ -23,7 +23,7 @@ import { updateUserTeamFn } from "@/server/handlers/users.teams";
 import { teamImageUrl } from "@/lib/file";
 import type { UserToTeamType } from "@/types/connections";
 import { ConnectionActions } from "../ConnectionActions";
-import { updateUserConnectionFn } from "@/server/handlers/connections";
+import { orpc } from "@/server/client";
 
 export const TeamSwitcher = ({
 	tenantId,
@@ -54,12 +54,13 @@ export const TeamSwitcher = ({
 			});
 		},
 	});
-	const updateUserConnection = useMutation({
-		mutationFn: updateUserConnectionFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const updateConnection = useMutation(
+		orpc.connection.update.mutationOptions({
+			onSuccess: () => {
+				router.invalidate();
+			},
+		}),
+	);
 
 	if (tenantId) {
 		return (
@@ -168,12 +169,11 @@ export const TeamSwitcher = ({
 											className="ml-2"
 											connection={connection}
 											onSubmit={(status) => {
-												updateUserConnection.mutate({
-													data: {
-														type: "team",
-														id: team.id,
-														connectStatus: status,
-													},
+												updateConnection.mutate({
+													senderType: "team",
+													recipientType: "user",
+													id: team.id,
+													connectStatus: status,
 												});
 											}}
 											hideOnSuccess

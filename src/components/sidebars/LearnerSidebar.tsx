@@ -13,7 +13,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Book, LayoutDashboard, SquareLibrary } from "lucide-react";
-import type { Course, CourseTranslation } from "@/types/course";
+import type { Course } from "@/types/course";
 import type { Collection, CollectionTranslation } from "@/types/collections";
 import type { Team, TeamTranslation } from "@/types/team";
 import type {
@@ -39,12 +39,12 @@ export const LearnerSidebar = ({
 	tenantId?: string;
 	teamId: string;
 	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
-	courses: (UserToCourseType & { course: Course & CourseTranslation })[];
-	availableCourses: (Course & CourseTranslation)[];
+	courses: (UserToCourseType & { course: Course })[];
+	availableCourses: Course[];
 	collections: (UserToCollectionType & {
 		collection: Collection &
 			CollectionTranslation & {
-				courses: (Course & CourseTranslation)[];
+				courses: Course[];
 			};
 	})[];
 	user: User;
