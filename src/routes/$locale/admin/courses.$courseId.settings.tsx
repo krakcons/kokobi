@@ -31,9 +31,11 @@ export const Route = createFileRoute(
 				input: {
 					id: params.courseId,
 				},
-				headers: {
-					...(deps.locale && { locale: deps.locale }),
-					fallbackLocale: "none",
+				context: {
+					headers: {
+						locale: deps.locale,
+						fallbackLocale: "none",
+					},
 				},
 			}),
 		),
@@ -51,7 +53,9 @@ function RouteComponent() {
 	const updateCourse = useMutation(
 		orpc.course.update.mutationOptions({
 			context: {
-				...(search.locale && { locale: search.locale }),
+				headers: {
+					locale: search.locale,
+				},
 			},
 			onSuccess: () => {
 				toast.success("Course updated");

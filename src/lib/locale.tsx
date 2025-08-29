@@ -25,8 +25,8 @@ export type IntlConfig = {
 };
 
 export const LocalizedInputSchema = z.object({
-	locale: LocaleSchema.optional().default("en"),
-	fallbackLocale: LocaleSchema.or(z.literal("none")).optional(),
+	locale: LocaleSchema.default("en"),
+	fallbackLocale: LocaleSchema.or(z.literal("none")).nullish(),
 });
 export type LocalizedInputType = z.infer<typeof LocalizedInputSchema>;
 

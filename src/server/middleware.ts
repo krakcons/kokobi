@@ -1,12 +1,31 @@
 import { ORPCError, os } from "@orpc/server";
 import { roles, type Role } from "@/types/team";
 import type { OrpcContext } from "./context";
+import { LocalizedInputSchema } from "@/lib/locale";
+import { getCookie } from "@orpc/server/helpers";
 
 export const base = os.$context<OrpcContext>();
 
-export const publicProcedure = base;
+const localeMiddleware = base.middleware(async ({ context, next }) => {
+	const locale =
+		context.headers.get("locale") ?? getCookie(context.headers, "locale");
+	const fallbackLocale = context.headers.get("fallbackLocale");
 
-export const protectedProcedure = base.use(
+	return next({
+		context: {
+			...context,
+			...LocalizedInputSchema.parse({
+				locale: locale === "undefined" ? undefined : locale,
+				fallbackLocale:
+					fallbackLocale === "undefined" ? undefined : fallbackLocale,
+			}),
+		},
+	});
+});
+
+export const publicProcedure = base.use(localeMiddleware);
+
+export const protectedProcedure = base.use(localeMiddleware).use(
 	base.middleware(async ({ next, context }) => {
 		const { session, user } = context;
 		if (!session || !user) {
@@ -31,7 +50,7 @@ export const teamProcedure = ({ role = "member" }: { role?: Role } = {}) =>
 				!teamId ||
 				(teamRole && roles.indexOf(teamRole) > roles.indexOf(role))
 			) {
-				throw new Error("No admin team or role not permitted");
+				throw new ORPCError("UNAUTHORIZED");
 			}
 
 			return next({
@@ -48,7 +67,7 @@ export const learnerProcedure = protectedProcedure.use(
 	base.middleware(async ({ context, next }) => {
 		const { learnerTeamId } = context;
 		if (!learnerTeamId) {
-			throw new Error("No learner team");
+			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		return next({

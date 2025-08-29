@@ -10,14 +10,18 @@ import {
 	collectionsToCourses,
 	courseTranslations,
 	courses,
+	modules,
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
 } from "@/server/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { env } from "../env";
+import { ModuleSchema } from "@/types/module";
+import { shouldIgnoreFile, validateModule } from "@/lib/module";
+import { getNewModuleVersionNumber } from "../lib/modules";
 
 export const courseRouter = {
 	get: teamProcedure()
@@ -135,7 +139,7 @@ export const courseRouter = {
 			return input;
 		}),
 	delete: teamProcedure()
-		.route({ method: "POST", path: "/courses/{id}" })
+		.route({ method: "DELETE", path: "/courses/{id}" })
 		.input(
 			z.object({
 				id: z.string().min(1),
@@ -332,4 +336,174 @@ export const courseRouter = {
 				handleLocalization(context, course),
 			);
 		}),
+	modules: {
+		get: teamProcedure()
+			.route({ method: "GET", path: "/courses/{id}/modules" })
+			.input(
+				z.object({
+					id: z.string(),
+				}),
+			)
+			.output(ModuleSchema.array())
+			.handler(async ({ input: { id } }) => {
+				const moduleList = await db.query.modules.findMany({
+					where: and(eq(modules.courseId, id)),
+					orderBy: desc(modules.versionNumber),
+				});
+
+				return moduleList;
+			}),
+		presign: teamProcedure()
+			.route({ method: "POST", path: "/courses/{id}/modules/presign" })
+			.input(
+				z.object({
+					id: z.string(),
+				}),
+			)
+			.output(z.string())
+			.handler(async ({ context, input: { id } }) => {
+				await hasTeamAccess({
+					id: id,
+					type: "course",
+					teamId: context.teamId,
+					access: "root",
+				});
+
+				const versionNumber = await getNewModuleVersionNumber(
+					context.locale,
+					id,
+				);
+
+				const url = s3.presign(
+					`${context.teamId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+					{
+						expiresIn: 3600,
+						method: "PUT",
+						type: "application/zip",
+					},
+				);
+
+				return url;
+			}),
+		create: teamProcedure()
+			.route({ method: "POST", path: "/courses/{id}/modules" })
+			.input(
+				z.object({
+					id: z.string(),
+				}),
+			)
+			.output(z.object({ id: z.string() }))
+			.handler(async ({ context, input: { id } }) => {
+				await hasTeamAccess({
+					id,
+					type: "course",
+					teamId: context.teamId,
+					access: "root",
+				});
+
+				const versionNumber = await getNewModuleVersionNumber(
+					context.locale,
+					id,
+				);
+
+				const moduleFile = s3.file(
+					`${context.teamId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+				);
+
+				const exists = await moduleFile.exists();
+				if (!exists) {
+					throw new ORPCError("NOT_FOUND", {
+						message: "Module file not found",
+					});
+				}
+
+				try {
+					const { entries, type } = await validateModule(
+						await moduleFile.arrayBuffer(),
+					);
+					const insertId = Bun.randomUUIDv7();
+
+					await db.insert(modules).values({
+						id: insertId,
+						courseId: id,
+						type,
+						locale: context.locale,
+						versionNumber,
+					});
+
+					Promise.all(
+						Object.entries(entries).map(async ([key, file]) => {
+							if (shouldIgnoreFile(key)) {
+								return;
+							}
+							const blob = await file.blob();
+							s3.write(
+								`${context.teamId}/courses/${id}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
+								blob,
+							);
+						}),
+					);
+
+					return { id: insertId };
+				} catch (error) {
+					await moduleFile.delete();
+					throw error;
+				} finally {
+					await moduleFile.delete();
+				}
+			}),
+		delete: teamProcedure()
+			.route({
+				method: "DELETE",
+				path: "/courses/{id}/modules/{moduleId}",
+			})
+			.input(
+				z.object({
+					id: z.string(),
+					moduleId: z.string(),
+				}),
+			)
+			.handler(async ({ context, input: { id, moduleId } }) => {
+				const teamId = context.teamId;
+
+				const moduleExists = await db.query.modules.findFirst({
+					where: and(
+						eq(modules.id, moduleId),
+						eq(modules.courseId, id),
+					),
+					with: {
+						course: true,
+					},
+				});
+
+				if (!moduleExists) {
+					throw new ORPCError("NOT_FOUND");
+				}
+
+				// If module is not owned by the team
+				if (moduleExists.course.teamId !== teamId) {
+					throw new ORPCError("UNAUTHORIZED");
+				}
+
+				await db
+					.delete(modules)
+					.where(
+						and(eq(modules.id, moduleId), eq(modules.courseId, id)),
+					);
+
+				const files = await s3.list({
+					prefix: `${teamId}/courses/${id}/${moduleExists.locale}${moduleExists.versionNumber > 1 ? `_${moduleExists.versionNumber}` : ""}/`,
+					maxKeys: 1000,
+				});
+				if (files.contents) {
+					await Promise.all(
+						files.contents.map((file) => {
+							s3.delete(file.key);
+						}),
+					);
+				}
+
+				return null;
+			}),
+	},
 };

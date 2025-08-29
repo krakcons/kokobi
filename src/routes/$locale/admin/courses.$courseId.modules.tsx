@@ -16,15 +16,14 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { locales, useTranslations } from "@/lib/locale";
-import {
-	createModuleFn,
-	createModulePresignedURLFn,
-	deleteModuleFn,
-	getModulesFn,
-} from "@/server/handlers/courses.modules";
+import { orpc } from "@/server/client";
 import type { Module } from "@/types/module";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -35,46 +34,88 @@ export const Route = createFileRoute(
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: ({ params: param, deps }) =>
-		getModulesFn({
-			data: {
-				courseId: param.courseId,
-			},
-			headers: {
-				...(deps.locale && { locale: deps.locale }),
-				fallbackLocale: "none",
-			},
-		}),
+	loader: ({ params: param, deps, context: { queryClient } }) =>
+		queryClient.ensureQueryData(
+			orpc.course.modules.get.queryOptions({
+				input: {
+					id: param.courseId,
+				},
+				context: {
+					headers: {
+						locale: deps.locale,
+						fallbackLocale: "none",
+					},
+				},
+			}),
+		),
 });
 
 function RouteComponent() {
 	const param = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const modules = Route.useLoaderData();
-	const router = useRouter();
 	const t = useTranslations("Modules");
 	const tActions = useTranslations("Actions");
+	const queryClient = useQueryClient();
 	const tForm = useTranslations("ModuleForm");
 
 	const [open, setOpen] = useState(false);
 
-	const createModulePresignedURL = useMutation({
-		mutationFn: createModulePresignedURLFn,
-	});
-	const createModule = useMutation({
-		mutationFn: createModuleFn,
-		onSuccess: () => {
-			setOpen(false);
-			router.invalidate();
-		},
-	});
-	const deleteModule = useMutation({
-		mutationFn: deleteModuleFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const { data: modules } = useSuspenseQuery(
+		orpc.course.modules.get.queryOptions({
+			input: {
+				id: param.courseId,
+			},
+			context: {
+				headers: {
+					locale: search.locale,
+					fallbackLocale: "none",
+				},
+			},
+		}),
+	);
+
+	const createModulePresignedURL = useMutation(
+		orpc.course.modules.presign.mutationOptions({
+			context: {
+				headers: {
+					locale: search.locale,
+				},
+			},
+		}),
+	);
+	const createModule = useMutation(
+		orpc.course.modules.create.mutationOptions({
+			context: {
+				headers: {
+					locale: search.locale,
+				},
+			},
+			onSuccess: () => {
+				setOpen(false);
+				queryClient.invalidateQueries({
+					queryKey: orpc.course.modules.get.queryKey({
+						input: {
+							id: param.courseId,
+						},
+					}),
+				});
+			},
+		}),
+	);
+	const deleteModule = useMutation(
+		orpc.course.modules.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries({
+					queryKey: orpc.course.modules.get.queryKey({
+						input: {
+							id: param.courseId,
+						},
+					}),
+				});
+			},
+		}),
+	);
 
 	const columns: ColumnDef<Module>[] = [
 		{
@@ -105,7 +146,8 @@ function RouteComponent() {
 				name: tActions.delete,
 				onClick: ({ id, courseId }) => {
 					deleteModule.mutate({
-						data: { moduleId: id, courseId },
+						moduleId: id,
+						id: courseId,
 					});
 				},
 			},
@@ -134,24 +176,14 @@ function RouteComponent() {
 							onSubmit={async (values) => {
 								const url =
 									await createModulePresignedURL.mutateAsync({
-										data: { courseId: param.courseId },
-										headers: {
-											...(search.locale && {
-												locale: search.locale,
-											}),
-										},
+										id: param.courseId,
 									});
 								await fetch(url, {
 									method: "PUT",
 									body: values.file,
 								});
 								await createModule.mutateAsync({
-									data: { courseId: param.courseId },
-									headers: {
-										...(search.locale && {
-											locale: search.locale,
-										}),
-									},
+									id: param.courseId,
 								});
 							}}
 						/>
