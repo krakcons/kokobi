@@ -1,5 +1,5 @@
 import { db } from "@/server/db";
-import { publicProcedure, teamProcedure } from "../middleware";
+import { base, publicProcedure, teamProcedure } from "../middleware";
 import { z } from "zod";
 import { ORPCError } from "@orpc/client";
 import { CourseFormSchema, CourseSchema } from "@/types/course";
@@ -25,10 +25,16 @@ import { ModuleSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { getNewModuleVersionNumber } from "../lib/modules";
 import { getConnectionLink } from "../lib/connection";
+import { createConnection } from "./connection";
 
-export const courseRouter = {
+export const courseRouter = base.prefix("/courses").router({
 	get: teamProcedure()
-		.route({ method: "GET", path: "/courses" })
+		.route({
+			tags: ["Course"],
+			method: "GET",
+			path: "/",
+			summary: "Get Courses",
+		})
 		.output(CourseSchema.array())
 		.handler(async ({ context }) => {
 			const courseList = await db.query.courses.findMany({
@@ -61,7 +67,12 @@ export const courseRouter = {
 			].map((course) => handleLocalization(context, course));
 		}),
 	create: teamProcedure()
-		.route({ method: "POST", path: "/courses" })
+		.route({
+			tags: ["Course"],
+			method: "POST",
+			path: "/",
+			summary: "Create Course",
+		})
 		.input(CourseFormSchema)
 		.output(z.object({ courseId: z.string() }))
 		.handler(async ({ context: { teamId, locale }, input }) => {
@@ -83,7 +94,12 @@ export const courseRouter = {
 			return { courseId };
 		}),
 	id: publicProcedure
-		.route({ method: "GET", path: "/courses/{id}" })
+		.route({
+			tags: ["Course"],
+			method: "GET",
+			path: "/{id}",
+			summary: "Get Course",
+		})
 		.input(
 			z.object({
 				id: z.string().min(1),
@@ -118,7 +134,12 @@ export const courseRouter = {
 			};
 		}),
 	update: teamProcedure()
-		.route({ method: "PUT", path: "/courses/{id}" })
+		.route({
+			tags: ["Course"],
+			method: "PUT",
+			path: "/{id}",
+			summary: "Update Course",
+		})
 		.input(
 			CourseFormSchema.extend({
 				id: z.string().min(1),
@@ -162,7 +183,12 @@ export const courseRouter = {
 			return input;
 		}),
 	delete: teamProcedure()
-		.route({ method: "DELETE", path: "/courses/{id}" })
+		.route({
+			tags: ["Course"],
+			method: "DELETE",
+			path: "/{id}",
+			summary: "Delete Course",
+		})
 		.input(
 			z.object({
 				id: z.string().min(1),
@@ -197,7 +223,12 @@ export const courseRouter = {
 			return null;
 		}),
 	learners: teamProcedure()
-		.route({ method: "GET", path: "/courses/{id}/learners" })
+		.route({
+			tags: ["Course"],
+			method: "GET",
+			path: "/{id}/learners",
+			summary: "Get Learners",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -237,7 +268,12 @@ export const courseRouter = {
 			}));
 		}),
 	sharedTeams: teamProcedure()
-		.route({ method: "GET", path: "/courses/{id}/shared-teams" })
+		.route({
+			tags: ["Course"],
+			method: "GET",
+			path: "/{id}/shared-teams",
+			summary: "Get Shared Teams",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -268,7 +304,12 @@ export const courseRouter = {
 			}));
 		}),
 	statistics: teamProcedure()
-		.route({ method: "GET", path: "/courses/{id}/statistics" })
+		.route({
+			tags: ["Course"],
+			method: "GET",
+			path: "/{id}/statistics",
+			summary: "Get Statistics",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -413,44 +454,14 @@ export const courseRouter = {
 				},
 			};
 		}),
-	available: teamProcedure()
-		.route({ method: "GET", path: "/courses/available" })
-		.output(CourseSchema.array())
-		.handler(async ({ context }) => {
-			if (context.learnerTeamId !== env.WELCOME_TEAM_ID) return [];
-			// TODO: Allow learner team members to access available courses (or something else)
-			const courseList = await db.query.courses.findMany({
-				where: eq(courses.teamId, context.learnerTeamId),
-				with: {
-					translations: true,
-				},
-			});
-
-			return courseList.map((course) =>
-				handleLocalization(context, course),
-			);
-		}),
-	connection: {
-		link: teamProcedure()
-			.route({ method: "GET", path: "/courses/{id}/link" })
-			.input(
-				z.object({
-					id: z.string(),
-				}),
-			)
-			.output(z.string())
-			.handler(async ({ context, input: { id } }) => {
-				return await getConnectionLink({
-					type: "course",
-					id,
-					teamId: context.teamId,
-					locale: context.locale,
-				});
-			}),
-	},
 	modules: {
 		get: teamProcedure()
-			.route({ method: "GET", path: "/courses/{id}/modules" })
+			.route({
+				tags: ["Course Modules"],
+				method: "GET",
+				path: "/{id}/modules",
+				summary: "Get Modules",
+			})
 			.input(
 				z.object({
 					id: z.string(),
@@ -466,7 +477,12 @@ export const courseRouter = {
 				return moduleList;
 			}),
 		presign: teamProcedure()
-			.route({ method: "POST", path: "/courses/{id}/modules/presign" })
+			.route({
+				tags: ["Course Modules"],
+				method: "POST",
+				path: "/{id}/modules/presign",
+				summary: "Presign Module Upload",
+			})
 			.input(
 				z.object({
 					id: z.string(),
@@ -498,7 +514,12 @@ export const courseRouter = {
 				return url;
 			}),
 		create: teamProcedure()
-			.route({ method: "POST", path: "/courses/{id}/modules" })
+			.route({
+				tags: ["Course Modules"],
+				method: "POST",
+				path: "/{id}/modules",
+				summary: "Create Module",
+			})
 			.input(
 				z.object({
 					id: z.string(),
@@ -566,8 +587,10 @@ export const courseRouter = {
 			}),
 		delete: teamProcedure()
 			.route({
+				tags: ["Course Modules"],
 				method: "DELETE",
-				path: "/courses/{id}/modules/{moduleId}",
+				path: "/{id}/modules/{moduleId}",
+				summary: "Delete Module",
 			})
 			.input(
 				z.object({
@@ -618,4 +641,48 @@ export const courseRouter = {
 				return null;
 			}),
 	},
-};
+	link: teamProcedure()
+		.route({
+			tags: ["Course"],
+			method: "GET",
+			path: "/link",
+			summary: "Get Share Link",
+		})
+		.input(
+			z.object({
+				id: z.string(),
+			}),
+		)
+		.output(z.string())
+		.handler(async ({ context, input: { id } }) => {
+			return await getConnectionLink({
+				type: "course",
+				id,
+				teamId: context.teamId,
+				locale: context.locale,
+			});
+		}),
+	invite: teamProcedure()
+		.route({
+			tags: ["Course"],
+			method: "POST",
+			path: "/invite",
+			summary: "Invite Learners",
+		})
+		.input(
+			z.object({
+				id: z.string(),
+				emails: z.email().toLowerCase().array().optional(),
+			}),
+		)
+		.output(z.null())
+		.handler(async ({ context, input: { id, emails } }) => {
+			return await createConnection({
+				...context,
+				senderType: "course",
+				recipientType: "user",
+				id,
+				emails,
+			});
+		}),
+});

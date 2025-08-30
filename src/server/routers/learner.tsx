@@ -1,13 +1,24 @@
-import { learnerProcedure } from "../middleware";
+import { base, learnerProcedure } from "../middleware";
 import { db } from "@/server/db";
-import { usersToCollections, usersToCourses } from "@/server/db/schema";
+import {
+	courses,
+	usersToCollections,
+	usersToCourses,
+} from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale";
+import { CourseSchema } from "@/types/course";
+import { env } from "../env";
 
-export const learnerRouter = {
+export const learnerRouter = base.prefix("/learner").router({
 	course: {
 		get: learnerProcedure
-			.route({ method: "GET", path: "/learner/courses" })
+			.route({
+				tags: ["Learner"],
+				method: "GET",
+				path: "/courses",
+				summary: "Get Courses",
+			})
 			.handler(async ({ context }) => {
 				const connections = await db.query.usersToCourses.findMany({
 					where: and(
@@ -35,10 +46,37 @@ export const learnerRouter = {
 					team: handleLocalization(context, connection.team),
 				}));
 			}),
+		available: learnerProcedure
+			.route({
+				tags: ["Learner"],
+				method: "GET",
+				path: "/courses/available",
+				summary: "Get Available Courses",
+			})
+			.output(CourseSchema.array())
+			.handler(async ({ context }) => {
+				if (context.learnerTeamId !== env.WELCOME_TEAM_ID) return [];
+				// TODO: Allow learner team members to access available courses (or something else)
+				const courseList = await db.query.courses.findMany({
+					where: eq(courses.teamId, context.learnerTeamId),
+					with: {
+						translations: true,
+					},
+				});
+
+				return courseList.map((course) =>
+					handleLocalization(context, course),
+				);
+			}),
 	},
 	collection: {
 		get: learnerProcedure
-			.route({ method: "GET", path: "/learner/collections" })
+			.route({
+				tags: ["Learner"],
+				method: "GET",
+				path: "/collections",
+				summary: "Get Collections",
+			})
 			.handler(async ({ context }) => {
 				const connections = await db.query.usersToCollections.findMany({
 					where: and(
@@ -81,4 +119,4 @@ export const learnerRouter = {
 				}));
 			}),
 	},
-};
+});

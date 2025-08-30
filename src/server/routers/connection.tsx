@@ -1,5 +1,5 @@
 import z from "zod";
-import { protectedProcedure } from "../middleware";
+import { base, protectedProcedure } from "../middleware";
 import { db } from "../db";
 import {
 	collections,
@@ -9,6 +9,7 @@ import {
 	teamsToCourses,
 	usersToCollections,
 	usersToCourses,
+	usersToTeams,
 } from "../db/schema";
 import { ORPCError } from "@orpc/client";
 import { env } from "../env";
@@ -20,6 +21,7 @@ import { createTranslator, handleLocalization, locales } from "@/lib/locale";
 import Invite from "@/components/emails/Invite";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { teamImageUrl } from "@/lib/file";
+import type { OrpcContext } from "../context";
 
 const SelectConnectionSchema = z.object({
 	senderType: z.enum(["user", "team", "collection", "course"]),
@@ -31,10 +33,352 @@ const CreateConnectionSchema = SelectConnectionSchema.extend({
 	emails: z.email().toLowerCase().array().optional(),
 	teamIds: z.string().array().optional(),
 });
+type CreateConnection = z.infer<typeof CreateConnectionSchema>;
 
-export const connectionRouter = {
+export const createConnection = async ({
+	senderType,
+	recipientType,
+	id,
+	emails,
+	teamIds,
+	learnerTeamId,
+	teamId,
+	user,
+}: CreateConnection & OrpcContext) => {
+	// GLOBAL CHECKS
+	if (recipientType === "user" && !emails) {
+		throw new ORPCError("BAD_REQUEST", {
+			message: "Emails are required",
+		});
+	}
+	if (recipientType === "team" && !teamIds) {
+		throw new ORPCError("BAD_REQUEST", {
+			message: "Team IDs are required",
+		});
+	}
+
+	if (senderType === "user") {
+		if (!learnerTeamId) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		// USER COURSE REQUEST
+		if (recipientType === "course") {
+			await db
+				.insert(usersToCourses)
+				.values({
+					userId: user.id,
+					teamId: learnerTeamId,
+					connectType: "request",
+					connectStatus:
+						learnerTeamId !== env.WELCOME_TEAM_ID
+							? "pending"
+							: "accepted",
+					courseId: id,
+				})
+				.onConflictDoNothing();
+		}
+
+		// USER COLLECTION REQUEST
+		if (recipientType === "collection") {
+			await db
+				.insert(usersToCollections)
+				.values({
+					userId: user.id,
+					teamId: learnerTeamId,
+					connectType: "request",
+					connectStatus:
+						learnerTeamId !== env.WELCOME_TEAM_ID
+							? "pending"
+							: "accepted",
+					collectionId: id,
+				})
+				.onConflictDoNothing();
+		}
+	}
+
+	if (senderType === "team") {
+		if (!teamId) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		// TEAM COURSE REQUEST
+		if (recipientType === "course") {
+			const course = await db.query.courses.findFirst({
+				where: eq(courses.id, id),
+			});
+			if (!course) {
+				throw new ORPCError("NOT_FOUND");
+			}
+			await db.insert(teamsToCourses).values({
+				fromTeamId: course.teamId,
+				teamId,
+				courseId: id,
+				connectType: "request" as const,
+				connectStatus: "pending" as const,
+			});
+		}
+	}
+
+	// INVITE
+	if (senderType === "course") {
+		if (!teamId) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		// INVITE TO COURSE
+		if (recipientType === "user") {
+			await hasTeamAccess({
+				teamId,
+				type: "course",
+				id,
+			});
+
+			const team = (await db.query.teams.findFirst({
+				where: eq(teams.id, teamId),
+				with: {
+					translations: true,
+					domains: true,
+				},
+			}))!;
+
+			const userList = await getUserList({ emails: emails! });
+
+			const course = await db.query.courses.findFirst({
+				where: eq(courses.id, id),
+				with: {
+					translations: true,
+				},
+			});
+
+			if (!course) {
+				throw new ORPCError("NOT_FOUND");
+			}
+
+			await db
+				.insert(usersToCourses)
+				.values(
+					userList.map((u) => ({
+						userId: u.id,
+						teamId,
+						courseId: id,
+						connectType: "invite" as ConnectionType["connectType"],
+						connectStatus:
+							"pending" as ConnectionType["connectStatus"],
+					})),
+				)
+				.onConflictDoUpdate({
+					target: [
+						usersToCourses.userId,
+						usersToCourses.courseId,
+						usersToCourses.teamId,
+					],
+					set: {
+						connectStatus: "accepted",
+						updatedAt: new Date(),
+					},
+					setWhere: and(
+						eq(usersToCourses.connectType, "request"),
+						eq(usersToCourses.connectStatus, "pending"),
+					),
+				});
+
+			const emailVerified = await verifyEmail(team.domains);
+
+			await Promise.all(
+				userList.map(async (user) => {
+					const content = await Promise.all(
+						locales.map(async (locale) => {
+							const localizedCourse = handleLocalization(
+								{ locale: locale.value },
+								course,
+							);
+							const localizedTeam = handleLocalization(
+								{ locale: locale.value },
+								team,
+							);
+							const href = await getConnectionLink({
+								teamId,
+								type: "course",
+								id: course.id,
+								locale: locale.value,
+							});
+							const t = await createTranslator({
+								locale: locale.value,
+							});
+							return {
+								name: localizedCourse.name,
+								teamName: localizedTeam.name,
+								logo: teamImageUrl(localizedTeam, "logo"),
+								locale: locale.value,
+								t: t.Email.Invite,
+								href,
+							};
+						}),
+					);
+
+					await sendEmail({
+						to: [user.email],
+						subject: content[0].t.subject,
+						content: <Invite content={content} />,
+						team: emailVerified
+							? handleLocalization({ locale: "en" }, team)
+							: undefined,
+					});
+				}),
+			);
+		}
+
+		// INVITE TO TEAM
+		if (recipientType === "team") {
+			if (teamIds!.includes(teamId)) {
+				throw new Error("You cannot include your own team");
+			}
+
+			await hasTeamAccess({
+				teamId,
+				type: "course",
+				id,
+				access: "root",
+			});
+
+			await db.insert(teamsToCourses).values(
+				teamIds!.map((otherTeamId) => ({
+					fromTeamId: teamId,
+					teamId: otherTeamId,
+					courseId: id,
+					connectType: "invite" as const,
+					connectStatus: "pending" as const,
+				})),
+			);
+
+			return null;
+		}
+	}
+
+	if (senderType === "collection") {
+		if (!teamId) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		// INVITE TO COLLECTION
+		if (recipientType === "user") {
+			await hasTeamAccess({
+				teamId,
+				type: "collection",
+				id,
+			});
+
+			const team = (await db.query.teams.findFirst({
+				where: eq(teams.id, teamId),
+				with: {
+					translations: true,
+					domains: true,
+				},
+			}))!;
+
+			const userList = await getUserList({ emails: emails! });
+
+			const collection = await db.query.collections.findFirst({
+				where: and(
+					eq(collections.id, id),
+					eq(collections.teamId, teamId),
+				),
+				with: {
+					translations: true,
+				},
+			});
+
+			if (!collection) {
+				throw new ORPCError("NOT_FOUND");
+			}
+
+			await db
+				.insert(usersToCollections)
+				.values(
+					userList.map((u) => ({
+						userId: u.id,
+						teamId,
+						collectionId: id,
+						connectType: "invite" as ConnectionType["connectType"],
+						connectStatus:
+							"pending" as ConnectionType["connectStatus"],
+					})),
+				)
+				.onConflictDoUpdate({
+					target: [
+						usersToCollections.userId,
+						usersToCollections.collectionId,
+						usersToCollections.teamId,
+					],
+					set: {
+						connectStatus: "accepted",
+						updatedAt: new Date(),
+					},
+					setWhere: and(
+						eq(usersToCollections.connectType, "request"),
+						eq(usersToCollections.connectStatus, "pending"),
+					),
+				});
+
+			const emailVerified = await verifyEmail(team.domains);
+
+			await Promise.all([
+				userList.map(async (user) => {
+					const content = await Promise.all(
+						locales.map(async (locale) => {
+							const localizedCollection = handleLocalization(
+								{ locale: locale.value },
+								collection,
+							);
+							const localizedTeam = handleLocalization(
+								{ locale: locale.value },
+								team,
+							);
+							const href = await getConnectionLink({
+								teamId,
+								type: "collection",
+								id: collection.id,
+								locale: locale.value,
+							});
+							const t = await createTranslator({
+								locale: locale.value,
+							});
+							return {
+								name: localizedCollection.name,
+								teamName: localizedTeam.name,
+								logo: teamImageUrl(localizedTeam, "logo"),
+								locale: locale.value,
+								t: t.Email.Invite,
+								href,
+							};
+						}),
+					);
+
+					await sendEmail({
+						to: [user.email],
+						subject: content[0].t.subject,
+						content: <Invite content={content} />,
+						team: emailVerified
+							? handleLocalization({ locale: "en" }, team)
+							: undefined,
+					});
+				}),
+			]);
+		}
+	}
+
+	return null;
+};
+
+export const connectionRouter = base.prefix("/connections").router({
 	getOne: protectedProcedure
-		.route({ method: "GET", path: "/connections" })
+		.route({
+			tags: ["Connection"],
+			method: "GET",
+			path: "/",
+			summary: "Get Connection",
+		})
 		.input(SelectConnectionSchema)
 		.handler(
 			async ({
@@ -135,368 +479,27 @@ export const connectionRouter = {
 			},
 		),
 	create: protectedProcedure
-		.route({ method: "POST", path: "/connections" })
+		.route({
+			tags: ["Connection"],
+			method: "POST",
+			path: "/",
+			summary: "Create Connection",
+		})
 		.input(CreateConnectionSchema)
 		.output(z.null())
-		.handler(
-			async ({
-				context: { user, learnerTeamId, teamId },
-				input: { senderType, recipientType, id, emails, teamIds },
-			}) => {
-				// GLOBAL CHECKS
-				if (recipientType === "user" && !emails) {
-					throw new ORPCError("BAD_REQUEST", {
-						message: "Emails are required",
-					});
-				}
-				if (recipientType === "team" && !teamIds) {
-					throw new ORPCError("BAD_REQUEST", {
-						message: "Team IDs are required",
-					});
-				}
-
-				if (senderType === "user") {
-					if (!learnerTeamId) {
-						throw new ORPCError("UNAUTHORIZED");
-					}
-
-					// USER COURSE REQUEST
-					if (recipientType === "course") {
-						await db
-							.insert(usersToCourses)
-							.values({
-								userId: user.id,
-								teamId: learnerTeamId,
-								connectType: "request",
-								connectStatus:
-									learnerTeamId !== env.WELCOME_TEAM_ID
-										? "pending"
-										: "accepted",
-								courseId: id,
-							})
-							.onConflictDoNothing();
-					}
-
-					// USER COLLECTION REQUEST
-					if (recipientType === "collection") {
-						await db
-							.insert(usersToCollections)
-							.values({
-								userId: user.id,
-								teamId: learnerTeamId,
-								connectType: "request",
-								connectStatus:
-									learnerTeamId !== env.WELCOME_TEAM_ID
-										? "pending"
-										: "accepted",
-								collectionId: id,
-							})
-							.onConflictDoNothing();
-					}
-				}
-
-				if (senderType === "team") {
-					if (!teamId) {
-						throw new ORPCError("UNAUTHORIZED");
-					}
-
-					// TEAM COURSE REQUEST
-					if (recipientType === "course") {
-						const course = await db.query.courses.findFirst({
-							where: eq(courses.id, id),
-						});
-						if (!course) {
-							throw new ORPCError("NOT_FOUND");
-						}
-						await db.insert(teamsToCourses).values({
-							fromTeamId: course.teamId,
-							teamId,
-							courseId: id,
-							connectType: "request" as const,
-							connectStatus: "pending" as const,
-						});
-					}
-				}
-
-				// INVITE
-				if (senderType === "course") {
-					if (!teamId) {
-						throw new ORPCError("UNAUTHORIZED");
-					}
-
-					// INVITE TO COURSE
-					if (recipientType === "user") {
-						await hasTeamAccess({
-							teamId,
-							type: "course",
-							id,
-						});
-
-						const team = (await db.query.teams.findFirst({
-							where: eq(teams.id, teamId),
-							with: {
-								translations: true,
-								domains: true,
-							},
-						}))!;
-
-						const userList = await getUserList({ emails: emails! });
-
-						const course = await db.query.courses.findFirst({
-							where: eq(courses.id, id),
-							with: {
-								translations: true,
-							},
-						});
-
-						if (!course) {
-							throw new ORPCError("NOT_FOUND");
-						}
-
-						await db
-							.insert(usersToCourses)
-							.values(
-								userList.map((u) => ({
-									userId: u.id,
-									teamId,
-									courseId: id,
-									connectType:
-										"invite" as ConnectionType["connectType"],
-									connectStatus:
-										"pending" as ConnectionType["connectStatus"],
-								})),
-							)
-							.onConflictDoUpdate({
-								target: [
-									usersToCourses.userId,
-									usersToCourses.courseId,
-									usersToCourses.teamId,
-								],
-								set: {
-									connectStatus: "accepted",
-									updatedAt: new Date(),
-								},
-								setWhere: and(
-									eq(usersToCourses.connectType, "request"),
-									eq(usersToCourses.connectStatus, "pending"),
-								),
-							});
-
-						const emailVerified = await verifyEmail(team.domains);
-
-						await Promise.all(
-							userList.map(async (user) => {
-								const content = await Promise.all(
-									locales.map(async (locale) => {
-										const localizedCourse =
-											handleLocalization(
-												{ locale: locale.value },
-												course,
-											);
-										const localizedTeam =
-											handleLocalization(
-												{ locale: locale.value },
-												team,
-											);
-										const href = await getConnectionLink({
-											teamId,
-											type: "course",
-											id: course.id,
-											locale: locale.value,
-										});
-										const t = await createTranslator({
-											locale: locale.value,
-										});
-										return {
-											name: localizedCourse.name,
-											teamName: localizedTeam.name,
-											logo: teamImageUrl(
-												localizedTeam,
-												"logo",
-											),
-											locale: locale.value,
-											t: t.Email.Invite,
-											href,
-										};
-									}),
-								);
-
-								await sendEmail({
-									to: [user.email],
-									subject: content[0].t.subject,
-									content: <Invite content={content} />,
-									team: emailVerified
-										? handleLocalization(
-												{ locale: "en" },
-												team,
-											)
-										: undefined,
-								});
-							}),
-						);
-					}
-
-					// INVITE TO TEAM
-					if (recipientType === "team") {
-						if (teamIds!.includes(teamId)) {
-							throw new Error("You cannot include your own team");
-						}
-
-						await hasTeamAccess({
-							teamId,
-							type: "course",
-							id,
-							access: "root",
-						});
-
-						await db.insert(teamsToCourses).values(
-							teamIds!.map((otherTeamId) => ({
-								fromTeamId: teamId,
-								teamId: otherTeamId,
-								courseId: id,
-								connectType: "invite" as const,
-								connectStatus: "pending" as const,
-							})),
-						);
-
-						return null;
-					}
-				}
-
-				if (senderType === "collection") {
-					if (!teamId) {
-						throw new ORPCError("UNAUTHORIZED");
-					}
-
-					// INVITE TO COLLECTION
-					if (recipientType === "user") {
-						await hasTeamAccess({
-							teamId,
-							type: "collection",
-							id,
-						});
-
-						const team = (await db.query.teams.findFirst({
-							where: eq(teams.id, teamId),
-							with: {
-								translations: true,
-								domains: true,
-							},
-						}))!;
-
-						const userList = await getUserList({ emails: emails! });
-
-						const collection = await db.query.collections.findFirst(
-							{
-								where: and(
-									eq(collections.id, id),
-									eq(collections.teamId, teamId),
-								),
-								with: {
-									translations: true,
-								},
-							},
-						);
-
-						if (!collection) {
-							throw new ORPCError("NOT_FOUND");
-						}
-
-						await db
-							.insert(usersToCollections)
-							.values(
-								userList.map((u) => ({
-									userId: u.id,
-									teamId,
-									collectionId: id,
-									connectType:
-										"invite" as ConnectionType["connectType"],
-									connectStatus:
-										"pending" as ConnectionType["connectStatus"],
-								})),
-							)
-							.onConflictDoUpdate({
-								target: [
-									usersToCollections.userId,
-									usersToCollections.collectionId,
-									usersToCollections.teamId,
-								],
-								set: {
-									connectStatus: "accepted",
-									updatedAt: new Date(),
-								},
-								setWhere: and(
-									eq(
-										usersToCollections.connectType,
-										"request",
-									),
-									eq(
-										usersToCollections.connectStatus,
-										"pending",
-									),
-								),
-							});
-
-						const emailVerified = await verifyEmail(team.domains);
-
-						await Promise.all([
-							userList.map(async (user) => {
-								const content = await Promise.all(
-									locales.map(async (locale) => {
-										const localizedCollection =
-											handleLocalization(
-												{ locale: locale.value },
-												collection,
-											);
-										const localizedTeam =
-											handleLocalization(
-												{ locale: locale.value },
-												team,
-											);
-										const href = await getConnectionLink({
-											teamId,
-											type: "collection",
-											id: collection.id,
-											locale: locale.value,
-										});
-										const t = await createTranslator({
-											locale: locale.value,
-										});
-										return {
-											name: localizedCollection.name,
-											teamName: localizedTeam.name,
-											logo: teamImageUrl(
-												localizedTeam,
-												"logo",
-											),
-											locale: locale.value,
-											t: t.Email.Invite,
-											href,
-										};
-									}),
-								);
-
-								await sendEmail({
-									to: [user.email],
-									subject: content[0].t.subject,
-									content: <Invite content={content} />,
-									team: emailVerified
-										? handleLocalization(
-												{ locale: "en" },
-												team,
-											)
-										: undefined,
-								});
-							}),
-						]);
-					}
-				}
-
-				return null;
-			},
-		),
+		.handler(async ({ context, input }) => {
+			return await createConnection({
+				...input,
+				...context,
+			});
+		}),
 	update: protectedProcedure
-		.route({ method: "PUT", path: "/connections" })
+		.route({
+			tags: ["Connection"],
+			method: "PUT",
+			path: "/",
+			summary: "Update Connection",
+		})
 		.input(
 			SelectConnectionSchema.extend({
 				connectToId: z.string().optional(),
@@ -663,7 +666,12 @@ export const connectionRouter = {
 			},
 		),
 	delete: protectedProcedure
-		.route({ method: "DELETE", path: "/connections" })
+		.route({
+			tags: ["Connection"],
+			method: "DELETE",
+			path: "/",
+			summary: "Delete Connection",
+		})
 		.input(
 			SelectConnectionSchema.extend({
 				connectToId: z.string().optional(),
@@ -747,4 +755,4 @@ export const connectionRouter = {
 				throw new ORPCError("NOT_FOUND");
 			},
 		),
-};
+});

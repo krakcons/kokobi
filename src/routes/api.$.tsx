@@ -12,8 +12,10 @@ const handler = new OpenAPIHandler(router, {
 			schemaConverters: [new ZodToJsonSchemaConverter()],
 			specGenerateOptions: {
 				info: {
-					title: "ORPC Playground",
-					version: "1.0.0",
+					title: "Kokobi API",
+					description:
+						"Documentation for the Kokobi API endpoints. Built with oRPC. The oRPC endpoint can be found at /api/rpc.",
+					version: "0.0.1",
 				},
 			},
 		}),

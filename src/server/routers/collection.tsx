@@ -1,5 +1,5 @@
 import { CollectionSchema } from "@/types/collections";
-import { teamProcedure } from "../middleware";
+import { base, teamProcedure } from "../middleware";
 import { db } from "@/server/db";
 import {
 	collectionTranslations,
@@ -16,10 +16,16 @@ import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { CourseSchema } from "@/types/course";
 import { ORPCError } from "@orpc/client";
 import { getConnectionLink } from "../lib/connection";
+import { createConnection } from "./connection";
 
-export const collectionRouter = {
+export const collectionRouter = base.prefix("/collections").router({
 	get: teamProcedure()
-		.route({ method: "GET", path: "/collections" })
+		.route({
+			tags: ["Collection"],
+			method: "GET",
+			path: "/collections",
+			summary: "Get Collections",
+		})
 		.output(CollectionSchema.array())
 		.handler(async ({ context }) => {
 			const teamId = context.teamId;
@@ -36,7 +42,12 @@ export const collectionRouter = {
 			);
 		}),
 	id: teamProcedure()
-		.route({ method: "GET", path: "/collections/{id}" })
+		.route({
+			tags: ["Collection"],
+			method: "GET",
+			path: "/{id}",
+			summary: "Get Collection",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -67,7 +78,12 @@ export const collectionRouter = {
 		}),
 
 	create: teamProcedure()
-		.route({ method: "POST", path: "/collections" })
+		.route({
+			tags: ["Collection"],
+			method: "POST",
+			path: "/",
+			summary: "Create Collection",
+		})
 		.input(CollectionFormSchema)
 		.output(z.object({ collectionId: z.string() }))
 		.handler(async ({ context: { locale, teamId }, input }) => {
@@ -87,7 +103,12 @@ export const collectionRouter = {
 			return { collectionId };
 		}),
 	update: teamProcedure()
-		.route({ method: "PUT", path: "/collections/{id}" })
+		.route({
+			tags: ["Collection"],
+			method: "PUT",
+			path: "/{id}",
+			summary: "Update Collection",
+		})
 		.input(
 			CollectionFormSchema.extend({
 				id: z.string(),
@@ -135,7 +156,12 @@ export const collectionRouter = {
 			return input;
 		}),
 	delete: teamProcedure()
-		.route({ method: "DELETE", path: "/collections/{id}" })
+		.route({
+			tags: ["Collection"],
+			method: "DELETE",
+			path: "/{id}",
+			summary: "Delete Collection",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -153,7 +179,12 @@ export const collectionRouter = {
 			return null;
 		}),
 	learners: teamProcedure()
-		.route({ method: "GET", path: "/collections/{id}/learners" })
+		.route({
+			tags: ["Collection"],
+			method: "GET",
+			path: "/{id}/learners",
+			summary: "Get Learners",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -174,7 +205,12 @@ export const collectionRouter = {
 		}),
 	courses: {
 		get: teamProcedure()
-			.route({ method: "GET", path: "/collections/{id}/courses" })
+			.route({
+				tags: ["Collection Courses"],
+				method: "GET",
+				path: "/{id}/courses",
+				summary: "Get Courses",
+			})
 			.input(
 				z.object({
 					id: z.string(),
@@ -209,7 +245,12 @@ export const collectionRouter = {
 				return courses;
 			}),
 		create: teamProcedure()
-			.route({ method: "POST", path: "/collections/{id}/courses" })
+			.route({
+				tags: ["Collection Courses"],
+				method: "POST",
+				path: "/{id}/courses",
+				summary: "Create Courses",
+			})
 			.input(
 				CoursesFormSchema.extend({
 					id: z.string(),
@@ -229,7 +270,12 @@ export const collectionRouter = {
 				return null;
 			}),
 		delete: teamProcedure()
-			.route({ method: "POST", path: "/collections/{id}/courses" })
+			.route({
+				tags: ["Collection Courses"],
+				method: "POST",
+				path: "/{id}/courses",
+				summary: "Delete Course",
+			})
 			.input(
 				z.object({
 					id: z.string(),
@@ -262,22 +308,48 @@ export const collectionRouter = {
 				},
 			),
 	},
-	connection: {
-		link: teamProcedure()
-			.route({ method: "GET", path: "/collections/{id}/link" })
-			.input(
-				z.object({
-					id: z.string(),
-				}),
-			)
-			.output(z.string())
-			.handler(async ({ context, input: { id } }) => {
-				return await getConnectionLink({
-					type: "collection",
-					id,
-					teamId: context.teamId,
-					locale: context.locale,
-				});
+	link: teamProcedure()
+		.route({
+			tags: ["Collection"],
+			method: "GET",
+			path: "/link",
+			summary: "Get Share Link",
+		})
+		.input(
+			z.object({
+				id: z.string(),
 			}),
-	},
-};
+		)
+		.output(z.string())
+		.handler(async ({ context, input: { id } }) => {
+			return await getConnectionLink({
+				type: "collection",
+				id,
+				teamId: context.teamId,
+				locale: context.locale,
+			});
+		}),
+	invite: teamProcedure()
+		.route({
+			tags: ["Collection"],
+			method: "POST",
+			path: "/invite",
+			summary: "Invite Learners",
+		})
+		.input(
+			z.object({
+				id: z.string(),
+				emails: z.email().toLowerCase().array().optional(),
+			}),
+		)
+		.output(z.null())
+		.handler(async ({ context, input: { id, emails } }) => {
+			return await createConnection({
+				...context,
+				senderType: "collection",
+				recipientType: "user",
+				id,
+				emails,
+			});
+		}),
+});

@@ -18,7 +18,9 @@ export const Route = createFileRoute("/$locale/learner/")({
 			queryClient.ensureQueryData(
 				orpc.learner.collection.get.queryOptions(),
 			),
-			queryClient.ensureQueryData(orpc.course.available.queryOptions()),
+			queryClient.ensureQueryData(
+				orpc.learner.course.available.queryOptions(),
+			),
 		]),
 });
 

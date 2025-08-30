@@ -106,7 +106,9 @@ export const Route = createFileRoute("/$locale/learner")({
 				orpc.learner.collection.get.queryOptions(),
 			),
 			getTenantFn(),
-			queryClient.ensureQueryData(orpc.course.available.queryOptions()),
+			queryClient.ensureQueryData(
+				orpc.learner.course.available.queryOptions(),
+			),
 		]);
 	},
 });
