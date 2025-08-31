@@ -13,8 +13,12 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 import { EmailsForm } from "@/components/forms/EmailsForm";
@@ -76,8 +80,30 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const [learners, inviteLink, course] = Route.useLoaderData();
-	const router = useRouter();
+	const queryClient = useQueryClient();
+
+	const { data: learners } = useSuspenseQuery(
+		orpc.course.learners.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+	const { data: inviteLink } = useSuspenseQuery(
+		orpc.course.link.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+	const { data: course } = useSuspenseQuery(
+		orpc.course.id.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+
 	const locale = useLocale();
 	const t = useTranslations("Learners");
 	const tUser = useTranslations("User");
@@ -90,29 +116,44 @@ function RouteComponent() {
 	const updateConnection = useMutation(
 		orpc.connection.update.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.course.learners.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.course.learners.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 	const removeConnection = useMutation(
 		orpc.connection.delete.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.course.learners.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 	const resendCompletionEmail = useMutation({
 		mutationFn: resendCompletionEmailFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
 	});
 
 	const columns: ColumnDef<LearnerTableType>[] = [

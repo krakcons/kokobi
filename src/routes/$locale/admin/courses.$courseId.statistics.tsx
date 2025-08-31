@@ -36,6 +36,11 @@ export const Route = createFileRoute(
 	loaderDeps: ({ search }) => ({ statsTeamId: search.statsTeamId }),
 	loader: ({ params, deps, context: { queryClient } }) =>
 		Promise.all([
+			getUserTeamFn({
+				data: {
+					type: "admin",
+				},
+			}),
 			queryClient.ensureQueryData(
 				orpc.course.statistics.queryOptions({
 					input: {
@@ -51,16 +56,11 @@ export const Route = createFileRoute(
 					},
 				}),
 			),
-			getUserTeamFn({
-				data: {
-					type: "admin",
-				},
-			}),
 		]),
 });
 
 function RouteComponent() {
-	const [_0, _1, team] = Route.useLoaderData();
+	const [team] = Route.useLoaderData();
 	const { statsTeamId = "all" } = Route.useSearch();
 	const params = Route.useParams();
 

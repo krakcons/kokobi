@@ -5,7 +5,7 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
 import type { Team } from "@/types/team";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
@@ -20,7 +20,11 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { TeamsForm } from "@/components/forms/TeamsForm";
-import { useMutation } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useTranslations } from "@/lib/locale";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
@@ -45,42 +49,67 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const [connections] = Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const [open, setOpen] = useState(false);
-	const router = useRouter();
 	const params = Route.useParams();
 	const t = useTranslations("Sharing");
 	const tActions = useTranslations("Actions");
 	const tConnect = useTranslations("ConnectionActions");
 	const tForm = useTranslations("TeamsForm");
+	const queryClient = useQueryClient();
+
+	const { data: sharedTeams } = useSuspenseQuery(
+		orpc.course.sharedTeams.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
 
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.course.sharedTeams.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 	const updateConnection = useMutation(
 		orpc.connection.update.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.course.sharedTeams.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 	const removeConnection = useMutation(
 		orpc.connection.delete.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.course.sharedTeams.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 
 	const columns: ColumnDef<Team>[] = [
 		{
-			accessorKey: "team.name",
+			accessorKey: "name",
 			header: ({ column }) => (
 				<DataTableColumnHeader title={t.table.name} column={column} />
 			),
@@ -137,8 +166,8 @@ function RouteComponent() {
 				name: tActions.delete,
 				onClick: ({ teamId }) =>
 					removeConnection.mutate({
-						senderType: "course",
-						recipientType: "team",
+						senderType: "team",
+						recipientType: "course",
 						id: params.courseId,
 						connectToId: teamId,
 					}),
@@ -191,7 +220,7 @@ function RouteComponent() {
 			</div>
 			<DataTable
 				columns={columns}
-				data={connections}
+				data={sharedTeams}
 				search={search}
 				onSearchChange={(search) => {
 					navigate({

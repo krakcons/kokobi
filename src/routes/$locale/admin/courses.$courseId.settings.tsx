@@ -2,8 +2,12 @@ import { CourseForm } from "@/components/forms/CourseForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -45,10 +49,24 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const course = Route.useLoaderData();
-	const router = useRouter();
 	const t = useTranslations("CourseSettings");
 	const tActions = useTranslations("Actions");
+
+	const queryClient = useQueryClient();
+
+	const { data: course } = useSuspenseQuery(
+		orpc.course.id.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+			context: {
+				headers: {
+					locale: search.locale,
+					fallbackLocale: "none",
+				},
+			},
+		}),
+	);
 
 	const updateCourse = useMutation(
 		orpc.course.update.mutationOptions({
@@ -59,7 +77,20 @@ function RouteComponent() {
 			},
 			onSuccess: () => {
 				toast.success("Course updated");
-				router.invalidate();
+				queryClient.invalidateQueries(orpc.course.get.queryOptions());
+				queryClient.invalidateQueries(
+					orpc.course.id.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+						context: {
+							headers: {
+								locale: search.locale,
+								fallbackLocale: "none",
+							},
+						},
+					}),
+				);
 			},
 		}),
 	);
@@ -68,6 +99,7 @@ function RouteComponent() {
 		orpc.course.delete.mutationOptions({
 			onSuccess: () => {
 				navigate({ to: "/$locale/admin" });
+				queryClient.invalidateQueries(orpc.course.get.queryOptions());
 			},
 		}),
 	);

@@ -28,6 +28,7 @@ import {
 import { EditingLocaleSchema } from "@/types/router";
 import { getTenantFn } from "@/server/handlers/teams";
 import { orpc } from "@/server/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -104,9 +105,9 @@ export const Route = createFileRoute("/$locale/admin")({
 		Promise.all([
 			getAuthFn(),
 			getAdminUserTeamsFn(),
+			getTenantFn(),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
-			getTenantFn(),
 		]),
 });
 
@@ -117,7 +118,12 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = useNavigate();
 	const editingLocale = search.locale ?? locale;
-	const [auth, teams, courses, collections, tenantId] = Route.useLoaderData();
+	const [auth, teams, tenantId] = Route.useLoaderData();
+
+	const { data: courses } = useSuspenseQuery(orpc.course.get.queryOptions());
+	const { data: collections } = useSuspenseQuery(
+		orpc.collection.get.queryOptions(),
+	);
 
 	return (
 		<SidebarProvider>

@@ -18,7 +18,7 @@ import { ChevronsUpDown, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Team, TeamTranslation } from "@/types/team";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateUserTeamFn } from "@/server/handlers/users.teams";
 import { teamImageUrl } from "@/lib/file";
 import type { UserToTeamType } from "@/types/connections";
@@ -40,6 +40,7 @@ export const TeamSwitcher = ({
 	const locale = useLocale();
 	const navigate = useNavigate();
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const t = useTranslations("TeamSwitcher");
 
 	const activeTeam = teams.find((t) => t.teamId === teamId)!.team;
@@ -58,6 +59,7 @@ export const TeamSwitcher = ({
 		orpc.connection.update.mutationOptions({
 			onSuccess: () => {
 				router.invalidate();
+				queryClient.invalidateQueries();
 			},
 		}),
 	);

@@ -9,6 +9,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { orpc } from "@/server/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/$locale/learner/")({
 	component: RouteComponent,
@@ -25,7 +26,16 @@ export const Route = createFileRoute("/$locale/learner/")({
 });
 
 function RouteComponent() {
-	const [courses, collections, allAvailableCourses] = Route.useLoaderData();
+	const { data: courses } = useSuspenseQuery(
+		orpc.learner.course.get.queryOptions(),
+	);
+	const { data: collections } = useSuspenseQuery(
+		orpc.learner.collection.get.queryOptions(),
+	);
+	const { data: allAvailableCourses } = useSuspenseQuery(
+		orpc.learner.course.available.queryOptions(),
+	);
+
 	const t = useTranslations("LearnerDashboard");
 	const tNav = useTranslations("LearnerSidebar");
 

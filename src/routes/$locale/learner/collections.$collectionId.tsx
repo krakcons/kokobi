@@ -5,7 +5,11 @@ import { ContentBranding } from "@/components/ContentBranding";
 import { Page, PageHeader } from "@/components/Page";
 import { orpc } from "@/server/client";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
-import { useMutation } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
@@ -14,16 +18,16 @@ export const Route = createFileRoute(
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			queryClient.ensureQueryData(
-				orpc.collection.id.queryOptions({
-					input: { id: params.collectionId },
-				}),
-			),
 			getUserTeamFn({
 				data: {
 					type: "learner",
 				},
 			}),
+			queryClient.ensureQueryData(
+				orpc.collection.id.queryOptions({
+					input: { id: params.collectionId },
+				}),
+			),
 			queryClient.ensureQueryData(
 				orpc.collection.courses.get.queryOptions({
 					input: { id: params.collectionId },
@@ -43,20 +47,64 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const [collection, team, courses, connection] = Route.useLoaderData();
-	const router = useRouter();
+	const [team] = Route.useLoaderData();
+	const params = Route.useParams();
+	const queryClient = useQueryClient();
+
+	const { data: collection } = useSuspenseQuery(
+		orpc.collection.id.queryOptions({
+			input: { id: params.collectionId },
+		}),
+	);
+	const { data: courses } = useSuspenseQuery(
+		orpc.collection.courses.get.queryOptions({
+			input: { id: params.collectionId },
+		}),
+	);
+	const { data: connection } = useSuspenseQuery(
+		orpc.connection.getOne.queryOptions({
+			input: {
+				senderType: "user",
+				recipientType: "collection",
+				id: params.collectionId,
+			},
+		}),
+	);
 
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.learner.collection.get.queryOptions(),
+				);
+				queryClient.invalidateQueries(
+					orpc.connection.getOne.queryOptions({
+						input: {
+							senderType: "user",
+							recipientType: "collection",
+							id: params.collectionId,
+						},
+					}),
+				);
 			},
 		}),
 	);
+
 	const updateConnection = useMutation(
 		orpc.connection.update.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.learner.collection.get.queryOptions(),
+				);
+				queryClient.invalidateQueries(
+					orpc.connection.getOne.queryOptions({
+						input: {
+							senderType: "user",
+							recipientType: "collection",
+							id: params.collectionId,
+						},
+					}),
+				);
 			},
 		}),
 	);
@@ -79,7 +127,7 @@ function RouteComponent() {
 			</PageHeader>
 			<ConnectionWrapper
 				name={collection.name}
-				connection={connection}
+				connection={connection || undefined}
 				onRequest={() =>
 					createConnection.mutate({
 						senderType: "user",

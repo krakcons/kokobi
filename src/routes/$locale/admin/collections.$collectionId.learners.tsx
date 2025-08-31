@@ -1,5 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import {
 	Dialog,
 	DialogContent,
@@ -55,9 +59,7 @@ export const Route = createFileRoute(
 function RouteComponent() {
 	const search = Route.useSearch();
 	const params = Route.useParams();
-	const [learners, inviteLink] = Route.useLoaderData();
 	const [open, setOpen] = useState(false);
-	const router = useRouter();
 	const t = useTranslations("Learners");
 	const tUser = useTranslations("User");
 	const tLearner = useTranslations("Learner");
@@ -65,25 +67,59 @@ function RouteComponent() {
 	const tActions = useTranslations("Actions");
 	const tConnect = useTranslations("ConnectionActions");
 	const locale = useLocale();
+	const queryClient = useQueryClient();
+
+	const { data: learners } = useSuspenseQuery(
+		orpc.collection.learners.queryOptions({
+			input: {
+				id: params.collectionId,
+			},
+		}),
+	);
+	const { data: inviteLink } = useSuspenseQuery(
+		orpc.collection.link.queryOptions({
+			input: {
+				id: params.collectionId,
+			},
+		}),
+	);
 
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.collection.learners.queryOptions({
+						input: {
+							id: params.collectionId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 	const updateConnection = useMutation(
 		orpc.connection.update.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.collection.learners.queryOptions({
+						input: {
+							id: params.collectionId,
+						},
+					}),
+				);
 			},
 		}),
 	);
 	const removeConnection = useMutation(
 		orpc.connection.delete.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.collection.learners.queryOptions({
+						input: {
+							id: params.collectionId,
+						},
+					}),
+				);
 			},
 		}),
 	);

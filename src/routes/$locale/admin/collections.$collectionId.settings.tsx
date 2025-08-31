@@ -2,7 +2,11 @@ import { CollectionForm } from "@/components/forms/CollectionForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
@@ -42,11 +46,24 @@ function RouteComponent() {
 	const params = Route.useParams();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const collection = Route.useLoaderData();
 	const t = useTranslations("CollectionSettings");
 	const tForm = useTranslations("CollectionForm");
 	const tActions = useTranslations("Actions");
 	const queryClient = useQueryClient();
+
+	const { data: collection } = useSuspenseQuery(
+		orpc.collection.id.queryOptions({
+			input: {
+				id: params.collectionId,
+			},
+			context: {
+				headers: {
+					locale: search.locale,
+					fallbackLocale: "none",
+				},
+			},
+		}),
+	);
 
 	const updateCollection = useMutation(
 		orpc.collection.update.mutationOptions({

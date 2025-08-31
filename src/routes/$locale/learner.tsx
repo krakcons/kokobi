@@ -25,6 +25,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getHeader } from "@tanstack/react-start/server";
 import { useLocale } from "@/lib/locale";
 import { orpc } from "@/server/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 const getIsIframeFn = createServerFn().handler(() => {
 	const secFestDest = getHeader("sec-fetch-dest");
@@ -101,11 +102,11 @@ export const Route = createFileRoute("/$locale/learner")({
 		return Promise.all([
 			getAuthFn(),
 			getLearnerUserTeamsFn(),
+			getTenantFn(),
 			queryClient.ensureQueryData(orpc.learner.course.get.queryOptions()),
 			queryClient.ensureQueryData(
 				orpc.learner.collection.get.queryOptions(),
 			),
-			getTenantFn(),
 			queryClient.ensureQueryData(
 				orpc.learner.course.available.queryOptions(),
 			),
@@ -114,12 +115,21 @@ export const Route = createFileRoute("/$locale/learner")({
 });
 
 function RouteComponent() {
-	const [auth, teams, courses, collections, tenantId, availableCourses] =
-		Route.useLoaderData();
+	const [auth, teams, tenantId] = Route.useLoaderData();
 	const locale = useLocale();
 	const location = useLocation();
 
 	const { isIframe } = Route.useRouteContext();
+
+	const { data: courses } = useSuspenseQuery(
+		orpc.learner.course.get.queryOptions(),
+	);
+	const { data: collections } = useSuspenseQuery(
+		orpc.learner.collection.get.queryOptions(),
+	);
+	const { data: availableCourses } = useSuspenseQuery(
+		orpc.learner.course.available.queryOptions(),
+	);
 
 	const play = useMatch({
 		from: "/$locale/learner/courses/$courseId/play",

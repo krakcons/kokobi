@@ -21,8 +21,12 @@ import {
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
 import { pdf } from "@react-pdf/renderer";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertCircle, Eye, FileBadge2, Play } from "lucide-react";
 import { useMemo } from "react";
 import { isModuleSuccessful } from "@/lib/scorm";
@@ -32,13 +36,6 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			queryClient.ensureQueryData(
-				orpc.course.id.queryOptions({
-					input: {
-						id: params.courseId,
-					},
-				}),
-			),
 			getUserTeamFn({
 				data: {
 					type: "learner",
@@ -49,6 +46,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 					courseId: params.courseId,
 				},
 			}),
+			getAuthFn(),
 			queryClient.ensureQueryData(
 				orpc.connection.getOne.queryOptions({
 					input: {
@@ -58,22 +56,43 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 					},
 				}),
 			),
-			getAuthFn(),
+			queryClient.ensureQueryData(
+				orpc.course.id.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 		]);
 	},
 });
 
 function RouteComponent() {
-	const [course, team, attempts, connection, { user }] =
-		Route.useLoaderData();
+	const params = Route.useParams();
+	const [team, attempts, { user }] = Route.useLoaderData();
+	const { data: course } = useSuspenseQuery(
+		orpc.course.id.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+	const { data: connection } = useSuspenseQuery(
+		orpc.connection.getOne.queryOptions({
+			input: {
+				senderType: "user",
+				recipientType: "course",
+				id: params.courseId,
+			},
+		}),
+	);
 	const t = useTranslations("Course");
 	const tLearner = useTranslations("Learner");
 	const tCert = useTranslations("Certificate");
 	const tLocales = useTranslations("Locales");
 	const locale = useLocale();
 	const navigate = Route.useNavigate();
-	const params = Route.useParams();
-	const router = useRouter();
+	const queryClient = useQueryClient();
 
 	const createAttempt = useMutation({
 		mutationFn: createUserModuleFn,
@@ -93,7 +112,18 @@ function RouteComponent() {
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.learner.course.get.queryOptions(),
+				);
+				queryClient.invalidateQueries(
+					orpc.connection.getOne.queryOptions({
+						input: {
+							senderType: "user",
+							recipientType: "course",
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
@@ -101,7 +131,18 @@ function RouteComponent() {
 	const updateConnection = useMutation(
 		orpc.connection.update.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.learner.course.get.queryOptions(),
+				);
+				queryClient.invalidateQueries(
+					orpc.connection.getOne.queryOptions({
+						input: {
+							senderType: "user",
+							recipientType: "course",
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
@@ -133,7 +174,7 @@ function RouteComponent() {
 			</PageHeader>
 			<ConnectionWrapper
 				name={course.name}
-				connection={connection}
+				connection={connection || undefined}
 				onRequest={() =>
 					createConnection.mutate({
 						senderType: "user",

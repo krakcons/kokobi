@@ -1,9 +1,13 @@
 import { TableSearchSchema } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
-import { useMutation } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
@@ -42,26 +46,65 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 				params,
 			});
 		}
-
-		return { team, course, connection };
 	},
 });
 
 function RouteComponent() {
-	const { course, connection } = Route.useLoaderData();
-	const router = useRouter();
+	const params = Route.useParams();
+	const queryClient = useQueryClient();
+	const navigate = Route.useNavigate();
+	const { data: course } = useSuspenseQuery(
+		orpc.course.id.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+	const { data: connection } = useSuspenseQuery(
+		orpc.connection.getOne.queryOptions({
+			input: {
+				senderType: "team",
+				recipientType: "course",
+				id: params.courseId,
+			},
+		}),
+	);
 
 	const updateConnection = useMutation(
 		orpc.connection.update.mutationOptions({
-			onSuccess: () => {
-				router.invalidate();
+			onSuccess: (_, { connectStatus }) => {
+				queryClient.invalidateQueries(orpc.course.get.queryOptions());
+				queryClient.invalidateQueries(
+					orpc.connection.getOne.queryOptions({
+						input: {
+							senderType: "team",
+							recipientType: "course",
+							id: params.courseId,
+						},
+					}),
+				);
+				if (connectStatus === "accepted") {
+					navigate({
+						to: `/$locale/admin/courses/$courseId/learners`,
+						params,
+					});
+				}
 			},
 		}),
 	);
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
 			onSuccess: () => {
-				router.invalidate();
+				queryClient.invalidateQueries(orpc.course.get.queryOptions());
+				queryClient.invalidateQueries(
+					orpc.connection.getOne.queryOptions({
+						input: {
+							senderType: "team",
+							recipientType: "course",
+							id: params.courseId,
+						},
+					}),
+				);
 			},
 		}),
 	);
@@ -71,7 +114,7 @@ function RouteComponent() {
 			<PageHeader title={course.name} description={course.description} />
 			<ConnectionWrapper
 				name={course.name}
-				connection={connection}
+				connection={connection || undefined}
 				onRequest={() =>
 					createConnection.mutate({
 						senderType: "team",
