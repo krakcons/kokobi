@@ -2,7 +2,7 @@ import { CollectionForm } from "@/components/forms/CollectionForm";
 import { Page, PageHeader } from "@/components/Page";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/admin/collections/create")({
@@ -13,9 +13,13 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const t = useTranslations("CollectionForm");
 	const search = Route.useSearch();
+	const queryClient = useQueryClient();
 	const createCollection = useMutation(
 		orpc.collection.create.mutationOptions({
 			onSuccess: (data) => {
+				queryClient.invalidateQueries(
+					orpc.collection.get.queryOptions(),
+				);
 				navigate({
 					to: "/$locale/admin/collections/$collectionId/learners",
 					params: (p) => ({

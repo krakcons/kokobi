@@ -20,7 +20,6 @@ import {
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
-import { env } from "../env";
 import { ModuleSchema } from "@/types/module";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { getNewModuleVersionNumber } from "../lib/modules";

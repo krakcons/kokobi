@@ -34,7 +34,7 @@ export const getConnectionLink = async ({
 		domain && verified ? `https://${domain.hostname}` : env.VITE_SITE_URL;
 	const url = new URL(base);
 	url.pathname = `${locale ? `/${locale}` : ""}/learner/${type}s/${id}`;
-	if (teamId && !domain) {
+	if (teamId && !verified) {
 		url.searchParams.set("teamId", teamId);
 	}
 	return url.toString();

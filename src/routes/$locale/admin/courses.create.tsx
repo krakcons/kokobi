@@ -2,7 +2,7 @@ import { CourseForm } from "@/components/forms/CourseForm";
 import { Page, PageHeader } from "@/components/Page";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/$locale/admin/courses/create")({
@@ -13,12 +13,16 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const t = useTranslations("CourseForm");
 	const search = Route.useSearch();
+	const queryClient = useQueryClient();
 	const createCourse = useMutation(
 		orpc.course.create.mutationOptions({
 			context: {
-				...(search.locale && { locale: search.locale }),
+				headers: {
+					locale: search.locale,
+				},
 			},
 			onSuccess: (data) => {
+				queryClient.invalidateQueries(orpc.course.get.queryOptions());
 				navigate({
 					to: "/$locale/admin/courses/$courseId/learners",
 					params: {
