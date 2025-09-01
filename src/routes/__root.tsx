@@ -36,7 +36,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 		loader: async ({ context: { locale } }) => {
 			const tenantId = await getTenantFn();
 			let favicon = "/favicon.ico";
-			let title = "Kokobi | Learn, Teach, Connect, and Grow";
+			let title = "Kokobi | Learn, Teach, Connect, and Grow ";
 
 			const i18n = await getI18nFn({
 				headers: {
