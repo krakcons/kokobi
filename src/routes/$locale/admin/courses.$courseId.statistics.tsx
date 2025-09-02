@@ -45,7 +45,10 @@ export const Route = createFileRoute(
 				orpc.course.statistics.queryOptions({
 					input: {
 						id: params.courseId,
-						teamId: deps.statsTeamId,
+						teamId:
+							deps.statsTeamId !== "all"
+								? deps.statsTeamId
+								: undefined,
 					},
 				}),
 			),
@@ -68,7 +71,7 @@ function RouteComponent() {
 		orpc.course.statistics.queryOptions({
 			input: {
 				id: params.courseId,
-				teamId: statsTeamId,
+				teamId: statsTeamId !== "all" ? statsTeamId : undefined,
 			},
 		}),
 	);

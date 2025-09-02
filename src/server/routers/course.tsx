@@ -340,17 +340,6 @@ export const courseRouter = base.prefix("/courses").router({
 
 			const teamId = access === "shared" ? context.teamId : customTeamId;
 
-			const course = await db.query.courses.findFirst({
-				where: and(
-					eq(courses.id, id),
-					teamId ? eq(courses.teamId, teamId) : undefined,
-				),
-			});
-
-			if (!course) {
-				throw new ORPCError("NOT_FOUND");
-			}
-
 			// First, get all user IDs connected to the course (directly or via collections)
 			const directUserIds = await db
 				.select({ userId: usersToCourses.userId })
