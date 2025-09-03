@@ -123,11 +123,13 @@ function RouteComponent() {
 					})
 				}
 				onResponse={(response) =>
+					connection &&
+					"fromTeamId" in connection &&
 					updateConnection.mutate({
 						senderType: "course",
 						recipientType: "team",
 						id: course.id,
-						connectToId: connection!.fromTeamId,
+						connectToId: connection.fromTeamId,
 						connectStatus: response,
 					})
 				}

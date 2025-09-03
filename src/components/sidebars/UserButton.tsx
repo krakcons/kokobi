@@ -192,7 +192,7 @@ export const UserButton = ({
 											reloadDocument: true,
 										})
 									: navigate({
-											to: "/$locale/auth/login",
+											href: "/auth/login",
 											reloadDocument: true,
 										}),
 							);

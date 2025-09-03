@@ -14,10 +14,7 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
-import {
-	createUserModuleFn,
-	getUserModulesByCourseFn,
-} from "@/server/handlers/users.modules";
+import { createUserModuleFn } from "@/server/handlers/users.modules";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
 import { pdf } from "@react-pdf/renderer";
@@ -41,12 +38,14 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 					type: "learner",
 				},
 			}),
-			getUserModulesByCourseFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
 			getAuthFn(),
+			queryClient.ensureQueryData(
+				orpc.learner.course.attempts.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 			queryClient.ensureQueryData(
 				orpc.connection.getOne.queryOptions({
 					input: {
@@ -69,7 +68,15 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 
 function RouteComponent() {
 	const params = Route.useParams();
-	const [team, attempts, { user }] = Route.useLoaderData();
+	const [team, { user }] = Route.useLoaderData();
+	const { data: attempts } = useSuspenseQuery(
+		orpc.learner.course.attempts.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+
 	const { data: course } = useSuspenseQuery(
 		orpc.course.id.queryOptions({
 			input: {

@@ -4,11 +4,15 @@ import {
 	courses,
 	usersToCollections,
 	usersToCourses,
+	usersToModules,
 } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { handleLocalization } from "@/lib/locale";
 import { CourseSchema } from "@/types/course";
 import { env } from "../env";
+import z from "zod";
+import { ExtendLearner, LearnerSchema } from "@/types/learner";
+import { ModuleSchema } from "@/types/module";
 
 export const learnerRouter = base.prefix("/learner").router({
 	course: {
@@ -67,6 +71,38 @@ export const learnerRouter = base.prefix("/learner").router({
 				return courseList.map((course) =>
 					handleLocalization(context, course),
 				);
+			}),
+		attempts: learnerProcedure
+			.route({
+				tags: ["Learner"],
+				method: "GET",
+				path: "/courses/{id}/attempts",
+				summary: "Get Attempts",
+			})
+			.input(z.object({ id: z.string() }))
+			.output(
+				LearnerSchema.extend({
+					module: ModuleSchema,
+				}).array(),
+			)
+			.handler(async ({ context, input: { id } }) => {
+				const user = context.user;
+
+				const moduleList = await db.query.usersToModules.findMany({
+					where: and(
+						eq(usersToModules.userId, user.id),
+						eq(usersToModules.courseId, id),
+						eq(usersToModules.teamId, context.learnerTeamId),
+					),
+					with: {
+						module: true,
+					},
+				});
+
+				return moduleList.map((attempt) => ({
+					...ExtendLearner(attempt.module.type).parse(attempt),
+					module: attempt.module,
+				}));
 			}),
 	},
 	collection: {

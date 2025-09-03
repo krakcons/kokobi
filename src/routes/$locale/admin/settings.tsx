@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Loader2, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 import { fetchFile, teamImageUrl } from "@/lib/file";
 import {
 	createTeamDomainFn,

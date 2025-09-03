@@ -105,7 +105,7 @@ const CourseCollapsible = ({ course }: { course: Course }) => {
 					<SidebarMenuSub>
 						<SidebarMenuSubItem>
 							<Link
-								to={"/$locale/admin/courses/$courseId/learners"}
+								to="/$locale/admin/courses/$courseId/learners"
 								params={{
 									locale,
 									courseId: course.id,
@@ -483,7 +483,6 @@ export const AdminSidebar = ({
 	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
 	courses: Course[];
 	collections: (Collection & CollectionTranslation)[];
-	teamConnections: (UserToTeamType & { team: Team & TeamTranslation })[];
 	user: User;
 	role: Role;
 }) => {
