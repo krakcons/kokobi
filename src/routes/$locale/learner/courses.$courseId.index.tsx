@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { createUserModuleFn } from "@/server/handlers/users.modules";
 import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
 import { pdf } from "@react-pdf/renderer";
@@ -40,7 +39,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 			}),
 			getAuthFn(),
 			queryClient.ensureQueryData(
-				orpc.learner.course.attempts.queryOptions({
+				orpc.learner.course.attempt.get.queryOptions({
 					input: {
 						id: params.courseId,
 					},
@@ -70,7 +69,7 @@ function RouteComponent() {
 	const params = Route.useParams();
 	const [team, { user }] = Route.useLoaderData();
 	const { data: attempts } = useSuspenseQuery(
-		orpc.learner.course.attempts.queryOptions({
+		orpc.learner.course.attempt.get.queryOptions({
 			input: {
 				id: params.courseId,
 			},
@@ -101,20 +100,28 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const queryClient = useQueryClient();
 
-	const createAttempt = useMutation({
-		mutationFn: createUserModuleFn,
-		onSuccess: (attemptId) => {
-			navigate({
-				to: `/$locale/learner/courses/$courseId/play`,
-				params: {
-					courseId: params.courseId,
-				},
-				search: {
-					attemptId,
-				},
-			});
-		},
-	});
+	const createAttempt = useMutation(
+		orpc.learner.course.attempt.create.mutationOptions({
+			onSuccess: (attemptId) => {
+				queryClient.invalidateQueries(
+					orpc.learner.course.attempt.get.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
+				navigate({
+					to: `/$locale/learner/courses/$courseId/play`,
+					params: {
+						courseId: params.courseId,
+					},
+					search: {
+						attemptId,
+					},
+				});
+			},
+		}),
+	);
 
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
@@ -391,9 +398,7 @@ function RouteComponent() {
 					<Button
 						onClick={() =>
 							createAttempt.mutate({
-								data: {
-									courseId: course.id,
-								},
+								id: course.id,
 							})
 						}
 					>
