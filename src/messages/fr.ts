@@ -407,11 +407,20 @@ const fr: Messages = {
 		title: "Paramètres",
 		description: "Modifier les paramètres de votre équipe",
 		domain: {
+			rootWarning:
+				"Les noms des enregistrements sont relatifs à votre domaine racine (par exemple, « email » correspond à « email.domain.com »)",
 			status: "Status",
 			type: "Taper",
 			name: "Nom",
 			value: "Valeur",
 			priority: "Priorité:",
+			delete: {
+				confirm: {
+					title: "Êtes-vous absolument sûr?",
+					description:
+						"Cette action ne peut être annulée. Cela supprimera définitivement votre domaine et rompra tout lien précédemment envoyé avec ce domaine (ex. invitations, lien de partage, complétion, etc.).",
+				},
+			},
 		},
 		delete: {
 			title: "Supprimer l'équipe",

@@ -397,11 +397,20 @@ const en = {
 		title: "Settings",
 		description: "Edit your team settings",
 		domain: {
+			rootWarning:
+				"Record names are relative to your root domain (ex. 'email' corresponds to 'email.domain.com')",
 			status: "Status",
 			type: "Type",
 			name: "Name",
 			value: "Value",
 			priority: "Priority:",
+			delete: {
+				confirm: {
+					title: "Are you absolutely sure?",
+					description:
+						"This action cannot be undone. This will permanently delete your domain and break any link previously sent with this domain (ex. invitatations, share link, completion, etc).",
+				},
+			},
 		},
 		delete: {
 			title: "Delete Team",

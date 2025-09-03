@@ -10,7 +10,7 @@ export const DomainFormSchema = z.object({
 		.string()
 		.regex(
 			new RegExp(
-				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
+				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.+[a-zA-Z]{2,}$/,
 			),
 			"Invalid domain format, use format (learn.example.com)",
 		),

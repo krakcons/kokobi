@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Trash } from "lucide-react";
+import { Loader2, Trash } from "lucide-react";
 import { fetchFile, teamImageUrl } from "@/lib/file";
 import {
 	createTeamDomainFn,
@@ -17,6 +17,7 @@ import { useAppForm } from "@/components/ui/form";
 import {
 	Table,
 	TableBody,
+	TableCaption,
 	TableCell,
 	TableHead,
 	TableHeader,
@@ -183,19 +184,43 @@ function RouteComponent() {
 				description={tDomain.description}
 			>
 				{domain && (
-					<Button
-						variant="destructive"
-						onClick={() =>
-							deleteTeamDomain.mutate({
-								data: {
-									domainId: domain.id,
-								},
-							})
-						}
-					>
-						<Trash />
-						{tActions.delete}
-					</Button>
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button
+								variant="destructive"
+								className="self-start"
+							>
+								<Trash />
+								{tActions.delete}
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>
+									{t.domain.delete.confirm.title}
+								</AlertDialogTitle>
+								<AlertDialogDescription>
+									{t.domain.delete.confirm.description}
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>
+									{tActions.cancel}
+								</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={() => {
+										deleteTeamDomain.mutate({
+											data: {
+												domainId: domain.id,
+											},
+										});
+									}}
+								>
+									{tActions.continue}
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				)}
 			</PageSubHeader>
 			{domain ? (
@@ -259,6 +284,9 @@ function RouteComponent() {
 									</TableRow>
 								))}
 							</TableBody>
+							<TableCaption className="text-left">
+								{t.domain.rootWarning}
+							</TableCaption>
 						</Table>
 						<ScrollBar orientation="horizontal" />
 					</ScrollArea>

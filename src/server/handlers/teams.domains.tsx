@@ -38,6 +38,9 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 			zone_id: env.CLOUDFLARE_ZONE_ID,
 		});
 
+		const subdomain = teamDomain.hostname.split(".").slice(0, -2).join(".");
+		const subdomainWithDot = subdomain ? `.${subdomain}` : "";
+
 		const records: DomainRecord[] = [
 			// Add Cloudflare CNAME record
 			{
@@ -47,7 +50,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 						? "success"
 						: (cloudflare.status ?? "unknown"),
 				type: "CNAME",
-				name: teamDomain.hostname,
+				name: subdomain,
 				value: "kokobi.org",
 			},
 			// Add dmarc record (optional)
@@ -55,7 +58,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 				required: false,
 				status: "optional",
 				type: "TXT",
-				name: `_dmarc.${teamDomain.hostname}`,
+				name: `_dmarc${subdomainWithDot}`,
 				value: '"v=DMARC1; p=none;"',
 			},
 		];
@@ -66,7 +69,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 				required: true,
 				status: email.DkimAttributes?.Status ?? "unknown",
 				type: "CNAME",
-				name: `${token}._domainkey.${teamDomain.hostname}`,
+				name: `${token}._domainkey${subdomainWithDot}`,
 				value: `${token}.dkim.amazonses.com`,
 			});
 		});
@@ -81,7 +84,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 				status:
 					email.MailFromAttributes.MailFromDomainStatus ?? "unknown",
 				type: "MX",
-				name: email.MailFromAttributes.MailFromDomain,
+				name: `email${subdomainWithDot}`,
 				value: "feedback-smtp.ca-central-1.amazonses.com",
 				priority: 10,
 			});
@@ -90,7 +93,7 @@ export const getTeamDomainFn = createServerFn({ method: "GET" })
 				status:
 					email.MailFromAttributes.MailFromDomainStatus ?? "unknown",
 				type: "TXT",
-				name: email.MailFromAttributes.MailFromDomain,
+				name: `email${subdomainWithDot}`,
 				value: '"v=spf1 include:amazonses.com ~all"',
 			});
 		}
