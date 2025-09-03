@@ -1,8 +1,7 @@
-import { useTranslations } from "@/lib/locale";
+import { useTranslations, getI18nFn } from "@/lib/locale";
 import { FloatingPage } from "./Page";
 import { Button, buttonVariants } from "./ui/button";
 import { ArrowLeft, Home } from "lucide-react";
-import { getI18nFn } from "@/server/handlers/i18n";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 export function NotFound() {

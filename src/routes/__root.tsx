@@ -1,5 +1,9 @@
-import { IntlProvider, rootLocaleMiddleware } from "@/lib/locale";
-import { QueryClient } from "@tanstack/react-query";
+import {
+	IntlProvider,
+	rootLocaleMiddleware,
+	i18nQueryOptions,
+} from "@/lib/locale";
+import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	Outlet,
 	createRootRouteWithContext,
@@ -8,7 +12,6 @@ import {
 	ErrorComponent,
 } from "@tanstack/react-router";
 import { Toaster } from "sonner";
-import { getI18nFn } from "@/server/handlers/i18n";
 import appCss from "../styles.css?url";
 import { NotFound } from "@/components/NotFound";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
@@ -16,6 +19,7 @@ import { teamImageUrl } from "@/lib/file";
 import { z } from "zod";
 import { PendingComponent } from "@/components/PendingComponent";
 import { useTheme } from "@/lib/theme";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -23,7 +27,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			accountDialog: z.boolean().optional(),
 		}),
 		beforeLoad: async ({ location, context: { queryClient } }) => {
-			return rootLocaleMiddleware({
+			await rootLocaleMiddleware({
 				location,
 				ignorePaths: ["api", "cdn", "assets"],
 				queryClient,
@@ -33,21 +37,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 		notFoundComponent: NotFound,
 		pendingComponent: PendingComponent,
 		component: RootComponent,
-		loader: async ({ context: { locale } }) => {
+		loader: async ({ context: { queryClient } }) => {
+			const i18n = await queryClient.ensureQueryData(
+				i18nQueryOptions({}),
+			);
 			const tenantId = await getTenantFn();
 			let favicon = "/favicon.ico";
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";
 
-			const i18n = await getI18nFn({
-				headers: {
-					locale,
-				},
-			});
-
 			if (tenantId) {
 				const tenant = await getTeamByIdFn({
 					headers: {
-						locale,
+						locale: i18n.locale,
 					},
 					data: {
 						teamId: tenantId,
@@ -108,8 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 );
 
 function RootComponent() {
-	const { i18n } = Route.useLoaderData();
 	const { theme, systemTheme } = useTheme();
+	const { data: i18n } = useSuspenseQuery(i18nQueryOptions({}));
 
 	return (
 		<html
@@ -123,6 +124,7 @@ function RootComponent() {
 				<IntlProvider i18n={i18n}>
 					<Outlet />
 				</IntlProvider>
+				<ReactQueryDevtools initialIsOpen={false} />
 				<Toaster />
 				<Scripts />
 			</body>

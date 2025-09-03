@@ -2,12 +2,12 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter as createTanstackRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { ThemeProvider } from "./lib/theme";
-import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { NotFound } from "./components/NotFound";
 import { toast } from "sonner";
 import { ErrorComponent } from "./components/ErrorComponent";
 import { PendingComponent } from "./components/PendingComponent";
 import "./styles.css";
+import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
 export const createRouter = () => {
 	const queryClient = new QueryClient({
@@ -21,19 +21,25 @@ export const createRouter = () => {
 		},
 	});
 
-	const router = routerWithQueryClient(
-		createTanstackRouter({
-			routeTree,
-			context: { queryClient },
-			defaultPreload: "intent",
-			scrollRestoration: true,
-			defaultPendingComponent: PendingComponent,
-			defaultErrorComponent: ErrorComponent,
-			defaultNotFoundComponent: NotFound,
-			Wrap: ({ children }) => <ThemeProvider>{children}</ThemeProvider>,
-		}),
+	const router = createTanstackRouter({
+		routeTree,
+		context: { queryClient },
+		defaultPreload: "intent",
+		scrollRestoration: true,
+		defaultPendingComponent: PendingComponent,
+		defaultErrorComponent: ErrorComponent,
+		defaultNotFoundComponent: NotFound,
+		Wrap: ({ children }) => <ThemeProvider>{children}</ThemeProvider>,
+	});
+
+	setupRouterSsrQueryIntegration({
+		router,
 		queryClient,
-	);
+		// optional:
+		// handleRedirects: true,
+		// wrapQueryClient: true,
+	});
+
 	return router;
 };
 

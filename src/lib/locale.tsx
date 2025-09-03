@@ -89,31 +89,35 @@ export const rootLocaleMiddleware = async ({
 	ignorePaths?: string[];
 	queryClient: QueryClient;
 }) => {
-	const i18n = await queryClient.ensureQueryData(i18nQueryOptions({}));
-	let locale = i18n.locale;
-
-	// Handle locale
 	let pathLocale = location.pathname.split("/")[1];
-	if (!ignorePaths || !ignorePaths.includes(pathLocale)) {
-		if (!locales.some(({ value }) => value === pathLocale)) {
-			throw redirect({
-				replace: true,
-				reloadDocument: true,
-				href: `/${locale}${location.href}`,
-			});
-		}
 
-		if (pathLocale !== locale) {
-			locale = pathLocale as Locale;
-			await updateI18nFn({
-				data: {
-					locale,
-				},
-			});
-		}
+	// Handle ignoring path
+	if (ignorePaths && ignorePaths.includes(pathLocale)) {
+		return;
 	}
 
-	return { locale };
+	// Get i18n preference
+	const i18n = await queryClient.ensureQueryData(i18nQueryOptions({}));
+
+	// Handle locale not in path
+	if (!locales.some(({ value }) => value === pathLocale)) {
+		// Detect locale from cookie
+		throw redirect({
+			replace: true,
+			reloadDocument: true,
+			href: `/${i18n.locale}${location.href}`,
+		});
+	}
+
+	// Handle preference different from path
+	if (i18n.locale !== pathLocale) {
+		await updateI18nFn({
+			data: {
+				locale: pathLocale as Locale,
+			},
+		});
+		queryClient.invalidateQueries();
+	}
 };
 export const localeMiddleware = createMiddleware({
 	type: "function",
@@ -147,7 +151,6 @@ export const getI18nFn = createServerFn({ method: "GET" })
 		const i18n = await createI18n({ locale });
 		return i18n;
 	});
-
 export const updateI18nFn = createServerFn({ method: "POST" })
 	.validator(z.object({ locale: LocaleSchema }))
 	.handler(async ({ data: { locale } }) => {
@@ -212,6 +215,6 @@ export const handleLocalization = <
 
 export const i18nQueryOptions = ({ locale }: { locale?: Locale }) =>
 	queryOptions({
-		queryKey: ["locale"],
+		queryKey: ["locale", locale],
 		queryFn: () => getI18nFn(locale ? { headers: { locale } } : {}),
 	});
