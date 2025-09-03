@@ -1,28 +1,31 @@
 import { buttonVariants } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslations } from "@/lib/locale";
-import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Blocks, Book } from "lucide-react";
 import { TeamIcon } from "@/components/TeamIcon";
 import { teamImageUrl } from "@/lib/file";
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/")({
 	component: Home,
-	loader: async () => {
+	loader: async ({ context: { queryClient } }) => {
 		let team = undefined;
-		const tenantId = await getTenantFn();
+		const tenantId = await queryClient.ensureQueryData(
+			orpc.organization.tenant.queryOptions(),
+		);
 		if (tenantId) {
-			team = await getTeamByIdFn({
-				data: {
-					teamId: tenantId,
-				},
-			});
+			team = await queryClient.fetchQuery(
+				orpc.organization.id.queryOptions({
+					input: {
+						id: tenantId,
+					},
+				}),
+			);
 		}
-		return {
-			team,
-		};
+
+		return { team };
 	},
 });
 

@@ -11,12 +11,12 @@ export const hasUserAccess = async ({
 	id,
 	type,
 	userId,
-	teamId,
+	organizationId,
 }: {
 	id: string;
 	type: "course" | "collection";
 	userId: string;
-	teamId: string;
+	organizationId: string;
 }) => {
 	if (type === "course") {
 		// 1: Direct connection to the course
@@ -25,7 +25,7 @@ export const hasUserAccess = async ({
 				eq(usersToCourses.courseId, id),
 				eq(usersToCourses.userId, userId),
 				eq(usersToCourses.connectStatus, "accepted"),
-				eq(usersToCourses.teamId, teamId),
+				eq(usersToCourses.organizationId, organizationId),
 			),
 		});
 
@@ -63,13 +63,13 @@ export const hasUserAccess = async ({
 	throw new Error("No access to course");
 };
 
-export const hasTeamAccess = async ({
-	teamId,
+export const hasOrganizationAccess = async ({
+	organizationId,
 	type,
 	id,
 	access,
 }: {
-	teamId: string;
+	organizationId: string;
 	type: "course" | "collection";
 	id: string;
 	access?: "root" | "shared";
@@ -77,7 +77,10 @@ export const hasTeamAccess = async ({
 	if (type === "course") {
 		// 1: Own the course
 		const course = await db.query.courses.findFirst({
-			where: and(eq(courses.id, id), eq(courses.teamId, teamId)),
+			where: and(
+				eq(courses.id, id),
+				eq(courses.organizationId, organizationId),
+			),
 		});
 
 		if (!course && access === "root") {
@@ -89,10 +92,10 @@ export const hasTeamAccess = async ({
 		}
 
 		// 2: Course is shared with the team and accepted
-		const connection = await db.query.teamsToCourses.findFirst({
+		const connection = await db.query.organizationsToCourses.findFirst({
 			where: and(
 				eq(usersToCourses.courseId, id),
-				eq(usersToCourses.teamId, teamId),
+				eq(usersToCourses.organizationId, organizationId),
 				eq(usersToCourses.connectStatus, "accepted"),
 			),
 		});
@@ -105,7 +108,10 @@ export const hasTeamAccess = async ({
 	if (type === "collection") {
 		// 1: Own the collection
 		const collection = await db.query.collections.findFirst({
-			where: and(eq(collections.id, id), eq(collections.teamId, teamId)),
+			where: and(
+				eq(collections.id, id),
+				eq(collections.organizationId, organizationId),
+			),
 			with: {
 				translations: true,
 			},

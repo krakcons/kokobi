@@ -1,8 +1,8 @@
 import { ORPCError, os } from "@orpc/server";
-import { roles, type Role } from "@/types/team";
 import type { OrpcContext } from "./context";
 import { LocalizedInputSchema } from "@/lib/locale";
 import { getCookie } from "@orpc/server/helpers";
+import { auth, type Session } from "@/lib/auth";
 
 export const base = os.$context<OrpcContext>();
 
@@ -23,57 +23,65 @@ const localeMiddleware = base.middleware(async ({ context, next }) => {
 	});
 });
 
+const authMiddleware = base.middleware(async ({ context, next }) => {
+	const authResult = await auth.api.getSession({
+		headers: context.headers,
+	});
+
+	if (!authResult) {
+		throw new ORPCError("UNAUTHORIZED");
+	}
+
+	return next({
+		context: {
+			...context,
+			...authResult,
+			member: authResult.session
+				? ((await auth.api.getActiveMember({
+						headers: context.headers,
+					})) ?? undefined)
+				: undefined,
+		},
+	});
+});
+
 export const publicProcedure = base.use(localeMiddleware);
 
-export const protectedProcedure = base.use(localeMiddleware).use(
-	base.middleware(async ({ next, context }) => {
-		const { session, user } = context;
-		if (!session || !user) {
+export const protectedProcedure = base
+	.use(localeMiddleware)
+	.use(authMiddleware);
+
+export const organizationProcedure = protectedProcedure.use(
+	base.$context<Session>().middleware(async ({ context, next }) => {
+		if (!context.session.activeOrganizationId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		return next({
 			context: {
 				...context,
-				session,
-				user,
+				session: {
+					...context.session,
+					activeOrganizationId: context.session.activeOrganizationId,
+				},
 			},
 		});
 	}),
 );
 
-export const teamProcedure = ({ role = "member" }: { role?: Role } = {}) =>
-	protectedProcedure.use(
-		base.middleware(async ({ context, next }) => {
-			const { teamId, role: teamRole } = context;
-			if (
-				!teamId ||
-				(teamRole && roles.indexOf(teamRole) > roles.indexOf(role))
-			) {
-				throw new ORPCError("UNAUTHORIZED");
-			}
-
-			return next({
-				context: {
-					...context,
-					teamId,
-					role: teamRole,
-				},
-			});
-		}),
-	);
-
 export const learnerProcedure = protectedProcedure.use(
-	base.middleware(async ({ context, next }) => {
-		const { learnerTeamId } = context;
-		if (!learnerTeamId) {
+	base.$context<Session>().middleware(async ({ context, next }) => {
+		if (!context.session.activeLearnerTeamId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		return next({
 			context: {
 				...context,
-				learnerTeamId,
+				session: {
+					...context.session,
+					activeLearnerTeamId: context.session.activeLearnerTeamId,
+				},
 			},
 		});
 	}),

@@ -1,6 +1,5 @@
 import { teamImageUrl } from "@/lib/file";
 import type { Messages } from "@/lib/locale";
-import type { Team, TeamTranslation } from "@/types/team";
 import {
 	Document,
 	Font,
@@ -58,7 +57,7 @@ export type CertificateProps = {
 	name: string;
 	course: string;
 	completedAt: string;
-	contentTeam: Team & TeamTranslation;
+	contentOrganization: Team & TeamTranslation;
 	connectTeam: Team & TeamTranslation;
 	t: Messages["Certificate"]["pdf"];
 };

@@ -14,12 +14,12 @@ import {
 import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { NotFound } from "@/components/NotFound";
-import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { teamImageUrl } from "@/lib/file";
 import { z } from "zod";
 import { PendingComponent } from "@/components/PendingComponent";
 import { useTheme } from "@/lib/theme";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { orpc } from "@/server/client";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 	{
@@ -41,19 +41,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 			const i18n = await queryClient.ensureQueryData(
 				i18nQueryOptions({}),
 			);
-			const tenantId = await getTenantFn();
+			const tenantId = await queryClient.ensureQueryData(
+				orpc.organization.tenant.queryOptions(),
+			);
 			let favicon = "/favicon.ico";
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";
 
 			if (tenantId) {
-				const tenant = await getTeamByIdFn({
-					headers: {
-						locale: i18n.locale,
-					},
-					data: {
-						teamId: tenantId,
-					},
-				});
+				const tenant = await queryClient.ensureQueryData(
+					orpc.organization.id.queryOptions({
+						input: {
+							id: tenantId,
+						},
+					}),
+				);
 				if (tenant.favicon)
 					favicon = teamImageUrl(tenant, "favicon") || favicon;
 				title = `${tenant.name}`;

@@ -1,8 +1,7 @@
 import { ImageSchema } from "@/types/file";
-import { teamTranslations, teams } from "@/server/db/schema";
+import { organizationTranslations, organizations } from "@/server/db/schema";
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { ConnectionSchema } from "./connections";
 
 export const validDomainSchema = z
 	.string()
@@ -13,31 +12,33 @@ export const validDomainSchema = z
 		"Invalid domain format, use format (example.com)",
 	);
 
-export const BaseTeamSchema = createSelectSchema(teams);
-export type BaseTeam = z.infer<typeof BaseTeamSchema>;
+export const BaseOrganizationSchema = createSelectSchema(organizations);
+export type BaseOrganization = z.infer<typeof BaseOrganizationSchema>;
 
-export const TeamTranslationSchema = createSelectSchema(teamTranslations);
-export type TeamTranslation = z.infer<typeof TeamTranslationSchema>;
+export const OrganizationTranslationSchema = createSelectSchema(
+	organizationTranslations,
+);
+export type OrganizationTranslation = z.infer<
+	typeof OrganizationTranslationSchema
+>;
 
-export const TeamSchema = BaseTeamSchema.extend(
-	TeamTranslationSchema.shape,
-).extend({
-	connection: ConnectionSchema.optional(),
-});
-export type Team = z.infer<typeof TeamSchema>;
+export const OrganizationSchema = BaseOrganizationSchema.extend(
+	OrganizationTranslationSchema.shape,
+);
+export type Organization = z.infer<typeof OrganizationSchema>;
 
-export const TeamFormSchema = z.object({
+export const OrganizationFormSchema = z.object({
 	name: z.string(),
 	logo: ImageSchema.or(z.literal("")),
 	favicon: ImageSchema.or(z.literal("")),
 });
-export type TeamFormType = z.infer<typeof TeamFormSchema>;
+export type OrganizationFormType = z.infer<typeof OrganizationFormSchema>;
 
 export const roles = ["owner", "member"] as const;
 export const RoleSchema = z.enum(roles);
 export type Role = z.infer<typeof RoleSchema>;
 
-export const TeamUsersFormSchema = z.object({
+export const OrganizationUsersFormSchema = z.object({
 	users: z
 		.object({
 			email: z.email().toLowerCase(),
@@ -45,4 +46,6 @@ export const TeamUsersFormSchema = z.object({
 		})
 		.array(),
 });
-export type TeamUsersFormType = z.infer<typeof TeamUsersFormSchema>;
+export type OrganizationUsersFormType = z.infer<
+	typeof OrganizationUsersFormSchema
+>;

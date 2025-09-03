@@ -11,12 +11,6 @@ import {
 	useMatch,
 } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import {
-	getLearnerUserTeamsFn,
-	updateUserTeamFn,
-} from "@/server/handlers/users.teams";
-import { getAuthFn } from "@/server/handlers/auth";
-import { getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
 import { env } from "@/env";
@@ -26,6 +20,7 @@ import { getHeader } from "@tanstack/react-start/server";
 import { useLocale } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { authClient, authQueryOptions } from "@/lib/auth.client";
 
 const getIsIframeFn = createServerFn().handler(() => {
 	const secFestDest = getHeader("sec-fetch-dest");
@@ -37,10 +32,17 @@ export const Route = createFileRoute("/$locale/learner")({
 	validateSearch: z.object({
 		teamId: z.string().optional(),
 	}),
-	beforeLoad: async ({ params, search, location }) => {
-		const auth = await getAuthFn();
+	beforeLoad: async ({
+		params,
+		search,
+		location,
+		context: { queryClient },
+	}) => {
+		const auth = await queryClient.ensureQueryData(
+			authQueryOptions.session,
+		);
 
-		if (!auth.user) {
+		if (!auth) {
 			throw redirect({
 				to: "/$locale/auth/login",
 				search: (s) => ({
@@ -51,37 +53,31 @@ export const Route = createFileRoute("/$locale/learner")({
 			});
 		}
 
-		const tenantId = await getTenantFn();
+		const tenantId = await queryClient.ensureQueryData(
+			orpc.organization.tenant.queryOptions(),
+		);
 		let redirectHref = undefined;
 		if (tenantId) {
-			if (tenantId !== auth.learnerTeamId) {
-				await updateUserTeamFn({
-					data: {
-						teamId: tenantId,
-						type: "learner",
-					},
+			if (tenantId !== auth.session.activeLearnerTeamId) {
+				await orpc.learner.organization.update.call({
+					id: tenantId,
 				});
-				redirectHref = location.href;
 			}
 		} else {
 			if (search.teamId) {
-				await updateUserTeamFn({
-					data: {
-						teamId: search.teamId,
-						type: "learner",
-					},
+				await orpc.learner.organization.update.call({
+					id: search.teamId,
 				});
 				const newUrl = new URL(env.VITE_SITE_URL + location.href);
 				newUrl.searchParams.delete("teamId");
 				redirectHref = newUrl.href;
 			}
-			if (!auth.learnerTeamId) {
-				const teams = await getLearnerUserTeamsFn();
-				await updateUserTeamFn({
-					data: {
-						teamId: teams[0].teamId,
-						type: "learner",
-					},
+			if (!auth.session.activeLearnerTeamId) {
+				const organizations = await queryClient.ensureQueryData(
+					orpc.learner.organization.get.queryOptions(),
+				);
+				await orpc.learner.organization.update.call({
+					id: organizations[0].id,
 				});
 				redirectHref = location.href;
 			}
@@ -100,9 +96,13 @@ export const Route = createFileRoute("/$locale/learner")({
 	},
 	loader: ({ context: { queryClient } }) => {
 		return Promise.all([
-			getAuthFn(),
-			getLearnerUserTeamsFn(),
-			getTenantFn(),
+			queryClient.ensureQueryData(authQueryOptions.session),
+			queryClient.ensureQueryData(
+				orpc.learner.organization.get.queryOptions(),
+			),
+			queryClient.ensureQueryData(
+				orpc.organization.tenant.queryOptions(),
+			),
 			queryClient.ensureQueryData(orpc.learner.course.get.queryOptions()),
 			queryClient.ensureQueryData(
 				orpc.learner.collection.get.queryOptions(),
@@ -115,12 +115,18 @@ export const Route = createFileRoute("/$locale/learner")({
 });
 
 function RouteComponent() {
-	const [auth, teams, tenantId] = Route.useLoaderData();
 	const locale = useLocale();
 	const location = useLocation();
 
 	const { isIframe } = Route.useRouteContext();
 
+	const { data: auth } = useSuspenseQuery(authQueryOptions.session);
+	const { data: organizations } = useSuspenseQuery(
+		orpc.learner.organization.get.queryOptions(),
+	);
+	const { data: tenantId } = useSuspenseQuery(
+		orpc.organization.tenant.queryOptions(),
+	);
 	const { data: courses } = useSuspenseQuery(
 		orpc.learner.course.get.queryOptions(),
 	);
@@ -141,7 +147,7 @@ function RouteComponent() {
 			{!isIframe && (
 				<LearnerSidebar
 					tenantId={tenantId ?? undefined}
-					teamId={auth.learnerTeamId!}
+					teamId={auth?.session.activeLearnerTeamId!}
 					teams={teams}
 					availableCourses={availableCourses.filter(
 						(c) =>

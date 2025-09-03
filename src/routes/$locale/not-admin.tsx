@@ -1,11 +1,10 @@
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
+import { authQueryOptions } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { getTeamByIdFn } from "@/server/handlers/teams";
-import { getUserTeamConnectionFn } from "@/server/handlers/users.teams";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
@@ -13,40 +12,49 @@ import { z } from "zod";
 export const Route = createFileRoute("/$locale/not-admin")({
 	component: RouteComponent,
 	validateSearch: z.object({
-		teamId: z.string(),
+		organizationId: z.string(),
 	}),
-	loaderDeps: ({ search: { teamId } }) => ({ teamId }),
-	loader: async ({ deps, params }) => {
-		const connection = await getUserTeamConnectionFn({
-			data: {
-				type: "admin",
-				teamId: deps.teamId,
-			},
-		});
+	loaderDeps: ({ search: { organizationId } }) => ({ organizationId }),
+	loader: async ({ deps, params, context: { queryClient } }) => {
+		const { data: organizations } = await queryClient.ensureQueryData(
+			authQueryOptions.organization.list,
+		);
 
-		if (connection && connection.connectStatus === "accepted") {
+		if (organizations?.find((o) => o.id === deps.organizationId)) {
 			throw redirect({
 				to: "/$locale/admin",
 				params,
 			});
 		}
 
-		return {
-			connection,
-			team: await getTeamByIdFn({
-				data: {
-					teamId: deps.teamId,
-				},
-			}),
-		};
+		return Promise.all([
+			queryClient.ensureQueryData(
+				orpc.organization.id.queryOptions({
+					input: {
+						id: deps.organizationId,
+					},
+				}),
+			),
+		]);
 	},
 });
 
 function RouteComponent() {
 	const t = useTranslations("NotAMember");
-	const { connection, team } = Route.useLoaderData();
 	const tError = useTranslations("Errors");
 	const navigate = Route.useNavigate();
+	const search = Route.useSearch();
+
+	const { data: organizations } = useSuspenseQuery(
+		authQueryOptions.organization.list,
+	);
+	const { data: team } = useSuspenseQuery(
+		orpc.organization.id.queryOptions({
+			input: {
+				id: search.organizationId,
+			},
+		}),
+	);
 
 	const updateConnection = useMutation(
 		orpc.connection.update.mutationOptions({
@@ -60,7 +68,9 @@ function RouteComponent() {
 
 	return (
 		<FloatingPage>
-			<PageHeader
+			<></>
+			{/*
+				<PageHeader
 				title={team.name}
 				description={connection ? t.inviteMessage : t.message}
 			/>
@@ -88,7 +98,7 @@ function RouteComponent() {
 					<ArrowLeft />
 					{tError.goBack}
 				</Button>
-			</ConnectionWrapper>
+			</ConnectionWrapper>*/}
 		</FloatingPage>
 	);
 }
