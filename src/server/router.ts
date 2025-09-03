@@ -1,3 +1,4 @@
+import { authRouter } from "./routers/auth";
 import { collectionRouter } from "./routers/collection";
 import { connectionRouter } from "./routers/connection";
 import { courseRouter } from "./routers/course";
@@ -10,4 +11,5 @@ export const router = {
 	learner: learnerRouter,
 	connection: connectionRouter,
 	organization: organizationRouter,
+	auth: authRouter,
 };

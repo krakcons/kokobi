@@ -54,7 +54,7 @@ export const Route = createFileRoute("/$locale/learner")({
 		}
 
 		const tenantId = await queryClient.ensureQueryData(
-			orpc.organization.tenant.queryOptions(),
+			orpc.auth.tenant.queryOptions(),
 		);
 		let redirectHref = undefined;
 		if (tenantId) {
@@ -100,9 +100,7 @@ export const Route = createFileRoute("/$locale/learner")({
 			queryClient.ensureQueryData(
 				orpc.learner.organization.get.queryOptions(),
 			),
-			queryClient.ensureQueryData(
-				orpc.organization.tenant.queryOptions(),
-			),
+			queryClient.ensureQueryData(orpc.auth.tenant.queryOptions()),
 			queryClient.ensureQueryData(orpc.learner.course.get.queryOptions()),
 			queryClient.ensureQueryData(
 				orpc.learner.collection.get.queryOptions(),
@@ -125,7 +123,7 @@ function RouteComponent() {
 		orpc.learner.organization.get.queryOptions(),
 	);
 	const { data: tenantId } = useSuspenseQuery(
-		orpc.organization.tenant.queryOptions(),
+		orpc.auth.tenant.queryOptions(),
 	);
 	const { data: courses } = useSuspenseQuery(
 		orpc.learner.course.get.queryOptions(),
@@ -148,7 +146,7 @@ function RouteComponent() {
 				<LearnerSidebar
 					tenantId={tenantId ?? undefined}
 					teamId={auth?.session.activeLearnerTeamId!}
-					teams={teams}
+					teams={organizations}
 					availableCourses={availableCourses.filter(
 						(c) =>
 							!courses?.some(({ course }) => course?.id === c.id),

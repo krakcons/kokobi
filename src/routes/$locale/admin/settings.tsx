@@ -2,17 +2,12 @@ import { TeamForm } from "@/components/forms/TeamForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
 import { fetchFile, teamImageUrl } from "@/lib/file";
-import {
-	createTeamDomainFn,
-	deleteTeamDomainFn,
-	getTeamDomainFn,
-} from "@/server/handlers/teams.domains";
+
 import { DomainFormSchema, type DomainFormType } from "@/types/domains";
-import { deleteTeamFn, updateTeamFn } from "@/server/handlers/teams";
 import { useAppForm } from "@/components/ui/form";
 import {
 	Table,
@@ -27,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import CopyButton from "@/components/CopyButton";
 import { toast } from "sonner";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -40,22 +34,26 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: ({ deps }) =>
+	loader: ({ deps, context: { queryClient } }) =>
 		Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "admin",
-				},
-				headers: {
-					...(deps.locale && { locale: deps.locale }),
-					fallbackLocale: "none",
-				},
-			}),
-			getTeamDomainFn(),
+			queryClient.ensureQueryData(
+				orpc.organization.current.queryOptions({
+					context: {
+						headers: {
+							locale: deps.locale,
+							fallbackLocale: "none",
+						},
+					},
+				}),
+			),
+			queryClient.ensureQueryData(
+				orpc.organization.domain.get.queryOptions(),
+			),
 		]),
 });
 
@@ -104,32 +102,40 @@ function RouteComponent() {
 	const t = useTranslations("TeamSettings");
 	const tActions = useTranslations("Actions");
 	const tDomain = useTranslations("TeamDomainForm");
+	const queryClient = useQueryClient();
 
-	const createDomain = useMutation({
-		mutationFn: createTeamDomainFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const updateTeam = useMutation({
-		mutationFn: updateTeamFn,
-		onSuccess: () => {
-			toast.success("Team updated");
-			router.invalidate();
-		},
-	});
+	const createDomain = useMutation(
+		orpc.organization.domain.create.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					orpc.organization.domain.get.queryOptions(),
+				);
+			},
+		}),
+	);
+	const updateTeam = useMutation(
+		orpc.organization.update.mutationOptions({
+			onSuccess: () => {
+				toast.success("Team updated");
+				router.invalidate();
+			},
+		}),
+	);
 	const deleteTeam = useMutation({
 		mutationFn: deleteTeamFn,
 		onSuccess: () => {
 			navigate({ to: "/$locale/admin" });
 		},
 	});
-	const deleteTeamDomain = useMutation({
-		mutationFn: deleteTeamDomainFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const deleteTeamDomain = useMutation(
+		orpc.organization.domain.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					orpc.organization.domain.get.queryOptions(),
+				);
+			},
+		}),
+	);
 
 	const { data } = useQuery({
 		queryKey: [
@@ -210,9 +216,7 @@ function RouteComponent() {
 								<AlertDialogAction
 									onClick={() => {
 										deleteTeamDomain.mutate({
-											data: {
-												domainId: domain.id,
-											},
+											id: domain.id,
 										});
 									}}
 								>
@@ -293,9 +297,7 @@ function RouteComponent() {
 				</div>
 			) : (
 				<DomainForm
-					onSubmit={async (data) =>
-						createDomain.mutateAsync({ data })
-					}
+					onSubmit={async (data) => createDomain.mutateAsync(data)}
 				/>
 			)}
 			<Separator className="my-4" />

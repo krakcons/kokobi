@@ -42,7 +42,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 				i18nQueryOptions({}),
 			);
 			const tenantId = await queryClient.ensureQueryData(
-				orpc.organization.tenant.queryOptions(),
+				orpc.auth.tenant.queryOptions(),
 			);
 			let favicon = "/favicon.ico";
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";

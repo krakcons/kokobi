@@ -45,7 +45,7 @@ export const Route = createFileRoute("/$locale/admin")({
 		}
 
 		const tenantId = await queryClient.ensureQueryData(
-			orpc.organization.tenant.queryOptions(),
+			orpc.auth.tenant.queryOptions(),
 		);
 		if (tenantId) {
 			if (tenantId !== auth.session.activeOrganizationId) {
@@ -98,9 +98,7 @@ export const Route = createFileRoute("/$locale/admin")({
 		Promise.all([
 			queryClient.ensureQueryData(authQueryOptions.organization.list),
 			queryClient.ensureQueryData(authQueryOptions.session),
-			queryClient.ensureQueryData(
-				orpc.organization.tenant.queryOptions(),
-			),
+			queryClient.ensureQueryData(orpc.auth.tenant.queryOptions()),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
 		]);
@@ -120,7 +118,7 @@ function RouteComponent() {
 	);
 	const { data: auth } = useSuspenseQuery(authQueryOptions.session);
 	const { data: tenantId } = useSuspenseQuery(
-		orpc.organization.tenant.queryOptions(),
+		orpc.auth.tenant.queryOptions(),
 	);
 	const { data: courses } = useSuspenseQuery(orpc.course.get.queryOptions());
 	const { data: collections } = useSuspenseQuery(

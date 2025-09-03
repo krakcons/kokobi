@@ -13,7 +13,7 @@ export const Route = createFileRoute("/$locale/")({
 	loader: async ({ context: { queryClient } }) => {
 		let team = undefined;
 		const tenantId = await queryClient.ensureQueryData(
-			orpc.organization.tenant.queryOptions(),
+			orpc.auth.tenant.queryOptions(),
 		);
 		if (tenantId) {
 			team = await queryClient.fetchQuery(

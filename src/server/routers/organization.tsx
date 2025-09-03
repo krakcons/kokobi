@@ -55,6 +55,32 @@ export const organizationRouter = base.prefix("/organizations").router({
 				}),
 			);
 		}),
+	current: organizationProcedure
+		.route({
+			tags: ["Organization"],
+			method: "GET",
+			path: "/current",
+			summary: "Get Current Organization",
+		})
+		.output(OrganizationSchema)
+		.handler(async ({ context }) => {
+			const organization = await db.query.organizations.findFirst({
+				where: eq(
+					organizations.id,
+					context.session.activeOrganizationId,
+				),
+				with: {
+					translations: true,
+					domains: true,
+				},
+			});
+
+			if (!organization) {
+				throw new ORPCError("NOT_FOUND");
+			}
+
+			return handleLocalization(context, organization);
+		}),
 	id: publicProcedure
 		.input(z.object({ id: z.string() }))
 		.output(OrganizationSchema)
@@ -95,16 +121,6 @@ export const organizationRouter = base.prefix("/organizations").router({
 			)[0].count;
 
 			return { learnerCount };
-		}),
-	tenant: organizationProcedure
-		.route({
-			tags: ["Organization"],
-			method: "GET",
-			path: "/tenant",
-			summary: "Get Tenant",
-		})
-		.handler(async () => {
-			return await getTenant();
 		}),
 	domain: {
 		get: organizationProcedure

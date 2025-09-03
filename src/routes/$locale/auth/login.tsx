@@ -1,16 +1,14 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
-import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
-import { requestOTPFn } from "@/server/handlers/auth.otp";
-import { LoginFormSchema, type LoginFormType } from "@/types/auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { TeamIcon } from "@/components/TeamIcon";
 import { teamImageUrl } from "@/lib/file";
-import type { Team, TeamTranslation } from "@/types/team";
-import { getAuthFn } from "@/server/handlers/auth";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
+import type { Organization } from "@/types/team";
+import { authClient } from "@/lib/auth.client";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -19,26 +17,34 @@ export const RedirectSchema = z.object({
 export const Route = createFileRoute("/$locale/auth/login")({
 	component: RouteComponent,
 	validateSearch: RedirectSchema,
-	beforeLoad: async ({ params }) => {
-		const auth = await getAuthFn();
+	beforeLoad: async ({ params, context: { queryClient } }) => {
+		const auth = await queryClient.ensureQueryData(
+			orpc.auth.session.queryOptions(),
+		);
 		if (auth.session) throw redirect({ to: "/$locale/admin", params });
 	},
-	loader: async () => {
-		const tenantId = await getTenantFn();
-		let team: (Team & TeamTranslation) | undefined = undefined;
+	loader: async ({ context: { queryClient } }) => {
+		const tenantId = await queryClient.ensureQueryData(
+			orpc.auth.tenant.queryOptions(),
+		);
+		let organization: Organization | undefined = undefined;
 		if (tenantId) {
-			const tenant = await getTeamByIdFn({
-				data: {
-					teamId: tenantId,
-				},
-			});
-			team = tenant;
+			const tenant = await queryClient.ensureQueryData(
+				orpc.organization.id.queryOptions({
+					input: {
+						id: tenantId,
+					},
+				}),
+			);
+			organization = tenant;
 		}
-		return {
-			team,
-		};
 	},
 });
+
+export const LoginFormSchema = z.object({
+	email: z.email(),
+});
+export type LoginFormType = z.infer<typeof LoginFormSchema>;
 
 const LoginForm = ({
 	onSubmit,
@@ -82,17 +88,33 @@ const LoginForm = ({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
+
+	const { data: tenantId } = useSuspenseQuery(
+		orpc.auth.tenant.queryOptions(),
+	);
+	const { data: team } = useSuspenseQuery(
+		orpc.organization.id.queryOptions({
+			input: {
+				id: tenantId!,
+			},
+			enabled: !!tenantId,
+		}),
+	);
+
 	const requestMutation = useMutation({
-		mutationFn: requestOTPFn,
-		onSuccess: () => {
+		mutationFn: ({ data: { email } }: { data: { email: string } }) =>
+			authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" }),
+		onSuccess: (_, { data: { email } }) => {
 			navigate({
 				to: "/$locale/auth/verify-email",
 				params: (p) => p,
-				search: (s) => s,
+				search: (s) => ({
+					...s,
+					email,
+				}),
 			});
 		},
 	});
-	const { team } = Route.useLoaderData();
 	const t = useTranslations("AuthLogin");
 
 	return (
