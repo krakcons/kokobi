@@ -147,10 +147,7 @@ function RouteComponent() {
 		{
 			accessorKey: "user.name",
 			header: ({ column }) => (
-				<DataTableColumnHeader
-					title={tUser.firstName}
-					column={column}
-				/>
+				<DataTableColumnHeader title={tUser.name} column={column} />
 			),
 			accessorFn: ({ user }) => user.name,
 			sortUndefined: "last",

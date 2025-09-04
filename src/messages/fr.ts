@@ -490,18 +490,12 @@ const fr: Messages = {
 	User: {
 		email: "E-mail",
 		name: "Nom",
-		firstName: "Prénom",
-		lastName: "Nom de famille",
 	},
 	UserForm: {
 		title: "Compte",
 		description: "Gérez les paramètres de votre compte.",
-		firstName: {
-			label: "Prénom",
-		},
-		lastName: {
-			label: "Nom de famille",
-		},
+		name: "Nom",
+		image: "L'image",
 	},
 	UserButton: {
 		theme: {

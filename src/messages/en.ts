@@ -478,18 +478,12 @@ const en = {
 	User: {
 		email: "Email",
 		name: "Name",
-		firstName: "First Name",
-		lastName: "Last Name",
 	},
 	UserForm: {
 		title: "Account",
 		description: "Manage your account settings.",
-		firstName: {
-			label: "First Name",
-		},
-		lastName: {
-			label: "Last Name",
-		},
+		name: "Name",
+		image: "Image",
 	},
 	UserButton: {
 		theme: {

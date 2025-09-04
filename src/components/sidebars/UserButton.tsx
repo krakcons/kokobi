@@ -32,12 +32,13 @@ import {
 	DialogTitle,
 } from "../ui/dialog";
 import { UserForm } from "../forms/UserForm";
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/locale";
 import { authClient } from "@/lib/auth.client";
 import type { User } from "better-auth";
+import { orpc } from "@/server/client";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -59,10 +60,10 @@ export const UserButton = ({
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { isMobile } = useSidebar();
-	const router = useRouter();
 	const { accountDialog = false } = useSearch({
 		from: "__root__",
 	});
+	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const t = useTranslations("UserButton");
 	const tUserForm = useTranslations("UserForm");
@@ -82,12 +83,9 @@ export const UserButton = ({
 		});
 
 	const updateUser = useMutation({
-		mutationFn: ({ firstName, lastName }: UserFormType) =>
-			authClient.updateUser({
-				name: `${firstName} ${lastName}`,
-			}),
+		mutationFn: (values: UserFormType) => authClient.updateUser(values),
 		onSuccess: () => {
-			router.invalidate();
+			queryClient.invalidateQueries(orpc.auth.session.queryOptions());
 			setAccountDialog(false);
 		},
 	});
@@ -214,8 +212,7 @@ export const UserButton = ({
 					</DialogHeader>
 					<UserForm
 						defaultValues={{
-							firstName: user.name,
-							lastName: user.name,
+							name: user.name,
 						}}
 						onSubmit={(data) => updateUser.mutateAsync(data)}
 					/>
