@@ -1,9 +1,10 @@
-import { base, learnerProcedure } from "../middleware";
+import { base, learnerProcedure, publicProcedure } from "../middleware";
 import { db } from "@/server/db";
 import {
 	courses,
 	modules,
 	organizations,
+	sessions,
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
@@ -25,15 +26,16 @@ import { getInitialScormData, isModuleSuccessful } from "@/lib/scorm";
 import { getConnectionLink } from "../lib/connection";
 import CourseCompletion from "@/components/emails/CourseCompletion";
 import { sendEmail, verifyEmail } from "../lib/email";
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
 import { ORPCError } from "@orpc/client";
 import { s3 } from "../s3";
 import type { Organization } from "@/types/team";
 import { setCookie } from "@tanstack/react-start/server";
+import { auth } from "@/lib/auth";
 
 export const learnerRouter = base.prefix("/learner").router({
 	organization: {
-		get: learnerProcedure
+		get: publicProcedure
 			.route({
 				tags: ["Learner"],
 				method: "GET",
@@ -42,11 +44,11 @@ export const learnerRouter = base.prefix("/learner").router({
 			})
 			.handler(async ({ context }) => {
 				let learnerTeam = undefined;
-				if (context.session.activeLearnerTeamId) {
+				if (context.session.activeLearnerOrganizationId) {
 					learnerTeam = await db.query.organizations.findFirst({
 						where: eq(
 							organizations.id,
-							context.session.activeLearnerTeamId,
+							context.session.activeLearnerOrganizationId,
 						),
 						with: {
 							translations: true,
@@ -110,7 +112,12 @@ export const learnerRouter = base.prefix("/learner").router({
 				}),
 			)
 			.handler(async ({ input: { id } }) => {
-				setCookie("learnerTeamId", id);
+				await db
+					.update(sessions)
+					.set({
+						activeLearnerOrganizationId: id,
+					})
+					.where(eq(sessions.id, context.session.id));
 			}),
 		current: learnerProcedure
 			.route({
@@ -123,7 +130,7 @@ export const learnerRouter = base.prefix("/learner").router({
 				const organization = await db.query.organizations.findFirst({
 					where: eq(
 						organizations.id,
-						context.session.activeLearnerTeamId,
+						context.session.activeLearnerOrganizationId,
 					),
 					with: {
 						translations: true,
@@ -152,7 +159,7 @@ export const learnerRouter = base.prefix("/learner").router({
 						eq(usersToCourses.userId, context.user.id),
 						eq(
 							usersToCourses.organizationId,
-							context.session.activeLearnerTeamId,
+							context.session.activeLearnerOrganizationId,
 						),
 					),
 					with: {
@@ -188,13 +195,16 @@ export const learnerRouter = base.prefix("/learner").router({
 			})
 			.output(CourseSchema.array())
 			.handler(async ({ context }) => {
-				if (context.session.activeLearnerTeamId !== env.WELCOME_TEAM_ID)
+				if (
+					context.session.activeLearnerOrganizationId !==
+					env.WELCOME_TEAM_ID
+				)
 					return [];
 				// TODO: Allow learner team members to access available courses (or something else)
 				const courseList = await db.query.courses.findMany({
 					where: eq(
 						courses.organizationId,
-						context.session.activeLearnerTeamId,
+						context.session.activeLearnerOrganizationId,
 					),
 					with: {
 						translations: true,
@@ -228,7 +238,7 @@ export const learnerRouter = base.prefix("/learner").router({
 							eq(usersToModules.courseId, id),
 							eq(
 								usersToModules.organizationId,
-								context.session.activeLearnerTeamId,
+								context.session.activeLearnerOrganizationId,
 							),
 						),
 						with: {
@@ -265,7 +275,7 @@ export const learnerRouter = base.prefix("/learner").router({
 							eq(usersToModules.userId, context.user.id),
 							eq(
 								usersToModules.organizationId,
-								context.session.activeLearnerTeamId,
+								context.session.activeLearnerOrganizationId,
 							),
 						),
 						with: {
@@ -317,7 +327,8 @@ export const learnerRouter = base.prefix("/learner").router({
 						type: "course",
 						id,
 						userId: context.user.id,
-						organizationId: context.session.activeLearnerTeamId,
+						organizationId:
+							context.session.activeLearnerOrganizationId,
 					});
 
 					const moduleList = await db.query.modules.findMany({
@@ -337,7 +348,8 @@ export const learnerRouter = base.prefix("/learner").router({
 					await db.insert(usersToModules).values({
 						id: attemptId,
 						userId: context.user.id,
-						organizationId: context.session.activeLearnerTeamId,
+						organizationId:
+							context.session.activeLearnerOrganizationId,
 						moduleId: module.id,
 						courseId: id,
 						data: getInitialScormData(module.type),
@@ -367,7 +379,7 @@ export const learnerRouter = base.prefix("/learner").router({
 								id,
 								userId: context.user.id,
 								organizationId:
-									context.session.activeLearnerTeamId,
+									context.session.activeLearnerOrganizationId,
 							});
 
 							const attempt =
@@ -381,7 +393,8 @@ export const learnerRouter = base.prefix("/learner").router({
 										),
 										eq(
 											usersToModules.organizationId,
-											context.session.activeLearnerTeamId,
+											context.session
+												.activeLearnerOrganizationId,
 										),
 									),
 									with: {
@@ -440,7 +453,7 @@ export const learnerRouter = base.prefix("/learner").router({
 											where: eq(
 												organizations.id,
 												context.session
-													.activeLearnerTeamId,
+													.activeLearnerOrganizationId,
 											),
 											with: {
 												translations: true,
@@ -461,7 +474,8 @@ export const learnerRouter = base.prefix("/learner").router({
 										type: "course",
 										locale: course.locale,
 										organizationId:
-											context.session.activeLearnerTeamId,
+											context.session
+												.activeLearnerOrganizationId,
 									});
 
 									const t = await createTranslator({
@@ -480,7 +494,7 @@ export const learnerRouter = base.prefix("/learner").router({
 											<CourseCompletion
 												name={course.name}
 												teamName={team.name}
-												logo={teamImageUrl(
+												logo={organizationImageUrl(
 													team,
 													"logo",
 												)}
@@ -509,7 +523,8 @@ export const learnerRouter = base.prefix("/learner").router({
 										),
 										eq(
 											usersToModules.organizationId,
-											context.session.activeLearnerTeamId,
+											context.session
+												.activeLearnerOrganizationId,
 										),
 									),
 								)
@@ -540,7 +555,7 @@ export const learnerRouter = base.prefix("/learner").router({
 						eq(usersToCollections.userId, context.user.id),
 						eq(
 							usersToCollections.organizationId,
-							context.session.activeLearnerTeamId,
+							context.session.activeLearnerOrganizationId,
 						),
 					),
 					with: {

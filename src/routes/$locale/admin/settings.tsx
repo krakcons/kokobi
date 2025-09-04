@@ -2,10 +2,15 @@ import { TeamForm } from "@/components/forms/TeamForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQuery,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Trash } from "lucide-react";
-import { fetchFile, teamImageUrl } from "@/lib/file";
+import { fetchFile, organizationImageUrl } from "@/lib/file";
 
 import { DomainFormSchema, type DomainFormType } from "@/types/domains";
 import { useAppForm } from "@/components/ui/form";
@@ -97,12 +102,26 @@ const DomainForm = ({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [team, domain] = Route.useLoaderData();
 	const router = useRouter();
 	const t = useTranslations("TeamSettings");
 	const tActions = useTranslations("Actions");
 	const tDomain = useTranslations("TeamDomainForm");
 	const queryClient = useQueryClient();
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.organization.current.queryOptions({
+			context: {
+				headers: {
+					locale: search.locale,
+					fallbackLocale: "none",
+				},
+			},
+		}),
+	);
+
+	const { data: domain } = useSuspenseQuery(
+		orpc.organization.domain.get.queryOptions(),
+	);
 
 	const createDomain = useMutation(
 		orpc.organization.domain.create.mutationOptions({
@@ -113,7 +132,7 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const updateTeam = useMutation(
+	const updateOrganization = useMutation(
 		orpc.organization.update.mutationOptions({
 			context: {
 				headers: {
@@ -121,19 +140,19 @@ function RouteComponent() {
 				},
 			},
 			onSuccess: () => {
-				toast.success("Team updated");
+				toast.success("Organization updated");
 				router.invalidate();
 			},
 		}),
 	);
-	const deleteTeam = useMutation(
+	const deleteOrganization = useMutation(
 		orpc.organization.delete.mutationOptions({
 			onSuccess: () => {
 				navigate({ to: "/$locale/admin" });
 			},
 		}),
 	);
-	const deleteTeamDomain = useMutation(
+	const deleteOrganizationDomain = useMutation(
 		orpc.organization.domain.delete.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries(
@@ -145,18 +164,22 @@ function RouteComponent() {
 
 	const { data } = useQuery({
 		queryKey: [
-			"team-logo-favicon",
-			team.logo,
-			team.favicon,
-			team.updatedAt,
+			"organization-logo-favicon",
+			organization.logo,
+			organization.favicon,
+			organization.updatedAt,
 		],
 		queryFn: async () => {
 			return {
-				logo: team.logo
-					? await fetchFile(teamImageUrl(team, "logo"))
+				logo: organization.logo
+					? await fetchFile(
+							organizationImageUrl(organization, "logo"),
+						)
 					: null,
-				favicon: team.favicon
-					? await fetchFile(teamImageUrl(team, "favicon"))
+				favicon: organization.favicon
+					? await fetchFile(
+							organizationImageUrl(organization, "favicon"),
+						)
 					: null,
 			};
 		},
@@ -166,18 +189,18 @@ function RouteComponent() {
 		<Page>
 			<PageHeader title={t.title} description={t.description}>
 				<Badge variant="secondary">
-					<p>{team.id}</p>
-					<CopyButton text={team.id} />
+					<p>{organization.id}</p>
+					<CopyButton text={organization.id} />
 				</Badge>
 			</PageHeader>
 			<TeamForm
-				key={team.locale}
+				key={organization.locale}
 				defaultValues={{
 					logo: data?.logo ?? "",
 					favicon: data?.favicon ?? "",
-					name: team.name,
+					name: organization.name,
 				}}
-				onSubmit={(values) => updateTeam.mutateAsync(values)}
+				onSubmit={(values) => updateOrganization.mutateAsync(values)}
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader
@@ -210,7 +233,7 @@ function RouteComponent() {
 								</AlertDialogCancel>
 								<AlertDialogAction
 									onClick={() => {
-										deleteTeamDomain.mutate({
+										deleteOrganizationDomain.mutate({
 											id: domain.id,
 										});
 									}}
@@ -320,7 +343,7 @@ function RouteComponent() {
 						<AlertDialogCancel>{tActions.cancel}</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={() => {
-								deleteTeam.mutate({});
+								deleteOrganization.mutate({});
 							}}
 						>
 							{tActions.continue}

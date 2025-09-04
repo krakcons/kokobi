@@ -15,7 +15,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useMatch } from "@tanstack/react-router";
+import { Link, useMatch, useNavigate } from "@tanstack/react-router";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -47,6 +47,8 @@ import { Separator } from "../ui/separator";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import type { Invitation } from "better-auth/plugins";
 import type { User } from "better-auth";
+import { authClient } from "@/lib/auth.client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CourseCollapsible = ({ course }: { course: Course }) => {
 	const { setOpenMobile } = useSidebar();
@@ -492,6 +494,8 @@ export const AdminSidebar = ({
 	const { setOpenMobile } = useSidebar();
 	const t = useTranslations("AdminSidebar");
 	const locale = useLocale();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	return (
 		<Sidebar className="list-none">
@@ -501,6 +505,21 @@ export const AdminSidebar = ({
 					activeOrganizationId={activeOrganizationId}
 					organizations={organizations}
 					invitations={invitations}
+					onSetActive={(organizationId) => {
+						authClient.organization.setActive({
+							organizationId: organizationId,
+							fetchOptions: {
+								onSuccess: () => {
+									navigate({
+										to: "/$locale/admin",
+										params: { locale },
+									}).then(() => {
+										queryClient.invalidateQueries();
+									});
+								},
+							},
+						});
+					}}
 				/>
 			</SidebarHeader>
 			<SidebarContent>

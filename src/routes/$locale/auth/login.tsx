@@ -4,7 +4,7 @@ import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { TeamIcon } from "@/components/TeamIcon";
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import type { Organization } from "@/types/team";
@@ -125,7 +125,7 @@ function RouteComponent() {
 		<FloatingPage>
 			{organization && (
 				<TeamIcon
-					src={teamImageUrl(organization, "logo")}
+					src={organizationImageUrl(organization, "logo")}
 					className="my-4"
 				/>
 			)}

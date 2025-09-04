@@ -28,15 +28,12 @@ const authMiddleware = base.middleware(async ({ context, next }) => {
 		headers: context.headers,
 	});
 
-	if (!authResult) {
-		throw new ORPCError("UNAUTHORIZED");
-	}
-
 	return next({
 		context: {
 			...context,
-			...authResult,
-			member: authResult.session
+			user: authResult?.user,
+			session: authResult?.session,
+			member: authResult?.session
 				? ((await auth.api.getActiveMember({
 						headers: context.headers,
 					})) ?? undefined)
@@ -45,11 +42,36 @@ const authMiddleware = base.middleware(async ({ context, next }) => {
 	});
 });
 
-export const publicProcedure = base.use(localeMiddleware);
+export const publicProcedure = base.use(localeMiddleware).use(authMiddleware);
+
+export const protectedMiddleware = base.middleware(
+	async ({ context, next }) => {
+		const authResult = await auth.api.getSession({
+			headers: context.headers,
+		});
+
+		if (!authResult) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		return next({
+			context: {
+				...context,
+				user: authResult?.user,
+				session: authResult?.session,
+				member: authResult?.session
+					? ((await auth.api.getActiveMember({
+							headers: context.headers,
+						})) ?? undefined)
+					: undefined,
+			},
+		});
+	},
+);
 
 export const protectedProcedure = base
 	.use(localeMiddleware)
-	.use(authMiddleware);
+	.use(protectedMiddleware);
 
 export const organizationProcedure = protectedProcedure.use(
 	base.$context<Session>().middleware(async ({ context, next }) => {
@@ -71,7 +93,7 @@ export const organizationProcedure = protectedProcedure.use(
 
 export const learnerProcedure = protectedProcedure.use(
 	base.$context<Session>().middleware(async ({ context, next }) => {
-		if (!context.session.activeLearnerTeamId) {
+		if (!context.session.activeLearnerOrganizationId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
@@ -80,7 +102,8 @@ export const learnerProcedure = protectedProcedure.use(
 				...context,
 				session: {
 					...context.session,
-					activeLearnerTeamId: context.session.activeLearnerTeamId,
+					activeLearnerOrganizationId:
+						context.session.activeLearnerOrganizationId,
 				},
 			},
 		});

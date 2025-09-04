@@ -1,4 +1,4 @@
-import { useLocation, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Button, buttonVariants } from "./ui/button";
 import { FloatingPage } from "./Page";
@@ -10,7 +10,6 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const ErrorComponent = ({ error }: ErrorComponentProps) => {
 	const router = useRouter();
-	const location = useLocation();
 	const { data: i18n } = useSuspenseQuery(i18nQueryOptions({}));
 	const t = useTranslations("Errors", i18n);
 

@@ -12,7 +12,7 @@ export const auth = betterAuth({
 	}),
 	session: {
 		additionalFields: {
-			activeLearnerTeamId: {
+			activeLearnerOrganizationId: {
 				type: "string",
 				optional: true,
 			},

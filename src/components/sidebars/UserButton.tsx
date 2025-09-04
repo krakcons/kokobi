@@ -4,14 +4,14 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { type Theme, themes, useTheme } from "@/lib/theme";
-import type { UserFormType, User as UserType } from "@/types/users";
+import type { UserFormType } from "@/types/users";
 import {
 	LogOutIcon,
 	Moon,
 	MoreVerticalIcon,
 	Sun,
 	SunMoon,
-	User,
+	UserIcon,
 	UserCircleIcon,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -37,6 +37,7 @@ import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/locale";
 import { authClient } from "@/lib/auth.client";
+import type { User } from "better-auth";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -53,7 +54,7 @@ export const UserButton = ({
 	user,
 	signOutRedirect,
 }: {
-	user: UserType;
+	user: User;
 	signOutRedirect?: string;
 }) => {
 	const { theme, setTheme } = useTheme();
@@ -69,7 +70,7 @@ export const UserButton = ({
 	const initials = user.name ? (
 		user.name.charAt(0)
 	) : (
-		<User className="size-4.5" />
+		<UserIcon className="size-4.5" />
 	);
 
 	const setAccountDialog = (open: boolean) =>
@@ -216,11 +217,7 @@ export const UserButton = ({
 							firstName: user.name,
 							lastName: user.name,
 						}}
-						onSubmit={(data) =>
-							updateUser.mutateAsync({
-								data,
-							})
-						}
+						onSubmit={(data) => updateUser.mutateAsync(data)}
 					/>
 				</DialogContent>
 			</Dialog>

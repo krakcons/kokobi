@@ -46,6 +46,7 @@ export const getUserList = async ({ emails }: { emails: string[] }) => {
 		.values(
 			emails.map((email) => ({
 				email,
+				name: "",
 				id: Bun.randomUUIDv7(),
 			})),
 		)

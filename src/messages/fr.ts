@@ -479,6 +479,7 @@ const fr: Messages = {
 	},
 	User: {
 		email: "E-mail",
+		name: "Nom",
 		firstName: "Prénom",
 		lastName: "Nom de famille",
 	},

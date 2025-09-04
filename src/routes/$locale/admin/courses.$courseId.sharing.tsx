@@ -7,7 +7,6 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import { createFileRoute } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
-import type { Team } from "@/types/team";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +29,8 @@ import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { env } from "@/env";
 import { orpc } from "@/server/client";
+import type { Organization } from "@/types/team";
+import type { ConnectionType } from "@/types/connections";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/sharing",
@@ -107,7 +108,11 @@ function RouteComponent() {
 		}),
 	);
 
-	const columns: ColumnDef<Team>[] = [
+	const columns: ColumnDef<
+		Organization & {
+			connection: ConnectionType;
+		}
+	>[] = [
 		{
 			accessorKey: "name",
 			header: ({ column }) => (
@@ -120,8 +125,8 @@ function RouteComponent() {
 				<DataTableColumnHeader title={t.table.status} column={column} />
 			),
 			cell: ({ row: { original } }) => {
-				const connectStatus = original.connection?.connectStatus;
-				const connectType = original.connection?.connectType;
+				const connectStatus = original.connection.connectStatus;
+				const connectType = original.connection.connectType;
 				if (!connectStatus || !connectType) {
 					return null;
 				}
@@ -135,15 +140,17 @@ function RouteComponent() {
 				);
 			},
 		},
-		createDataTableActionsColumn<Team>([
+		createDataTableActionsColumn<
+			Organization & { connection: ConnectionType }
+		>([
 			{
 				name: tConnect.accept,
-				onClick: ({ teamId }) =>
+				onClick: ({ id }) =>
 					updateConnection.mutate({
 						senderType: "team",
 						recipientType: "course",
 						id: params.courseId,
-						connectToId: teamId,
+						connectToId: id,
 						connectStatus: "accepted",
 					}),
 				visible: ({ connection }) =>
@@ -151,12 +158,12 @@ function RouteComponent() {
 			},
 			{
 				name: tConnect.reject,
-				onClick: ({ teamId }) =>
+				onClick: ({ id }) =>
 					updateConnection.mutate({
 						senderType: "team",
 						recipientType: "course",
 						id: params.courseId,
-						connectToId: teamId,
+						connectToId: id,
 						connectStatus: "rejected",
 					}),
 				visible: ({ connection }) =>
@@ -164,12 +171,12 @@ function RouteComponent() {
 			},
 			{
 				name: tActions.delete,
-				onClick: ({ teamId }) =>
+				onClick: ({ id }) =>
 					removeConnection.mutate({
 						senderType: "team",
 						recipientType: "course",
 						id: params.courseId,
-						connectToId: teamId,
+						connectToId: id,
 					}),
 			},
 		]),

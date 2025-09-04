@@ -38,14 +38,15 @@ export const Route = createFileRoute("/$locale/learner")({
 		location,
 		context: { queryClient },
 	}) => {
-		const auth = await queryClient.ensureQueryData(
-			orpc.auth.session.queryOptions(),
-		);
-
-		if (!auth) {
+		let auth = undefined;
+		try {
+			auth = await queryClient.ensureQueryData(
+				orpc.auth.session.queryOptions(),
+			);
+		} catch (e) {
 			throw redirect({
 				to: "/$locale/auth/login",
-				search: (s) => ({
+				search: (s: any) => ({
 					...s,
 					redirect: location.pathname,
 				}),
@@ -57,13 +58,15 @@ export const Route = createFileRoute("/$locale/learner")({
 			orpc.auth.tenant.queryOptions(),
 		);
 		let redirectHref = undefined;
+		console.log(tenantId);
 		if (tenantId) {
-			if (tenantId !== auth.session.activeLearnerTeamId) {
+			if (tenantId !== auth.session.activeLearnerOrganizationId) {
 				await orpc.learner.organization.update.call({
 					id: tenantId,
 				});
 			}
 		} else {
+			console.log("SEARCH", search);
 			if (search.teamId) {
 				await orpc.learner.organization.update.call({
 					id: search.teamId,
@@ -72,10 +75,12 @@ export const Route = createFileRoute("/$locale/learner")({
 				newUrl.searchParams.delete("teamId");
 				redirectHref = newUrl.href;
 			}
-			if (!auth.session.activeLearnerTeamId) {
+			console.log("AUTH", auth);
+			if (!auth.session.activeLearnerOrganizationId) {
 				const organizations = await queryClient.ensureQueryData(
 					orpc.learner.organization.get.queryOptions(),
 				);
+				console.log(organizations);
 				await orpc.learner.organization.update.call({
 					id: organizations[0].id,
 				});
@@ -145,15 +150,17 @@ function RouteComponent() {
 			{!isIframe && (
 				<LearnerSidebar
 					tenantId={tenantId ?? undefined}
-					teamId={auth.session.activeLearnerTeamId}
-					teams={organizations}
+					activeLearnerOrganizationId={
+						auth.session.activeLearnerOrganizationId
+					}
+					organizations={organizations}
 					availableCourses={availableCourses.filter(
 						(c) =>
 							!courses?.some(({ course }) => course?.id === c.id),
 					)}
 					courses={courses}
 					collections={collections}
-					user={auth.user!}
+					user={auth.user}
 				/>
 			)}
 			<SidebarInset className="max-w-full overflow-hidden">

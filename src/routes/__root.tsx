@@ -14,7 +14,7 @@ import {
 import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { NotFound } from "@/components/NotFound";
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
 import { z } from "zod";
 import { PendingComponent } from "@/components/PendingComponent";
 import { useTheme } from "@/lib/theme";
@@ -38,14 +38,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 		pendingComponent: PendingComponent,
 		component: RootComponent,
 		loader: async ({ context: { queryClient } }) => {
+			console.log("LOADING ROOT");
 			const i18n = await queryClient.ensureQueryData(
 				i18nQueryOptions({}),
 			);
+			console.log("GETTING TENANT 0");
 			const tenantId = await queryClient.ensureQueryData(
 				orpc.auth.tenant.queryOptions(),
 			);
 			let favicon = "/favicon.ico";
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";
+			console.log("GETTING TENANT");
 
 			if (tenantId) {
 				console.log("GETTING TENANT");
@@ -57,7 +60,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					}),
 				);
 				if (tenant.favicon)
-					favicon = teamImageUrl(tenant, "favicon") || favicon;
+					favicon =
+						organizationImageUrl(tenant, "favicon") || favicon;
 				title = `${tenant.name}`;
 			} else {
 				title = i18n.messages.SEO.title;

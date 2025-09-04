@@ -4,7 +4,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -21,7 +21,7 @@ import { Button } from "../ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "../ui/badge";
 import { authClient, authQueryOptions } from "@/lib/auth.client";
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
 import type { Organization } from "@/types/team";
 
 const Invitation = ({
@@ -88,17 +88,17 @@ export const OrganizationSwitcher = ({
 	organizations,
 	invitations,
 	activeOrganizationId,
+	onSetActive,
 }: {
 	tenantId?: string;
 	organizations: Organization[];
 	invitations: Invitation[];
 	activeOrganizationId: string;
+	onSetActive?: (organizationId: string) => void;
 }) => {
 	const { isMobile } = useSidebar();
 	const locale = useLocale();
-	const navigate = useNavigate();
 	const t = useTranslations("OrganizationSwitcher");
-	const queryClient = useQueryClient();
 
 	const organization = organizations.find(
 		(organization) => organization.id === activeOrganizationId,
@@ -112,7 +112,7 @@ export const OrganizationSwitcher = ({
 				<div className="flex gap-2 justify-between items-center flex-wrap w-full p-2">
 					<Avatar className="rounded-lg size-8">
 						<AvatarImage
-							src={teamImageUrl(organization, "favicon")}
+							src={organizationImageUrl(organization, "favicon")}
 							className="rounded-lg"
 						/>
 						<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
@@ -170,19 +170,7 @@ export const OrganizationSwitcher = ({
 							<DropdownMenuItem
 								key={organization.id}
 								onClick={() => {
-									authClient.organization.setActive({
-										organizationId: organization.id,
-										fetchOptions: {
-											onSuccess: () => {
-												navigate({
-													to: "/$locale/admin",
-													params: { locale },
-												}).then(() => {
-													queryClient.invalidateQueries();
-												});
-											},
-										},
-									});
+									onSetActive?.(organization.id);
 								}}
 								className="gap-2 p-2"
 							>

@@ -1,8 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
-import { TeamUsersFormSchema, type TeamUsersFormType } from "@/types/team";
 import { useTranslations } from "@/lib/locale";
+import z from "zod";
+
+export const TeamUsersFormSchema = z.object({
+	users: z.array(
+		z.object({
+			email: z.email().min(1),
+			role: z.enum(["owner", "member"]),
+		}),
+	),
+});
+export type TeamUsersFormType = z.infer<typeof TeamUsersFormSchema>;
 
 export const TeamUsersForm = ({
 	onSubmit,

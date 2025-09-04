@@ -1,5 +1,6 @@
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
 import type { Messages } from "@/lib/locale";
+import type { Organization } from "@/types/team";
 import {
 	Document,
 	Font,
@@ -57,17 +58,24 @@ export type CertificateProps = {
 	name: string;
 	course: string;
 	completedAt: string;
-	contentOrganization: Team & TeamTranslation;
-	connectTeam: Team & TeamTranslation;
+	contentOrganization: Organization;
+	connectOrganization: Organization;
 	t: Messages["Certificate"]["pdf"];
 };
 
 export const Certificate = ({
-	certificate: { name, course, completedAt, t, connectTeam, contentTeam },
+	certificate: {
+		name,
+		course,
+		completedAt,
+		t,
+		contentOrganization,
+		connectOrganization,
+	},
 }: {
 	certificate: CertificateProps;
 }) => {
-	const sharedCourse = contentTeam.id !== connectTeam.id;
+	const sharedCourse = contentOrganization.id !== connectOrganization.id;
 
 	return (
 		<Document>
@@ -156,9 +164,12 @@ export const Certificate = ({
 							justifyContent: "center",
 						}}
 					>
-						{connectTeam.logo && (
+						{connectOrganization.logo && (
 							<Image
-								src={teamImageUrl(connectTeam, "logo")}
+								src={organizationImageUrl(
+									connectOrganization,
+									"logo",
+								)}
 								style={{
 									height: 35,
 									objectFit: "contain",
@@ -166,7 +177,7 @@ export const Certificate = ({
 							/>
 						)}
 						<Text style={{ fontSize: 10, fontStyle: "italic" }}>
-							{t.offered + " " + connectTeam.name}
+							{t.offered + " " + connectOrganization.name}
 						</Text>
 					</View>
 					{sharedCourse && (
@@ -178,9 +189,12 @@ export const Certificate = ({
 								justifyContent: "center",
 							}}
 						>
-							{contentTeam.logo && (
+							{contentOrganization.logo && (
 								<Image
-									src={teamImageUrl(contentTeam, "logo")}
+									src={organizationImageUrl(
+										contentOrganization,
+										"logo",
+									)}
 									style={{
 										height: 35,
 										objectFit: "contain",
@@ -188,7 +202,7 @@ export const Certificate = ({
 								/>
 							)}
 							<Text style={{ fontSize: 10, fontStyle: "italic" }}>
-								{t.created + " " + contentTeam.name}
+								{t.created + " " + contentOrganization.name}
 							</Text>
 						</View>
 					)}

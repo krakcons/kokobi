@@ -15,30 +15,29 @@ import { useLocale, useTranslations } from "@/lib/locale";
 import { Book, LayoutDashboard, SquareLibrary } from "lucide-react";
 import type { Course } from "@/types/course";
 import type { Collection, CollectionTranslation } from "@/types/collections";
-import type { Team, TeamTranslation } from "@/types/team";
 import type {
 	UserToCollectionType,
 	UserToCourseType,
-	UserToTeamType,
 } from "@/types/connections";
-import { TeamSwitcher } from "./TeamSwitcher";
-import type { User } from "@/types/users";
 import { UserButton } from "./UserButton";
 import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
 import { Separator } from "../ui/separator";
+import type { Organization } from "@/types/team";
+import { OrganizationSwitcher } from "./OrganizationSwitcher";
+import type { User } from "better-auth";
 
 export const LearnerSidebar = ({
 	tenantId,
-	teamId,
-	teams,
+	activeLearnerOrganizationId,
+	organizations,
 	courses,
 	availableCourses,
 	collections,
 	user,
 }: {
 	tenantId?: string;
-	teamId: string;
-	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
+	activeLearnerOrganizationId: string;
+	organizations: Organization[];
 	courses: (UserToCourseType & { course: Course })[];
 	availableCourses: Course[];
 	collections: (UserToCollectionType & {
@@ -55,11 +54,12 @@ export const LearnerSidebar = ({
 
 	return (
 		<Sidebar className="list-none">
-			<TeamSwitcher
+			<OrganizationSwitcher
 				tenantId={tenantId}
-				teamId={teamId}
-				teams={teams}
-				type="learner"
+				activeOrganizationId={activeLearnerOrganizationId}
+				organizations={organizations}
+				invitations={[]}
+				onSetActive={(organizationId) => {}}
 			/>
 			<SidebarContent>
 				<SidebarGroup>

@@ -8,6 +8,7 @@
 		"start": "bunx drizzle-kit migrate && bun run ./.output/server/index.mjs",
 		"generate-routes": "tsr generate",
 		"watch-routes": "tsr watch",
+		"generate-auth": "bunx --bun @better-auth/cli@latest generate --output src/server/db/auth.ts",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {

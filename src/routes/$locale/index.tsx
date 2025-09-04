@@ -4,7 +4,7 @@ import { useTranslations } from "@/lib/locale";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Blocks, Book } from "lucide-react";
 import { TeamIcon } from "@/components/TeamIcon";
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { orpc } from "@/server/client";
 
@@ -61,7 +61,10 @@ function Home() {
 	if (team) {
 		return (
 			<FloatingPage>
-				<TeamIcon src={teamImageUrl(team, "logo")} className="my-4" />
+				<TeamIcon
+					src={organizationImageUrl(team, "logo")}
+					className="my-4"
+				/>
 				<PageHeader
 					title={team.name}
 					description={t["team-description"]}

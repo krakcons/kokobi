@@ -468,6 +468,7 @@ const en = {
 	},
 	User: {
 		email: "Email",
+		name: "Name",
 		firstName: "First Name",
 		lastName: "Last Name",
 	},

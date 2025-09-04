@@ -28,7 +28,8 @@ import { createConnection } from "./connection";
 import { isModuleSuccessful } from "@/lib/scorm";
 import { sendEmail, verifyEmail } from "../lib/email";
 import CourseCompletion from "@/components/emails/CourseCompletion";
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
+import { ConnectionSchema } from "@/types/connections";
 
 export const courseRouter = base.prefix("/courses").router({
 	get: organizationProcedure
@@ -337,7 +338,7 @@ export const courseRouter = base.prefix("/courses").router({
 					<CourseCompletion
 						name={course.name}
 						teamName={team.name}
-						logo={teamImageUrl(team, "logo")}
+						logo={organizationImageUrl(team, "logo")}
 						href={href}
 						t={t.Email.CourseCompletion}
 					/>
@@ -408,7 +409,11 @@ export const courseRouter = base.prefix("/courses").router({
 				id: z.string(),
 			}),
 		)
-		.output(OrganizationSchema.array())
+		.output(
+			OrganizationSchema.extend({
+				connection: ConnectionSchema,
+			}).array(),
+		)
 		.handler(async ({ context, input: { id } }) => {
 			const connections = await db.query.organizationsToCourses.findMany({
 				where: and(
