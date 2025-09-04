@@ -16,6 +16,7 @@ export const Route = createFileRoute("/$locale/")({
 			orpc.auth.tenant.queryOptions(),
 		);
 		if (tenantId) {
+			console.log("tenantId", tenantId);
 			team = await queryClient.fetchQuery(
 				orpc.organization.id.queryOptions({
 					input: {

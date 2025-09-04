@@ -1,6 +1,11 @@
 import z from "zod";
-import { base, organizationProcedure, publicProcedure } from "../middleware";
-import { OrganizationSchema } from "@/types/team";
+import {
+	base,
+	organizationProcedure,
+	protectedProcedure,
+	publicProcedure,
+} from "../middleware";
+import { OrganizationFormSchema, OrganizationSchema } from "@/types/team";
 import { db } from "../db";
 import {
 	domains,
@@ -11,7 +16,6 @@ import {
 import { and, count, eq, inArray } from "drizzle-orm";
 import { ORPCError } from "@orpc/client";
 import { handleLocalization } from "@/lib/locale";
-import { getTenant } from "../lib/tenant";
 import {
 	CreateEmailIdentityCommand,
 	DeleteEmailIdentityCommand,
@@ -21,9 +25,15 @@ import {
 import { ses } from "../ses";
 import { cf } from "../cloudflare";
 import { env } from "../env";
-import { DomainFormSchema, type DomainRecord } from "@/types/domains";
+import {
+	DomainFormSchema,
+	DomainRecordSchema,
+	DomainSchema,
+	type DomainRecord,
+} from "@/types/domains";
 import { APIError } from "cloudflare";
 import { auth } from "@/lib/auth";
+import { s3 } from "../s3";
 
 export const organizationRouter = base.prefix("/organizations").router({
 	get: organizationProcedure
@@ -33,7 +43,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 			path: "/",
 			summary: "Get Organizations",
 		})
-		.output(OrganizationSchema)
+		.output(OrganizationSchema.array())
 		.handler(async ({ context }) => {
 			const organizations = await auth.api.listOrganizations({
 				headers: context.headers,
@@ -54,6 +64,148 @@ export const organizationRouter = base.prefix("/organizations").router({
 					)!,
 				}),
 			);
+		}),
+	create: protectedProcedure
+		.route({
+			tags: ["Organization"],
+			method: "POST",
+			path: "/",
+			summary: "Create Organization",
+		})
+		.input(OrganizationFormSchema)
+		.output(z.object({ id: z.string() }))
+		.handler(async ({ context, input: { name, favicon, logo } }) => {
+			const organization = await auth.api.createOrganization({
+				headers: context.headers,
+				body: {
+					name,
+					slug: name.toLowerCase().replaceAll(" ", "-"),
+				},
+			});
+
+			if (!organization) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR");
+			}
+
+			let logoUrl = null;
+			if (logo) {
+				const extension = logo.name.split(".").pop();
+				const path = `${organization.id}/${context.locale}/logo.${extension}`;
+				await s3.write(path, logo, {
+					type: logo.type,
+				});
+				logoUrl = path;
+			}
+
+			let faviconUrl = null;
+			if (favicon) {
+				const extension = favicon.name.split(".").pop();
+				const path = `${organization.id}/${context.locale}/favicon.${extension}`;
+				await s3.write(path, favicon, {
+					type: favicon.type,
+				});
+				faviconUrl = path;
+			}
+
+			await db.insert(organizationTranslations).values({
+				name,
+				organizationId: organization.id,
+				locale: context.locale,
+				logo: logoUrl,
+				favicon: faviconUrl,
+			});
+
+			return {
+				id: organization.id,
+			};
+		}),
+	update: organizationProcedure
+		.route({
+			tags: ["Organization"],
+			method: "PUT",
+			path: "/",
+			summary: "Update Organization",
+		})
+		.input(OrganizationFormSchema)
+		.output(z.null())
+		.handler(async ({ context, input: { name, favicon, logo } }) => {
+			let logoUrl = null;
+			if (logo) {
+				const extension = logo.name.split(".").pop();
+				const path = `${context.session.activeOrganizationId}/${context.locale}/logo.${extension}`;
+				await s3.write(path, logo, {
+					type: logo.type,
+				});
+				logoUrl = path;
+			} else {
+				await s3.delete(
+					`${context.session.activeOrganizationId}/${context.locale}/logo`,
+				);
+			}
+
+			let faviconUrl = null;
+			if (favicon) {
+				const extension = favicon.name.split(".").pop();
+				const path = `${context.session.activeOrganizationId}/${context.locale}/favicon.${extension}`;
+				await s3.write(path, favicon, {
+					type: favicon.type,
+				});
+				faviconUrl = path;
+			} else {
+				await s3.delete(
+					`${context.session.activeOrganizationId}/${context.locale}/favicon`,
+				);
+			}
+
+			await db
+				.insert(organizationTranslations)
+				.values({
+					name,
+					locale: context.locale,
+					organizationId: context.session.activeOrganizationId,
+					logo: logoUrl,
+					favicon: faviconUrl,
+				})
+				.onConflictDoUpdate({
+					set: {
+						name,
+						logo: logoUrl,
+						favicon: faviconUrl,
+						updatedAt: new Date(),
+					},
+					target: [
+						organizationTranslations.organizationId,
+						organizationTranslations.locale,
+					],
+				});
+
+			return null;
+		}),
+	delete: organizationProcedure
+		.route({
+			tags: ["Organization"],
+			method: "DELETE",
+			path: "/",
+			summary: "Delete Organization",
+		})
+		.handler(async ({ context }) => {
+			const files = await s3.list({
+				prefix: `${context.session.activeOrganizationId}/`,
+				maxKeys: 1000,
+			});
+			if (files.contents) {
+				await Promise.all(
+					files.contents.map((file) => {
+						s3.delete(file.key);
+					}),
+				);
+			}
+			await auth.api.deleteOrganization({
+				headers: context.headers,
+				body: {
+					organizationId: context.session.activeOrganizationId,
+				},
+			});
 		}),
 	current: organizationProcedure
 		.route({
@@ -130,6 +282,11 @@ export const organizationRouter = base.prefix("/organizations").router({
 				path: "/domain",
 				summary: "Get Domain",
 			})
+			.output(
+				DomainSchema.extend({
+					records: DomainRecordSchema.array(),
+				}).nullable(),
+			)
 			.handler(async ({ context }) => {
 				const teamDomain = await db.query.domains.findFirst({
 					where: and(
@@ -141,7 +298,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 				});
 
 				if (!teamDomain) {
-					return undefined;
+					return null;
 				}
 
 				const command = new GetEmailIdentityCommand({

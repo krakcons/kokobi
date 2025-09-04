@@ -7,7 +7,6 @@ import {
 import { Page, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Key } from "@/types/keys";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";

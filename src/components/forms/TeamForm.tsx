@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { type TeamFormType, TeamFormSchema } from "@/types/team";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -9,6 +8,10 @@ import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { useAppForm } from "../ui/form";
 import { useTranslations } from "@/lib/locale";
+import {
+	OrganizationFormSchema,
+	type OrganizationFormType,
+} from "@/types/team";
 
 const CollapsibleWrapper = ({ children }: { children: React.ReactNode }) => {
 	const t = useTranslations("Form");
@@ -41,21 +44,21 @@ export const TeamForm = ({
 	collapsible,
 	onSubmit,
 }: {
-	defaultValues?: TeamFormType;
+	defaultValues?: OrganizationFormType;
 	collapsible?: boolean;
-	onSubmit: (value: TeamFormType) => Promise<any>;
+	onSubmit: (value: OrganizationFormType) => Promise<any>;
 }) => {
 	const t = useTranslations("TeamForm");
 	const form = useAppForm({
 		validators: {
-			onSubmit: TeamFormSchema,
+			onSubmit: OrganizationFormSchema,
 		},
 		defaultValues: {
 			name: "",
 			favicon: "",
 			logo: "",
 			...defaultValues,
-		} as TeamFormType,
+		} as OrganizationFormType,
 		onSubmit: ({ value }) => onSubmit(value),
 	});
 

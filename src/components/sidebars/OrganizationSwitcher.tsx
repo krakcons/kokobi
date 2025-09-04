@@ -14,13 +14,15 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { authClient, authQueryOptions } from "@/lib/auth/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Check, ChevronsUpDown, Plus, X } from "lucide-react";
-import type { Invitation, Organization } from "better-auth/plugins";
+import type { Invitation } from "better-auth/plugins";
 import { Button } from "../ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "../ui/badge";
+import { authClient, authQueryOptions } from "@/lib/auth.client";
+import { teamImageUrl } from "@/lib/file";
+import type { Organization } from "@/types/team";
 
 const Invitation = ({
 	invitation: { id: invitationId },
@@ -82,10 +84,12 @@ const Invitation = ({
 };
 
 export const OrganizationSwitcher = ({
+	tenantId,
 	organizations,
 	invitations,
 	activeOrganizationId,
 }: {
+	tenantId?: string;
 	organizations: Organization[];
 	invitations: Invitation[];
 	activeOrganizationId: string;
@@ -101,6 +105,27 @@ export const OrganizationSwitcher = ({
 	);
 
 	if (!organization) return null;
+
+	if (tenantId) {
+		return (
+			<SidebarMenu className="flex flex-row items-center justify-between border-b">
+				<div className="flex gap-2 justify-between items-center flex-wrap w-full p-2">
+					<Avatar className="rounded-lg size-8">
+						<AvatarImage
+							src={teamImageUrl(organization, "favicon")}
+							className="rounded-lg"
+						/>
+						<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
+							{organization.name.toUpperCase()[0]}
+						</AvatarFallback>
+					</Avatar>
+					<div className="flex-1 text-left text-sm leading-tight">
+						{organization.name}
+					</div>
+				</div>
+			</SidebarMenu>
+		);
+	}
 
 	return (
 		<SidebarMenu>

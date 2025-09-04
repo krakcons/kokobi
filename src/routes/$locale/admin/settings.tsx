@@ -115,18 +115,24 @@ function RouteComponent() {
 	);
 	const updateTeam = useMutation(
 		orpc.organization.update.mutationOptions({
+			context: {
+				headers: {
+					locale: search.locale,
+				},
+			},
 			onSuccess: () => {
 				toast.success("Team updated");
 				router.invalidate();
 			},
 		}),
 	);
-	const deleteTeam = useMutation({
-		mutationFn: deleteTeamFn,
-		onSuccess: () => {
-			navigate({ to: "/$locale/admin" });
-		},
-	});
+	const deleteTeam = useMutation(
+		orpc.organization.delete.mutationOptions({
+			onSuccess: () => {
+				navigate({ to: "/$locale/admin" });
+			},
+		}),
+	);
 	const deleteTeamDomain = useMutation(
 		orpc.organization.domain.delete.mutationOptions({
 			onSuccess: () => {
@@ -171,18 +177,7 @@ function RouteComponent() {
 					favicon: data?.favicon ?? "",
 					name: team.name,
 				}}
-				onSubmit={(values) => {
-					const formData = new FormData();
-					Object.entries(values).forEach(([key, value]) => {
-						formData.append(key, value);
-					});
-					return updateTeam.mutateAsync({
-						data: formData,
-						headers: {
-							...(search.locale && { locale: search.locale }),
-						},
-					});
-				}}
+				onSubmit={(values) => updateTeam.mutateAsync(values)}
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader

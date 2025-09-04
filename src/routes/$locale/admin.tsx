@@ -29,11 +29,12 @@ export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
 	validateSearch: EditingLocaleSchema,
 	beforeLoad: async ({ params, location, context: { queryClient } }) => {
-		const auth = await queryClient.ensureQueryData(
-			authQueryOptions.session,
-		);
-
-		if (!auth) {
+		let auth = undefined;
+		try {
+			auth = await queryClient.ensureQueryData(
+				orpc.auth.session.queryOptions(),
+			);
+		} catch (e) {
 			throw redirect({
 				to: "/$locale/auth/login",
 				search: (s: any) => ({
@@ -77,7 +78,7 @@ export const Route = createFileRoute("/$locale/admin")({
 					);
 				if (userOrganizations?.length === 0) {
 					throw redirect({
-						to: "/$locale/create-team",
+						to: "/$locale/auth/create-organization",
 						params: {
 							locale: params.locale,
 						},
@@ -114,9 +115,9 @@ function RouteComponent() {
 	const editingLocale = search.locale ?? locale;
 
 	const { data: organizations } = useSuspenseQuery(
-		authQueryOptions.organization.list,
+		orpc.organization.get.queryOptions(),
 	);
-	const { data: auth } = useSuspenseQuery(authQueryOptions.session);
+	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
 	const { data: tenantId } = useSuspenseQuery(
 		orpc.auth.tenant.queryOptions(),
 	);
@@ -129,12 +130,13 @@ function RouteComponent() {
 		<SidebarProvider>
 			<AdminSidebar
 				tenantId={tenantId ?? undefined}
-				teamId={auth.session.activeOrganizationId!}
-				teams={organizations}
+				activeOrganizationId={auth.session.activeOrganizationId!}
+				invitations={[]}
+				organizations={organizations}
 				courses={courses}
 				collections={collections}
-				user={auth!.user!}
-				role={auth!.member!.role!}
+				user={auth.user}
+				role={auth.member!.role}
 			/>
 			<SidebarInset className="max-w-full overflow-hidden">
 				<header className="p-4 flex flex-row w-full items-center justify-between">

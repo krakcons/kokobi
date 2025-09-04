@@ -20,7 +20,7 @@ import { getHeader } from "@tanstack/react-start/server";
 import { useLocale } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { authClient, authQueryOptions } from "@/lib/auth.client";
+import { authQueryOptions } from "@/lib/auth.client";
 
 const getIsIframeFn = createServerFn().handler(() => {
 	const secFestDest = getHeader("sec-fetch-dest");
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/$locale/learner")({
 		context: { queryClient },
 	}) => {
 		const auth = await queryClient.ensureQueryData(
-			authQueryOptions.session,
+			orpc.auth.session.queryOptions(),
 		);
 
 		if (!auth) {
@@ -118,7 +118,7 @@ function RouteComponent() {
 
 	const { isIframe } = Route.useRouteContext();
 
-	const { data: auth } = useSuspenseQuery(authQueryOptions.session);
+	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
 	const { data: organizations } = useSuspenseQuery(
 		orpc.learner.organization.get.queryOptions(),
 	);
@@ -145,7 +145,7 @@ function RouteComponent() {
 			{!isIframe && (
 				<LearnerSidebar
 					tenantId={tenantId ?? undefined}
-					teamId={auth?.session.activeLearnerTeamId!}
+					teamId={auth.session.activeLearnerTeamId}
 					teams={organizations}
 					availableCourses={availableCourses.filter(
 						(c) =>

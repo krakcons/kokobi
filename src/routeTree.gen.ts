@@ -15,13 +15,13 @@ import { Route as LocaleIndexRouteImport } from './routes/$locale/index'
 import { Route as LocaleNotAdminRouteImport } from './routes/$locale/not-admin'
 import { Route as LocaleLearnerRouteImport } from './routes/$locale/learner'
 import { Route as LocaleIframeTestRouteImport } from './routes/$locale/iframe-test'
-import { Route as LocaleCreateTeamRouteImport } from './routes/$locale/create-team'
 import { Route as LocaleAdminRouteImport } from './routes/$locale/admin'
 import { Route as LocaleLearnerIndexRouteImport } from './routes/$locale/learner/index'
 import { Route as LocaleAdminIndexRouteImport } from './routes/$locale/admin/index'
 import { Route as LocaleDocsEmailsRouteImport } from './routes/$locale/docs/emails'
 import { Route as LocaleAuthVerifyEmailRouteImport } from './routes/$locale/auth/verify-email'
 import { Route as LocaleAuthLoginRouteImport } from './routes/$locale/auth/login'
+import { Route as LocaleAuthCreateOrganizationRouteImport } from './routes/$locale/auth/create-organization'
 import { Route as LocaleAdminSettingsRouteImport } from './routes/$locale/admin/settings'
 import { Route as LocaleAdminMembersRouteImport } from './routes/$locale/admin/members'
 import { Route as LocaleAdminKeysRouteImport } from './routes/$locale/admin/keys'
@@ -50,6 +50,7 @@ import { Route as LocaleredirectsPlayTeamIdCoursesCourseIdCertificateRouteImport
 import { ServerRoute as CdnSplatServerRouteImport } from './routes/cdn.$'
 import { ServerRoute as ApiSplatServerRouteImport } from './routes/api.$'
 import { ServerRoute as ApiRpcSplatServerRouteImport } from './routes/api.rpc.$'
+import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api.auth.$'
 
 const rootServerRouteImport = createServerRootRoute()
 
@@ -71,11 +72,6 @@ const LocaleLearnerRoute = LocaleLearnerRouteImport.update({
 const LocaleIframeTestRoute = LocaleIframeTestRouteImport.update({
   id: '/$locale/iframe-test',
   path: '/$locale/iframe-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LocaleCreateTeamRoute = LocaleCreateTeamRouteImport.update({
-  id: '/$locale/create-team',
-  path: '/$locale/create-team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleAdminRoute = LocaleAdminRouteImport.update({
@@ -108,6 +104,12 @@ const LocaleAuthLoginRoute = LocaleAuthLoginRouteImport.update({
   path: '/$locale/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleAuthCreateOrganizationRoute =
+  LocaleAuthCreateOrganizationRouteImport.update({
+    id: '/$locale/auth/create-organization',
+    path: '/$locale/auth/create-organization',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LocaleAdminSettingsRoute = LocaleAdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -269,10 +271,14 @@ const ApiRpcSplatServerRoute = ApiRpcSplatServerRouteImport.update({
   path: '/api/rpc/$',
   getParentRoute: () => rootServerRouteImport,
 } as any)
+const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
-  '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale/not-admin': typeof LocaleNotAdminRoute
@@ -281,6 +287,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
+  '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
   '/$locale/docs/emails': typeof LocaleDocsEmailsRoute
@@ -309,7 +316,6 @@ export interface FileRoutesByFullPath {
   '/$locale/play/$teamId/courses/$courseId/join': typeof LocaleredirectsPlayTeamIdCoursesCourseIdJoinRoute
 }
 export interface FileRoutesByTo {
-  '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale': typeof LocaleIndexRoute
@@ -317,6 +323,7 @@ export interface FileRoutesByTo {
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
+  '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
   '/$locale/docs/emails': typeof LocaleDocsEmailsRoute
@@ -347,7 +354,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/$locale/admin': typeof LocaleAdminRouteWithChildren
-  '/$locale/create-team': typeof LocaleCreateTeamRoute
   '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale/not-admin': typeof LocaleNotAdminRoute
@@ -356,6 +362,7 @@ export interface FileRoutesById {
   '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/members': typeof LocaleAdminMembersRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
+  '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
   '/$locale/docs/emails': typeof LocaleDocsEmailsRoute
@@ -387,7 +394,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/$locale/admin'
-    | '/$locale/create-team'
     | '/$locale/iframe-test'
     | '/$locale/learner'
     | '/$locale/not-admin'
@@ -396,6 +402,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
     | '/$locale/admin/settings'
+    | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
     | '/$locale/docs/emails'
@@ -424,7 +431,6 @@ export interface FileRouteTypes {
     | '/$locale/play/$teamId/courses/$courseId/join'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/$locale/create-team'
     | '/$locale/iframe-test'
     | '/$locale/not-admin'
     | '/$locale'
@@ -432,6 +438,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
     | '/$locale/admin/settings'
+    | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
     | '/$locale/docs/emails'
@@ -461,7 +468,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/$locale/admin'
-    | '/$locale/create-team'
     | '/$locale/iframe-test'
     | '/$locale/learner'
     | '/$locale/not-admin'
@@ -470,6 +476,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/keys'
     | '/$locale/admin/members'
     | '/$locale/admin/settings'
+    | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
     | '/$locale/docs/emails'
@@ -500,11 +507,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
-  LocaleCreateTeamRoute: typeof LocaleCreateTeamRoute
   LocaleIframeTestRoute: typeof LocaleIframeTestRoute
   LocaleLearnerRoute: typeof LocaleLearnerRouteWithChildren
   LocaleNotAdminRoute: typeof LocaleNotAdminRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
+  LocaleAuthCreateOrganizationRoute: typeof LocaleAuthCreateOrganizationRoute
   LocaleAuthLoginRoute: typeof LocaleAuthLoginRoute
   LocaleAuthVerifyEmailRoute: typeof LocaleAuthVerifyEmailRoute
   LocaleDocsEmailsRoute: typeof LocaleDocsEmailsRoute
@@ -514,30 +521,34 @@ export interface RootRouteChildren {
 export interface FileServerRoutesByFullPath {
   '/api/$': typeof ApiSplatServerRoute
   '/cdn/$': typeof CdnSplatServerRoute
+  '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/$': typeof ApiSplatServerRoute
   '/cdn/$': typeof CdnSplatServerRoute
+  '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/$': typeof ApiSplatServerRoute
   '/cdn/$': typeof CdnSplatServerRoute
+  '/api/auth/$': typeof ApiAuthSplatServerRoute
   '/api/rpc/$': typeof ApiRpcSplatServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/$' | '/cdn/$' | '/api/rpc/$'
+  fullPaths: '/api/$' | '/cdn/$' | '/api/auth/$' | '/api/rpc/$'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/$' | '/cdn/$' | '/api/rpc/$'
-  id: '__root__' | '/api/$' | '/cdn/$' | '/api/rpc/$'
+  to: '/api/$' | '/cdn/$' | '/api/auth/$' | '/api/rpc/$'
+  id: '__root__' | '/api/$' | '/cdn/$' | '/api/auth/$' | '/api/rpc/$'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
   ApiSplatServerRoute: typeof ApiSplatServerRoute
   CdnSplatServerRoute: typeof CdnSplatServerRoute
+  ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
   ApiRpcSplatServerRoute: typeof ApiRpcSplatServerRoute
 }
 
@@ -569,13 +580,6 @@ declare module '@tanstack/react-router' {
       path: '/$locale/iframe-test'
       fullPath: '/$locale/iframe-test'
       preLoaderRoute: typeof LocaleIframeTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$locale/create-team': {
-      id: '/$locale/create-team'
-      path: '/$locale/create-team'
-      fullPath: '/$locale/create-team'
-      preLoaderRoute: typeof LocaleCreateTeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/admin': {
@@ -618,6 +622,13 @@ declare module '@tanstack/react-router' {
       path: '/$locale/auth/login'
       fullPath: '/$locale/auth/login'
       preLoaderRoute: typeof LocaleAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/auth/create-organization': {
+      id: '/$locale/auth/create-organization'
+      path: '/$locale/auth/create-organization'
+      fullPath: '/$locale/auth/create-organization'
+      preLoaderRoute: typeof LocaleAuthCreateOrganizationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$locale/admin/settings': {
@@ -820,6 +831,13 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiRpcSplatServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
   }
 }
 
@@ -934,11 +952,11 @@ const LocaleredirectsPlayTeamIdCoursesCourseIdRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LocaleAdminRoute: LocaleAdminRouteWithChildren,
-  LocaleCreateTeamRoute: LocaleCreateTeamRoute,
   LocaleIframeTestRoute: LocaleIframeTestRoute,
   LocaleLearnerRoute: LocaleLearnerRouteWithChildren,
   LocaleNotAdminRoute: LocaleNotAdminRoute,
   LocaleIndexRoute: LocaleIndexRoute,
+  LocaleAuthCreateOrganizationRoute: LocaleAuthCreateOrganizationRoute,
   LocaleAuthLoginRoute: LocaleAuthLoginRoute,
   LocaleAuthVerifyEmailRoute: LocaleAuthVerifyEmailRoute,
   LocaleDocsEmailsRoute: LocaleDocsEmailsRoute,
@@ -953,6 +971,7 @@ export const routeTree = rootRouteImport
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiSplatServerRoute: ApiSplatServerRoute,
   CdnSplatServerRoute: CdnSplatServerRoute,
+  ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
   ApiRpcSplatServerRoute: ApiRpcSplatServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport

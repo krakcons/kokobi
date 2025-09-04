@@ -15,10 +15,12 @@ export const Route = createFileRoute("/$locale/auth/verify-email")({
 		email: z.email(),
 	}),
 	beforeLoad: async ({ params, context: { queryClient } }) => {
-		const auth = await queryClient.ensureQueryData(
-			orpc.auth.session.queryOptions(),
-		);
-		if (auth.session) throw redirect({ to: "/$locale/admin", params });
+		try {
+			const auth = await queryClient.ensureQueryData(
+				orpc.auth.session.queryOptions(),
+			);
+			if (auth) throw redirect({ to: "/$locale/admin", params });
+		} catch (e) {}
 	},
 });
 

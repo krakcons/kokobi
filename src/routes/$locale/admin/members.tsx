@@ -5,154 +5,140 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
+import { authClient, authQueryOptions } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
+import type { Role } from "@/types/team";
 import {
-	createTeamUsersFn,
-	deleteTeamUserFn,
-	getTeamUsersFn,
-	updateTeamUserFn,
-} from "@/server/handlers/teams.users";
-import type { User } from "@/types/users";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { useState } from "react";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
-import { TeamUsersForm } from "@/components/forms/TeamUsersForm";
-import type { UserToTeamType } from "@/types/connections";
-import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-} from "@/components/ui/select";
-import { type Role, roles } from "@/types/team";
-import { SelectValue } from "@radix-ui/react-select";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/$locale/admin/members")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
-	loader: () => getTeamUsersFn(),
+	loader: async ({ context: { queryClient } }) =>
+		Promise.all([
+			queryClient.ensureQueryData(
+				authQueryOptions.organization.listMembers,
+			),
+			queryClient.ensureQueryData(
+				authQueryOptions.organization.listInvitations,
+			),
+		]),
 });
 
+type MemberTable = {
+	id: string;
+	userId?: string;
+	email: string;
+	type: "member" | "invite";
+	status?: string;
+	role: string;
+};
+
 function RouteComponent() {
-	const [open, setOpen] = useState(false);
-	const navigate = Route.useNavigate();
-	const search = Route.useSearch();
-	const members = Route.useLoaderData();
+	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
+	const tRoles = useTranslations("TeamRole");
 	const t = useTranslations("Members");
-	const tForm = useTranslations("MembersForm");
-	const tRole = useTranslations("TeamRole");
-	const tActions = useTranslations("Actions");
-	const router = useRouter();
+	const queryClient = useQueryClient();
+	const navigate = Route.useNavigate();
 
-	const createTeamUsers = useMutation({
-		mutationFn: createTeamUsersFn,
-		onSuccess: () => {
-			setOpen(false);
-			router.invalidate();
+	const {
+		data: { data: members },
+	} = useSuspenseQuery(authQueryOptions.organization.listMembers);
+	const {
+		data: { data: invitations },
+	} = useSuspenseQuery(authQueryOptions.organization.listInvitations);
+
+	const removeMember = useMutation({
+		mutationFn: async ({ memberId }: { memberId: string }) => {
+			const { data, error } = await authClient.organization.removeMember({
+				memberIdOrEmail: memberId,
+				organizationId: auth.session.activeOrganizationId!,
+			});
+			if (error) {
+				throw error;
+			}
+			return data;
 		},
-	});
-	const updateTeamUser = useMutation({
-		mutationFn: updateTeamUserFn,
 		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const deleteTeamUser = useMutation({
-		mutationFn: deleteTeamUserFn,
-		onSuccess: () => {
-			router.invalidate();
+			queryClient.invalidateQueries(
+				authQueryOptions.organization.listMembers,
+			);
 		},
 	});
 
-	const columns: ColumnDef<UserToTeamType & { user: User }>[] = [
-		{
-			accessorKey: "user.email",
-			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title={t.table.email} />
-			),
+	const cancelInvitation = useMutation({
+		mutationFn: async ({ invitationId }: { invitationId: string }) => {
+			const { data, error } =
+				await authClient.organization.cancelInvitation({
+					invitationId,
+				});
+			if (error) {
+				throw error;
+			}
+			return data;
 		},
+		onSuccess: () => {
+			queryClient.invalidateQueries(
+				authQueryOptions.organization.listInvitations,
+			);
+		},
+	});
+
+	const columns: ColumnDef<MemberTable>[] = [
 		{
-			accessorKey: "connectStatus",
+			accessorKey: "email",
 			header: ({ column }) => (
-				<DataTableColumnHeader title={t.table.status} column={column} />
+				<DataTableColumnHeader title={t.table.email} column={column} />
 			),
-			cell: ({ row: { original } }) => {
-				return <ConnectionStatusBadge {...original} />;
-			},
+			cell: (cell) => (
+				<div className="h-9 flex items-center">
+					<p>{cell.row.original.email}</p>
+				</div>
+			),
 		},
 		{
 			accessorKey: "role",
-			accessorFn: ({ role }) => tRole[role],
 			header: ({ column }) => (
-				<DataTableColumnHeader column={column} title={t.table.role} />
+				<DataTableColumnHeader title={t.table.role} column={column} />
 			),
-			cell: ({
-				row: {
-					original: { userId, role },
-				},
-			}) => {
-				return (
-					<Select
-						value={role}
-						onValueChange={(value: Role) => {
-							updateTeamUser.mutate({
-								data: {
-									userId: userId,
-									role: value,
-								},
-							});
-						}}
-					>
-						<SelectTrigger className="w-min">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{roles.map((role) => (
-								<SelectItem key={role} value={role}>
-									{tRole[role]}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				);
-			},
+			accessorFn: ({ role }) => tRoles[role as Role],
 		},
-		createDataTableActionsColumn<UserToTeamType & { user: User }>([
-			// TODO: Needs join team page
-			//{
-			//	name: "Resend Invite",
-			//	onClick: ({ user, role }) =>
-			//		createTeamUsers.mutate({
-			//			data: {
-			//				users: [
-			//					{
-			//						email: user.email,
-			//						role,
-			//					},
-			//				],
-			//			},
-			//		}),
-			//},
+		createDataTableActionsColumn<MemberTable>([
 			{
-				name: tActions.delete,
-				onClick: ({ userId }) => {
-					deleteTeamUser.mutate({
-						data: {
-							userId: userId,
-						},
-					});
+				name: t.edit,
+				onClick: ({ type, id }) => {
+					if (type === "invite") {
+						toast.error(
+							"Member must accept invitation before editing",
+						);
+					} else {
+						navigate({
+							to: "/$locale/admin/members/$id",
+							params: { id },
+							from: Route.fullPath,
+						});
+					}
+				},
+			},
+			{
+				name: t.remove,
+				onClick: ({ type, id }) => {
+					if (type === "invite") {
+						cancelInvitation.mutate({
+							invitationId: id,
+						});
+					} else {
+						removeMember.mutate({
+							memberId: id,
+						});
+					}
 				},
 			},
 		]),
@@ -160,40 +146,33 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title={t.title} description={t.description}>
-				<Dialog open={open} onOpenChange={setOpen}>
-					<DialogTrigger asChild>
-						<Button>
-							<UserPlus />
-							{tActions.create}
-						</Button>
-					</DialogTrigger>
-					<DialogContent>
-						<DialogHeader>
-							<DialogTitle>{tForm.title}</DialogTitle>
-							<DialogDescription>
-								{tForm.description}
-							</DialogDescription>
-						</DialogHeader>
-						<TeamUsersForm
-							onSubmit={(values) =>
-								createTeamUsers.mutateAsync({
-									data: values,
-								})
-							}
-						/>
-					</DialogContent>
-				</Dialog>
-			</PageHeader>
+			<PageHeader title={t.title} description={t.description} />
 			<DataTable
-				data={members}
+				data={
+					[
+						...(invitations ?? [])
+							.filter(
+								({ status }) =>
+									!["canceled", "accepted"].includes(status),
+							)
+							.map((invitation) => ({
+								id: invitation.id,
+								email: invitation.email,
+								type: "invite" as const,
+								status: invitation.status,
+								role: invitation.role,
+							})),
+						...(members?.members ?? []).map((member) => ({
+							id: member.id,
+							userId: member.userId,
+							type: "member" as const,
+							email: member.user.email,
+							role: member.role,
+						})),
+					] as MemberTable[]
+				}
 				columns={columns}
-				search={search}
-				onSearchChange={(search) => {
-					navigate({
-						search,
-					});
-				}}
+				from={Route.fullPath}
 			/>
 		</Page>
 	);

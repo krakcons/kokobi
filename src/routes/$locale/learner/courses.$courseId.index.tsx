@@ -14,8 +14,6 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
-import { getAuthFn } from "@/server/handlers/auth";
 import { pdf } from "@react-pdf/renderer";
 import {
 	useMutation,
@@ -32,12 +30,10 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "learner",
-				},
-			}),
-			getAuthFn(),
+			queryClient.ensureQueryData(
+				orpc.learner.organization.current.queryOptions(),
+			),
+			queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
 			queryClient.ensureQueryData(
 				orpc.learner.course.attempt.get.queryOptions({
 					input: {
@@ -67,7 +63,15 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 
 function RouteComponent() {
 	const params = Route.useParams();
-	const [team, { user }] = Route.useLoaderData();
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.learner.organization.current.queryOptions(),
+	);
+
+	const {
+		data: { user },
+	} = useSuspenseQuery(orpc.auth.session.queryOptions());
+
 	const { data: attempts } = useSuspenseQuery(
 		orpc.learner.course.attempt.get.queryOptions({
 			input: {
@@ -177,8 +181,8 @@ function RouteComponent() {
 				description={course.description}
 				UnderTitle={
 					<ContentBranding
-						contentTeam={course.team}
-						connectTeam={team}
+						contentTeam={course.organization}
+						connectTeam={organization}
 					/>
 				}
 			>
@@ -271,8 +275,7 @@ function RouteComponent() {
 										<TableCell className="flex justify-end items-center gap-2">
 											{isSuccess && (
 												<>
-													{user?.firstName &&
-													user?.lastName ? (
+													{user.name ? (
 														<Button
 															variant="outline"
 															onClick={async () => {
@@ -282,14 +285,11 @@ function RouteComponent() {
 																		await pdf(
 																			<Certificate
 																				certificate={{
-																					name:
-																						user?.firstName +
-																						" " +
-																						user?.lastName,
+																					name: user.name,
 																					connectTeam:
-																						team,
+																						organization,
 																					contentTeam:
-																						course.team,
+																						course.organization,
 																					course: course.name,
 																					completedAt:
 																						attempt.completedAt! &&

@@ -4,7 +4,6 @@ import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { ContentBranding } from "@/components/ContentBranding";
 import { Page, PageHeader } from "@/components/Page";
 import { orpc } from "@/server/client";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import {
 	useMutation,
 	useQueryClient,
@@ -18,11 +17,9 @@ export const Route = createFileRoute(
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "learner",
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.learner.organization.current.queryOptions(),
+			),
 			queryClient.ensureQueryData(
 				orpc.collection.id.queryOptions({
 					input: { id: params.collectionId },
@@ -47,9 +44,12 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const [team] = Route.useLoaderData();
 	const params = Route.useParams();
 	const queryClient = useQueryClient();
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.learner.organization.current.queryOptions(),
+	);
 
 	const { data: collection } = useSuspenseQuery(
 		orpc.collection.id.queryOptions({
@@ -116,8 +116,8 @@ function RouteComponent() {
 				description={collection.description}
 				UnderTitle={
 					<ContentBranding
-						contentTeam={collection.team}
-						connectTeam={team}
+						contentTeam={collection.organization}
+						connectTeam={organization}
 					/>
 				}
 			>

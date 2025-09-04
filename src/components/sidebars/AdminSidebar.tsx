@@ -6,6 +6,7 @@ import {
 	SidebarGroupAction,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
@@ -38,14 +39,14 @@ import {
 import type { Course } from "@/types/course";
 import { useEffect, useState } from "react";
 import type { Collection, CollectionTranslation } from "@/types/collections";
-import type { Team, TeamTranslation } from "@/types/team";
-import type { UserToTeamType } from "@/types/connections";
+import type { Organization } from "@/types/team";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { TeamSwitcher } from "./TeamSwitcher";
-import type { User } from "@/types/users";
 import { UserButton } from "./UserButton";
 import type { Role } from "@/types/team";
 import { Separator } from "../ui/separator";
+import { OrganizationSwitcher } from "./OrganizationSwitcher";
+import type { Invitation } from "better-auth/plugins";
+import type { User } from "better-auth";
 
 const CourseCollapsible = ({ course }: { course: Course }) => {
 	const { setOpenMobile } = useSidebar();
@@ -471,16 +472,18 @@ const CollectionCollapsible = ({
 
 export const AdminSidebar = ({
 	tenantId,
-	teamId,
-	teams,
+	activeOrganizationId,
+	organizations,
 	courses,
 	collections,
+	invitations,
 	user,
 	role,
 }: {
 	tenantId?: string;
-	teamId: string;
-	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
+	activeOrganizationId: string;
+	organizations: Organization[];
+	invitations: Invitation[];
 	courses: Course[];
 	collections: (Collection & CollectionTranslation)[];
 	user: User;
@@ -492,12 +495,14 @@ export const AdminSidebar = ({
 
 	return (
 		<Sidebar className="list-none">
-			<TeamSwitcher
-				tenantId={tenantId}
-				teamId={teamId}
-				teams={teams}
-				type="admin"
-			/>
+			<SidebarHeader>
+				<OrganizationSwitcher
+					tenantId={tenantId}
+					activeOrganizationId={activeOrganizationId}
+					organizations={organizations}
+					invitations={invitations}
+				/>
+			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupContent>

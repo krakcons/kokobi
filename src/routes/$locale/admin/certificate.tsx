@@ -2,26 +2,26 @@ import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Page, PageHeader } from "@/components/Page";
 import { formatDate } from "@/lib/date";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { PendingComponent } from "@/components/PendingComponent";
 import { PDFViewer } from "@react-pdf/renderer";
 import { Certificate } from "@/components/Certificate";
+import { orpc } from "@/server/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/$locale/admin/certificate")({
 	component: RouteComponent,
 	pendingComponent: PendingComponent,
-	loader: () =>
-		getUserTeamFn({
-			data: {
-				type: "admin",
-			},
-		}),
+	loader: ({ context: { queryClient } }) =>
+		queryClient.ensureQueryData(orpc.organization.current.queryOptions()),
 });
 
 function RouteComponent() {
-	const team = Route.useLoaderData();
 	const locale = useLocale();
 	const t = useTranslations("Certificate");
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.organization.current.queryOptions(),
+	);
 
 	return (
 		<Page>
@@ -30,8 +30,8 @@ function RouteComponent() {
 				<PDFViewer className="h-[700px] w-full">
 					<Certificate
 						certificate={{
-							connectTeam: team,
-							contentTeam: team,
+							connectTeam: organization,
+							contentTeam: organization,
 							name: "John Doe",
 							course: "Volunteer Training",
 							completedAt: formatDate({

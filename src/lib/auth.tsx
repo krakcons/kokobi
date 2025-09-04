@@ -8,6 +8,7 @@ import { sendEmail } from "@/server/lib/email";
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "sqlite",
+		usePlural: true,
 	}),
 	session: {
 		additionalFields: {

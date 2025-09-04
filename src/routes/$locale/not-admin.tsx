@@ -27,6 +27,7 @@ export const Route = createFileRoute("/$locale/not-admin")({
 			});
 		}
 
+		console.log("ORGANIZATIONS", organizations);
 		return Promise.all([
 			queryClient.ensureQueryData(
 				orpc.organization.id.queryOptions({

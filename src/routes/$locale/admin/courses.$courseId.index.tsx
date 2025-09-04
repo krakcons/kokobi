@@ -2,7 +2,6 @@ import { TableSearchSchema } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import {
 	useMutation,
 	useQueryClient,
@@ -15,11 +14,9 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 	validateSearch: TableSearchSchema,
 	loader: async ({ params, context: { queryClient } }) => {
 		const [team, course, connection] = await Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "admin",
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.organization.current.queryOptions(),
+			),
 			queryClient.ensureQueryData(
 				orpc.course.id.queryOptions({
 					input: {

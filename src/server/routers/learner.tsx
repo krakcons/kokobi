@@ -112,6 +112,31 @@ export const learnerRouter = base.prefix("/learner").router({
 			.handler(async ({ input: { id } }) => {
 				setCookie("learnerTeamId", id);
 			}),
+		current: learnerProcedure
+			.route({
+				tags: ["Learner"],
+				method: "GET",
+				path: "/current",
+				summary: "Get Current Organization",
+			})
+			.handler(async ({ context }) => {
+				const organization = await db.query.organizations.findFirst({
+					where: eq(
+						organizations.id,
+						context.session.activeLearnerTeamId,
+					),
+					with: {
+						translations: true,
+						domains: true,
+					},
+				});
+
+				if (!organization) {
+					throw new ORPCError("NOT_FOUND");
+				}
+
+				return handleLocalization(context, organization);
+			}),
 	},
 	course: {
 		get: learnerProcedure

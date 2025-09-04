@@ -21,7 +21,6 @@ import { Pie, PieChart } from "recharts";
 import { useTranslations } from "@/lib/locale";
 import { useAppForm } from "@/components/ui/form";
 import { z } from "zod";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -36,11 +35,9 @@ export const Route = createFileRoute(
 	loaderDeps: ({ search }) => ({ statsTeamId: search.statsTeamId }),
 	loader: ({ params, deps, context: { queryClient } }) =>
 		Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "admin",
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.organization.current.queryOptions(),
+			),
 			queryClient.ensureQueryData(
 				orpc.course.statistics.queryOptions({
 					input: {
@@ -63,9 +60,12 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const [team] = Route.useLoaderData();
 	const { statsTeamId = "all" } = Route.useSearch();
 	const params = Route.useParams();
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.organization.current.queryOptions(),
+	);
 
 	const { data: statistics } = useSuspenseQuery(
 		orpc.course.statistics.queryOptions({
@@ -186,8 +186,8 @@ function RouteComponent() {
 													value: "all",
 												},
 												{
-													label: team.name,
-													value: team?.id,
+													label: organization.name,
+													value: organization.id,
 												},
 												...teams.map((c) => ({
 													label: c.name,

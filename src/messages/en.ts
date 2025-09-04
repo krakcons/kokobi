@@ -303,14 +303,29 @@ const en = {
 	},
 	Members: {
 		title: "Members",
-		description:
-			"Manage the members of your team who can access your dashboard.",
+		description: "Manage members and access levels",
+		create: "Create Member",
+		edit: "Edit",
+		remove: "Remove",
+		type: {
+			member: "Active",
+			invite: "Invite",
+		},
+		status: {
+			canceled: "Canceled",
+			accepted: "Accepted",
+			pending: "Pending",
+			rejected: "Rejected",
+		},
 		table: {
+			name: "Name",
 			email: "Email",
 			status: "Status",
 			role: "Role",
+			access: "Access",
 		},
 	},
+
 	MembersForm: {
 		title: "Invite Members",
 		description:
@@ -423,9 +438,9 @@ const en = {
 			},
 		},
 	},
-	TeamSwitcher: {
-		title: "Teams",
-		create: "Create team",
+	OrganizationSwitcher: {
+		title: "Organizations",
+		create: "Create organization",
 	},
 	TeamsForm: {
 		title: "Invite Teams",

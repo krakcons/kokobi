@@ -313,12 +313,26 @@ const fr: Messages = {
 	},
 	Members: {
 		title: "Membres",
-		description:
-			"Gérez les membres de votre équipe qui peuvent accéder à votre tableau de bord.",
+		description: "Gérez les membres et les niveaux d'accès",
+		create: "Créer un membre",
+		edit: "Éditer",
+		remove: "Supprimer",
+		type: {
+			member: "Actif",
+			invite: "Invité",
+		},
+		status: {
+			canceled: "Annulé",
+			accepted: "Accepté",
+			pending: "En attente",
+			rejected: "Rejeté",
+		},
 		table: {
-			email: "E-mail",
+			name: "Nom",
+			email: "Email",
 			status: "Statut",
 			role: "Rôle",
+			access: "Accès",
 		},
 	},
 	MembersForm: {
@@ -433,9 +447,9 @@ const fr: Messages = {
 			},
 		},
 	},
-	TeamSwitcher: {
-		title: "Équipes",
-		create: "Créer une équipe",
+	OrganizationSwitcher: {
+		title: "Organisations",
+		create: "Créer une organisation",
 	},
 	TeamsForm: {
 		title: "Inviter des équipes",

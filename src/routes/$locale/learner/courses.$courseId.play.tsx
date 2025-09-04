@@ -8,7 +8,6 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { UserButton } from "@/components/sidebars/UserButton";
-import { getAuthFn } from "@/server/handlers/auth";
 import { buttonVariants } from "@/components/ui/button";
 import { orpc } from "@/server/client";
 
@@ -22,7 +21,7 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
 		loader: ({ params, deps, context: { queryClient } }) =>
 			Promise.all([
-				getAuthFn(),
+				queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
 				queryClient.ensureQueryData(
 					orpc.learner.course.attempt.id.queryOptions({
 						input: {
@@ -38,10 +37,11 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 function RouteComponent() {
 	const params = Route.useParams();
 	const search = Route.useSearch();
-	const [auth] = Route.useLoaderData();
 	const t = useTranslations("Learner");
 	const { isIframe } = Route.useRouteContext();
 	const locale = useLocale();
+
+	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
 
 	const {
 		data: {
