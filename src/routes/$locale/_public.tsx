@@ -4,7 +4,7 @@ import { useLocale } from "@/lib/locale";
 import { getAuthFn } from "@/server/handlers/auth";
 import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { z } from "zod";
-import WebsiteLogo from "../../../public/favicon.ico";
+import WebsiteLogo from "/favicon.ico";
 
 export const Route = createFileRoute("/$locale/_public")({
 	component: RouteComponent,
