@@ -216,17 +216,15 @@ export const PublicUserButton = ({
 		</>
 	) : (
 		<Button
-			size="lg"
-			className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-			onClick={() =>
-				navigate({ to: "/$locale/auth/login", reloadDocument: true })
-			}
+			size="md"
+			className=" px-4"
+			onClick={() => navigate({ to: "/$locale/auth/login" })}
 		>
 			<div className="grid flex-1 text-left text-sm leading-tight">
 				{name && <span className="truncate font-medium">{name}</span>}
 				<span
 					className={cn(
-						"truncate text-xs",
+						"truncate text-sm",
 						name && "text-muted-foreground",
 					)}
 				>

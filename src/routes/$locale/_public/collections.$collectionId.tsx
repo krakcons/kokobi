@@ -1,17 +1,13 @@
 import { Page } from "@/components/Page";
-import { PublicPageHeader, PublicTeamBranding } from "@/components/PublicPage";
 import {
-	Card,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { useLocale } from "@/lib/locale";
+	PublicCourseCard,
+	PublicPageHeader,
+	PublicTeamBranding,
+} from "@/components/PublicPage";
+import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
 	"/$locale/_public/collections/$collectionId",
@@ -19,11 +15,6 @@ export const Route = createFileRoute(
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "learner",
-				},
-			}),
 			queryClient.ensureQueryData(
 				orpc.collection.id.queryOptions({
 					input: { id: params.collectionId },
@@ -38,46 +29,9 @@ export const Route = createFileRoute(
 	},
 });
 
-export const CourseCard = ({
-	name,
-	description,
-	type,
-	id,
-}: {
-	name: string;
-	description: string;
-	type: "course" | "collection";
-	id: string;
-}) => {
-	const locale = useLocale();
-	return (
-		<Link
-			to={
-				type === "course"
-					? "/$locale/courses/$courseId"
-					: "/$locale/collections/$collectionId"
-			}
-			params={{
-				locale,
-				collectionId: id,
-				courseId: id,
-			}}
-		>
-			<Card className="flex flex-row justify-between items-center mr-24">
-				<CardHeader className="flex-1">
-					<CardTitle>{name}</CardTitle>
-					{description && (
-						<CardDescription>{description}</CardDescription>
-					)}
-				</CardHeader>
-				<ChevronRight className="mr-2 size-6 min-w-6" />
-			</Card>
-		</Link>
-	);
-};
-
 function RouteComponent() {
 	const params = Route.useParams();
+	const t = useTranslations("Public");
 
 	const { data: collection } = useSuspenseQuery(
 		orpc.collection.id.queryOptions({
@@ -99,9 +53,13 @@ function RouteComponent() {
 				<PublicTeamBranding contentTeam={collection.team} />
 			</PublicPageHeader>
 			<div className="pl-24 flex-col">
-				<h3 className="pb-4">Courses</h3>
+				<h3 className="pb-4">{t.courses}</h3>
 				{courses.map((course) => (
-					<CourseCard key={course.id} {...course} type="course" />
+					<PublicCourseCard
+						key={course.id}
+						{...course}
+						type="course"
+					/>
 				))}
 			</div>
 		</Page>

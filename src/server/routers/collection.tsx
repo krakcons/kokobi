@@ -1,5 +1,5 @@
-import { CollectionSchema } from "@/types/collections";
-import { base, teamProcedure } from "../middleware";
+import { CoursesFormSchema } from "@/components/forms/CoursesForm";
+import { handleLocalization } from "@/lib/locale";
 import { db } from "@/server/db";
 import {
 	collectionTranslations,
@@ -7,15 +7,14 @@ import {
 	collectionsToCourses,
 	usersToCollections,
 } from "@/server/db/schema";
+import { CollectionFormSchema, CollectionSchema } from "@/types/collections";
+import { CourseSchema } from "@/types/course";
+import { TeamSchema } from "@/types/team";
+import { ORPCError } from "@orpc/client";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { CollectionFormSchema } from "@/types/collections";
-import { handleLocalization } from "@/lib/locale";
-import { TeamSchema } from "@/types/team";
-import { CoursesFormSchema } from "@/components/forms/CoursesForm";
-import { CourseSchema } from "@/types/course";
-import { ORPCError } from "@orpc/client";
 import { getConnectionLink } from "../lib/connection";
+import { base, publicProcedure, teamProcedure } from "../middleware";
 import { createConnection } from "./connection";
 
 export const collectionRouter = base.prefix("/collections").router({
@@ -41,7 +40,7 @@ export const collectionRouter = base.prefix("/collections").router({
 				handleLocalization(context, collection),
 			);
 		}),
-	id: teamProcedure()
+	id: publicProcedure
 		.route({
 			tags: ["Collection"],
 			method: "GET",
@@ -204,7 +203,7 @@ export const collectionRouter = base.prefix("/collections").router({
 			return connections;
 		}),
 	courses: {
-		get: teamProcedure()
+		get: publicProcedure
 			.route({
 				tags: ["Collection Courses"],
 				method: "GET",
