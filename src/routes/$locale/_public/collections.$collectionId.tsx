@@ -1,5 +1,4 @@
-import { ContentBranding } from "@/components/ContentBranding";
-import { Page, PageHeader } from "@/components/Page";
+import { Page } from "@/components/Page";
 import { PublicPageHeader, PublicTeamBranding } from "@/components/PublicPage";
 import {
 	Card,
@@ -64,7 +63,7 @@ export const CourseCard = ({
 				courseId: id,
 			}}
 		>
-			<Card className="flex flex-row justify-between items-center">
+			<Card className="flex flex-row justify-between items-center mr-24">
 				<CardHeader className="flex-1">
 					<CardTitle>{name}</CardTitle>
 					{description && (
@@ -78,7 +77,6 @@ export const CourseCard = ({
 };
 
 function RouteComponent() {
-	const [team] = Route.useLoaderData();
 	const params = Route.useParams();
 
 	const { data: collection } = useSuspenseQuery(
@@ -100,8 +98,8 @@ function RouteComponent() {
 			>
 				<PublicTeamBranding contentTeam={collection.team} />
 			</PublicPageHeader>
-			<div className="pl-24">
-				<h3>Courses</h3>
+			<div className="pl-24 flex-col">
+				<h3 className="pb-4">Courses</h3>
 				{courses.map((course) => (
 					<CourseCard key={course.id} {...course} type="course" />
 				))}

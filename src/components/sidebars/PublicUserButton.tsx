@@ -1,15 +1,3 @@
-import { type Theme, themes, useTheme } from "@/lib/theme";
-import { updateUserFn } from "@/server/handlers/users";
-import { deleteAuthFn } from "@/server/handlers/auth";
-import type { User as UserType } from "@/types/users";
-import {
-	LogOutIcon,
-	Moon,
-	Sun,
-	SunMoon,
-	User,
-	UserCircleIcon,
-} from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -20,6 +8,24 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslations } from "@/lib/locale";
+import { type Theme, themes, useTheme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
+import { deleteAuthFn } from "@/server/handlers/auth";
+import { updateUserFn } from "@/server/handlers/users";
+import type { User as UserType } from "@/types/users";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
+import {
+	LogOutIcon,
+	Moon,
+	Sun,
+	SunMoon,
+	User,
+	UserCircleIcon,
+} from "lucide-react";
+import { UserForm } from "../forms/UserForm";
+import { Button } from "../ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -27,12 +33,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "../ui/dialog";
-import { UserForm } from "../forms/UserForm";
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
-import { cn } from "@/lib/utils";
-import { useTranslations } from "@/lib/locale";
-import { Button } from "../ui/button";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -99,7 +99,8 @@ export const PublicUserButton = ({
 				<DropdownMenuTrigger asChild>
 					<Button
 						size="md"
-						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+						variant="outline"
+						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border-0 shadow-none py-5 pr-4"
 					>
 						<Avatar className="h-8 w-8 rounded-lg grayscale">
 							<AvatarFallback className="rounded-lg">

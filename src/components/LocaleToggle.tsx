@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
 import { useNavigate } from "@tanstack/react-router";
+import { Globe } from "lucide-react";
 
 export const LocaleToggle = () => {
 	const navigate = useNavigate();
@@ -20,9 +21,10 @@ export const LocaleToggle = () => {
 					search: (s) => s,
 				});
 			}}
-			size="icon"
+			size="md"
 		>
 			{locale === "en" ? "FR" : "EN"}
+			<Globe />
 		</Button>
 	);
 };

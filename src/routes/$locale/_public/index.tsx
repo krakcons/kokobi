@@ -1,12 +1,11 @@
+import { FloatingPage, PageHeader } from "@/components/Page";
+import { TeamIcon } from "@/components/TeamIcon";
 import { buttonVariants } from "@/components/ui/button";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { teamImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
 import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
-import { FloatingPage, PageHeader } from "@/components/Page";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Blocks, Book } from "lucide-react";
-import { TeamIcon } from "@/components/TeamIcon";
-import { teamImageUrl } from "@/lib/file";
-import { LocaleToggle } from "@/components/LocaleToggle";
 
 export const Route = createFileRoute("/$locale/_public/")({
 	component: Home,
