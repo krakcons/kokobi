@@ -1,5 +1,5 @@
-import type { Organization } from "@/types/team";
-import { TeamIcon } from "./TeamIcon";
+import type { Organization } from "@/types/organization";
+import { OrganizationIcon } from "./OrganizationIcon";
 import { organizationImageUrl } from "@/lib/file";
 
 export const ContentBranding = ({
@@ -14,7 +14,7 @@ export const ContentBranding = ({
 	}
 	return (
 		<div className="flex items-center">
-			<TeamIcon
+			<OrganizationIcon
 				src={organizationImageUrl(contentOrganization, "logo")}
 				className="max-h-8 mr-2"
 			/>

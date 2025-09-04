@@ -27,7 +27,7 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 			queryClient.ensureQueryData(
 				orpc.connection.getOne.queryOptions({
 					input: {
-						senderType: "team",
+						senderType: "organization",
 						recipientType: "course",
 						id: params.courseId,
 					},
@@ -61,7 +61,7 @@ function RouteComponent() {
 	const { data: connection } = useSuspenseQuery(
 		orpc.connection.getOne.queryOptions({
 			input: {
-				senderType: "team",
+				senderType: "organization",
 				recipientType: "course",
 				id: params.courseId,
 			},
@@ -75,7 +75,7 @@ function RouteComponent() {
 				queryClient.invalidateQueries(
 					orpc.connection.getOne.queryOptions({
 						input: {
-							senderType: "team",
+							senderType: "organization",
 							recipientType: "course",
 							id: params.courseId,
 						},
@@ -97,7 +97,7 @@ function RouteComponent() {
 				queryClient.invalidateQueries(
 					orpc.connection.getOne.queryOptions({
 						input: {
-							senderType: "team",
+							senderType: "organization",
 							recipientType: "course",
 							id: params.courseId,
 						},
@@ -115,17 +115,17 @@ function RouteComponent() {
 				connection={connection || undefined}
 				onRequest={() =>
 					createConnection.mutate({
-						senderType: "team",
+						senderType: "organization",
 						recipientType: "course",
 						id: course.id,
 					})
 				}
 				onResponse={(response) =>
 					connection &&
-					"fromTeamId" in connection &&
+					"fromOrganizationId" in connection &&
 					updateConnection.mutate({
 						senderType: "course",
-						recipientType: "team",
+						recipientType: "organization",
 						id: course.id,
 						connectStatus: response,
 					})

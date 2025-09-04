@@ -3,21 +3,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslations } from "@/lib/locale";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Blocks, Book } from "lucide-react";
-import { TeamIcon } from "@/components/TeamIcon";
+import { OrganizationIcon } from "@/components/OrganizationIcon";
 import { organizationImageUrl } from "@/lib/file";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { orpc } from "@/server/client";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/$locale/")({
 	component: Home,
 	loader: async ({ context: { queryClient } }) => {
-		let team = undefined;
 		const tenantId = await queryClient.ensureQueryData(
 			orpc.auth.tenant.queryOptions(),
 		);
 		if (tenantId) {
-			console.log("tenantId", tenantId);
-			team = await queryClient.fetchQuery(
+			await queryClient.fetchQuery(
 				orpc.organization.id.queryOptions({
 					input: {
 						id: tenantId,
@@ -25,8 +24,6 @@ export const Route = createFileRoute("/$locale/")({
 				}),
 			);
 		}
-
-		return { team };
 	},
 });
 
@@ -56,18 +53,28 @@ const CTA = () => {
 
 function Home() {
 	const t = useTranslations("Home");
-	const { team } = Route.useLoaderData();
+	const { data: tenantId } = useSuspenseQuery(
+		orpc.auth.tenant.queryOptions(),
+	);
+	const { data: organization } = useQuery(
+		orpc.organization.id.queryOptions({
+			input: {
+				id: tenantId!,
+			},
+			enabled: !!tenantId,
+		}),
+	);
 
-	if (team) {
+	if (organization) {
 		return (
 			<FloatingPage>
-				<TeamIcon
-					src={organizationImageUrl(team, "logo")}
+				<OrganizationIcon
+					src={organizationImageUrl(organization, "logo")}
 					className="my-4"
 				/>
 				<PageHeader
-					title={team.name}
-					description={t["team-description"]}
+					title={organization.name}
+					description={t["organization-description"]}
 				/>
 				<CTA />
 			</FloatingPage>

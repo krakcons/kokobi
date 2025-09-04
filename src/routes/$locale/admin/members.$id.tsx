@@ -3,7 +3,7 @@ import { Page, PageHeader } from "@/components/Page";
 import { authClient } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import type { Role } from "@/types/team";
+import type { Role } from "@/types/organization";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { toast } from "sonner";

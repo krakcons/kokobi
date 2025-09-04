@@ -9,7 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import type { Role } from "@/types/team";
+import type { Role } from "@/types/organization";
 import {
 	useMutation,
 	useQueryClient,
@@ -46,7 +46,7 @@ type MemberTable = {
 
 function RouteComponent() {
 	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
-	const tRoles = useTranslations("TeamRole");
+	const tRoles = useTranslations("Role");
 	const t = useTranslations("Members");
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();

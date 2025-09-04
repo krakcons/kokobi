@@ -3,11 +3,10 @@ import { useAppForm } from "@/components/ui/form";
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import { TeamIcon } from "@/components/TeamIcon";
+import { OrganizationIcon } from "@/components/OrganizationIcon";
 import { organizationImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import type { Organization } from "@/types/team";
 import { authClient } from "@/lib/auth.client";
 
 export const RedirectSchema = z.object({
@@ -29,18 +28,14 @@ export const Route = createFileRoute("/$locale/auth/login")({
 		const tenantId = await queryClient.ensureQueryData(
 			orpc.auth.tenant.queryOptions(),
 		);
-		console.log("TENANT ID", tenantId);
-		let organization: Organization | undefined = undefined;
 		if (tenantId) {
-			console.log("GETTING TENANT");
-			const tenant = await queryClient.ensureQueryData(
+			await queryClient.ensureQueryData(
 				orpc.organization.id.queryOptions({
 					input: {
 						id: tenantId,
 					},
 				}),
 			);
-			organization = tenant;
 		}
 	},
 });
@@ -124,7 +119,7 @@ function RouteComponent() {
 	return (
 		<FloatingPage>
 			{organization && (
-				<TeamIcon
+				<OrganizationIcon
 					src={organizationImageUrl(organization, "logo")}
 					className="my-4"
 				/>

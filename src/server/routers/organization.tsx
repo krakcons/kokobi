@@ -5,7 +5,10 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from "../middleware";
-import { OrganizationFormSchema, OrganizationSchema } from "@/types/team";
+import {
+	OrganizationFormSchema,
+	OrganizationSchema,
+} from "@/types/organization";
 import { db } from "../db";
 import {
 	domains,
@@ -288,7 +291,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 				}).nullable(),
 			)
 			.handler(async ({ context }) => {
-				const teamDomain = await db.query.domains.findFirst({
+				const organizationDomain = await db.query.domains.findFirst({
 					where: and(
 						eq(
 							domains.organizationId,
@@ -297,23 +300,23 @@ export const organizationRouter = base.prefix("/organizations").router({
 					),
 				});
 
-				if (!teamDomain) {
+				if (!organizationDomain) {
 					return null;
 				}
 
 				const command = new GetEmailIdentityCommand({
-					EmailIdentity: teamDomain.hostname,
+					EmailIdentity: organizationDomain.hostname,
 				});
 				const email = await ses.send(command);
 
 				const cloudflare = await cf.customHostnames.get(
-					teamDomain.hostnameId,
+					organizationDomain.hostnameId,
 					{
 						zone_id: env.CLOUDFLARE_ZONE_ID,
 					},
 				);
 
-				const subdomain = teamDomain.hostname
+				const subdomain = organizationDomain.hostname
 					.split(".")
 					.slice(0, -2)
 					.join(".");
@@ -379,7 +382,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 				}
 
 				return {
-					...teamDomain,
+					...organizationDomain,
 					records: records.sort((a) =>
 						a.status === "optional" ? 1 : -1,
 					),

@@ -22,7 +22,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "../ui/badge";
 import { authClient } from "@/lib/auth.client";
 import { organizationImageUrl } from "@/lib/file";
-import type { Organization } from "@/types/team";
+import type { Organization } from "@/types/organization";
 import { orpc } from "@/server/client";
 
 const Invitation = ({

@@ -29,7 +29,7 @@ import { sendEmail, verifyEmail } from "../lib/email";
 import { organizationImageUrl } from "@/lib/file";
 import { ORPCError } from "@orpc/client";
 import { s3 } from "../s3";
-import type { Organization } from "@/types/team";
+import type { Organization } from "@/types/organization";
 
 export const learnerRouter = base.prefix("/learner").router({
 	organization: {
@@ -41,36 +41,41 @@ export const learnerRouter = base.prefix("/learner").router({
 				summary: "Get Organizations",
 			})
 			.handler(async ({ context }) => {
-				let learnerTeam = undefined;
+				let learnerOrganization = undefined;
 				if (context.session.activeLearnerOrganizationId) {
-					learnerTeam = await db.query.organizations.findFirst({
+					learnerOrganization =
+						await db.query.organizations.findFirst({
+							where: eq(
+								organizations.id,
+								context.session.activeLearnerOrganizationId,
+							),
+							with: {
+								translations: true,
+							},
+						});
+				}
+				const welcomeOrganization =
+					await db.query.organizations.findFirst({
 						where: eq(
 							organizations.id,
-							context.session.activeLearnerOrganizationId,
+							env.WELCOME_ORGANIZATION_ID,
 						),
 						with: {
 							translations: true,
 						},
 					});
-				}
-				const welcomeOrganization =
-					await db.query.organizations.findFirst({
-						where: eq(organizations.id, env.WELCOME_TEAM_ID),
+				const courseOrganizations =
+					await db.query.usersToCourses.findMany({
+						where: eq(usersToCourses.userId, context.user.id),
 						with: {
-							translations: true,
-						},
-					});
-				const courseTeams = await db.query.usersToCourses.findMany({
-					where: eq(usersToCourses.userId, context.user.id),
-					with: {
-						organization: {
-							with: {
-								translations: true,
+							organization: {
+								with: {
+									translations: true,
+								},
 							},
 						},
-					},
-				});
-				const collectionTeams =
+					});
+				const collectionOrganizations =
 					await db.query.usersToCollections.findMany({
 						where: eq(usersToCollections.userId, context.user.id),
 						with: {
@@ -83,10 +88,14 @@ export const learnerRouter = base.prefix("/learner").router({
 					});
 
 				return [
-					...(learnerTeam ? [learnerTeam] : []),
+					...(learnerOrganization ? [learnerOrganization] : []),
 					...(welcomeOrganization ? [welcomeOrganization] : []),
-					...collectionTeams.map(({ organization }) => organization),
-					...courseTeams.map(({ organization }) => organization),
+					...collectionOrganizations.map(
+						({ organization }) => organization,
+					),
+					...courseOrganizations.map(
+						({ organization }) => organization,
+					),
 				]
 					.map((o) => handleLocalization(context, o))
 					.reduce(
@@ -195,10 +204,10 @@ export const learnerRouter = base.prefix("/learner").router({
 			.handler(async ({ context }) => {
 				if (
 					context.session.activeLearnerOrganizationId !==
-					env.WELCOME_TEAM_ID
+					env.WELCOME_ORGANIZATION_ID
 				)
 					return [];
-				// TODO: Allow learner team members to access available courses (or something else)
+				// TODO: Allow learner organization members to access available courses (or something else)
 				const courseList = await db.query.courses.findMany({
 					where: eq(
 						courses.organizationId,
@@ -446,7 +455,7 @@ export const learnerRouter = base.prefix("/learner").router({
 										: attempt.completedAt;
 
 								if (justCompleted && isSuccess) {
-									const teamBase =
+									const organizationBase =
 										await db.query.organizations.findFirst({
 											where: eq(
 												organizations.id,
@@ -458,9 +467,9 @@ export const learnerRouter = base.prefix("/learner").router({
 												domains: true,
 											},
 										});
-									const team = handleLocalization(
+									const organization = handleLocalization(
 										{ locale: communicationLocale },
-										teamBase!,
+										organizationBase!,
 									);
 									const course = handleLocalization(
 										{ locale: communicationLocale },
@@ -481,7 +490,7 @@ export const learnerRouter = base.prefix("/learner").router({
 									});
 
 									const emailVerified = await verifyEmail(
-										team.domains,
+										organization.domains,
 									);
 
 									await sendEmail({
@@ -491,9 +500,11 @@ export const learnerRouter = base.prefix("/learner").router({
 										content: (
 											<CourseCompletion
 												name={course.name}
-												teamName={team.name}
+												organizationName={
+													organization.name
+												}
 												logo={organizationImageUrl(
-													team,
+													organization,
 													"logo",
 												)}
 												href={href}
@@ -501,7 +512,7 @@ export const learnerRouter = base.prefix("/learner").router({
 											/>
 										),
 										organization: emailVerified
-											? team
+											? organization
 											: undefined,
 									});
 								}

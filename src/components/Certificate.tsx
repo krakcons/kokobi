@@ -1,6 +1,6 @@
 import { organizationImageUrl } from "@/lib/file";
 import type { Messages } from "@/lib/locale";
-import type { Organization } from "@/types/team";
+import type { Organization } from "@/types/organization";
 import {
 	Document,
 	Font,

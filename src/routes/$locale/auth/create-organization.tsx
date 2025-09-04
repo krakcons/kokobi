@@ -1,4 +1,4 @@
-import { TeamForm } from "@/components/forms/TeamForm";
+import { OrganizationForm } from "@/components/forms/OrganizationForm";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/$locale/auth/create-organization")({
 
 function RouteComponent() {
 	const locale = useLocale();
-	const t = useTranslations("TeamForm");
+	const t = useTranslations("OrganizationForm");
 	const navigate = Route.useNavigate();
 	const createOrganization = useMutation(
 		orpc.organization.create.mutationOptions(
@@ -24,11 +24,11 @@ function RouteComponent() {
 						},
 						search: (s) => s,
 						reloadDocument: true,
-					})
+					});
 				},
 			}),
 		),
-	)
+	);
 
 	return (
 		<FloatingPage>
@@ -36,12 +36,12 @@ function RouteComponent() {
 				title={t.create.title}
 				description={t.create.description}
 			/>
-			<TeamForm
+			<OrganizationForm
 				collapsible
 				onSubmit={(values) => {
 					return createOrganization.mutateAsync(values);
 				}}
 			/>
 		</FloatingPage>
-	)
+	);
 }

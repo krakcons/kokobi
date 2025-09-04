@@ -1,4 +1,4 @@
-import { TeamForm } from "@/components/forms/TeamForm";
+import { OrganizationForm } from "@/components/forms/OrganizationForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -69,7 +69,7 @@ const DomainForm = ({
 	defaultValues?: DomainFormType;
 	onSubmit: (values: DomainFormType) => Promise<any>;
 }) => {
-	const t = useTranslations("TeamDomainForm");
+	const t = useTranslations("OrganizationDomainForm");
 	const form = useAppForm({
 		defaultValues: {
 			hostname: undefined,
@@ -103,9 +103,9 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
 	const router = useRouter();
-	const t = useTranslations("TeamSettings");
+	const t = useTranslations("OrganizationSettings");
 	const tActions = useTranslations("Actions");
-	const tDomain = useTranslations("TeamDomainForm");
+	const tDomain = useTranslations("OrganizationDomainForm");
 	const queryClient = useQueryClient();
 
 	const { data: organization } = useSuspenseQuery(
@@ -194,7 +194,7 @@ function RouteComponent() {
 					<CopyButton text={organization.id} />
 				</Badge>
 			</PageHeader>
-			<TeamForm
+			<OrganizationForm
 				key={organization.locale}
 				defaultValues={{
 					logo: data?.logo ?? "",

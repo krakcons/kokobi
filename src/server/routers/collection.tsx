@@ -16,7 +16,6 @@ import { CourseSchema } from "@/types/course";
 import { ORPCError } from "@orpc/client";
 import { getConnectionLink } from "../lib/connection";
 import { createConnection } from "./connection";
-import { OrganizationSchema } from "@/types/team";
 
 export const collectionRouter = base.prefix("/collections").router({
 	get: organizationProcedure

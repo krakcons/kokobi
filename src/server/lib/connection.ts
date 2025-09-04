@@ -35,7 +35,7 @@ export const getConnectionLink = async ({
 	const url = new URL(base);
 	url.pathname = `${locale ? `/${locale}` : ""}/learner/${type}s/${id}`;
 	if (organizationId && !verified) {
-		url.searchParams.set("teamId", organizationId);
+		url.searchParams.set("organizationId", organizationId);
 	}
 	return url.toString();
 };

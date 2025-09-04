@@ -13,8 +13,8 @@ const fr: Messages = {
 		editing: "Edition",
 		manage: "Gérer",
 		dashboard: "Tableau de bord",
-		team: "Équipe",
-		edit: "Modifier l'équipe",
+		organization: "Organisation",
+		edit: "Modifier l'organisation",
 		apiKeys: "Clés API",
 		certificate: "Certificat",
 		domains: "Domaines",
@@ -40,7 +40,7 @@ const fr: Messages = {
 		collection: {
 			title: "Créez votre première collection",
 			description:
-				"Les collections sont un moyen d’organiser une liste de cours.",
+				"Les collections sont un moyen d'organiser une liste de cours.",
 		},
 	},
 	AuthLoginForm: {
@@ -214,7 +214,7 @@ const fr: Messages = {
 		},
 	},
 	Errors: {
-		title: "Quelque chose s'est mal passé !",
+		title: "Quelque chose s'est mal passé !",
 		tryAgain: "Essayer à nouveau",
 		goBack: "Retourner",
 		NotFound: {
@@ -241,7 +241,7 @@ const fr: Messages = {
 		title: { "1": "Apprentissage moderne", "2": "Moins cher" },
 		description:
 			"Découvrez une gestion de l'apprentissage moderne, abordable et facile pour une expérience éducative enrichissante.",
-		"team-description":
+		"organization-description":
 			"Visitez le portail d'apprentissage ou d'administration pour commencer.",
 		"go-to-admin": "Aller à l'administration",
 		"go-to-learning": "Aller à l'apprentissage",
@@ -250,7 +250,7 @@ const fr: Messages = {
 		"0": { title: "S'inscrire" },
 		"1": { title: "Vos informations" },
 		continue: "Continuer",
-		join: "S’inscrire",
+		join: "S'inscrire",
 		back: "Retour",
 		language: "Langue",
 		"language-description":
@@ -274,12 +274,12 @@ const fr: Messages = {
 		course: {
 			title: "Aucun cours disponible",
 			description:
-				"Vous n'avez encore rejoint aucun cours. Pour rejoindre un cours, demandez l'accès à une équipe ou demandez-lui de vous inviter.",
+				"Vous n'avez encore rejoint aucun cours. Pour rejoindre un cours, demandez l'accès à une organisation ou demandez-lui de vous inviter.",
 		},
 		collection: {
 			title: "Aucune collection disponible",
 			description:
-				"Vous n'avez encore rejoint aucune collection. Pour rejoindre une collection, demandez l'accès à une équipe ou demandez-lui de vous inviter.",
+				"Vous n'avez encore rejoint aucune collection. Pour rejoindre une collection, demandez l'accès à une organisation ou demandez-lui de vous inviter.",
 		},
 	},
 	Learner: {
@@ -368,9 +368,9 @@ const fr: Messages = {
 	NotAMember: {
 		title: "Pas un administrateur",
 		message:
-			"Vous n'avez pas été invité à administrer cette équipe. Veuillez contacter un administrateur de l'équipe et demander une invitation pour accéder au tableau de bord d'administration de l'équipe.",
+			"Vous n'avez pas été invité à administrer cette organisation. Veuillez contacter un administrateur de l'organisation et demander une invitation pour accéder au tableau de bord d'administration de l'organisation.",
 		inviteMessage:
-			"Vous avez été invité à administrer cette équipe. Veuillez accepter ou refuser l'invitation ci-dessous.",
+			"Vous avez été invité à administrer cette organisation. Veuillez accepter ou refuser l'invitation ci-dessous.",
 	},
 	SEO: {
 		title: "Kokobi | Apprendre, Enseigner, Se Connecter et Grandir",
@@ -379,8 +379,8 @@ const fr: Messages = {
 		title: "Statistiques",
 		description: "Consultez les statistiques de vos cours",
 		filter: {
-			title: "Filtrer par équipe",
-			all: "Toutes les équipes",
+			title: "Filtrer par organisation",
+			all: "Toutes les organisations",
 		},
 		totalAttempts: {
 			title: "Nombre total de tentatives",
@@ -426,9 +426,9 @@ const fr: Messages = {
 		goToNextPage: "Aller à la page suivante",
 		goToLastPage: "Aller à la dernière page",
 	},
-	TeamSettings: {
+	OrganizationSettings: {
 		title: "Paramètres",
-		description: "Modifier les paramètres de votre équipe",
+		description: "Modifier les paramètres de votre organisation",
 		domain: {
 			rootWarning:
 				"Les noms des enregistrements sont relatifs à votre domaine racine (par exemple, « email » correspond à « email.domain.com »)",
@@ -446,13 +446,13 @@ const fr: Messages = {
 			},
 		},
 		delete: {
-			title: "Supprimer l'équipe",
+			title: "Supprimer l'organisation",
 			description:
-				"Cela supprimera l'équipe et toutes les données associées. Cette action est irréversible.",
+				"Cela supprimera l'organisation et toutes les données associées. Cette action est irréversible.",
 			confirm: {
 				title: "Êtes-vous absolument sûr ?",
 				description:
-					"Cette action est irréversible. Elle supprimera définitivement votre équipe et toutes vos données (collections, cours, apprenants, etc.) de nos serveurs.",
+					"Cette action est irréversible. Elle supprimera définitivement votre organisation et toutes vos données (collections, cours, apprenants, etc.) de nos serveurs.",
 			},
 		},
 	},
@@ -460,28 +460,29 @@ const fr: Messages = {
 		title: "Organisations",
 		create: "Créer une organisation",
 	},
-	TeamsForm: {
-		title: "Inviter des équipes",
+	OrganizationsForm: {
+		title: "Inviter des organisations",
 		description:
-			"Saisissez les identifiants des équipes que vous souhaitez inviter.",
-		add: "Ajouter une équipe",
+			"Saisissez les identifiants des organisations que vous souhaitez inviter.",
+		add: "Ajouter une organisation",
 	},
-	TeamDomainForm: {
+	OrganizationDomainForm: {
 		title: "Domaine personnalisé",
 		description:
-			"Définissez un domaine personnalisé pour diffuser le contenu de votre équipe",
+			"Définissez un domaine personnalisé pour diffuser le contenu de votre organisation",
 		domain: "Domaine",
 	},
-	TeamForm: {
+	OrganizationForm: {
 		name: "Nom",
 		logo: "Logo",
 		favicon: "Icône de favori",
 		create: {
-			title: "Créer une équipe",
-			description: "Saisissez les détails de votre équipe ci-dessous.",
+			title: "Créer une organisation",
+			description:
+				"Saisissez les détails de votre organisation ci-dessous.",
 		},
 	},
-	TeamRole: {
+	Role: {
 		owner: "Propriétaire",
 		admin: "Administrateur",
 		member: "Membre",

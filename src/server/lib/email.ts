@@ -6,7 +6,7 @@ import {
 import type { ReactElement } from "react";
 import { ses } from "../ses";
 import { renderToString } from "react-dom/server";
-import type { Organization } from "@/types/team";
+import type { Organization } from "@/types/organization";
 
 export const verifyEmail = async (domains: Domain[]) => {
 	if (domains.length === 0) return false;

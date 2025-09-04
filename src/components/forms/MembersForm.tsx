@@ -1,6 +1,6 @@
 import { useAppForm } from "@/components/ui/form";
 import { useTranslations } from "@/lib/locale";
-import { roles, type Role } from "@/types/team";
+import { roles, type Role } from "@/types/organization";
 
 type MemberFormType = {
 	email: string;
@@ -17,7 +17,7 @@ export const MemberForm = ({
 	disableEmail?: boolean;
 }) => {
 	const t = useTranslations("MemberForm");
-	const tRoles = useTranslations("TeamRole");
+	const tRoles = useTranslations("Role");
 	const form = useAppForm({
 		defaultValues: {
 			email: defaultValues?.email ?? "",

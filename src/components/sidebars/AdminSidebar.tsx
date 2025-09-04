@@ -39,7 +39,7 @@ import {
 import type { Course } from "@/types/course";
 import { useEffect, useState } from "react";
 import type { Collection, CollectionTranslation } from "@/types/collections";
-import type { Organization } from "@/types/team";
+import type { Organization } from "@/types/organization";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { UserButton } from "./UserButton";
 import { Separator } from "../ui/separator";
@@ -618,7 +618,7 @@ export const AdminSidebar = ({
 				</SidebarGroup>
 				{role === "owner" && (
 					<SidebarGroup>
-						<SidebarGroupLabel>{t.team}</SidebarGroupLabel>
+						<SidebarGroupLabel>{t.organization}</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
 								<SidebarMenuItem>

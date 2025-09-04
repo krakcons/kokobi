@@ -8,7 +8,7 @@ export const Invite = ({
 	content = [
 		{
 			name: "Course English",
-			teamName: "Team English",
+			organizationName: "Organization English",
 			logo: "/favicon.ico",
 			locale: "en",
 			t: en.Email.Invite,
@@ -16,7 +16,7 @@ export const Invite = ({
 		},
 		{
 			name: "Course French",
-			teamName: "Team French",
+			organizationName: "Organization French",
 			logo: "/favicon.ico",
 			locale: "fr",
 			href: "https://google.com",
@@ -26,7 +26,7 @@ export const Invite = ({
 }: {
 	content?: {
 		name?: string;
-		teamName?: string;
+		organizationName?: string;
 		logo?: string;
 		locale?: Locale;
 		href?: string;
@@ -37,11 +37,11 @@ export const Invite = ({
 		<p style={{ marginTop: 0, marginBottom: "1rem" }}>
 			Un message en français suit
 		</p>
-		{content.map(({ logo, name, teamName, t, href }, i) => (
+		{content.map(({ logo, name, organizationName, t, href }, i) => (
 			<div key={i}>
 				{logo && <img src={logo} alt="logo" height={100} />}
 				<p style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-					<strong>{teamName}</strong>
+					<strong>{organizationName}</strong>
 					{` ${t.invite} `}
 					<strong>{name}</strong>
 				</p>

@@ -91,7 +91,7 @@ export const hasOrganizationAccess = async ({
 			return "root";
 		}
 
-		// 2: Course is shared with the team and accepted
+		// 2: Course is shared with the organization and accepted
 		const connection = await db.query.organizationsToCourses.findFirst({
 			where: and(
 				eq(usersToCourses.courseId, id),

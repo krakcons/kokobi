@@ -29,7 +29,7 @@ const getIsIframeFn = createServerFn().handler(() => {
 export const Route = createFileRoute("/$locale/learner")({
 	component: RouteComponent,
 	validateSearch: z.object({
-		teamId: z.string().optional(),
+		organizationId: z.string().optional(),
 	}),
 	beforeLoad: async ({
 		params,
@@ -64,12 +64,12 @@ export const Route = createFileRoute("/$locale/learner")({
 				});
 			}
 		} else {
-			if (search.teamId) {
+			if (search.organizationId) {
 				await orpc.learner.organization.update.call({
-					id: search.teamId,
+					id: search.organizationId,
 				});
 				const newUrl = new URL(env.VITE_SITE_URL + location.href);
-				newUrl.searchParams.delete("teamId");
+				newUrl.searchParams.delete("organizationId");
 				redirectHref = newUrl.href;
 			}
 			if (!auth.session.activeLearnerOrganizationId) {

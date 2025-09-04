@@ -19,7 +19,6 @@ export const authRouter = {
 			summary: "Get Tenant",
 		})
 		.handler(async () => {
-			return "Tut2SUnjSy4YtvzLZYsFTMAx3jcKE3Kf";
 			return await getTenant();
 		}),
 	invitation: {

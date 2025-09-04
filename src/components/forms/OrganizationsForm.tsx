@@ -4,23 +4,24 @@ import { useAppForm } from "../ui/form";
 import { z } from "zod";
 import { useTranslations } from "@/lib/locale";
 
-export const TeamsFormSchema = z.object({
-	teamIds: z.string().array(),
+export const OrganizationsFormSchema = z.object({
+	organizationIds: z.string().array(),
 });
-export type TeamsFormType = z.infer<typeof TeamsFormSchema>;
-export const TeamsForm = ({
+export type OrganizationsFormType = z.infer<typeof OrganizationsFormSchema>;
+
+export const OrganizationsForm = ({
 	onSubmit,
 }: {
-	onSubmit: (values: TeamsFormType) => Promise<any>;
+	onSubmit: (values: OrganizationsFormType) => Promise<any>;
 }) => {
-	const t = useTranslations("TeamsForm");
+	const t = useTranslations("OrganizationsForm");
 	const form = useAppForm({
 		validators: {
-			onSubmit: TeamsFormSchema,
+			onSubmit: OrganizationsFormSchema,
 		},
 		defaultValues: {
-			teamIds: [""],
-		} as TeamsFormType,
+			organizationIds: [""],
+		} as OrganizationsFormType,
 		onSubmit: ({ value }) => onSubmit(value),
 	});
 
@@ -31,7 +32,7 @@ export const TeamsForm = ({
 				onSubmit={(e) => e.preventDefault()}
 				className="flex flex-col gap-2 w-full"
 			>
-				<form.Field name="teamIds" mode="array">
+				<form.Field name="organizationIds" mode="array">
 					{(arrayField) => (
 						<>
 							{arrayField.state.value.map((_, index) => (
@@ -39,7 +40,9 @@ export const TeamsForm = ({
 									key={index}
 									className="flex items-start gap-2 flex-1 w-full"
 								>
-									<form.AppField name={`teamIds[${index}]`}>
+									<form.AppField
+										name={`organizationIds[${index}]`}
+									>
 										{(subField) => (
 											<div className="flex-1">
 												<subField.TextField label="" />

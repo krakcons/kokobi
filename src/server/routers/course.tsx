@@ -3,7 +3,7 @@ import { base, organizationProcedure, publicProcedure } from "../middleware";
 import { z } from "zod";
 import { ORPCError } from "@orpc/client";
 import { CourseFormSchema, CourseSchema } from "@/types/course";
-import { OrganizationSchema } from "@/types/team";
+import { OrganizationSchema } from "@/types/organization";
 import { s3 } from "../s3";
 import { hasOrganizationAccess } from "../lib/access";
 import {
@@ -305,7 +305,7 @@ export const courseRouter = base.prefix("/courses").router({
 			// Send communications in the locale of the module
 			const communicationLocale = attempt.module.locale;
 
-			const team = handleLocalization(
+			const organization = handleLocalization(
 				{
 					locale: communicationLocale,
 				},
@@ -329,7 +329,7 @@ export const courseRouter = base.prefix("/courses").router({
 				locale: communicationLocale,
 			});
 
-			const emailVerified = await verifyEmail(team.domains);
+			const emailVerified = await verifyEmail(organization.domains);
 
 			await sendEmail({
 				to: [attempt.user.email],
@@ -337,13 +337,13 @@ export const courseRouter = base.prefix("/courses").router({
 				content: (
 					<CourseCompletion
 						name={course.name}
-						teamName={team.name}
-						logo={organizationImageUrl(team, "logo")}
+						organizationName={organization.name}
+						logo={organizationImageUrl(organization, "logo")}
 						href={href}
 						t={t.Email.CourseCompletion}
 					/>
 				),
-				organization: emailVerified ? team : undefined,
+				organization: emailVerified ? organization : undefined,
 			});
 		}),
 	learners: organizationProcedure
@@ -397,12 +397,12 @@ export const courseRouter = base.prefix("/courses").router({
 					: undefined,
 			}));
 		}),
-	sharedTeams: organizationProcedure
+	sharedOrganizations: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "GET",
-			path: "/{id}/shared-teams",
-			summary: "Get Shared Teams",
+			path: "/{id}/shared-organizations",
+			summary: "Get Shared Organizations",
 		})
 		.input(
 			z.object({
@@ -450,7 +450,7 @@ export const courseRouter = base.prefix("/courses").router({
 		.input(
 			z.object({
 				id: z.string(),
-				teamId: z.string().optional(),
+				organizationId: z.string().optional(),
 			}),
 		)
 		.output(
@@ -469,127 +469,139 @@ export const courseRouter = base.prefix("/courses").router({
 				}),
 			}),
 		)
-		.handler(async ({ context, input: { id, teamId: customTeamId } }) => {
-			const access = await hasOrganizationAccess({
-				type: "course",
-				id: id,
-				organizationId: context.session.activeOrganizationId,
-			});
+		.handler(
+			async ({
+				context,
+				input: { id, organizationId: customOrganizationId },
+			}) => {
+				const access = await hasOrganizationAccess({
+					type: "course",
+					id: id,
+					organizationId: context.session.activeOrganizationId,
+				});
 
-			const organizationId =
-				access === "shared"
-					? context.session.activeOrganizationId
-					: customTeamId;
+				const organizationId =
+					access === "shared"
+						? context.session.activeOrganizationId
+						: customOrganizationId;
 
-			// First, get all user IDs connected to the course (directly or via collections)
-			const directUserIds = await db
-				.select({ userId: usersToCourses.userId })
-				.from(usersToCourses)
-				.where(
-					and(
-						eq(usersToCourses.courseId, id),
-						eq(usersToCourses.connectStatus, "accepted"),
+				// First, get all user IDs connected to the course (directly or via collections)
+				const directUserIds = await db
+					.select({ userId: usersToCourses.userId })
+					.from(usersToCourses)
+					.where(
+						and(
+							eq(usersToCourses.courseId, id),
+							eq(usersToCourses.connectStatus, "accepted"),
+							organizationId
+								? eq(
+										usersToCourses.organizationId,
+										organizationId,
+									)
+								: undefined,
+						),
+					);
+				const collectionUserIds = await db
+					.select({ userId: usersToCollections.userId })
+					.from(usersToCollections)
+					.innerJoin(
+						collectionsToCourses,
+						eq(
+							usersToCollections.collectionId,
+							collectionsToCourses.collectionId,
+						),
+					)
+					.where(
+						and(
+							eq(collectionsToCourses.courseId, id),
+							eq(usersToCollections.connectStatus, "accepted"),
+							organizationId
+								? eq(
+										usersToCollections.organizationId,
+										organizationId,
+									)
+								: undefined,
+						),
+					);
+
+				// Combine all user IDs and remove duplicates
+				const allUserIds = [
+					...directUserIds.map((u) => u.userId),
+					...collectionUserIds.map((u) => u.userId),
+				];
+				const uniqueUserIds = [...new Set(allUserIds)];
+
+				const attemptList = await db.query.usersToModules.findMany({
+					where: and(
+						eq(usersToModules.courseId, id),
+						inArray(usersToModules.userId, uniqueUserIds),
 						organizationId
-							? eq(usersToCourses.organizationId, organizationId)
+							? eq(usersToModules.organizationId, organizationId)
 							: undefined,
 					),
-				);
-			const collectionUserIds = await db
-				.select({ userId: usersToCollections.userId })
-				.from(usersToCollections)
-				.innerJoin(
-					collectionsToCourses,
-					eq(
-						usersToCollections.collectionId,
-						collectionsToCourses.collectionId,
-					),
-				)
-				.where(
-					and(
-						eq(collectionsToCourses.courseId, id),
-						eq(usersToCollections.connectStatus, "accepted"),
-						organizationId
-							? eq(
-									usersToCollections.organizationId,
-									organizationId,
-								)
-							: undefined,
-					),
+					with: {
+						module: true,
+					},
+				});
+
+				const attempts = attemptList.map((attempt) =>
+					ExtendLearner(attempt.module.type).parse(attempt),
 				);
 
-			// Combine all user IDs and remove duplicates
-			const allUserIds = [
-				...directUserIds.map((u) => u.userId),
-				...collectionUserIds.map((u) => u.userId),
-			];
-			const uniqueUserIds = [...new Set(allUserIds)];
-
-			const attemptList = await db.query.usersToModules.findMany({
-				where: and(
-					eq(usersToModules.courseId, id),
-					inArray(usersToModules.userId, uniqueUserIds),
-					organizationId
-						? eq(usersToModules.organizationId, organizationId)
-						: undefined,
-				),
-				with: {
-					module: true,
-				},
-			});
-
-			const attempts = attemptList.map((attempt) =>
-				ExtendLearner(attempt.module.type).parse(attempt),
-			);
-
-			const total = attempts.length;
-			const completed = attempts.filter((l) => !!l.completedAt).length;
-			const totalCompletionTimeSeconds = attempts.reduce(
-				(acc, learner) => {
-					if (learner.completedAt) {
-						return (
-							acc +
-							(learner.completedAt.getTime() -
-								learner.createdAt.getTime()) /
-								1000
-						);
-					}
-					return acc;
-				},
-				0,
-			);
-
-			return {
-				total,
-				completed,
-				completedPercent:
-					completed > 0
-						? ((completed / total) * 100).toFixed(0)
-						: undefined,
-				completedTimeAverage:
-					completed > 0
-						? (totalCompletionTimeSeconds / 60 / completed).toFixed(
-								1,
-							)
-						: undefined,
-				charts: {
-					status: attempts.reduce(
-						(acc, learner) => {
-							const index = learnerStatuses.indexOf(
-								learner.status,
+				const total = attempts.length;
+				const completed = attempts.filter(
+					(l) => !!l.completedAt,
+				).length;
+				const totalCompletionTimeSeconds = attempts.reduce(
+					(acc, learner) => {
+						if (learner.completedAt) {
+							return (
+								acc +
+								(learner.completedAt.getTime() -
+									learner.createdAt.getTime()) /
+									1000
 							);
-							if (index !== -1) {
-								acc[index].value += 1;
-							}
-							return acc;
-						},
-						learnerStatuses.map((status) => ({
-							name: status,
-							value: 0,
-						})),
-					),
-				},
-			};
-		}),
+						}
+						return acc;
+					},
+					0,
+				);
+
+				return {
+					total,
+					completed,
+					completedPercent:
+						completed > 0
+							? ((completed / total) * 100).toFixed(0)
+							: undefined,
+					completedTimeAverage:
+						completed > 0
+							? (
+									totalCompletionTimeSeconds /
+									60 /
+									completed
+								).toFixed(1)
+							: undefined,
+					charts: {
+						status: attempts.reduce(
+							(acc, learner) => {
+								const index = learnerStatuses.indexOf(
+									learner.status,
+								);
+								if (index !== -1) {
+									acc[index].value += 1;
+								}
+								return acc;
+							},
+							learnerStatuses.map((status) => ({
+								name: status,
+								value: 0,
+							})),
+						),
+					},
+				};
+			},
+		),
 	modules: {
 		get: organizationProcedure
 			.route({
@@ -749,7 +761,7 @@ export const courseRouter = base.prefix("/courses").router({
 					throw new ORPCError("NOT_FOUND");
 				}
 
-				// If module is not owned by the team
+				// If module is not owned by the organization
 				if (
 					moduleExists.course.organizationId !==
 					context.session.activeOrganizationId

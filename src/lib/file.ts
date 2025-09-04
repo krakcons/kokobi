@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import type { Organization } from "@/types/team";
+import type { Organization } from "@/types/organization";
 
 export const fetchFile = async (fileUrl?: string): Promise<File | ""> => {
 	if (!fileUrl) return "";
@@ -16,7 +16,7 @@ export const organizationImageUrl = (
 	organization: Organization,
 	type: "logo" | "favicon",
 ) => {
-	// If the team has a logo or favicon, return the URL
+	// If the organization has a logo or favicon, return the URL
 	if (organization[type]) {
 		return `${env.VITE_SITE_URL}/cdn/${organization[type]}?updatedAt=${organization.updatedAt.toISOString()}`;
 	}

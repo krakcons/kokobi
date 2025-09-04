@@ -11,7 +11,7 @@ import { useTranslations } from "@/lib/locale";
 import {
 	OrganizationFormSchema,
 	type OrganizationFormType,
-} from "@/types/team";
+} from "@/types/organization";
 
 const CollapsibleWrapper = ({ children }: { children: React.ReactNode }) => {
 	const t = useTranslations("Form");
@@ -39,7 +39,7 @@ const BlankWrapper = ({ children }: { children: React.ReactNode }) => (
 	<>{children}</>
 );
 
-export const TeamForm = ({
+export const OrganizationForm = ({
 	defaultValues,
 	collapsible,
 	onSubmit,
@@ -48,7 +48,7 @@ export const TeamForm = ({
 	collapsible?: boolean;
 	onSubmit: (value: OrganizationFormType) => Promise<any>;
 }) => {
-	const t = useTranslations("TeamForm");
+	const t = useTranslations("OrganizationForm");
 	const form = useAppForm({
 		validators: {
 			onSubmit: OrganizationFormSchema,

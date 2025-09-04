@@ -23,7 +23,7 @@ import type {
 import { UserButton } from "./UserButton";
 import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
 import { Separator } from "../ui/separator";
-import type { Organization } from "@/types/team";
+import type { Organization } from "@/types/organization";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import type { User } from "better-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
