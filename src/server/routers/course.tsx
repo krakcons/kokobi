@@ -117,11 +117,11 @@ export const courseRouter = base.prefix("/courses").router({
 				id: z.string().min(1),
 			}),
 		)
-		.output(
-			CourseSchema.extend({
-				organization: OrganizationSchema,
-			}),
-		)
+		//.output(
+		//	CourseSchema.extend({
+		//		organization: OrganizationSchema,
+		//	}),
+		//)
 		.handler(async ({ context, input: { id } }) => {
 			console.log("ID", id);
 			const course = await db.query.courses.findFirst({

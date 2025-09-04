@@ -22,7 +22,7 @@ import { LocaleToggle } from "@/components/LocaleToggle";
 import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
 import { EditingLocaleSchema } from "@/types/router";
 import { orpc } from "@/server/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { authClient } from "@/lib/auth.client";
 
 export const Route = createFileRoute("/$locale/admin")({
@@ -115,6 +115,7 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = useNavigate();
 	const editingLocale = search.locale ?? locale;
+	const queryClient = useQueryClient();
 
 	const { data: organizations } = useSuspenseQuery(
 		orpc.organization.get.queryOptions(),
@@ -158,6 +159,8 @@ function RouteComponent() {
 										...s,
 										locale: value as Locale,
 									}),
+								}).then(() => {
+									queryClient.invalidateQueries();
 								});
 							}}
 						>

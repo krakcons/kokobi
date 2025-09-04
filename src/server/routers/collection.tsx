@@ -54,7 +54,7 @@ export const collectionRouter = base.prefix("/collections").router({
 				id: z.string(),
 			}),
 		)
-		.output(CollectionSchema.extend({ organization: OrganizationSchema }))
+		//.output(CollectionSchema.extend({ organization: OrganizationSchema }))
 		.handler(async ({ context, input: { id } }) => {
 			const collection = await db.query.collections.findFirst({
 				where: and(eq(collections.id, id)),

@@ -214,7 +214,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 			path: "/current",
 			summary: "Get Current Organization",
 		})
-		.output(OrganizationSchema)
+		//.output(OrganizationSchema)
 		.handler(async ({ context }) => {
 			const organization = await db.query.organizations.findFirst({
 				where: eq(

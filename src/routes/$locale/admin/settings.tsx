@@ -118,6 +118,7 @@ function RouteComponent() {
 			},
 		}),
 	);
+	console.log("ORGANIZATION", organization.locale);
 
 	const { data: domain } = useSuspenseQuery(
 		orpc.organization.domain.get.queryOptions(),
