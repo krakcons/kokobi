@@ -1,11 +1,10 @@
-import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import { getAuthFn } from "@/server/handlers/auth";
-import { z } from "zod";
-import { useLocale, useTranslations } from "@/lib/locale";
 import { PublicUserButton } from "@/components/sidebars/PublicUserButton";
-import { buttonVariants } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { useLocale } from "@/lib/locale";
+import { getAuthFn } from "@/server/handlers/auth";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
+import { z } from "zod";
+import WebsiteLogo from "../../../public/favicon.ico";
 
 export const Route = createFileRoute("/$locale/_public")({
 	component: RouteComponent,
@@ -21,19 +20,16 @@ function RouteComponent() {
 	const [auth] = Route.useLoaderData();
 	const locale = useLocale();
 	const location = useLocation();
-	const t = useTranslations("Errors");
 
 	return (
 		<div className="flex flex-col">
-			<header className="border-b-elevation-4 flex h-16 w-full items-center justify-center border-b px-6">
-				<a
-					href="/"
-					className={buttonVariants({
-						variant: "outline",
-					})}
-				>
-					<Home />
-					{t.NotFound.home}
+			<header className="border-b-elevation-4 flex h-16 w-full items-center justify-center border-b px-6 shadow-md dark:shadow-white/7">
+				<a href="/">
+					<img
+						src={WebsiteLogo}
+						alt="Website Logo"
+						className="h-10 w-10 rounded-full border-1 hover:grayscale-50"
+					/>
 				</a>
 				<nav className="flex w-full max-w-screen-lg items-center justify-end"></nav>
 				<PublicUserButton
