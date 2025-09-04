@@ -1,8 +1,3 @@
-import {
-	SidebarMenuButton,
-	SidebarMenuItem,
-	useSidebar,
-} from "@/components/ui/sidebar";
 import { type Theme, themes, useTheme } from "@/lib/theme";
 import { updateUserFn } from "@/server/handlers/users";
 import { deleteAuthFn } from "@/server/handlers/auth";
@@ -10,7 +5,6 @@ import type { User as UserType } from "@/types/users";
 import {
 	LogOutIcon,
 	Moon,
-	MoreVerticalIcon,
 	Sun,
 	SunMoon,
 	User,
@@ -96,21 +90,15 @@ export const PublicUserButton = ({
 		},
 	});
 
-	const changeTheme = () => {
-		const themeIndex = themes.indexOf(theme);
-		if (themeIndex === themes.length - 1) {
-			setTheme(themes[0]);
-		} else {
-			setTheme(themes[themeIndex + 1]);
-		}
-	};
+	const changeTheme = () =>
+		setTheme(themes[(themes.indexOf(theme) + 1) % themes.length]);
 
 	return !!user ? (
-		<SidebarMenuItem>
+		<>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button
-						size="lg"
+						size="md"
 						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					>
 						<Avatar className="h-8 w-8 rounded-lg grayscale">
@@ -119,21 +107,16 @@ export const PublicUserButton = ({
 							</AvatarFallback>
 						</Avatar>
 						<div className="grid flex-1 text-left text-sm leading-tight">
-							{name && (
+							{name ? (
 								<span className="truncate font-medium">
 									{name}
 								</span>
+							) : (
+								<span className={cn("truncate text-xs")}>
+									{user.email}
+								</span>
 							)}
-							<span
-								className={cn(
-									"truncate text-xs",
-									name && "text-muted-foreground",
-								)}
-							>
-								{user.email}
-							</span>
 						</div>
-						<MoreVerticalIcon className="ml-auto size-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent
@@ -229,7 +212,7 @@ export const PublicUserButton = ({
 					/>
 				</DialogContent>
 			</Dialog>
-		</SidebarMenuItem>
+		</>
 	) : (
 		<Button
 			size="lg"

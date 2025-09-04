@@ -68,7 +68,7 @@ function Home() {
 	} else {
 		return (
 			<>
-				<main className="mx-auto w-full max-w-screen-xl">
+				<div className="mx-auto w-full max-w-screen-xl">
 					<div className="flex w-full flex-col items-start gap-8 justify-center p-10 sm:p-20">
 						<h1 className="flex flex-col gap-3 text-5xl sm:text-7xl font-extrabold">
 							{t.title["1"]}
@@ -81,7 +81,7 @@ function Home() {
 						</div>
 						<CTA />
 					</div>
-				</main>
+				</div>
 			</>
 		);
 	}

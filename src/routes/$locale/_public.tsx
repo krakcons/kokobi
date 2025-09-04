@@ -1,28 +1,11 @@
-import {
-	createFileRoute,
-	Outlet,
-	redirect,
-	useLocation,
-} from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { LocaleToggle } from "@/components/LocaleToggle";
-import {
-	getLearnerUserTeamsFn,
-	updateUserTeamFn,
-} from "@/server/handlers/users.teams";
 import { getAuthFn } from "@/server/handlers/auth";
-import { getTenantFn } from "@/server/handlers/teams";
 import { z } from "zod";
-import { env } from "@/env";
-import { createServerFn } from "@tanstack/react-start";
-import { getHeader } from "@tanstack/react-start/server";
-import { useLocale } from "@/lib/locale";
-import { orpc } from "@/server/client";
+import { useLocale, useTranslations } from "@/lib/locale";
 import { PublicUserButton } from "@/components/sidebars/PublicUserButton";
-
-const getIsIframeFn = createServerFn().handler(() => {
-	const secFestDest = getHeader("sec-fetch-dest");
-	return secFestDest === "iframe";
-});
+import { buttonVariants } from "@/components/ui/button";
+import { Home } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/_public")({
 	component: RouteComponent,
@@ -38,15 +21,26 @@ function RouteComponent() {
 	const [auth] = Route.useLoaderData();
 	const locale = useLocale();
 	const location = useLocation();
+	const t = useTranslations("Errors");
 
 	return (
 		<div className="flex flex-col">
-			<header className="border-b-elevation-4 flex h-14 w-full items-center justify-center border-b px-6">
+			<header className="border-b-elevation-4 flex h-16 w-full items-center justify-center border-b px-6">
+				<a
+					href="/"
+					className={buttonVariants({
+						variant: "outline",
+					})}
+				>
+					<Home />
+					{t.NotFound.home}
+				</a>
+				<nav className="flex w-full max-w-screen-lg items-center justify-end"></nav>
 				<PublicUserButton
 					user={auth.user}
 					signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
 				/>
-				<nav className="flex w-full max-w-screen-lg items-center justify-end"></nav>
+				<div className="mx-1"></div>
 				<LocaleToggle />
 			</header>
 			<Outlet />
