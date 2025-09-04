@@ -1,9 +1,10 @@
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/$locale/not-admin")({
 		const organizations = await queryClient.ensureQueryData(
 			orpc.organization.get.queryOptions(),
 		);
+		console.log(organizations, deps.organizationId);
 
 		if (organizations?.find((o) => o.id === deps.organizationId)) {
 			throw redirect({
@@ -26,8 +28,10 @@ export const Route = createFileRoute("/$locale/not-admin")({
 			});
 		}
 
-		console.log("ORGANIZATIONS", organizations);
 		return Promise.all([
+			queryClient.ensureQueryData(
+				orpc.auth.invitation.get.queryOptions(),
+			),
 			queryClient.ensureQueryData(
 				orpc.organization.id.queryOptions({
 					input: {
@@ -43,12 +47,29 @@ function RouteComponent() {
 	const t = useTranslations("NotAMember");
 	const tError = useTranslations("Errors");
 	const navigate = Route.useNavigate();
+	const queryClient = useQueryClient();
 	const search = Route.useSearch();
 
-	const { data: organizations } = useSuspenseQuery(
-		orpc.organization.get.queryOptions(),
+	const { data: invitations } = useSuspenseQuery(
+		orpc.auth.invitation.get.queryOptions(),
 	);
-	const { data: team } = useSuspenseQuery(
+
+	const invite = invitations.find(
+		(i) =>
+			i.organizationId === search.organizationId &&
+			i.status === "pending",
+	);
+	const connection = invite
+		? {
+				connectType: "invite" as const,
+				connectStatus:
+					invite.status === "canceled" ? "rejected" : invite.status,
+			}
+		: undefined;
+
+	console.log(invitations);
+
+	const { data: organization } = useSuspenseQuery(
 		orpc.organization.id.queryOptions({
 			input: {
 				id: search.organizationId,
@@ -56,36 +77,54 @@ function RouteComponent() {
 		}),
 	);
 
-	const updateConnection = useMutation(
-		orpc.connection.update.mutationOptions({
-			onSuccess: () => {
-				navigate({
-					to: "/$locale/admin",
-				});
-			},
-		}),
-	);
+	console.log(connection);
 
 	return (
 		<FloatingPage>
-			<></>
-			{/*
-				<PageHeader
-				title={team.name}
-				description={connection ? t.inviteMessage : t.message}
+			<PageHeader
+				title={organization.name}
+				description={
+					connection && connection.connectStatus !== "rejected"
+						? t.inviteMessage
+						: t.message
+				}
 			/>
 			<ConnectionWrapper
 				allowRequest={false}
-				name={team.name}
+				name={organization.name}
 				connection={connection}
 				onRequest={() => {}}
 				onResponse={(status) => {
-					updateConnection.mutate({
-						senderType: "team",
-						recipientType: "user",
-						id: team.id,
-						connectStatus: status,
-					});
+					if (status === "accepted") {
+						authClient.organization.acceptInvitation(
+							{
+								invitationId: invite!.id,
+							},
+							{
+								onSuccess: () => {
+									queryClient.invalidateQueries();
+									navigate({
+										to: "/$locale/admin",
+									});
+								},
+							},
+						);
+					}
+					if (status === "rejected") {
+						authClient.organization.rejectInvitation(
+							{
+								invitationId: invite!.id,
+							},
+							{
+								onSuccess: () => {
+									queryClient.invalidateQueries();
+									navigate({
+										to: "/$locale/admin",
+									});
+								},
+							},
+						);
+					}
 				}}
 			>
 				<Button
@@ -98,7 +137,7 @@ function RouteComponent() {
 					<ArrowLeft />
 					{tError.goBack}
 				</Button>
-			</ConnectionWrapper>*/}
+			</ConnectionWrapper>
 		</FloatingPage>
 	);
 }

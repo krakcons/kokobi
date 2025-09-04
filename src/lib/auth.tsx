@@ -38,7 +38,9 @@ export const auth = betterAuth({
 				});
 			},
 		}),
-		organization(),
+		organization({
+			cancelPendingInvitationsOnReInvite: true,
+		}),
 		reactStartCookies(),
 	],
 	databaseHooks: {
