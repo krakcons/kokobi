@@ -131,6 +131,7 @@ const en = {
 		start: "Start",
 		continue: "Continue",
 		review: "Review",
+		view: "View Course",
 	},
 	CourseForm: {
 		name: "Name",

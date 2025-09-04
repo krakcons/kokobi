@@ -138,6 +138,7 @@ const fr: Messages = {
 		start: "Commencer",
 		continue: "Continuer",
 		review: "Revoir",
+		view: "Voir le Cours",
 	},
 	CourseForm: {
 		name: "Nom",
