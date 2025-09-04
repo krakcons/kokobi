@@ -8,7 +8,8 @@
 		"start": "bunx drizzle-kit migrate && bun run ./.output/server/index.mjs",
 		"generate-routes": "tsr generate",
 		"watch-routes": "tsr watch",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"db:pull": "dotenv -f .env -- litestream restore -o ./persist/sqlite.db s3://kokobi-prod/db"
 	},
 	"dependencies": {
 		"@aws-sdk/client-sesv2": "^3.876.0",

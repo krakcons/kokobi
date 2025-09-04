@@ -562,22 +562,24 @@ export const connectionRouter = base.prefix("/connections").router({
 								),
 							);
 					}
+				}
 
+				// TEAM INVITE RESPONSE
+				if (senderType === "user" && recipientType === "team") {
 					// TEAM INVITE
-					if (senderType === "team") {
-						await db
-							.update(usersToTeams)
-							.set({
-								connectStatus,
-							})
-							.where(
-								and(
-									eq(usersToTeams.userId, user.id),
-									eq(usersToTeams.teamId, id),
-									eq(usersToTeams.connectType, "invite"),
-								),
-							);
-					}
+					await db
+						.update(usersToTeams)
+						.set({
+							connectStatus,
+						})
+						.where(
+							and(
+								eq(usersToTeams.userId, user.id),
+								eq(usersToTeams.teamId, id),
+								eq(usersToTeams.connectType, "invite"),
+							),
+						);
+					return null;
 				}
 
 				// TEAM INVITE RESPONSE

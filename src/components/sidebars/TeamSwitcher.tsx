@@ -172,8 +172,8 @@ export const TeamSwitcher = ({
 											connection={connection}
 											onSubmit={(status) => {
 												updateConnection.mutate({
-													senderType: "team",
-													recipientType: "user",
+													senderType: "user",
+													recipientType: "team",
 													id: team.id,
 													connectStatus: status,
 												});

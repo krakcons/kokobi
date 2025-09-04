@@ -33,3 +33,4 @@ seed.ts
 sqlite.db
 sqlite.db-shm
 sqlite.db-wal
+sqlite.db*
