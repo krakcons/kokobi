@@ -350,6 +350,10 @@ const fr: Messages = {
 		inviteMessage:
 			"Vous avez été invité à administrer cette équipe. Veuillez accepter ou refuser l'invitation ci-dessous.",
 	},
+	Public: {
+		createdBy: "Créé par",
+		courses: "Cours",
+	},
 	SEO: {
 		title: "Kokobi | Apprendre, Enseigner, Se Connecter et Grandir",
 	},

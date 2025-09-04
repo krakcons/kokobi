@@ -133,6 +133,7 @@ const en = {
 		review: "Review",
 		view: "View Course",
 	},
+
 	CourseForm: {
 		name: "Name",
 		description: "Description",
@@ -339,6 +340,10 @@ const en = {
 			"You haven't been invited to administer this team. Please contact a team administrator and request an invitation to get access to the team's administration dashboard.",
 		inviteMessage:
 			"You have been invited to administer this team. Accept or decline the invitation below.",
+	},
+	Public: {
+		createdBy: "Created By",
+		courses: "Courses",
 	},
 	SEO: {
 		title: "Kokobi | Learn, Teach, Connect and Grow",
