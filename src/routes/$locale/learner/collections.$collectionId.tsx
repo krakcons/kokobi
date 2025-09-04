@@ -116,8 +116,8 @@ function RouteComponent() {
 				description={collection.description}
 				UnderTitle={
 					<ContentBranding
-						contentTeam={collection.organization}
-						connectTeam={organization}
+						contentOrganization={collection.organization}
+						connectOrganization={organization}
 					/>
 				}
 			>

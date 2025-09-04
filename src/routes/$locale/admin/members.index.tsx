@@ -5,7 +5,8 @@ import {
 	TableSearchSchema,
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
-import { authClient, authQueryOptions } from "@/lib/auth.client";
+import { buttonVariants } from "@/components/ui/button";
+import { authClient } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import type { Role } from "@/types/team";
@@ -14,20 +15,22 @@ import {
 	useQueryClient,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
+import type { InvitationStatus } from "better-auth/plugins";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/$locale/admin/members")({
+export const Route = createFileRoute("/$locale/admin/members/")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ context: { queryClient } }) =>
 		Promise.all([
 			queryClient.ensureQueryData(
-				authQueryOptions.organization.listMembers,
+				orpc.organization.member.get.queryOptions(),
 			),
 			queryClient.ensureQueryData(
-				authQueryOptions.organization.listInvitations,
+				orpc.organization.invitation.get.queryOptions(),
 			),
 		]),
 });
@@ -47,13 +50,14 @@ function RouteComponent() {
 	const t = useTranslations("Members");
 	const queryClient = useQueryClient();
 	const navigate = Route.useNavigate();
+	const search = Route.useSearch();
 
-	const {
-		data: { data: members },
-	} = useSuspenseQuery(authQueryOptions.organization.listMembers);
-	const {
-		data: { data: invitations },
-	} = useSuspenseQuery(authQueryOptions.organization.listInvitations);
+	const { data: members } = useSuspenseQuery(
+		orpc.organization.member.get.queryOptions(),
+	);
+	const { data: invitations } = useSuspenseQuery(
+		orpc.organization.invitation.get.queryOptions(),
+	);
 
 	const removeMember = useMutation({
 		mutationFn: async ({ memberId }: { memberId: string }) => {
@@ -68,7 +72,7 @@ function RouteComponent() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries(
-				authQueryOptions.organization.listMembers,
+				orpc.organization.member.get.queryOptions(),
 			);
 		},
 	});
@@ -86,7 +90,7 @@ function RouteComponent() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries(
-				authQueryOptions.organization.listInvitations,
+				orpc.organization.invitation.get.queryOptions(),
 			);
 		},
 	});
@@ -102,6 +106,17 @@ function RouteComponent() {
 					<p>{cell.row.original.email}</p>
 				</div>
 			),
+		},
+		{
+			accessorKey: "type",
+			header: ({ column }) => (
+				<DataTableColumnHeader title={t.table.status} column={column} />
+			),
+			accessorFn: ({ status, type }) =>
+				t.type[type as "member" | "invite"] +
+				(type === "invite" && status
+					? ` (${t.status[status as InvitationStatus]})`
+					: ""),
 		},
 		{
 			accessorKey: "role",
@@ -146,7 +161,16 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title={t.title} description={t.description} />
+			<PageHeader title={t.title} description={t.description}>
+				<Link
+					to="/$locale/admin/members/create"
+					from={Route.fullPath}
+					className={buttonVariants()}
+				>
+					<UserPlus />
+					{t.create}
+				</Link>
+			</PageHeader>
 			<DataTable
 				data={
 					[
@@ -171,7 +195,9 @@ function RouteComponent() {
 						})),
 					] as MemberTable[]
 				}
+				// @ts-ignore
 				columns={columns}
+				search={search}
 				from={Route.fullPath}
 			/>
 		</Page>

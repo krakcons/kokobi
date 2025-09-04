@@ -13,7 +13,7 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ params, context: { queryClient } }) => {
-		const [team, course, connection] = await Promise.all([
+		const [organization, course, connection] = await Promise.all([
 			queryClient.ensureQueryData(
 				orpc.organization.current.queryOptions(),
 			),
@@ -35,7 +35,8 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 			),
 		]);
 
-		const access = team.id === course.teamId ? "root" : "shared";
+		const access =
+			organization.id === course.organizationId ? "root" : "shared";
 
 		if (access === "root" || connection?.connectStatus === "accepted") {
 			throw redirect({
@@ -126,7 +127,6 @@ function RouteComponent() {
 						senderType: "course",
 						recipientType: "team",
 						id: course.id,
-						connectToId: connection.fromTeamId,
 						connectStatus: response,
 					})
 				}

@@ -42,7 +42,6 @@ import type { Collection, CollectionTranslation } from "@/types/collections";
 import type { Organization } from "@/types/team";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { UserButton } from "./UserButton";
-import type { Role } from "@/types/team";
 import { Separator } from "../ui/separator";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import type { Invitation } from "better-auth/plugins";
@@ -489,7 +488,7 @@ export const AdminSidebar = ({
 	courses: Course[];
 	collections: (Collection & CollectionTranslation)[];
 	user: User;
-	role: Role;
+	role: string;
 }) => {
 	const { setOpenMobile } = useSidebar();
 	const t = useTranslations("AdminSidebar");

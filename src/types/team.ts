@@ -34,7 +34,7 @@ export const OrganizationFormSchema = z.object({
 });
 export type OrganizationFormType = z.infer<typeof OrganizationFormSchema>;
 
-export const roles = ["owner", "member"] as const;
+export const roles = ["owner", "admin", "member"] as const;
 export const RoleSchema = z.enum(roles);
 export type Role = z.infer<typeof RoleSchema>;
 
@@ -42,7 +42,7 @@ export const OrganizationUsersFormSchema = z.object({
 	users: z
 		.object({
 			email: z.email().toLowerCase(),
-			role: z.enum(["owner", "member"]).optional(),
+			role: z.enum(["owner", "admin", "member"]).optional(),
 		})
 		.array(),
 });

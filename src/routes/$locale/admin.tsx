@@ -23,7 +23,7 @@ import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
 import { EditingLocaleSchema } from "@/types/router";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { authClient, authQueryOptions } from "@/lib/auth.client";
+import { authClient } from "@/lib/auth.client";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -72,10 +72,9 @@ export const Route = createFileRoute("/$locale/admin")({
 			}
 		} else {
 			if (!auth.session.activeOrganizationId) {
-				const { data: userOrganizations } =
-					await queryClient.ensureQueryData(
-						authQueryOptions.organization.list,
-					);
+				const userOrganizations = await queryClient.ensureQueryData(
+					orpc.organization.get.queryOptions(),
+				);
 				if (userOrganizations?.length === 0) {
 					throw redirect({
 						to: "/$locale/auth/create-organization",
@@ -97,8 +96,11 @@ export const Route = createFileRoute("/$locale/admin")({
 	},
 	loader: ({ context: { queryClient } }) => {
 		Promise.all([
-			queryClient.ensureQueryData(authQueryOptions.organization.list),
-			queryClient.ensureQueryData(authQueryOptions.session),
+			queryClient.ensureQueryData(orpc.organization.get.queryOptions()),
+			queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
+			queryClient.ensureQueryData(
+				orpc.auth.invitation.get.queryOptions(),
+			),
 			queryClient.ensureQueryData(orpc.auth.tenant.queryOptions()),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
@@ -121,22 +123,27 @@ function RouteComponent() {
 	const { data: tenantId } = useSuspenseQuery(
 		orpc.auth.tenant.queryOptions(),
 	);
+	const { data: invitations } = useSuspenseQuery(
+		orpc.auth.invitation.get.queryOptions(),
+	);
 	const { data: courses } = useSuspenseQuery(orpc.course.get.queryOptions());
 	const { data: collections } = useSuspenseQuery(
 		orpc.collection.get.queryOptions(),
 	);
+
+	console.log(invitations);
 
 	return (
 		<SidebarProvider>
 			<AdminSidebar
 				tenantId={tenantId ?? undefined}
 				activeOrganizationId={auth.session.activeOrganizationId!}
-				invitations={[]}
+				invitations={invitations ?? []}
 				organizations={organizations}
 				courses={courses}
 				collections={collections}
 				user={auth.user}
-				role={auth.member!.role}
+				role={auth.member?.role ?? "member"}
 			/>
 			<SidebarInset className="max-w-full overflow-hidden">
 				<header className="p-4 flex flex-row w-full items-center justify-between">

@@ -335,11 +335,20 @@ const fr: Messages = {
 			access: "Accès",
 		},
 	},
-	MembersForm: {
-		title: "Inviter des membres",
-		description:
-			"Saisissez les emails et les rôles des membres que vous souhaitez inviter.",
-		add: "Ajouter un membre",
+	MemberForm: {
+		title: "Membre",
+		description: "Gérez les paramètres du membre.",
+		email: "E-mail",
+		role: "Rôle(s)",
+	},
+	MemberEdit: {
+		title: "Éditer le membre",
+		description: "Gérez les paramètres du membre.",
+		toast: "Rôle du membre mis à jour",
+	},
+	MemberCreate: {
+		title: "Inviter un membre",
+		description: "Invitez un nouveau membre à votre organisation.",
 	},
 	Modules: {
 		title: "Modules",

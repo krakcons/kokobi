@@ -1,7 +1,6 @@
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
-import { authQueryOptions } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
@@ -16,8 +15,8 @@ export const Route = createFileRoute("/$locale/not-admin")({
 	}),
 	loaderDeps: ({ search: { organizationId } }) => ({ organizationId }),
 	loader: async ({ deps, params, context: { queryClient } }) => {
-		const { data: organizations } = await queryClient.ensureQueryData(
-			authQueryOptions.organization.list,
+		const organizations = await queryClient.ensureQueryData(
+			orpc.organization.get.queryOptions(),
 		);
 
 		if (organizations?.find((o) => o.id === deps.organizationId)) {
@@ -47,7 +46,7 @@ function RouteComponent() {
 	const search = Route.useSearch();
 
 	const { data: organizations } = useSuspenseQuery(
-		authQueryOptions.organization.list,
+		orpc.organization.get.queryOptions(),
 	);
 	const { data: team } = useSuspenseQuery(
 		orpc.organization.id.queryOptions({

@@ -1,4 +1,4 @@
-import { base, learnerProcedure, publicProcedure } from "../middleware";
+import { base, learnerProcedure, protectedProcedure } from "../middleware";
 import { db } from "@/server/db";
 import {
 	courses,
@@ -30,12 +30,10 @@ import { organizationImageUrl } from "@/lib/file";
 import { ORPCError } from "@orpc/client";
 import { s3 } from "../s3";
 import type { Organization } from "@/types/team";
-import { setCookie } from "@tanstack/react-start/server";
-import { auth } from "@/lib/auth";
 
 export const learnerRouter = base.prefix("/learner").router({
 	organization: {
-		get: publicProcedure
+		get: protectedProcedure
 			.route({
 				tags: ["Learner"],
 				method: "GET",
@@ -99,7 +97,7 @@ export const learnerRouter = base.prefix("/learner").router({
 						[] as Organization[],
 					);
 			}),
-		update: learnerProcedure
+		update: protectedProcedure
 			.route({
 				tags: ["Learner"],
 				method: "PUT",
@@ -111,7 +109,7 @@ export const learnerRouter = base.prefix("/learner").router({
 					id: z.string(),
 				}),
 			)
-			.handler(async ({ input: { id } }) => {
+			.handler(async ({ context, input: { id } }) => {
 				await db
 					.update(sessions)
 					.set({
@@ -502,7 +500,9 @@ export const learnerRouter = base.prefix("/learner").router({
 												t={t.Email.CourseCompletion}
 											/>
 										),
-										team: emailVerified ? team : undefined,
+										organization: emailVerified
+											? team
+											: undefined,
 									});
 								}
 							}

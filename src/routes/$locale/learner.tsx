@@ -20,7 +20,6 @@ import { getHeader } from "@tanstack/react-start/server";
 import { useLocale } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { authQueryOptions } from "@/lib/auth.client";
 
 const getIsIframeFn = createServerFn().handler(() => {
 	const secFestDest = getHeader("sec-fetch-dest");
@@ -58,7 +57,6 @@ export const Route = createFileRoute("/$locale/learner")({
 			orpc.auth.tenant.queryOptions(),
 		);
 		let redirectHref = undefined;
-		console.log(tenantId);
 		if (tenantId) {
 			if (tenantId !== auth.session.activeLearnerOrganizationId) {
 				await orpc.learner.organization.update.call({
@@ -66,7 +64,6 @@ export const Route = createFileRoute("/$locale/learner")({
 				});
 			}
 		} else {
-			console.log("SEARCH", search);
 			if (search.teamId) {
 				await orpc.learner.organization.update.call({
 					id: search.teamId,
@@ -75,12 +72,10 @@ export const Route = createFileRoute("/$locale/learner")({
 				newUrl.searchParams.delete("teamId");
 				redirectHref = newUrl.href;
 			}
-			console.log("AUTH", auth);
 			if (!auth.session.activeLearnerOrganizationId) {
 				const organizations = await queryClient.ensureQueryData(
 					orpc.learner.organization.get.queryOptions(),
 				);
-				console.log(organizations);
 				await orpc.learner.organization.update.call({
 					id: organizations[0].id,
 				});
@@ -101,7 +96,7 @@ export const Route = createFileRoute("/$locale/learner")({
 	},
 	loader: ({ context: { queryClient } }) => {
 		return Promise.all([
-			queryClient.ensureQueryData(authQueryOptions.session),
+			queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
 			queryClient.ensureQueryData(
 				orpc.learner.organization.get.queryOptions(),
 			),

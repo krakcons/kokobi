@@ -226,7 +226,7 @@ export const createConnection = async ({
 						to: [user.email],
 						subject: content[0].t.subject,
 						content: <Invite content={content} />,
-						team: emailVerified
+						organization: emailVerified
 							? handleLocalization({ locale: "en" }, team)
 							: undefined,
 					});
@@ -367,7 +367,7 @@ export const createConnection = async ({
 						to: [user.email],
 						subject: content[0].t.subject,
 						content: <Invite content={content} />,
-						team: emailVerified
+						organization: emailVerified
 							? handleLocalization({ locale: "en" }, team)
 							: undefined,
 					});

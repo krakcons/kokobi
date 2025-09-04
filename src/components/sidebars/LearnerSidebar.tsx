@@ -5,12 +5,13 @@ import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Book, LayoutDashboard, SquareLibrary } from "lucide-react";
 import type { Course } from "@/types/course";
@@ -25,6 +26,8 @@ import { Separator } from "../ui/separator";
 import type { Organization } from "@/types/team";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import type { User } from "better-auth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { orpc } from "@/server/client";
 
 export const LearnerSidebar = ({
 	tenantId,
@@ -51,16 +54,37 @@ export const LearnerSidebar = ({
 	const { setOpenMobile } = useSidebar();
 	const locale = useLocale();
 	const t = useTranslations("LearnerSidebar");
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const updateOrganization = useMutation(
+		orpc.learner.organization.update.mutationOptions({
+			onSuccess: () =>
+				navigate({
+					to: "/$locale/learner",
+					params: { locale },
+				}).then(() => {
+					queryClient.invalidateQueries();
+				}),
+		}),
+	);
 
 	return (
 		<Sidebar className="list-none">
-			<OrganizationSwitcher
-				tenantId={tenantId}
-				activeOrganizationId={activeLearnerOrganizationId}
-				organizations={organizations}
-				invitations={[]}
-				onSetActive={(organizationId) => {}}
-			/>
+			<SidebarHeader>
+				<OrganizationSwitcher
+					tenantId={tenantId}
+					activeOrganizationId={activeLearnerOrganizationId}
+					organizations={organizations}
+					invitations={[]}
+					onSetActive={(organizationId) => {
+						updateOrganization.mutate({
+							id: organizationId,
+						});
+					}}
+					hideCreate
+				/>
+			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupContent>

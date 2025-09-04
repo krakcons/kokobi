@@ -325,12 +325,20 @@ const en = {
 			access: "Access",
 		},
 	},
-
-	MembersForm: {
-		title: "Invite Members",
-		description:
-			"Enter the emails and roles of the members you want to invite.",
-		add: "Add Member",
+	MemberForm: {
+		title: "Member",
+		description: "Manage member settings.",
+		email: "Email",
+		role: "Role(s)",
+	},
+	MemberCreate: {
+		title: "Invite Member",
+		description: "Invite a new member to your organization.",
+	},
+	MemberEdit: {
+		title: "Edit Member",
+		description: "Edit this members role and access",
+		toast: "Member role updated",
 	},
 	Modules: {
 		title: "Modules",

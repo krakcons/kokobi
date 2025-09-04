@@ -181,8 +181,8 @@ function RouteComponent() {
 				description={course.description}
 				UnderTitle={
 					<ContentBranding
-						contentTeam={course.organization}
-						connectTeam={organization}
+						contentOrganization={course.organization}
+						connectOrganization={organization}
 					/>
 				}
 			>
@@ -286,9 +286,9 @@ function RouteComponent() {
 																			<Certificate
 																				certificate={{
 																					name: user.name,
-																					connectTeam:
+																					connectOrganization:
 																						organization,
-																					contentTeam:
+																					contentOrganization:
 																						course.organization,
 																					course: course.name,
 																					completedAt:

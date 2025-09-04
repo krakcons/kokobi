@@ -343,7 +343,7 @@ export const courseRouter = base.prefix("/courses").router({
 						t={t.Email.CourseCompletion}
 					/>
 				),
-				team: emailVerified ? team : undefined,
+				organization: emailVerified ? team : undefined,
 			});
 		}),
 	learners: organizationProcedure

@@ -30,8 +30,8 @@ function RouteComponent() {
 				<PDFViewer className="h-[700px] w-full">
 					<Certificate
 						certificate={{
-							connectTeam: organization,
-							contentTeam: organization,
+							connectOrganization: organization,
+							contentOrganization: organization,
 							name: "John Doe",
 							course: "Volunteer Training",
 							completedAt: formatDate({

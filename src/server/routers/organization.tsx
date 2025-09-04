@@ -524,4 +524,32 @@ export const organizationRouter = base.prefix("/organizations").router({
 				return null;
 			}),
 	},
+	member: {
+		get: organizationProcedure
+			.route({
+				tags: ["Organization"],
+				method: "GET",
+				path: "/member",
+				summary: "Get Members",
+			})
+			.handler(async ({ context }) => {
+				return await auth.api.listMembers({
+					headers: context.headers,
+				});
+			}),
+	},
+	invitation: {
+		get: organizationProcedure
+			.route({
+				tags: ["Organization"],
+				method: "GET",
+				path: "/invitation",
+				summary: "Get Invitations",
+			})
+			.handler(async ({ context }) => {
+				return await auth.api.listInvitations({
+					headers: context.headers,
+				});
+			}),
+	},
 });

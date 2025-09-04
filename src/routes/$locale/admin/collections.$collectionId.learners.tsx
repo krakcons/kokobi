@@ -145,22 +145,14 @@ function RouteComponent() {
 			),
 		},
 		{
-			accessorKey: "user.firstName",
+			accessorKey: "user.name",
 			header: ({ column }) => (
 				<DataTableColumnHeader
 					title={tUser.firstName}
 					column={column}
 				/>
 			),
-			accessorFn: ({ user }) => user.firstName ?? undefined,
-			sortUndefined: "last",
-		},
-		{
-			accessorKey: "user.lastName",
-			header: ({ column }) => (
-				<DataTableColumnHeader title={tUser.lastName} column={column} />
-			),
-			accessorFn: ({ user }) => user.lastName ?? undefined,
+			accessorFn: ({ user }) => user.name,
 			sortUndefined: "last",
 		},
 		{

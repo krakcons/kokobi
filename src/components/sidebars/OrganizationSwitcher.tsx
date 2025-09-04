@@ -20,9 +20,10 @@ import type { Invitation } from "better-auth/plugins";
 import { Button } from "../ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "../ui/badge";
-import { authClient, authQueryOptions } from "@/lib/auth.client";
+import { authClient } from "@/lib/auth.client";
 import { organizationImageUrl } from "@/lib/file";
 import type { Organization } from "@/types/team";
+import { orpc } from "@/server/client";
 
 const Invitation = ({
 	invitation: { id: invitationId },
@@ -31,16 +32,18 @@ const Invitation = ({
 }) => {
 	const queryClient = useQueryClient();
 	const { data: invitation } = useQuery(
-		authQueryOptions.organization.getInvitation({ id: invitationId }),
+		orpc.auth.invitation.id.queryOptions({
+			input: {
+				id: invitationId,
+			},
+		}),
 	);
 
 	if (!invitation) return null;
 
-	const { data } = invitation;
-
 	return (
 		<DropdownMenuItem key={invitationId} className="gap-2 p-2">
-			<p className="truncate flex-1">{data?.organizationName}</p>
+			<p className="truncate flex-1">{invitation.organizationName}</p>
 			<Button
 				onClick={() => {
 					authClient.organization.acceptInvitation(
@@ -86,19 +89,25 @@ const Invitation = ({
 export const OrganizationSwitcher = ({
 	tenantId,
 	organizations,
-	invitations,
+	invitations: allInvitations,
 	activeOrganizationId,
+	hideCreate,
 	onSetActive,
 }: {
 	tenantId?: string;
 	organizations: Organization[];
 	invitations: Invitation[];
 	activeOrganizationId: string;
+	hideCreate?: boolean;
 	onSetActive?: (organizationId: string) => void;
 }) => {
 	const { isMobile } = useSidebar();
 	const locale = useLocale();
 	const t = useTranslations("OrganizationSwitcher");
+
+	const invitations = allInvitations.filter(
+		(invitation) => invitation.status === "pending",
+	);
 
 	const organization = organizations.find(
 		(organization) => organization.id === activeOrganizationId,
@@ -199,20 +208,24 @@ export const OrganizationSwitcher = ({
 								key={invitation.id}
 							/>
 						))}
-						<DropdownMenuSeparator />
-						<DropdownMenuItem className="gap-2 p-2" asChild>
-							<Link
-								to="/$locale/auth/create-organization"
-								params={{ locale }}
-							>
-								<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-									<Plus className="size-4" />
-								</div>
-								<div className="font-medium text-muted-foreground">
-									{t.create}
-								</div>
-							</Link>
-						</DropdownMenuItem>
+						{!hideCreate && (
+							<>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem className="gap-2 p-2" asChild>
+									<Link
+										to="/$locale/auth/create-organization"
+										params={{ locale }}
+									>
+										<div className="flex size-6 items-center justify-center rounded-md border bg-background">
+											<Plus className="size-4" />
+										</div>
+										<div className="font-medium text-muted-foreground">
+											{t.create}
+										</div>
+									</Link>
+								</DropdownMenuItem>
+							</>
+						)}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</SidebarMenuItem>
