@@ -6,6 +6,17 @@ import { auth, type Session } from "@/lib/auth";
 
 export const base = os.$context<OrpcContext>();
 
+export const logMiddleware = base.middleware(async ({ context, next }) => {
+	try {
+		return await next({
+			context,
+		});
+	} catch (e) {
+		console.log(e);
+		throw e;
+	}
+});
+
 const localeMiddleware = base.middleware(async ({ context, next }) => {
 	const locale =
 		context.headers.get("locale") ?? getCookie(context.headers, "locale");
@@ -42,7 +53,10 @@ const authMiddleware = base.middleware(async ({ context, next }) => {
 	});
 });
 
-export const publicProcedure = base.use(localeMiddleware).use(authMiddleware);
+export const publicProcedure = base
+	.use(logMiddleware)
+	.use(localeMiddleware)
+	.use(authMiddleware);
 
 export const protectedMiddleware = base.middleware(
 	async ({ context, next }) => {
@@ -70,6 +84,7 @@ export const protectedMiddleware = base.middleware(
 );
 
 export const protectedProcedure = base
+	.use(logMiddleware)
 	.use(localeMiddleware)
 	.use(protectedMiddleware);
 
