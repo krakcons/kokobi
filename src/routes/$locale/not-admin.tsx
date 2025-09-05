@@ -19,7 +19,6 @@ export const Route = createFileRoute("/$locale/not-admin")({
 		const organizations = await queryClient.ensureQueryData(
 			orpc.organization.get.queryOptions(),
 		);
-		console.log(organizations, deps.organizationId);
 
 		if (organizations?.find((o) => o.id === deps.organizationId)) {
 			throw redirect({

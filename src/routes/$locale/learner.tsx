@@ -30,6 +30,8 @@ export const Route = createFileRoute("/$locale/learner")({
 	component: RouteComponent,
 	validateSearch: z.object({
 		organizationId: z.string().optional(),
+		// Required for old teamId compatibility
+		teamId: z.string().optional(),
 	}),
 	beforeLoad: async ({
 		params,
@@ -37,6 +39,7 @@ export const Route = createFileRoute("/$locale/learner")({
 		location,
 		context: { queryClient },
 	}) => {
+		const organizationId = search.organizationId ?? search.teamId;
 		let auth = undefined;
 		try {
 			auth = await queryClient.ensureQueryData(
@@ -64,12 +67,13 @@ export const Route = createFileRoute("/$locale/learner")({
 				});
 			}
 		} else {
-			if (search.organizationId) {
+			if (organizationId) {
 				await orpc.learner.organization.setActive.call({
-					id: search.organizationId,
+					id: organizationId,
 				});
 				const newUrl = new URL(env.VITE_SITE_URL + location.href);
 				newUrl.searchParams.delete("organizationId");
+				newUrl.searchParams.delete("teamId");
 				redirectHref = newUrl.href;
 			}
 			if (!auth.session.activeLearnerOrganizationId) {
