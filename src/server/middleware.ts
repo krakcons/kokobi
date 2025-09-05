@@ -1,8 +1,8 @@
 import { ORPCError, os } from "@orpc/server";
-import { roles, type Role } from "@/types/team";
 import type { OrpcContext } from "./context";
 import { LocalizedInputSchema } from "@/lib/locale";
 import { getCookie } from "@orpc/server/helpers";
+import { auth, type Session } from "@/lib/auth";
 
 export const base = os.$context<OrpcContext>();
 
@@ -34,60 +34,92 @@ const localeMiddleware = base.middleware(async ({ context, next }) => {
 	});
 });
 
-export const publicProcedure = base.use(logMiddleware).use(localeMiddleware);
+const authMiddleware = base.middleware(async ({ context, next }) => {
+	const authResult = await auth.api.getSession({
+		headers: context.headers,
+	});
 
-export const protectedProcedure = base
+	return next({
+		context: {
+			...context,
+			user: authResult?.user,
+			session: authResult?.session,
+			member: authResult?.session
+				? ((await auth.api.getActiveMember({
+						headers: context.headers,
+					})) ?? undefined)
+				: undefined,
+		},
+	});
+});
+
+export const publicProcedure = base
 	.use(logMiddleware)
 	.use(localeMiddleware)
-	.use(
-		base.middleware(async ({ next, context }) => {
-			const { session, user } = context;
-			if (!session || !user) {
-				throw new ORPCError("UNAUTHORIZED");
-			}
+	.use(authMiddleware);
 
-			return next({
-				context: {
-					...context,
-					session,
-					user,
-				},
-			});
-		}),
-	);
+export const protectedMiddleware = base.middleware(
+	async ({ context, next }) => {
+		const authResult = await auth.api.getSession({
+			headers: context.headers,
+		});
 
-export const teamProcedure = ({ role = "member" }: { role?: Role } = {}) =>
-	protectedProcedure.use(
-		base.middleware(async ({ context, next }) => {
-			const { teamId, role: teamRole } = context;
-			if (
-				!teamId ||
-				(teamRole && roles.indexOf(teamRole) > roles.indexOf(role))
-			) {
-				throw new ORPCError("UNAUTHORIZED");
-			}
-
-			return next({
-				context: {
-					...context,
-					teamId,
-					role: teamRole,
-				},
-			});
-		}),
-	);
-
-export const learnerProcedure = protectedProcedure.use(
-	base.middleware(async ({ context, next }) => {
-		const { learnerTeamId } = context;
-		if (!learnerTeamId) {
+		if (!authResult) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		return next({
 			context: {
 				...context,
-				learnerTeamId,
+				user: authResult?.user,
+				session: authResult?.session,
+				member: authResult?.session
+					? ((await auth.api.getActiveMember({
+							headers: context.headers,
+						})) ?? undefined)
+					: undefined,
+			},
+		});
+	},
+);
+
+export const protectedProcedure = base
+	.use(logMiddleware)
+	.use(localeMiddleware)
+	.use(protectedMiddleware);
+
+export const organizationProcedure = protectedProcedure.use(
+	base.$context<Session>().middleware(async ({ context, next }) => {
+		if (!context.session.activeOrganizationId) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		return next({
+			context: {
+				...context,
+				session: {
+					...context.session,
+					activeOrganizationId: context.session.activeOrganizationId,
+				},
+			},
+		});
+	}),
+);
+
+export const learnerProcedure = protectedProcedure.use(
+	base.$context<Session>().middleware(async ({ context, next }) => {
+		if (!context.session.activeLearnerOrganizationId) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		return next({
+			context: {
+				...context,
+				session: {
+					...context.session,
+					activeLearnerOrganizationId:
+						context.session.activeLearnerOrganizationId,
+				},
 			},
 		});
 	}),

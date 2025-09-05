@@ -1,25 +1,25 @@
-import type { Team, TeamTranslation } from "@/types/team";
-import { TeamIcon } from "./TeamIcon";
-import { teamImageUrl } from "@/lib/file";
+import type { Organization } from "@/types/organization";
+import { OrganizationIcon } from "./OrganizationIcon";
+import { organizationImageUrl } from "@/lib/file";
 
 export const ContentBranding = ({
-	contentTeam,
-	connectTeam,
+	contentOrganization,
+	connectOrganization,
 }: {
-	contentTeam: Team & TeamTranslation;
-	connectTeam: Team & TeamTranslation;
+	contentOrganization: Organization;
+	connectOrganization: Organization;
 }) => {
-	if (connectTeam.id === contentTeam.id) {
+	if (connectOrganization.id === contentOrganization.id) {
 		return null;
 	}
 	return (
 		<div className="flex items-center">
-			<TeamIcon
-				src={teamImageUrl(contentTeam, "logo")}
+			<OrganizationIcon
+				src={organizationImageUrl(contentOrganization, "logo")}
 				className="max-h-8 mr-2"
 			/>
 			<p className="text-muted-foreground">
-				Created by <strong>{contentTeam.name}</strong>
+				Created by <strong>{contentOrganization.name}</strong>
 			</p>
 		</div>
 	);

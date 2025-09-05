@@ -204,12 +204,13 @@ export const handleLocalization = <
 	}
 
 	// Create new object without translations array
-	const { translations, ...rest } = obj;
+	// @ts-ignore
+	const { translations, name, ...rest } = obj;
 
 	// Return base object merged with translation data
 	return {
 		...rest,
-		...(translation ?? {}),
+		...(translation ?? { locale }),
 	} as TResult;
 };
 

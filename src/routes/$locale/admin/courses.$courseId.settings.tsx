@@ -67,6 +67,7 @@ function RouteComponent() {
 			},
 		}),
 	);
+	console.log("COURSE", course.locale);
 
 	const updateCourse = useMutation(
 		orpc.course.update.mutationOptions({

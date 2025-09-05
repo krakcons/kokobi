@@ -1,9 +1,10 @@
-import { base, learnerProcedure } from "../middleware";
+import { base, learnerProcedure, protectedProcedure } from "../middleware";
 import { db } from "@/server/db";
 import {
 	courses,
 	modules,
-	teams,
+	organizations,
+	sessions,
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
@@ -25,11 +26,132 @@ import { getInitialScormData, isModuleSuccessful } from "@/lib/scorm";
 import { getConnectionLink } from "../lib/connection";
 import CourseCompletion from "@/components/emails/CourseCompletion";
 import { sendEmail, verifyEmail } from "../lib/email";
-import { teamImageUrl } from "@/lib/file";
+import { organizationImageUrl } from "@/lib/file";
 import { ORPCError } from "@orpc/client";
 import { s3 } from "../s3";
+import type { Organization } from "@/types/organization";
 
 export const learnerRouter = base.prefix("/learner").router({
+	organization: {
+		get: protectedProcedure
+			.route({
+				tags: ["Learner"],
+				method: "GET",
+				path: "/organizations",
+				summary: "Get Organizations",
+			})
+			.handler(async ({ context }) => {
+				let learnerOrganization = undefined;
+				if (context.session.activeLearnerOrganizationId) {
+					learnerOrganization =
+						await db.query.organizations.findFirst({
+							where: eq(
+								organizations.id,
+								context.session.activeLearnerOrganizationId,
+							),
+							with: {
+								translations: true,
+							},
+						});
+				}
+				const welcomeOrganization =
+					await db.query.organizations.findFirst({
+						where: eq(
+							organizations.id,
+							env.WELCOME_ORGANIZATION_ID,
+						),
+						with: {
+							translations: true,
+						},
+					});
+				const courseOrganizations =
+					await db.query.usersToCourses.findMany({
+						where: eq(usersToCourses.userId, context.user.id),
+						with: {
+							organization: {
+								with: {
+									translations: true,
+								},
+							},
+						},
+					});
+				const collectionOrganizations =
+					await db.query.usersToCollections.findMany({
+						where: eq(usersToCollections.userId, context.user.id),
+						with: {
+							organization: {
+								with: {
+									translations: true,
+								},
+							},
+						},
+					});
+
+				return [
+					...(learnerOrganization ? [learnerOrganization] : []),
+					...(welcomeOrganization ? [welcomeOrganization] : []),
+					...collectionOrganizations.map(
+						({ organization }) => organization,
+					),
+					...courseOrganizations.map(
+						({ organization }) => organization,
+					),
+				]
+					.map((o) => handleLocalization(context, o))
+					.reduce(
+						(acc, o) =>
+							acc.find((t) => t.id === o.organizationId)
+								? acc
+								: [...acc, o],
+						[] as Organization[],
+					);
+			}),
+		update: protectedProcedure
+			.route({
+				tags: ["Learner"],
+				method: "PUT",
+				path: "/organizations",
+				summary: "Update Organization",
+			})
+			.input(
+				z.object({
+					id: z.string(),
+				}),
+			)
+			.handler(async ({ context, input: { id } }) => {
+				await db
+					.update(sessions)
+					.set({
+						activeLearnerOrganizationId: id,
+					})
+					.where(eq(sessions.id, context.session.id));
+			}),
+		current: learnerProcedure
+			.route({
+				tags: ["Learner"],
+				method: "GET",
+				path: "/current",
+				summary: "Get Current Organization",
+			})
+			.handler(async ({ context }) => {
+				const organization = await db.query.organizations.findFirst({
+					where: eq(
+						organizations.id,
+						context.session.activeLearnerOrganizationId,
+					),
+					with: {
+						translations: true,
+						domains: true,
+					},
+				});
+
+				if (!organization) {
+					throw new ORPCError("NOT_FOUND");
+				}
+
+				return handleLocalization(context, organization);
+			}),
+	},
 	course: {
 		get: learnerProcedure
 			.route({
@@ -42,7 +164,10 @@ export const learnerRouter = base.prefix("/learner").router({
 				const connections = await db.query.usersToCourses.findMany({
 					where: and(
 						eq(usersToCourses.userId, context.user.id),
-						eq(usersToCourses.teamId, context.learnerTeamId),
+						eq(
+							usersToCourses.organizationId,
+							context.session.activeLearnerOrganizationId,
+						),
 					),
 					with: {
 						course: {
@@ -50,7 +175,7 @@ export const learnerRouter = base.prefix("/learner").router({
 								translations: true,
 							},
 						},
-						team: {
+						organization: {
 							with: {
 								translations: true,
 							},
@@ -62,7 +187,10 @@ export const learnerRouter = base.prefix("/learner").router({
 					...connection,
 					collection: undefined,
 					course: handleLocalization(context, connection.course),
-					team: handleLocalization(context, connection.team),
+					organization: handleLocalization(
+						context,
+						connection.organization,
+					),
 				}));
 			}),
 		available: learnerProcedure
@@ -74,10 +202,17 @@ export const learnerRouter = base.prefix("/learner").router({
 			})
 			.output(CourseSchema.array())
 			.handler(async ({ context }) => {
-				if (context.learnerTeamId !== env.WELCOME_TEAM_ID) return [];
-				// TODO: Allow learner team members to access available courses (or something else)
+				if (
+					context.session.activeLearnerOrganizationId !==
+					env.WELCOME_ORGANIZATION_ID
+				)
+					return [];
+				// TODO: Allow learner organization members to access available courses (or something else)
 				const courseList = await db.query.courses.findMany({
-					where: eq(courses.teamId, context.learnerTeamId),
+					where: eq(
+						courses.organizationId,
+						context.session.activeLearnerOrganizationId,
+					),
 					with: {
 						translations: true,
 					},
@@ -108,7 +243,10 @@ export const learnerRouter = base.prefix("/learner").router({
 						where: and(
 							eq(usersToModules.userId, user.id),
 							eq(usersToModules.courseId, id),
-							eq(usersToModules.teamId, context.learnerTeamId),
+							eq(
+								usersToModules.organizationId,
+								context.session.activeLearnerOrganizationId,
+							),
 						),
 						with: {
 							module: true,
@@ -142,7 +280,10 @@ export const learnerRouter = base.prefix("/learner").router({
 							eq(usersToModules.courseId, id),
 							eq(usersToModules.id, attemptId),
 							eq(usersToModules.userId, context.user.id),
-							eq(usersToModules.teamId, context.learnerTeamId),
+							eq(
+								usersToModules.organizationId,
+								context.session.activeLearnerOrganizationId,
+							),
 						),
 						with: {
 							module: {
@@ -159,7 +300,7 @@ export const learnerRouter = base.prefix("/learner").router({
 						});
 					}
 
-					const courseFileUrl = `/${attempt.module.course.teamId}/courses/${attempt.courseId}/${attempt.module.locale}${attempt.module.versionNumber === 1 ? "" : "_" + attempt.module.versionNumber}`;
+					const courseFileUrl = `/${attempt.module.course.organizationId}/courses/${attempt.courseId}/${attempt.module.locale}${attempt.module.versionNumber === 1 ? "" : "_" + attempt.module.versionNumber}`;
 
 					const imsManifest = s3.file(
 						courseFileUrl + "/imsmanifest.xml",
@@ -193,7 +334,8 @@ export const learnerRouter = base.prefix("/learner").router({
 						type: "course",
 						id,
 						userId: context.user.id,
-						teamId: context.learnerTeamId,
+						organizationId:
+							context.session.activeLearnerOrganizationId,
 					});
 
 					const moduleList = await db.query.modules.findMany({
@@ -213,7 +355,8 @@ export const learnerRouter = base.prefix("/learner").router({
 					await db.insert(usersToModules).values({
 						id: attemptId,
 						userId: context.user.id,
-						teamId: context.learnerTeamId,
+						organizationId:
+							context.session.activeLearnerOrganizationId,
 						moduleId: module.id,
 						courseId: id,
 						data: getInitialScormData(module.type),
@@ -242,7 +385,8 @@ export const learnerRouter = base.prefix("/learner").router({
 								type: "course",
 								id,
 								userId: context.user.id,
-								teamId: context.learnerTeamId,
+								organizationId:
+									context.session.activeLearnerOrganizationId,
 							});
 
 							const attempt =
@@ -255,8 +399,9 @@ export const learnerRouter = base.prefix("/learner").router({
 											context.user.id,
 										),
 										eq(
-											usersToModules.teamId,
-											context.learnerTeamId,
+											usersToModules.organizationId,
+											context.session
+												.activeLearnerOrganizationId,
 										),
 									),
 									with: {
@@ -310,20 +455,21 @@ export const learnerRouter = base.prefix("/learner").router({
 										: attempt.completedAt;
 
 								if (justCompleted && isSuccess) {
-									const teamBase =
-										await db.query.teams.findFirst({
+									const organizationBase =
+										await db.query.organizations.findFirst({
 											where: eq(
-												teams.id,
-												context.learnerTeamId,
+												organizations.id,
+												context.session
+													.activeLearnerOrganizationId,
 											),
 											with: {
 												translations: true,
 												domains: true,
 											},
 										});
-									const team = handleLocalization(
+									const organization = handleLocalization(
 										{ locale: communicationLocale },
-										teamBase!,
+										organizationBase!,
 									);
 									const course = handleLocalization(
 										{ locale: communicationLocale },
@@ -331,10 +477,12 @@ export const learnerRouter = base.prefix("/learner").router({
 									);
 
 									const href = await getConnectionLink({
-										teamId: context.learnerTeamId,
 										id: course.id,
 										type: "course",
 										locale: course.locale,
+										organizationId:
+											context.session
+												.activeLearnerOrganizationId,
 									});
 
 									const t = await createTranslator({
@@ -342,7 +490,7 @@ export const learnerRouter = base.prefix("/learner").router({
 									});
 
 									const emailVerified = await verifyEmail(
-										team.domains,
+										organization.domains,
 									);
 
 									await sendEmail({
@@ -352,16 +500,20 @@ export const learnerRouter = base.prefix("/learner").router({
 										content: (
 											<CourseCompletion
 												name={course.name}
-												teamName={team.name}
-												logo={teamImageUrl(
-													team,
+												organizationName={
+													organization.name
+												}
+												logo={organizationImageUrl(
+													organization,
 													"logo",
 												)}
 												href={href}
 												t={t.Email.CourseCompletion}
 											/>
 										),
-										team: emailVerified ? team : undefined,
+										organization: emailVerified
+											? organization
+											: undefined,
 									});
 								}
 							}
@@ -381,8 +533,9 @@ export const learnerRouter = base.prefix("/learner").router({
 											context.user.id,
 										),
 										eq(
-											usersToModules.teamId,
-											context.learnerTeamId,
+											usersToModules.organizationId,
+											context.session
+												.activeLearnerOrganizationId,
 										),
 									),
 								)
@@ -411,7 +564,10 @@ export const learnerRouter = base.prefix("/learner").router({
 				const connections = await db.query.usersToCollections.findMany({
 					where: and(
 						eq(usersToCollections.userId, context.user.id),
-						eq(usersToCollections.teamId, context.learnerTeamId),
+						eq(
+							usersToCollections.organizationId,
+							context.session.activeLearnerOrganizationId,
+						),
 					),
 					with: {
 						collection: {
@@ -428,7 +584,7 @@ export const learnerRouter = base.prefix("/learner").router({
 								},
 							},
 						},
-						team: {
+						organization: {
 							with: {
 								translations: true,
 							},
@@ -445,7 +601,10 @@ export const learnerRouter = base.prefix("/learner").router({
 						),
 					}),
 					course: undefined,
-					team: handleLocalization(context, connection.team),
+					organization: handleLocalization(
+						context,
+						connection.organization,
+					),
 				}));
 			}),
 	},

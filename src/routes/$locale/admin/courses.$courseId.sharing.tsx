@@ -7,7 +7,6 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import { createFileRoute } from "@tanstack/react-router";
 import { Page, PageHeader } from "@/components/Page";
-import type { Team } from "@/types/team";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +18,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { TeamsForm } from "@/components/forms/TeamsForm";
+import { OrganizationsForm } from "@/components/forms/OrganizationsForm";
 import {
 	useMutation,
 	useQueryClient,
@@ -30,6 +29,8 @@ import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { env } from "@/env";
 import { orpc } from "@/server/client";
+import type { Organization } from "@/types/organization";
+import type { ConnectionType } from "@/types/connections";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/sharing",
@@ -39,7 +40,7 @@ export const Route = createFileRoute(
 	loader: async ({ params, context: { queryClient } }) =>
 		Promise.all([
 			queryClient.ensureQueryData(
-				orpc.course.sharedTeams.queryOptions({
+				orpc.course.sharedOrganizations.queryOptions({
 					input: {
 						id: params.courseId,
 					},
@@ -56,11 +57,11 @@ function RouteComponent() {
 	const t = useTranslations("Sharing");
 	const tActions = useTranslations("Actions");
 	const tConnect = useTranslations("ConnectionActions");
-	const tForm = useTranslations("TeamsForm");
+	const tForm = useTranslations("OrganizationsForm");
 	const queryClient = useQueryClient();
 
-	const { data: sharedTeams } = useSuspenseQuery(
-		orpc.course.sharedTeams.queryOptions({
+	const { data: sharedOrganizations } = useSuspenseQuery(
+		orpc.course.sharedOrganizations.queryOptions({
 			input: {
 				id: params.courseId,
 			},
@@ -71,7 +72,7 @@ function RouteComponent() {
 		orpc.connection.create.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries(
-					orpc.course.sharedTeams.queryOptions({
+					orpc.course.sharedOrganizations.queryOptions({
 						input: {
 							id: params.courseId,
 						},
@@ -84,7 +85,7 @@ function RouteComponent() {
 		orpc.connection.update.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries(
-					orpc.course.sharedTeams.queryOptions({
+					orpc.course.sharedOrganizations.queryOptions({
 						input: {
 							id: params.courseId,
 						},
@@ -97,7 +98,7 @@ function RouteComponent() {
 		orpc.connection.delete.mutationOptions({
 			onSuccess: () => {
 				queryClient.invalidateQueries(
-					orpc.course.sharedTeams.queryOptions({
+					orpc.course.sharedOrganizations.queryOptions({
 						input: {
 							id: params.courseId,
 						},
@@ -107,7 +108,11 @@ function RouteComponent() {
 		}),
 	);
 
-	const columns: ColumnDef<Team>[] = [
+	const columns: ColumnDef<
+		Organization & {
+			connection: ConnectionType;
+		}
+	>[] = [
 		{
 			accessorKey: "name",
 			header: ({ column }) => (
@@ -120,8 +125,8 @@ function RouteComponent() {
 				<DataTableColumnHeader title={t.table.status} column={column} />
 			),
 			cell: ({ row: { original } }) => {
-				const connectStatus = original.connection?.connectStatus;
-				const connectType = original.connection?.connectType;
+				const connectStatus = original.connection.connectStatus;
+				const connectType = original.connection.connectType;
 				if (!connectStatus || !connectType) {
 					return null;
 				}
@@ -135,15 +140,17 @@ function RouteComponent() {
 				);
 			},
 		},
-		createDataTableActionsColumn<Team>([
+		createDataTableActionsColumn<
+			Organization & { connection: ConnectionType }
+		>([
 			{
 				name: tConnect.accept,
-				onClick: ({ teamId }) =>
+				onClick: ({ id }) =>
 					updateConnection.mutate({
-						senderType: "team",
+						senderType: "organization",
 						recipientType: "course",
 						id: params.courseId,
-						connectToId: teamId,
+						connectToId: id,
 						connectStatus: "accepted",
 					}),
 				visible: ({ connection }) =>
@@ -151,12 +158,12 @@ function RouteComponent() {
 			},
 			{
 				name: tConnect.reject,
-				onClick: ({ teamId }) =>
+				onClick: ({ id }) =>
 					updateConnection.mutate({
-						senderType: "team",
+						senderType: "organization",
 						recipientType: "course",
 						id: params.courseId,
-						connectToId: teamId,
+						connectToId: id,
 						connectStatus: "rejected",
 					}),
 				visible: ({ connection }) =>
@@ -164,12 +171,12 @@ function RouteComponent() {
 			},
 			{
 				name: tActions.delete,
-				onClick: ({ teamId }) =>
+				onClick: ({ id }) =>
 					removeConnection.mutate({
-						senderType: "team",
+						senderType: "organization",
 						recipientType: "course",
 						id: params.courseId,
-						connectToId: teamId,
+						connectToId: id,
 					}),
 			},
 		]),
@@ -194,13 +201,13 @@ function RouteComponent() {
 								{tForm.description}
 							</DialogDescription>
 						</DialogHeader>
-						<TeamsForm
+						<OrganizationsForm
 							onSubmit={(value) =>
 								createConnection.mutateAsync(
 									{
 										...value,
 										senderType: "course",
-										recipientType: "team",
+										recipientType: "organization",
 										id: params.courseId,
 									},
 									{
@@ -220,7 +227,7 @@ function RouteComponent() {
 			</div>
 			<DataTable
 				columns={columns}
-				data={sharedTeams}
+				data={sharedOrganizations}
 				search={search}
 				onSearchChange={(search) => {
 					navigate({

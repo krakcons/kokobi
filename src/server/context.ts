@@ -1,12 +1,7 @@
-import { getCookie, getWebRequest } from "@tanstack/react-start/server";
-import { getAuth } from "./lib/auth";
+import { getWebRequest } from "@tanstack/react-start/server";
 
 export const createOrpcContext = async () => {
-	const sessionId = getCookie("auth_session");
-	const auth = await getAuth(sessionId);
-
 	return {
-		...auth,
 		headers: getWebRequest().headers,
 	};
 };

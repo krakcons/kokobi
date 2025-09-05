@@ -1,14 +1,11 @@
-import { useTranslations, getI18nFn } from "@/lib/locale";
+import { useTranslations, i18nQueryOptions } from "@/lib/locale";
 import { FloatingPage } from "./Page";
 import { Button, buttonVariants } from "./ui/button";
 import { ArrowLeft, Home } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 export function NotFound() {
-	const { data: i18n } = useSuspenseQuery({
-		queryKey: ["i18n"],
-		queryFn: getI18nFn,
-	});
+	const { data: i18n } = useSuspenseQuery(i18nQueryOptions({}));
 	const t = useTranslations("Errors", i18n);
 
 	return (

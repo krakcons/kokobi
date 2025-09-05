@@ -21,7 +21,6 @@ import { Pie, PieChart } from "recharts";
 import { useTranslations } from "@/lib/locale";
 import { useAppForm } from "@/components/ui/form";
 import { z } from "zod";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import ExportCSVButton from "@/components/ExportCSVButton";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -30,30 +29,30 @@ export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/statistics",
 )({
 	validateSearch: z.object({
-		statsTeamId: z.string().optional(),
+		statsOrganizationId: z.string().optional(),
 	}),
 	component: RouteComponent,
-	loaderDeps: ({ search }) => ({ statsTeamId: search.statsTeamId }),
+	loaderDeps: ({ search }) => ({
+		statsOrganizationId: search.statsOrganizationId,
+	}),
 	loader: ({ params, deps, context: { queryClient } }) =>
 		Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "admin",
-				},
-			}),
+			queryClient.ensureQueryData(
+				orpc.organization.current.queryOptions(),
+			),
 			queryClient.ensureQueryData(
 				orpc.course.statistics.queryOptions({
 					input: {
 						id: params.courseId,
-						teamId:
-							deps.statsTeamId !== "all"
-								? deps.statsTeamId
+						organizationId:
+							deps.statsOrganizationId !== "all"
+								? deps.statsOrganizationId
 								: undefined,
 					},
 				}),
 			),
 			queryClient.ensureQueryData(
-				orpc.course.sharedTeams.queryOptions({
+				orpc.course.sharedOrganizations.queryOptions({
 					input: {
 						id: params.courseId,
 					},
@@ -63,21 +62,27 @@ export const Route = createFileRoute(
 });
 
 function RouteComponent() {
-	const [team] = Route.useLoaderData();
-	const { statsTeamId = "all" } = Route.useSearch();
+	const { statsOrganizationId = "all" } = Route.useSearch();
 	const params = Route.useParams();
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.organization.current.queryOptions(),
+	);
 
 	const { data: statistics } = useSuspenseQuery(
 		orpc.course.statistics.queryOptions({
 			input: {
 				id: params.courseId,
-				teamId: statsTeamId !== "all" ? statsTeamId : undefined,
+				organizationId:
+					statsOrganizationId !== "all"
+						? statsOrganizationId
+						: undefined,
 			},
 		}),
 	);
 
-	const { data: teams } = useSuspenseQuery(
-		orpc.course.sharedTeams.queryOptions({
+	const { data: organizations } = useSuspenseQuery(
+		orpc.course.sharedOrganizations.queryOptions({
 			input: {
 				id: params.courseId,
 			},
@@ -138,17 +143,17 @@ function RouteComponent() {
 
 	const form = useAppForm({
 		defaultValues: {
-			statsTeamId,
+			statsOrganizationId,
 		},
 		validators: {
 			onChange: ({ value }) => {
 				navigate({
 					search: (prev) => ({
 						...prev,
-						statsTeamId:
-							value.statsTeamId === "all"
+						statsOrganizationId:
+							value.statsOrganizationId === "all"
 								? undefined
-								: value.statsTeamId,
+								: value.statsOrganizationId,
 					}),
 				});
 			},
@@ -170,13 +175,13 @@ function RouteComponent() {
 			<PageHeader title={t.title} description={t.description}>
 				<div className="flex items-end gap-2">
 					<ExportCSVButton data={[statExport]} filename="stats" />
-					{teams && teams.length > 0 && (
+					{organizations && organizations.length > 0 && (
 						<form.AppForm>
 							<form
 								onSubmit={(e) => e.preventDefault()}
 								className="flex flex-col gap-8 items-start"
 							>
-								<form.AppField name="statsTeamId">
+								<form.AppField name="statsOrganizationId">
 									{(field) => (
 										<field.SelectField
 											label={t.filter.title}
@@ -186,10 +191,10 @@ function RouteComponent() {
 													value: "all",
 												},
 												{
-													label: team.name,
-													value: team?.id,
+													label: organization.name,
+													value: organization.id,
 												},
-												...teams.map((c) => ({
+												...organizations.map((c) => ({
 													label: c.name,
 													value: c.id,
 												})),

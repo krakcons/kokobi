@@ -5,40 +5,42 @@ import {
 	SidebarGroup,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { Book, LayoutDashboard, SquareLibrary } from "lucide-react";
 import type { Course } from "@/types/course";
 import type { Collection, CollectionTranslation } from "@/types/collections";
-import type { Team, TeamTranslation } from "@/types/team";
 import type {
 	UserToCollectionType,
 	UserToCourseType,
-	UserToTeamType,
 } from "@/types/connections";
-import { TeamSwitcher } from "./TeamSwitcher";
-import type { User } from "@/types/users";
 import { UserButton } from "./UserButton";
 import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
 import { Separator } from "../ui/separator";
+import type { Organization } from "@/types/organization";
+import { OrganizationSwitcher } from "./OrganizationSwitcher";
+import type { User } from "better-auth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { orpc } from "@/server/client";
 
 export const LearnerSidebar = ({
 	tenantId,
-	teamId,
-	teams,
+	activeLearnerOrganizationId,
+	organizations,
 	courses,
 	availableCourses,
 	collections,
 	user,
 }: {
 	tenantId?: string;
-	teamId: string;
-	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
+	activeLearnerOrganizationId: string;
+	organizations: Organization[];
 	courses: (UserToCourseType & { course: Course })[];
 	availableCourses: Course[];
 	collections: (UserToCollectionType & {
@@ -52,15 +54,37 @@ export const LearnerSidebar = ({
 	const { setOpenMobile } = useSidebar();
 	const locale = useLocale();
 	const t = useTranslations("LearnerSidebar");
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
+
+	const updateOrganization = useMutation(
+		orpc.learner.organization.update.mutationOptions({
+			onSuccess: () =>
+				navigate({
+					to: "/$locale/learner",
+					params: { locale },
+				}).then(() => {
+					queryClient.invalidateQueries();
+				}),
+		}),
+	);
 
 	return (
 		<Sidebar className="list-none">
-			<TeamSwitcher
-				tenantId={tenantId}
-				teamId={teamId}
-				teams={teams}
-				type="learner"
-			/>
+			<SidebarHeader>
+				<OrganizationSwitcher
+					tenantId={tenantId}
+					activeOrganizationId={activeLearnerOrganizationId}
+					organizations={organizations}
+					invitations={[]}
+					onSetActive={(organizationId) => {
+						updateOrganization.mutate({
+							id: organizationId,
+						});
+					}}
+					hideCreate
+				/>
+			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupContent>

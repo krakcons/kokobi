@@ -6,6 +6,7 @@ import {
 	SidebarGroupAction,
 	SidebarGroupContent,
 	SidebarGroupLabel,
+	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
@@ -14,7 +15,7 @@ import {
 	SidebarMenuSubItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Link, useMatch } from "@tanstack/react-router";
+import { Link, useMatch, useNavigate } from "@tanstack/react-router";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -38,14 +39,15 @@ import {
 import type { Course } from "@/types/course";
 import { useEffect, useState } from "react";
 import type { Collection, CollectionTranslation } from "@/types/collections";
-import type { Team, TeamTranslation } from "@/types/team";
-import type { UserToTeamType } from "@/types/connections";
+import type { Organization } from "@/types/organization";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { TeamSwitcher } from "./TeamSwitcher";
-import type { User } from "@/types/users";
 import { UserButton } from "./UserButton";
-import type { Role } from "@/types/team";
 import { Separator } from "../ui/separator";
+import { OrganizationSwitcher } from "./OrganizationSwitcher";
+import type { Invitation } from "better-auth/plugins";
+import type { User } from "better-auth";
+import { authClient } from "@/lib/auth.client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CourseCollapsible = ({ course }: { course: Course }) => {
 	const { setOpenMobile } = useSidebar();
@@ -471,33 +473,54 @@ const CollectionCollapsible = ({
 
 export const AdminSidebar = ({
 	tenantId,
-	teamId,
-	teams,
+	activeOrganizationId,
+	organizations,
 	courses,
 	collections,
+	invitations,
 	user,
 	role,
 }: {
 	tenantId?: string;
-	teamId: string;
-	teams: (UserToTeamType & { team: Team & TeamTranslation })[];
+	activeOrganizationId: string;
+	organizations: Organization[];
+	invitations: Invitation[];
 	courses: Course[];
 	collections: (Collection & CollectionTranslation)[];
 	user: User;
-	role: Role;
+	role: string;
 }) => {
 	const { setOpenMobile } = useSidebar();
 	const t = useTranslations("AdminSidebar");
 	const locale = useLocale();
+	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 
 	return (
 		<Sidebar className="list-none">
-			<TeamSwitcher
-				tenantId={tenantId}
-				teamId={teamId}
-				teams={teams}
-				type="admin"
-			/>
+			<SidebarHeader>
+				<OrganizationSwitcher
+					tenantId={tenantId}
+					activeOrganizationId={activeOrganizationId}
+					organizations={organizations}
+					invitations={invitations}
+					onSetActive={(organizationId) => {
+						authClient.organization.setActive({
+							organizationId: organizationId,
+							fetchOptions: {
+								onSuccess: () => {
+									navigate({
+										to: "/$locale/admin",
+										params: { locale },
+									}).then(() => {
+										queryClient.invalidateQueries();
+									});
+								},
+							},
+						});
+					}}
+				/>
+			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupContent>
@@ -595,7 +618,7 @@ export const AdminSidebar = ({
 				</SidebarGroup>
 				{role === "owner" && (
 					<SidebarGroup>
-						<SidebarGroupLabel>{t.team}</SidebarGroupLabel>
+						<SidebarGroupLabel>{t.organization}</SidebarGroupLabel>
 						<SidebarGroupContent>
 							<SidebarMenu>
 								<SidebarMenuItem>

@@ -4,16 +4,14 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { type Theme, themes, useTheme } from "@/lib/theme";
-import { updateUserFn } from "@/server/handlers/users";
-import { deleteAuthFn } from "@/server/handlers/auth";
-import type { User as UserType } from "@/types/users";
+import type { UserFormType } from "@/types/users";
 import {
 	LogOutIcon,
 	Moon,
 	MoreVerticalIcon,
 	Sun,
 	SunMoon,
-	User,
+	UserIcon,
 	UserCircleIcon,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -34,10 +32,13 @@ import {
 	DialogTitle,
 } from "../ui/dialog";
 import { UserForm } from "../forms/UserForm";
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/locale";
+import { authClient } from "@/lib/auth.client";
+import type { User } from "better-auth";
+import { orpc } from "@/server/client";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -54,29 +55,24 @@ export const UserButton = ({
 	user,
 	signOutRedirect,
 }: {
-	user: UserType;
+	user: User;
 	signOutRedirect?: string;
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { isMobile } = useSidebar();
-	const router = useRouter();
 	const { accountDialog = false } = useSearch({
 		from: "__root__",
 	});
+	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const t = useTranslations("UserButton");
 	const tUserForm = useTranslations("UserForm");
 
-	const name =
-		user.firstName && user.lastName
-			? user.firstName + " " + user.lastName
-			: null;
-	const initials =
-		user.firstName && user.lastName ? (
-			user.firstName.charAt(0) + user.lastName.charAt(0)
-		) : (
-			<User className="size-4.5" />
-		);
+	const initials = user.name ? (
+		user.name.charAt(0)
+	) : (
+		<UserIcon className="size-4.5" />
+	);
 
 	const setAccountDialog = (open: boolean) =>
 		navigate({
@@ -87,9 +83,9 @@ export const UserButton = ({
 		});
 
 	const updateUser = useMutation({
-		mutationFn: updateUserFn,
+		mutationFn: (values: UserFormType) => authClient.updateUser(values),
 		onSuccess: () => {
-			router.invalidate();
+			queryClient.invalidateQueries(orpc.auth.session.queryOptions());
 			setAccountDialog(false);
 		},
 	});
@@ -117,15 +113,15 @@ export const UserButton = ({
 							</AvatarFallback>
 						</Avatar>
 						<div className="grid flex-1 text-left text-sm leading-tight">
-							{name && (
+							{user.name && (
 								<span className="truncate font-medium">
-									{name}
+									{user.name}
 								</span>
 							)}
 							<span
 								className={cn(
 									"truncate text-xs",
-									name && "text-muted-foreground",
+									user.name && "text-muted-foreground",
 								)}
 							>
 								{user.email}
@@ -148,15 +144,15 @@ export const UserButton = ({
 								</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								{name && (
+								{user.name && (
 									<span className="truncate font-medium">
-										{name}
+										{user.name}
 									</span>
 								)}
 								<span
 									className={cn(
 										"truncate text-xs",
-										name && "text-muted-foreground",
+										user.name && "text-muted-foreground",
 									)}
 								>
 									{user.email}
@@ -185,7 +181,7 @@ export const UserButton = ({
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						onSelect={() => {
-							deleteAuthFn().then(() =>
+							authClient.signOut().then(() =>
 								signOutRedirect
 									? navigate({
 											href: signOutRedirect,
@@ -216,14 +212,9 @@ export const UserButton = ({
 					</DialogHeader>
 					<UserForm
 						defaultValues={{
-							firstName: user.firstName ?? "",
-							lastName: user.lastName ?? "",
+							name: user.name,
 						}}
-						onSubmit={(data) =>
-							updateUser.mutateAsync({
-								data,
-							})
-						}
+						onSubmit={(data) => updateUser.mutateAsync(data)}
 					/>
 				</DialogContent>
 			</Dialog>

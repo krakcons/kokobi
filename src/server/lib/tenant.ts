@@ -15,5 +15,5 @@ export const getTenant = async () => {
 		where: eq(domains.hostname, hostname),
 	});
 
-	return domain ? domain.teamId : null;
+	return domain ? domain.organizationId : null;
 };

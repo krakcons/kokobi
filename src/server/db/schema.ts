@@ -5,6 +5,8 @@ import {
 	primaryKey,
 	text,
 } from "drizzle-orm/sqlite-core";
+export * from "./auth";
+import { users, sessions, organizations } from "./auth";
 
 // Enums
 
@@ -34,53 +36,14 @@ const sharing = {
 	}).notNull(),
 };
 
-// USERS //
+// ORGANIZATIONS //
 
-export const users = sqliteTable("users", {
-	id: text().primaryKey(),
-	email: text().unique().notNull(),
-	firstName: text("first_name"),
-	lastName: text("last_name"),
-	...dates,
-});
-export const sessions = sqliteTable("sessions", {
-	id: text().primaryKey(),
-	userId: text("user_id")
-		.notNull()
-		.references(() => users.id, {
-			onDelete: "cascade",
-		}),
-	expiresAt: integer("expires_at", {
-		mode: "timestamp",
-	}).notNull(),
-});
-export const emailVerifications = sqliteTable("email_verifications", {
-	id: text().primaryKey(),
-	userId: text("user_id")
-		.notNull()
-		.references(() => users.id, {
-			onDelete: "cascade",
-		}),
-	code: text().notNull(),
-	expiresAt: integer("expires_at", {
-		mode: "timestamp",
-	})
-		.$default(() => new Date(Date.now() + 1000 * 60 * 15))
-		.notNull(),
-});
-
-// TEAMS //
-
-export const teams = sqliteTable("teams", {
-	id: text().primaryKey(),
-	...dates,
-});
-export const teamTranslations = sqliteTable(
-	"team_translations",
+export const organizationTranslations = sqliteTable(
+	"organization_translations",
 	{
-		teamId: text("team_id")
+		organizationId: text("organization_id")
 			.notNull()
-			.references(() => teams.id, {
+			.references(() => organizations.id, {
 				onDelete: "cascade",
 			}),
 		locale: localeEnum.notNull(),
@@ -89,28 +52,17 @@ export const teamTranslations = sqliteTable(
 		favicon: text(),
 		...dates,
 	},
-	(t) => [primaryKey({ columns: [t.teamId, t.locale] })],
+	(t) => [primaryKey({ columns: [t.organizationId, t.locale] })],
 );
 export const domains = sqliteTable("domains", {
 	id: text().primaryKey(),
-	teamId: text("team_id")
+	organizationId: text("organization_id")
 		.notNull()
-		.references(() => teams.id, {
+		.references(() => organizations.id, {
 			onDelete: "cascade",
 		}),
 	hostname: text().unique().notNull(),
 	hostnameId: text("hostname_id").notNull(),
-	...dates,
-});
-export const keys = sqliteTable("keys", {
-	id: text().primaryKey().notNull(),
-	teamId: text("team_id")
-		.notNull()
-		.references(() => teams.id, {
-			onDelete: "cascade",
-		}),
-	name: text().notNull(),
-	key: text().notNull(),
 	...dates,
 });
 
@@ -118,9 +70,9 @@ export const keys = sqliteTable("keys", {
 
 export const courses = sqliteTable("courses", {
 	id: text().primaryKey().notNull(),
-	teamId: text("team_id")
+	organizationId: text("organization_id")
 		.notNull()
-		.references(() => teams.id, {
+		.references(() => organizations.id, {
 			onDelete: "cascade",
 		}),
 	completionStatus: text("completion_status", {
@@ -162,9 +114,9 @@ export const modules = sqliteTable("modules", {
 
 export const collections = sqliteTable("collections", {
 	id: text().primaryKey().notNull(),
-	teamId: text("team_id")
+	organizationId: text("organization_id")
 		.notNull()
-		.references(() => teams.id, {
+		.references(() => organizations.id, {
 			onDelete: "cascade",
 		}),
 	...dates,
@@ -213,9 +165,9 @@ export const usersToCourses = sqliteTable(
 			.references(() => users.id, {
 				onDelete: "cascade",
 			}),
-		teamId: text("team_id")
+		organizationId: text("organization_id")
 			.notNull()
-			.references(() => teams.id, {
+			.references(() => organizations.id, {
 				onDelete: "cascade",
 			}),
 		courseId: text("course_id")
@@ -226,7 +178,7 @@ export const usersToCourses = sqliteTable(
 		...dates,
 		...sharing,
 	},
-	(t) => [primaryKey({ columns: [t.userId, t.courseId, t.teamId] })],
+	(t) => [primaryKey({ columns: [t.userId, t.courseId, t.organizationId] })],
 );
 
 export const usersToModules = sqliteTable("users_to_modules", {
@@ -236,9 +188,9 @@ export const usersToModules = sqliteTable("users_to_modules", {
 		.references(() => users.id, {
 			onDelete: "cascade",
 		}),
-	teamId: text("team_id")
+	organizationId: text("organization_id")
 		.notNull()
-		.references(() => teams.id, {
+		.references(() => organizations.id, {
 			onDelete: "cascade",
 		}),
 	moduleId: text("module_id")
@@ -271,9 +223,9 @@ export const usersToCollections = sqliteTable(
 			.references(() => users.id, {
 				onDelete: "cascade",
 			}),
-		teamId: text("team_id")
+		organizationId: text("organization_id")
 			.notNull()
-			.references(() => teams.id, {
+			.references(() => organizations.id, {
 				onDelete: "cascade",
 			}),
 		collectionId: text("collection_id")
@@ -284,38 +236,24 @@ export const usersToCollections = sqliteTable(
 		...dates,
 		...sharing,
 	},
-	(t) => [primaryKey({ columns: [t.userId, t.collectionId, t.teamId] })],
+	(t) => [
+		primaryKey({ columns: [t.userId, t.collectionId, t.organizationId] }),
+	],
 );
 
-export const usersToTeams = sqliteTable(
-	"users_to_teams",
+// CONNECTIONS (ORGANIZATION)
+
+export const organizationsToCourses = sqliteTable(
+	"organizations_to_courses",
 	{
-		userId: text("user_id").notNull(),
-		teamId: text("team_id")
+		fromOrganizationId: text("from_organization_id")
 			.notNull()
-			.references(() => teams.id, {
+			.references(() => organizations.id, {
 				onDelete: "cascade",
 			}),
-		role: roleEnum.notNull().default(sql`'member'`),
-		...dates,
-		...sharing,
-	},
-	(t) => [primaryKey({ columns: [t.userId, t.teamId] })],
-);
-
-// CONNECTIONS (TEAM)
-
-export const teamsToCourses = sqliteTable(
-	"teams_to_courses",
-	{
-		fromTeamId: text("from_team_id")
+		organizationId: text("organization_id")
 			.notNull()
-			.references(() => teams.id, {
-				onDelete: "cascade",
-			}),
-		teamId: text("team_id")
-			.notNull()
-			.references(() => teams.id, {
+			.references(() => organizations.id, {
 				onDelete: "cascade",
 			}),
 		courseId: text("course_id")
@@ -326,7 +264,11 @@ export const teamsToCourses = sqliteTable(
 		...dates,
 		...sharing,
 	},
-	(t) => [primaryKey({ columns: [t.fromTeamId, t.courseId, t.teamId] })],
+	(t) => [
+		primaryKey({
+			columns: [t.fromOrganizationId, t.courseId, t.organizationId],
+		}),
+	],
 );
 
 // Relations
@@ -334,70 +276,42 @@ export const teamsToCourses = sqliteTable(
 // USERS
 
 export const usersRelations = relations(users, ({ many }) => ({
-	usersToTeams: many(usersToTeams),
 	usersToCourses: many(usersToCourses),
 	usersToModules: many(usersToModules),
 	usersToCollections: many(usersToCollections),
 }));
 
-export const sessionRelations = relations(sessions, ({ one }) => ({
-	userId: one(users, {
-		fields: [sessions.userId],
-		references: [users.id],
-		relationName: "userId",
-	}),
-}));
+// ORGANIZATIONS
 
-export const emailVerificationsRelations = relations(
-	emailVerifications,
-	({ one }) => ({
-		user: one(users, {
-			fields: [emailVerifications.userId],
-			references: [users.id],
-		}),
-	}),
-);
-
-// TEAMS
-
-export const teamRelations = relations(teams, ({ many }) => ({
-	usersToTeams: many(usersToTeams),
+export const organizationRelations = relations(organizations, ({ many }) => ({
 	courses: many(courses),
-	keys: many(keys),
-	translations: many(teamTranslations),
+	translations: many(organizationTranslations),
 	domains: many(domains),
 }));
 
-export const teamTranslationsRelations = relations(
-	teamTranslations,
+export const organizationTranslationsRelations = relations(
+	organizationTranslations,
 	({ one }) => ({
-		team: one(teams, {
-			fields: [teamTranslations.teamId],
-			references: [teams.id],
+		organization: one(organizations, {
+			fields: [organizationTranslations.organizationId],
+			references: [organizations.id],
 		}),
 	}),
 );
 
 export const domainsRelations = relations(domains, ({ one }) => ({
-	team: one(teams, {
-		fields: [domains.teamId],
-		references: [teams.id],
-	}),
-}));
-
-export const keysRelations = relations(keys, ({ one }) => ({
-	team: one(teams, {
-		fields: [keys.teamId],
-		references: [teams.id],
+	organization: one(organizations, {
+		fields: [domains.organizationId],
+		references: [organizations.id],
 	}),
 }));
 
 // COURSES
 
 export const coursesRelations = relations(courses, ({ one, many }) => ({
-	team: one(teams, {
-		fields: [courses.teamId],
-		references: [teams.id],
+	organization: one(organizations, {
+		fields: [courses.organizationId],
+		references: [organizations.id],
 	}),
 	collectionsToCourses: many(collectionsToCourses),
 	modules: many(modules),
@@ -425,9 +339,9 @@ export const modulesRelations = relations(modules, ({ many, one }) => ({
 // COLLECTIONS
 
 export const collectionsRelations = relations(collections, ({ one, many }) => ({
-	team: one(teams, {
-		fields: [collections.teamId],
-		references: [teams.id],
+	organization: one(organizations, {
+		fields: [collections.organizationId],
+		references: [organizations.id],
 	}),
 	collectionsToCourses: many(collectionsToCourses),
 	translations: many(collectionTranslations),
@@ -459,25 +373,14 @@ export const collectionTranslationsRelations = relations(
 
 // CONNECTIONS (USER)
 
-export const usersToTeamsRelations = relations(usersToTeams, ({ one }) => ({
-	user: one(users, {
-		fields: [usersToTeams.userId],
-		references: [users.id],
-	}),
-	team: one(teams, {
-		fields: [usersToTeams.teamId],
-		references: [teams.id],
-	}),
-}));
-
 export const usersToCoursesRelations = relations(usersToCourses, ({ one }) => ({
 	user: one(users, {
 		fields: [usersToCourses.userId],
 		references: [users.id],
 	}),
-	team: one(teams, {
-		fields: [usersToCourses.teamId],
-		references: [teams.id],
+	organization: one(organizations, {
+		fields: [usersToCourses.organizationId],
+		references: [organizations.id],
 	}),
 	course: one(courses, {
 		fields: [usersToCourses.courseId],
@@ -486,9 +389,9 @@ export const usersToCoursesRelations = relations(usersToCourses, ({ one }) => ({
 }));
 
 export const usersToModulesRelations = relations(usersToModules, ({ one }) => ({
-	team: one(teams, {
-		fields: [usersToModules.teamId],
-		references: [teams.id],
+	organization: one(organizations, {
+		fields: [usersToModules.organizationId],
+		references: [organizations.id],
 	}),
 	user: one(users, {
 		fields: [usersToModules.userId],
@@ -511,9 +414,9 @@ export const usersToCollectionsRelations = relations(
 			fields: [usersToCollections.userId],
 			references: [users.id],
 		}),
-		team: one(teams, {
-			fields: [usersToCollections.teamId],
-			references: [teams.id],
+		organization: one(organizations, {
+			fields: [usersToCollections.organizationId],
+			references: [organizations.id],
 		}),
 		collection: one(collections, {
 			fields: [usersToCollections.collectionId],
@@ -522,76 +425,25 @@ export const usersToCollectionsRelations = relations(
 	}),
 );
 
-// CONNECTIONS (TEAM)
+// CONNECTIONS (ORGANIZATION)
 
-export const teamsToCoursesRelations = relations(teamsToCourses, ({ one }) => ({
-	fromTeamId: one(teams, {
-		fields: [teamsToCourses.fromTeamId],
-		references: [teams.id],
+export const organizationsToCoursesRelations = relations(
+	organizationsToCourses,
+	({ one }) => ({
+		fromOrganizationId: one(organizations, {
+			fields: [organizationsToCourses.fromOrganizationId],
+			references: [organizations.id],
+		}),
+		organization: one(organizations, {
+			fields: [organizationsToCourses.organizationId],
+			references: [organizations.id],
+		}),
+		course: one(courses, {
+			fields: [organizationsToCourses.courseId],
+			references: [courses.id],
+		}),
 	}),
-	team: one(teams, {
-		fields: [teamsToCourses.teamId],
-		references: [teams.id],
-	}),
-	course: one(courses, {
-		fields: [teamsToCourses.courseId],
-		references: [courses.id],
-	}),
-}));
-
-export const tableSchemas = {
-	// USERS
-	users,
-	sessions,
-	emailVerifications,
-	// TEAMS
-	teams,
-	teamTranslations,
-	domains,
-	keys,
-	// COURSES
-	courses,
-	courseTranslations,
-	modules,
-	// COLLECTIONS
-	collections,
-	collectionTranslations,
-	collectionsToCourses,
-	// CONNECTIONS (USER)
-	usersToModules,
-	usersToCollections,
-	usersToCourses,
-	usersToTeams,
-	// CONNECTIONS (TEAM)
-	teamsToCourses,
-};
-
-export const relationSchemas = {
-	// USERS
-	usersRelations,
-	sessionRelations,
-	emailVerificationsRelations,
-	// TEAMS
-	teamRelations,
-	teamTranslationsRelations,
-	domainsRelations,
-	keysRelations,
-	// COURSES
-	coursesRelations,
-	courseTranslationsRelations,
-	modulesRelations,
-	// COLLECTIONS
-	collectionsRelations,
-	collectionTranslationsRelations,
-	collectionsToCoursesRelations,
-	// CONNECTIONS
-	usersToTeamsRelations,
-	usersToCoursesRelations,
-	usersToModulesRelations,
-	usersToCollectionsRelations,
-	// CONNECTIONS (TEAM)
-	teamsToCoursesRelations,
-};
+);
 
 export type User = InferSelectModel<typeof users>;
 export type Session = InferSelectModel<typeof sessions>;

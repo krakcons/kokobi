@@ -3,17 +3,24 @@ import { useAppForm } from "@/components/ui/form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { RedirectSchema } from "./login";
-import { verifyOTPFn } from "@/server/handlers/auth.otp";
 import { OTPFormSchema, type OTPFormType } from "@/types/auth";
-import { getAuthFn } from "@/server/handlers/auth";
 import { useTranslations } from "@/lib/locale";
+import { authClient } from "@/lib/auth.client";
+import z from "zod";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({
 	component: RouteComponent,
-	validateSearch: RedirectSchema,
-	beforeLoad: async ({ params }) => {
-		const auth = await getAuthFn();
-		if (auth.session) throw redirect({ to: "/$locale/admin", params });
+	validateSearch: RedirectSchema.extend({
+		email: z.email(),
+	}),
+	beforeLoad: async ({ params, context: { queryClient } }) => {
+		try {
+			const auth = await queryClient.ensureQueryData(
+				orpc.auth.session.queryOptions(),
+			);
+			if (auth) throw redirect({ to: "/$locale/admin", params });
+		} catch (e) {}
 	},
 });
 
@@ -61,12 +68,21 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const t = useTranslations("AuthVerifyEmail");
+
 	const verifyMutation = useMutation({
-		mutationFn: verifyOTPFn,
+		mutationFn: ({ data: { code } }: { data: { code: string } }) =>
+			authClient.signIn.emailOtp({
+				otp: code,
+				email: search.email,
+			}),
 		onSuccess: () => {
 			navigate({
 				to: search.redirect ?? "/$locale/admin",
-				search: (s) => ({ ...s, redirect: undefined }),
+				search: (s) => ({
+					...s,
+					redirect: undefined,
+					email: undefined as any,
+				}),
 			});
 		},
 	});

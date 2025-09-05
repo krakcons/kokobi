@@ -1,11 +1,10 @@
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { getTeamByIdFn } from "@/server/handlers/teams";
-import { getUserTeamConnectionFn } from "@/server/handlers/users.teams";
-import { useMutation } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { z } from "zod";
@@ -13,69 +12,119 @@ import { z } from "zod";
 export const Route = createFileRoute("/$locale/not-admin")({
 	component: RouteComponent,
 	validateSearch: z.object({
-		teamId: z.string(),
+		organizationId: z.string(),
 	}),
-	loaderDeps: ({ search: { teamId } }) => ({ teamId }),
-	loader: async ({ deps, params }) => {
-		const connection = await getUserTeamConnectionFn({
-			data: {
-				type: "admin",
-				teamId: deps.teamId,
-			},
-		});
+	loaderDeps: ({ search: { organizationId } }) => ({ organizationId }),
+	loader: async ({ deps, params, context: { queryClient } }) => {
+		const organizations = await queryClient.ensureQueryData(
+			orpc.organization.get.queryOptions(),
+		);
+		console.log(organizations, deps.organizationId);
 
-		if (connection && connection.connectStatus === "accepted") {
+		if (organizations?.find((o) => o.id === deps.organizationId)) {
 			throw redirect({
 				to: "/$locale/admin",
 				params,
 			});
 		}
 
-		return {
-			connection,
-			team: await getTeamByIdFn({
-				data: {
-					teamId: deps.teamId,
-				},
-			}),
-		};
+		return Promise.all([
+			queryClient.ensureQueryData(
+				orpc.auth.invitation.get.queryOptions(),
+			),
+			queryClient.ensureQueryData(
+				orpc.organization.id.queryOptions({
+					input: {
+						id: deps.organizationId,
+					},
+				}),
+			),
+		]);
 	},
 });
 
 function RouteComponent() {
 	const t = useTranslations("NotAMember");
-	const { connection, team } = Route.useLoaderData();
 	const tError = useTranslations("Errors");
 	const navigate = Route.useNavigate();
+	const queryClient = useQueryClient();
+	const search = Route.useSearch();
 
-	const updateConnection = useMutation(
-		orpc.connection.update.mutationOptions({
-			onSuccess: () => {
-				navigate({
-					to: "/$locale/admin",
-				});
+	const { data: invitations } = useSuspenseQuery(
+		orpc.auth.invitation.get.queryOptions(),
+	);
+
+	const invite = invitations.find(
+		(i) =>
+			i.organizationId === search.organizationId &&
+			i.status === "pending",
+	);
+	const connection = invite
+		? {
+				connectType: "invite" as const,
+				connectStatus:
+					invite.status === "canceled" ? "rejected" : invite.status,
+			}
+		: undefined;
+
+	console.log(invitations);
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.organization.id.queryOptions({
+			input: {
+				id: search.organizationId,
 			},
 		}),
 	);
 
+	console.log(connection);
+
 	return (
 		<FloatingPage>
 			<PageHeader
-				title={team.name}
-				description={connection ? t.inviteMessage : t.message}
+				title={organization.name}
+				description={
+					connection && connection.connectStatus !== "rejected"
+						? t.inviteMessage
+						: t.message
+				}
 			/>
 			<ConnectionWrapper
 				allowRequest={false}
-				name={team.name}
+				name={organization.name}
 				connection={connection}
 				onRequest={() => {}}
 				onResponse={(status) => {
-					updateConnection.mutate({
-						senderType: "team",
-						recipientType: "user",
-						id: team.id,
-						connectStatus: status,
-					});
+					if (status === "accepted") {
+						authClient.organization.acceptInvitation(
+							{
+								invitationId: invite!.id,
+							},
+							{
+								onSuccess: () => {
+									queryClient.invalidateQueries();
+									navigate({
+										to: "/$locale/admin",
+									});
+								},
+							},
+						);
+					}
+					if (status === "rejected") {
+						authClient.organization.rejectInvitation(
+							{
+								invitationId: invite!.id,
+							},
+							{
+								onSuccess: () => {
+									queryClient.invalidateQueries();
+									navigate({
+										to: "/$locale/admin",
+									});
+								},
+							},
+						);
+					}
 				}}
 			>
 				<Button
