@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0a0cc188-6076-495e-b48d-0e54230fceaa",
+  "id": "0b787a51-f46a-4666-b20f-83e33b9ff6f9",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "collection_translations": {
@@ -90,8 +90,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -116,12 +116,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "collections_team_id_teams_id_fk": {
-          "name": "collections_team_id_teams_id_fk",
+        "collections_organization_id_organizations_id_fk": {
+          "name": "collections_organization_id_organizations_id_fk",
           "tableFrom": "collections",
-          "tableTo": "teams",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -295,8 +295,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -329,12 +329,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "courses_team_id_teams_id_fk": {
-          "name": "courses_team_id_teams_id_fk",
+        "courses_organization_id_organizations_id_fk": {
+          "name": "courses_organization_id_organizations_id_fk",
           "tableFrom": "courses",
-          "tableTo": "teams",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -357,8 +357,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -405,132 +405,12 @@
         }
       },
       "foreignKeys": {
-        "domains_team_id_teams_id_fk": {
-          "name": "domains_team_id_teams_id_fk",
+        "domains_organization_id_organizations_id_fk": {
+          "name": "domains_organization_id_organizations_id_fk",
           "tableFrom": "domains",
-          "tableTo": "teams",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "email_verifications": {
-      "name": "email_verifications",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "code": {
-          "name": "code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "email_verifications_user_id_users_id_fk": {
-          "name": "email_verifications_user_id_users_id_fk",
-          "tableFrom": "email_verifications",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "keys": {
-      "name": "keys",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "team_id": {
-          "name": "team_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "key": {
-          "name": "key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "keys_team_id_teams_id_fk": {
-          "name": "keys_team_id_teams_id_fk",
-          "tableFrom": "keys",
-          "tableTo": "teams",
-          "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -619,56 +499,11 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "sessions": {
-      "name": "sessions",
+    "organization_translations": {
+      "name": "organization_translations",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "sessions_user_id_users_id_fk": {
-          "name": "sessions_user_id_users_id_fk",
-          "tableFrom": "sessions",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "team_translations": {
-      "name": "team_translations",
-      "columns": {
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -721,12 +556,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "team_translations_team_id_teams_id_fk": {
-          "name": "team_translations_team_id_teams_id_fk",
-          "tableFrom": "team_translations",
-          "tableTo": "teams",
+        "organization_translations_organization_id_organizations_id_fk": {
+          "name": "organization_translations_organization_id_organizations_id_fk",
+          "tableFrom": "organization_translations",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -736,62 +571,29 @@
         }
       },
       "compositePrimaryKeys": {
-        "team_translations_team_id_locale_pk": {
+        "organization_translations_organization_id_locale_pk": {
           "columns": [
-            "team_id",
+            "organization_id",
             "locale"
           ],
-          "name": "team_translations_team_id_locale_pk"
+          "name": "organization_translations_organization_id_locale_pk"
         }
       },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "teams": {
-      "name": "teams",
+    "organizations_to_courses": {
+      "name": "organizations_to_courses",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "teams_to_courses": {
-      "name": "teams_to_courses",
-      "columns": {
-        "from_team_id": {
-          "name": "from_team_id",
+        "from_organization_id": {
+          "name": "from_organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -837,12 +639,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "teams_to_courses_from_team_id_teams_id_fk": {
-          "name": "teams_to_courses_from_team_id_teams_id_fk",
-          "tableFrom": "teams_to_courses",
-          "tableTo": "teams",
+        "organizations_to_courses_from_organization_id_organizations_id_fk": {
+          "name": "organizations_to_courses_from_organization_id_organizations_id_fk",
+          "tableFrom": "organizations_to_courses",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "from_team_id"
+            "from_organization_id"
           ],
           "columnsTo": [
             "id"
@@ -850,12 +652,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "teams_to_courses_team_id_teams_id_fk": {
-          "name": "teams_to_courses_team_id_teams_id_fk",
-          "tableFrom": "teams_to_courses",
-          "tableTo": "teams",
+        "organizations_to_courses_organization_id_organizations_id_fk": {
+          "name": "organizations_to_courses_organization_id_organizations_id_fk",
+          "tableFrom": "organizations_to_courses",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -863,9 +665,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "teams_to_courses_course_id_courses_id_fk": {
-          "name": "teams_to_courses_course_id_courses_id_fk",
-          "tableFrom": "teams_to_courses",
+        "organizations_to_courses_course_id_courses_id_fk": {
+          "name": "organizations_to_courses_course_id_courses_id_fk",
+          "tableFrom": "organizations_to_courses",
           "tableTo": "courses",
           "columnsFrom": [
             "course_id"
@@ -878,77 +680,15 @@
         }
       },
       "compositePrimaryKeys": {
-        "teams_to_courses_from_team_id_course_id_team_id_pk": {
+        "organizations_to_courses_from_organization_id_course_id_organization_id_pk": {
           "columns": [
-            "from_team_id",
+            "from_organization_id",
             "course_id",
-            "team_id"
+            "organization_id"
           ],
-          "name": "teams_to_courses_from_team_id_course_id_team_id_pk"
+          "name": "organizations_to_courses_from_organization_id_course_id_organization_id_pk"
         }
       },
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "users": {
-      "name": "users",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "first_name": {
-          "name": "first_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "last_name": {
-          "name": "last_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        }
-      },
-      "indexes": {
-        "users_email_unique": {
-          "name": "users_email_unique",
-          "columns": [
-            "email"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -962,8 +702,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1022,12 +762,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "users_to_collections_team_id_teams_id_fk": {
-          "name": "users_to_collections_team_id_teams_id_fk",
+        "users_to_collections_organization_id_organizations_id_fk": {
+          "name": "users_to_collections_organization_id_organizations_id_fk",
           "tableFrom": "users_to_collections",
-          "tableTo": "teams",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -1050,13 +790,13 @@
         }
       },
       "compositePrimaryKeys": {
-        "users_to_collections_user_id_collection_id_team_id_pk": {
+        "users_to_collections_user_id_collection_id_organization_id_pk": {
           "columns": [
             "user_id",
             "collection_id",
-            "team_id"
+            "organization_id"
           ],
-          "name": "users_to_collections_user_id_collection_id_team_id_pk"
+          "name": "users_to_collections_user_id_collection_id_organization_id_pk"
         }
       },
       "uniqueConstraints": {},
@@ -1072,8 +812,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1132,12 +872,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "users_to_courses_team_id_teams_id_fk": {
-          "name": "users_to_courses_team_id_teams_id_fk",
+        "users_to_courses_organization_id_organizations_id_fk": {
+          "name": "users_to_courses_organization_id_organizations_id_fk",
           "tableFrom": "users_to_courses",
-          "tableTo": "teams",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -1160,13 +900,13 @@
         }
       },
       "compositePrimaryKeys": {
-        "users_to_courses_user_id_course_id_team_id_pk": {
+        "users_to_courses_user_id_course_id_organization_id_pk": {
           "columns": [
             "user_id",
             "course_id",
-            "team_id"
+            "organization_id"
           ],
-          "name": "users_to_courses_user_id_course_id_team_id_pk"
+          "name": "users_to_courses_user_id_course_id_organization_id_pk"
         }
       },
       "uniqueConstraints": {},
@@ -1189,8 +929,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "organization_id": {
+          "name": "organization_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1258,12 +998,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "users_to_modules_team_id_teams_id_fk": {
-          "name": "users_to_modules_team_id_teams_id_fk",
+        "users_to_modules_organization_id_organizations_id_fk": {
+          "name": "users_to_modules_organization_id_organizations_id_fk",
           "tableFrom": "users_to_modules",
-          "tableTo": "teams",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
           ],
           "columnsTo": [
             "id"
@@ -1302,9 +1042,30 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "users_to_teams": {
-      "name": "users_to_teams",
+    "accounts": {
+      "name": "accounts",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "user_id": {
           "name": "user_id",
           "type": "text",
@@ -1312,8 +1073,196 @@
           "notNull": true,
           "autoincrement": false
         },
-        "team_id": {
-          "name": "team_id",
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "access_token_expires_at": {
+          "name": "access_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token_expires_at": {
+          "name": "refresh_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "accounts_user_id_users_id_fk": {
+          "name": "accounts_user_id_users_id_fk",
+          "tableFrom": "accounts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "invitations": {
+      "name": "invitations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inviter_id": {
+          "name": "inviter_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "invitations_organization_id_organizations_id_fk": {
+          "name": "invitations_organization_id_organizations_id_fk",
+          "tableFrom": "invitations",
+          "tableTo": "organizations",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "invitations_inviter_id_users_id_fk": {
+          "name": "invitations_inviter_id_users_id_fk",
+          "tableFrom": "invitations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "inviter_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "members": {
+      "name": "members",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -1332,40 +1281,30 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        },
-        "connect_type": {
-          "name": "connect_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "connect_status": {
-          "name": "connect_status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
           "autoincrement": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "users_to_teams_team_id_teams_id_fk": {
-          "name": "users_to_teams_team_id_teams_id_fk",
-          "tableFrom": "users_to_teams",
-          "tableTo": "teams",
+        "members_organization_id_organizations_id_fk": {
+          "name": "members_organization_id_organizations_id_fk",
+          "tableFrom": "members",
+          "tableTo": "organizations",
           "columnsFrom": [
-            "team_id"
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "members_user_id_users_id_fk": {
+          "name": "members_user_id_users_id_fk",
+          "tableFrom": "members",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -1374,15 +1313,289 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "users_to_teams_user_id_team_id_pk": {
-          "columns": [
-            "user_id",
-            "team_id"
-          ],
-          "name": "users_to_teams_user_id_team_id_pk"
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "organizations": {
+      "name": "organizations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "logo": {
+          "name": "logo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
+      "indexes": {
+        "organizations_slug_unique": {
+          "name": "organizations_slug_unique",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "sessions": {
+      "name": "sessions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "active_organization_id": {
+          "name": "active_organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "active_learner_organization_id": {
+          "name": "active_learner_organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "sessions_token_unique": {
+          "name": "sessions_token_unique",
+          "columns": [
+            "token"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "sessions_user_id_users_id_fk": {
+          "name": "sessions_user_id_users_id_fk",
+          "tableFrom": "sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "verifications": {
+      "name": "verifications",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     }
