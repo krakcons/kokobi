@@ -14,6 +14,7 @@ import {
 	domains,
 	organizations,
 	organizationTranslations,
+	sessions,
 	usersToCourses,
 } from "../db/schema";
 import { and, count, eq, inArray } from "drizzle-orm";
@@ -39,7 +40,7 @@ import { auth } from "@/lib/auth";
 import { s3 } from "../s3";
 
 export const organizationRouter = base.prefix("/organizations").router({
-	get: organizationProcedure
+	get: protectedProcedure
 		.route({
 			tags: ["Organization"],
 			method: "GET",
@@ -67,6 +68,23 @@ export const organizationRouter = base.prefix("/organizations").router({
 					)!,
 				}),
 			);
+		}),
+	setActive: protectedProcedure
+		.route({
+			tags: ["Organization"],
+			method: "PUT",
+			path: "/set-active",
+			summary: "Set Active Organization",
+		})
+		.input(z.object({ id: z.string() }))
+		.handler(async ({ context, input: { id } }) => {
+			console.log("SETTING ACTIVE ORGANIZATION", id);
+			await auth.api.setActiveOrganization({
+				headers: context.headers,
+				body: {
+					organizationId: id,
+				},
+			});
 		}),
 	create: protectedProcedure
 		.route({
@@ -209,6 +227,15 @@ export const organizationRouter = base.prefix("/organizations").router({
 					organizationId: context.session.activeOrganizationId,
 				},
 			});
+			await db
+				.update(sessions)
+				.set({ activeOrganizationId: null })
+				.where(
+					eq(
+						sessions.activeOrganizationId,
+						context.session.activeOrganizationId,
+					),
+				);
 		}),
 	current: organizationProcedure
 		.route({

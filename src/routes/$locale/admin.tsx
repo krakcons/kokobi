@@ -23,7 +23,6 @@ import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
 import { EditingLocaleSchema } from "@/types/router";
 import { orpc } from "@/server/client";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { authClient } from "@/lib/auth.client";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -51,7 +50,7 @@ export const Route = createFileRoute("/$locale/admin")({
 		if (tenantId) {
 			if (tenantId !== auth.session.activeOrganizationId) {
 				try {
-					await orpc.learner.organization.update.call({
+					await orpc.organization.setActive.call({
 						id: tenantId,
 					});
 					throw redirect({
@@ -72,9 +71,11 @@ export const Route = createFileRoute("/$locale/admin")({
 			}
 		} else {
 			if (!auth.session.activeOrganizationId) {
+				console.log("NO ACTIVE ORGANIZATION");
 				const userOrganizations = await queryClient.ensureQueryData(
 					orpc.organization.get.queryOptions(),
 				);
+				console.log("USER ORGANIZATIONS", userOrganizations);
 				if (userOrganizations?.length === 0) {
 					throw redirect({
 						to: "/$locale/auth/create-organization",
@@ -83,8 +84,8 @@ export const Route = createFileRoute("/$locale/admin")({
 						},
 					});
 				} else {
-					await authClient.organization.setActive({
-						organizationId: userOrganizations?.[0].id!,
+					await orpc.organization.setActive.call({
+						id: userOrganizations?.[0].id!,
 					});
 					throw redirect({
 						href: location.href,

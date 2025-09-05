@@ -32,7 +32,7 @@ export const auth = betterAuth({
 								Here is your one-time password to verify your
 								email address.
 							</p>
-							<p>{otp}</p>
+							<strong>{otp}</strong>
 						</div>
 					),
 				});

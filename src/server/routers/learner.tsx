@@ -106,12 +106,12 @@ export const learnerRouter = base.prefix("/learner").router({
 						[] as Organization[],
 					);
 			}),
-		update: protectedProcedure
+		setActive: protectedProcedure
 			.route({
 				tags: ["Learner"],
 				method: "PUT",
-				path: "/organizations",
-				summary: "Update Organization",
+				path: "/organizations/set-active",
+				summary: "Set Active Organization",
 			})
 			.input(
 				z.object({

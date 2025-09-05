@@ -59,13 +59,13 @@ export const Route = createFileRoute("/$locale/learner")({
 		let redirectHref = undefined;
 		if (tenantId) {
 			if (tenantId !== auth.session.activeLearnerOrganizationId) {
-				await orpc.learner.organization.update.call({
+				await orpc.learner.organization.setActive.call({
 					id: tenantId,
 				});
 			}
 		} else {
 			if (search.organizationId) {
-				await orpc.learner.organization.update.call({
+				await orpc.learner.organization.setActive.call({
 					id: search.organizationId,
 				});
 				const newUrl = new URL(env.VITE_SITE_URL + location.href);
@@ -76,7 +76,7 @@ export const Route = createFileRoute("/$locale/learner")({
 				const organizations = await queryClient.ensureQueryData(
 					orpc.learner.organization.get.queryOptions(),
 				);
-				await orpc.learner.organization.update.call({
+				await orpc.learner.organization.setActive.call({
 					id: organizations[0].id,
 				});
 				redirectHref = location.href;

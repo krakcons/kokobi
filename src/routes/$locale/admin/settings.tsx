@@ -102,7 +102,6 @@ const DomainForm = ({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const router = useRouter();
 	const t = useTranslations("OrganizationSettings");
 	const tActions = useTranslations("Actions");
 	const tDomain = useTranslations("OrganizationDomainForm");
@@ -118,7 +117,6 @@ function RouteComponent() {
 			},
 		}),
 	);
-	console.log("ORGANIZATION", organization.locale);
 
 	const { data: domain } = useSuspenseQuery(
 		orpc.organization.domain.get.queryOptions(),
@@ -142,17 +140,32 @@ function RouteComponent() {
 			},
 			onSuccess: () => {
 				toast.success("Organization updated");
-				router.invalidate();
+				queryClient.invalidateQueries(
+					orpc.organization.current.queryOptions({
+						context: {
+							headers: {
+								locale: search.locale,
+								fallbackLocale: "none",
+							},
+						},
+					}),
+				);
+				queryClient.invalidateQueries(
+					orpc.organization.get.queryOptions(),
+				);
 			},
 		}),
 	);
+
 	const deleteOrganization = useMutation(
 		orpc.organization.delete.mutationOptions({
 			onSuccess: () => {
-				navigate({ to: "/$locale/admin" });
+				navigate({ to: "/$locale/admin", reloadDocument: true });
+				queryClient.invalidateQueries();
 			},
 		}),
 	);
+
 	const deleteOrganizationDomain = useMutation(
 		orpc.organization.domain.delete.mutationOptions({
 			onSuccess: () => {
