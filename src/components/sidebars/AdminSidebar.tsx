@@ -35,6 +35,7 @@ import {
 	ChartNoAxesColumn,
 	SquareLibrary,
 	FileBadge2,
+	ShieldUser,
 } from "lucide-react";
 import type { Course } from "@/types/course";
 import { useEffect, useState } from "react";
@@ -44,8 +45,11 @@ import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { UserButton } from "./UserButton";
 import { Separator } from "../ui/separator";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
-import type { Invitation } from "better-auth/plugins";
-import type { User } from "better-auth";
+import type {
+	Invitation,
+	SessionWithImpersonatedBy,
+	UserWithRole,
+} from "better-auth/plugins";
 import { authClient } from "@/lib/auth.client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -479,6 +483,7 @@ export const AdminSidebar = ({
 	collections,
 	invitations,
 	user,
+	session,
 	role,
 }: {
 	tenantId?: string;
@@ -487,7 +492,8 @@ export const AdminSidebar = ({
 	invitations: Invitation[];
 	courses: Course[];
 	collections: (Collection & CollectionTranslation)[];
-	user: User;
+	user: UserWithRole;
+	session: SessionWithImpersonatedBy;
 	role: string;
 }) => {
 	const { setOpenMobile } = useSidebar();
@@ -709,6 +715,36 @@ export const AdminSidebar = ({
 						</SidebarGroupContent>
 					</SidebarGroup>
 				)}
+				{user.role === "admin" && (
+					<SidebarGroup>
+						<SidebarGroupLabel>Super Admin</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								<SidebarMenuItem>
+									<Link
+										to="/$locale/admin/super/users"
+										params={{
+											locale,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+											>
+												<ShieldUser />
+												Users
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
@@ -724,7 +760,7 @@ export const AdminSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<UserButton user={user} />
+					<UserButton user={user} session={session} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

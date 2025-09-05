@@ -13,6 +13,7 @@ import {
 	SunMoon,
 	UserIcon,
 	UserCircleIcon,
+	UserMinus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -39,6 +40,7 @@ import { useTranslations } from "@/lib/locale";
 import { authClient } from "@/lib/auth.client";
 import type { User } from "better-auth";
 import { orpc } from "@/server/client";
+import type { SessionWithImpersonatedBy } from "better-auth/plugins";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -53,9 +55,11 @@ const ThemeIcon = ({ theme }: { theme: Theme }) => {
 
 export const UserButton = ({
 	user,
+	session,
 	signOutRedirect,
 }: {
 	user: User;
+	session: SessionWithImpersonatedBy;
 	signOutRedirect?: string;
 }) => {
 	const { theme, setTheme } = useTheme();
@@ -177,6 +181,23 @@ export const UserButton = ({
 							<UserCircleIcon />
 							{t.account}
 						</DropdownMenuItem>
+						{session.impersonatedBy && (
+							<DropdownMenuItem
+								onSelect={() => {
+									authClient.admin
+										.stopImpersonating()
+										.then(() =>
+											navigate({
+												href: "/admin",
+												reloadDocument: true,
+											}),
+										);
+								}}
+							>
+								<UserMinus />
+								Stop Impersonating
+							</DropdownMenuItem>
+						)}
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem

@@ -28,12 +28,14 @@ import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import type { User } from "better-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { orpc } from "@/server/client";
+import type { SessionWithImpersonatedBy } from "better-auth/plugins";
 
 export const LearnerSidebar = ({
 	tenantId,
 	activeLearnerOrganizationId,
 	organizations,
 	courses,
+	session,
 	availableCourses,
 	collections,
 	user,
@@ -49,6 +51,7 @@ export const LearnerSidebar = ({
 				courses: Course[];
 			};
 	})[];
+	session: SessionWithImpersonatedBy;
 	user: User;
 }) => {
 	const { setOpenMobile } = useSidebar();
@@ -239,7 +242,7 @@ export const LearnerSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<UserButton user={user} />
+					<UserButton user={user} session={session} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

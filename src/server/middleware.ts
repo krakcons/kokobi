@@ -17,6 +17,22 @@ export const logMiddleware = base.middleware(async ({ context, next }) => {
 	}
 });
 
+const getAuth = async (headers: Headers) => {
+	const authResult = await auth.api.getSession({
+		headers,
+	});
+
+	return {
+		user: authResult?.user ?? null,
+		session: authResult?.session ?? null,
+		member: authResult?.session
+			? ((await auth.api.getActiveMember({
+					headers,
+				})) ?? null)
+			: null,
+	};
+};
+
 const localeMiddleware = base.middleware(async ({ context, next }) => {
 	const locale =
 		context.headers.get("locale") ?? getCookie(context.headers, "locale");
@@ -35,58 +51,70 @@ const localeMiddleware = base.middleware(async ({ context, next }) => {
 });
 
 const authMiddleware = base.middleware(async ({ context, next }) => {
-	const authResult = await auth.api.getSession({
-		headers: context.headers,
-	});
+	const authResult = await getAuth(context.headers);
 
 	return next({
 		context: {
 			...context,
-			user: authResult?.user,
-			session: authResult?.session,
-			member: authResult?.session
-				? ((await auth.api.getActiveMember({
-						headers: context.headers,
-					})) ?? undefined)
-				: undefined,
+			...authResult,
 		},
 	});
 });
 
-export const publicProcedure = base
-	.use(logMiddleware)
-	.use(localeMiddleware)
-	.use(authMiddleware);
-
 export const protectedMiddleware = base.middleware(
 	async ({ context, next }) => {
-		const authResult = await auth.api.getSession({
-			headers: context.headers,
-		});
+		const authResult = await getAuth(context.headers);
 
-		if (!authResult) {
+		if (!authResult.user || !authResult.session) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		return next({
 			context: {
 				...context,
-				user: authResult?.user,
-				session: authResult?.session,
-				member: authResult?.session
-					? ((await auth.api.getActiveMember({
-							headers: context.headers,
-						})) ?? undefined)
-					: undefined,
+				...authResult,
+				user: authResult.user,
+				session: authResult.session,
 			},
 		});
 	},
 );
 
+export const superAdminMiddleware = base.middleware(
+	async ({ context, next }) => {
+		const authResult = await getAuth(context.headers);
+
+		if (!authResult.user || !authResult.session) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		if (authResult.user.role !== "admin") {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		return next({
+			context: {
+				...context,
+				...authResult,
+			},
+		});
+	},
+);
+
+export const publicProcedure = base
+	.use(logMiddleware)
+	.use(localeMiddleware)
+	.use(authMiddleware);
+
 export const protectedProcedure = base
 	.use(logMiddleware)
 	.use(localeMiddleware)
 	.use(protectedMiddleware);
+
+export const superAdminProcedure = base
+	.use(logMiddleware)
+	.use(localeMiddleware)
+	.use(superAdminMiddleware);
 
 export const organizationProcedure = protectedProcedure.use(
 	base.$context<Session>().middleware(async ({ context, next }) => {

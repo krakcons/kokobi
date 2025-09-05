@@ -25,7 +25,6 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import type { User } from "@/types/users";
 import type { UserToCourseType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import type { Module } from "@/types/module";
@@ -34,6 +33,7 @@ import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { isModuleSuccessful } from "@/lib/scorm";
 import { orpc } from "@/server/client";
+import type { User } from "better-auth";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",

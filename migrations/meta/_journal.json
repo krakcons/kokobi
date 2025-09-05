@@ -8,6 +8,13 @@
       "when": 1757031995619,
       "tag": "0000_strange_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1757083689479,
+      "tag": "0001_conscious_redwing",
+      "breakpoints": true
     }
   ]
 }

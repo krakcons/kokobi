@@ -5,6 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/server/db";
 import { sendEmail } from "@/server/lib/email";
 import { members } from "@/server/db/auth";
+import { admin } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 
 export const auth = betterAuth({
@@ -38,6 +39,7 @@ export const auth = betterAuth({
 				});
 			},
 		}),
+		admin(),
 		organization({
 			cancelPendingInvitationsOnReInvite: true,
 		}),

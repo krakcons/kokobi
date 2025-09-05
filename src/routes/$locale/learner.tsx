@@ -20,6 +20,7 @@ import { getHeader } from "@tanstack/react-start/server";
 import { useLocale } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import type { SessionWithImpersonatedBy } from "better-auth/plugins";
 
 const getIsIframeFn = createServerFn().handler(() => {
 	const secFestDest = getHeader("sec-fetch-dest");
@@ -148,6 +149,7 @@ function RouteComponent() {
 		<SidebarProvider>
 			{!isIframe && (
 				<LearnerSidebar
+					session={auth.session as SessionWithImpersonatedBy}
 					tenantId={tenantId ?? undefined}
 					activeLearnerOrganizationId={
 						auth.session.activeLearnerOrganizationId
@@ -169,7 +171,10 @@ function RouteComponent() {
 							<SidebarTrigger />
 						) : (
 							<UserButton
-								user={auth.user!}
+								user={auth.user}
+								session={
+									auth.session as SessionWithImpersonatedBy
+								}
 								signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
 							/>
 						)}

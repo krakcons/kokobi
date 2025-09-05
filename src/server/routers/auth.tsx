@@ -1,6 +1,10 @@
 import z from "zod";
 import { getTenant } from "../lib/tenant";
-import { protectedProcedure, publicProcedure } from "../middleware";
+import {
+	protectedProcedure,
+	publicProcedure,
+	superAdminProcedure,
+} from "../middleware";
 import { auth } from "@/lib/auth";
 
 export const authRouter = {
@@ -50,5 +54,31 @@ export const authRouter = {
 					},
 				});
 			}),
+	},
+	super: {
+		user: {
+			get: superAdminProcedure.handler(async ({ context }) => {
+				return await auth.api.listUsers({
+					headers: context.headers,
+					query: {
+						limit: 1000,
+					},
+				});
+			}),
+			impersonate: superAdminProcedure
+				.input(
+					z.object({
+						id: z.string(),
+					}),
+				)
+				.handler(async ({ context, input: { id } }) => {
+					return await auth.api.impersonateUser({
+						headers: context.headers,
+						body: {
+							userId: id,
+						},
+					});
+				}),
+		},
 	},
 };

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { UserButton } from "@/components/sidebars/UserButton";
 import { buttonVariants } from "@/components/ui/button";
 import { orpc } from "@/server/client";
+import type { SessionWithImpersonatedBy } from "better-auth/plugins";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 	{
@@ -116,7 +117,8 @@ function RouteComponent() {
 							<ChevronLeft aria-label="Back" className="size-6" />
 						</Link>
 						<UserButton
-							user={auth.user!}
+							user={auth.user}
+							session={auth.session as SessionWithImpersonatedBy}
 							signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}
 						/>
 					</div>

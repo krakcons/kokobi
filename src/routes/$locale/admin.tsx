@@ -23,6 +23,10 @@ import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
 import { EditingLocaleSchema } from "@/types/router";
 import { orpc } from "@/server/client";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import type {
+	SessionWithImpersonatedBy,
+	UserWithRole,
+} from "better-auth/plugins";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
@@ -138,13 +142,14 @@ function RouteComponent() {
 	return (
 		<SidebarProvider>
 			<AdminSidebar
+				session={auth.session as SessionWithImpersonatedBy}
 				tenantId={tenantId ?? undefined}
 				activeOrganizationId={auth.session.activeOrganizationId!}
 				invitations={invitations ?? []}
 				organizations={organizations}
 				courses={courses}
 				collections={collections}
-				user={auth.user}
+				user={auth.user as UserWithRole}
 				role={auth.member?.role ?? "member"}
 			/>
 			<SidebarInset className="max-w-full overflow-hidden">
