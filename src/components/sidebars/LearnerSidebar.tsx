@@ -58,7 +58,7 @@ export const LearnerSidebar = ({
 	const queryClient = useQueryClient();
 
 	const updateOrganization = useMutation(
-		orpc.learner.organization.update.mutationOptions({
+		orpc.learner.organization.setActive.mutationOptions({
 			onSuccess: () =>
 				navigate({
 					to: "/$locale/learner",
