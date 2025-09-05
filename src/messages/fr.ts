@@ -44,9 +44,8 @@ const fr: Messages = {
 		},
 	},
 	AuthLoginForm: {
-		email: {
-			label: "E-mail",
-		},
+		email: "E-mail",
+		rememberMe: "Se souvenir de moi",
 	},
 	AuthLogin: {
 		title: "Se connecter",

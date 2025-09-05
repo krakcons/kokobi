@@ -41,9 +41,8 @@ const en = {
 		},
 	},
 	AuthLoginForm: {
-		email: {
-			label: "Email",
-		},
+		email: "Email",
+		rememberMe: "Remember me",
 	},
 	AuthLogin: {
 		title: "Login",

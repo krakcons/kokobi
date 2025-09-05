@@ -42,6 +42,7 @@ export const Route = createFileRoute("/$locale/auth/login")({
 
 export const LoginFormSchema = z.object({
 	email: z.email(),
+	rememberMe: z.boolean().optional(),
 });
 export type LoginFormType = z.infer<typeof LoginFormSchema>;
 
@@ -57,6 +58,7 @@ const LoginForm = ({
 		defaultValues: {
 			...defaultValues,
 			email: "",
+			rememberMe: false,
 		} as LoginFormType,
 		validators: {
 			onSubmit: LoginFormSchema,
@@ -75,8 +77,12 @@ const LoginForm = ({
 			>
 				<form.AppField
 					name="email"
+					children={(field) => <field.TextField label={t.email} />}
+				/>
+				<form.AppField
+					name="rememberMe"
 					children={(field) => (
-						<field.TextField label={t.email.label} />
+						<field.CheckboxField label={t.rememberMe} />
 					)}
 				/>
 				<form.SubmitButton />
@@ -101,15 +107,16 @@ function RouteComponent() {
 	);
 
 	const requestMutation = useMutation({
-		mutationFn: ({ data: { email } }: { data: { email: string } }) =>
+		mutationFn: ({ email }: LoginFormType) =>
 			authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" }),
-		onSuccess: (_, { data: { email } }) => {
+		onSuccess: (_, { email, rememberMe }) => {
 			navigate({
 				to: "/$locale/auth/verify-email",
 				params: (p) => p,
 				search: (s) => ({
 					...s,
 					email,
+					rememberMe: rememberMe ? true : undefined,
 				}),
 			});
 		},
@@ -126,7 +133,7 @@ function RouteComponent() {
 			)}
 			<PageHeader title={t.title} description={t.description} />
 			<LoginForm
-				onSubmit={(data) => requestMutation.mutateAsync({ data })}
+				onSubmit={(values) => requestMutation.mutateAsync(values)}
 			/>
 		</FloatingPage>
 	);
