@@ -9,7 +9,8 @@
 		"generate-routes": "tsr generate",
 		"watch-routes": "tsr watch",
 		"generate-auth": "bunx --bun @better-auth/cli@latest generate --output src/server/db/auth.ts",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"db:pull": "dotenv -f .env -- litestream restore -o ./persist/prod.db s3://kokobi-prod/db"
 	},
 	"dependencies": {
 		"@aws-sdk/client-sesv2": "^3.876.0",

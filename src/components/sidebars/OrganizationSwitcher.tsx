@@ -147,7 +147,10 @@ export const OrganizationSwitcher = ({
 						>
 							<Avatar className="rounded-lg size-8">
 								<AvatarImage
-									src={organization?.logo ?? undefined}
+									src={organizationImageUrl(
+										organization,
+										"favicon",
+									)}
 									className="rounded-lg"
 								/>
 								<AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
@@ -185,7 +188,10 @@ export const OrganizationSwitcher = ({
 							>
 								<Avatar className="rounded-md size-8">
 									<AvatarImage
-										src={organization?.logo ?? undefined}
+										src={organizationImageUrl(
+											organization,
+											"favicon",
+										)}
 										className="rounded-md"
 									/>
 									<AvatarFallback className="rounded-md">
