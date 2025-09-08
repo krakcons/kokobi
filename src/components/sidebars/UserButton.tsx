@@ -72,7 +72,7 @@ const getInitials = (user: UserType) => {
 	return <User className="size-4.5" />;
 };
 
-export const AdminUserButton = (props: UserDropdownProps) => {
+export const SidebarUserButton = (props: UserDropdownProps) => {
 	const { isMobile } = useSidebar();
 
 	const name = getName(props.user);

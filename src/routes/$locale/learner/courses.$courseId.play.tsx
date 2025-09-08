@@ -11,7 +11,7 @@ import {
 } from "@/server/handlers/users.modules";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { AdminUserButton } from "@/components/sidebars/UserButton";
+import { SidebarUserButton } from "@/components/sidebars/UserButton";
 import { getAuthFn } from "@/server/handlers/auth";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -107,7 +107,7 @@ function RouteComponent() {
 						>
 							<ChevronLeft aria-label="Back" className="size-6" />
 						</Link>
-						<AdminUserButton
+						<SidebarUserButton
 							user={auth.user!}
 							signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}
 						/>

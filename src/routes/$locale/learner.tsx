@@ -20,7 +20,7 @@ import { getTenantFn } from "@/server/handlers/teams";
 import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
 import { z } from "zod";
 import { env } from "@/env";
-import { AdminUserButton } from "@/components/sidebars/UserButton";
+import { SidebarUserButton } from "@/components/sidebars/UserButton";
 import { createServerFn } from "@tanstack/react-start";
 import { getHeader } from "@tanstack/react-start/server";
 import { useLocale } from "@/lib/locale";
@@ -158,7 +158,7 @@ function RouteComponent() {
 						{!isIframe ? (
 							<SidebarTrigger />
 						) : (
-							<AdminUserButton
+							<SidebarUserButton
 								user={auth.user!}
 								signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
 							/>
