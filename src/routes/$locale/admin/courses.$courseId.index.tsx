@@ -126,6 +126,7 @@ function RouteComponent() {
 					updateConnection.mutate({
 						senderType: "course",
 						recipientType: "organization",
+						connectToId: connection.fromOrganizationId,
 						id: course.id,
 						connectStatus: response,
 					})
