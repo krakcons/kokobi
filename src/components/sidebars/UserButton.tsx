@@ -1,8 +1,4 @@
-import {
-	SidebarMenuButton,
-	SidebarMenuItem,
-	useSidebar,
-} from "@/components/ui/sidebar";
+import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
 import { type Theme, themes, useTheme } from "@/lib/theme";
 import { updateUserFn } from "@/server/handlers/users";
 import { deleteAuthFn } from "@/server/handlers/auth";
@@ -38,6 +34,8 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/locale";
+import { Button } from "../ui/button";
+import React from "react";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -50,12 +48,91 @@ const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	}
 };
 
+export type ChildrenProps = {
+	name: string | null;
+	initials: string | React.ReactNode;
+	user: UserType;
+	onClick?: () => void;
+};
+
+export const AdminUserButton = ({
+	user,
+	name,
+	initials,
+	onClick,
+}: ChildrenProps) => {
+	return (
+		<DropdownMenuTrigger asChild>
+			<SidebarMenuButton
+				size="lg"
+				className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+				onClick={onClick}
+			>
+				<Avatar className="h-8 w-8 rounded-lg grayscale">
+					<AvatarFallback className="rounded-lg">
+						{initials}
+					</AvatarFallback>
+				</Avatar>
+				<div className="grid flex-1 text-left text-sm leading-tight">
+					{name && (
+						<span className="truncate font-medium">{name}</span>
+					)}
+					<span
+						className={cn(
+							"truncate text-xs",
+							name && "text-muted-foreground",
+						)}
+					>
+						{user.email}
+					</span>
+				</div>
+				<MoreVerticalIcon className="ml-auto size-4" />
+			</SidebarMenuButton>
+		</DropdownMenuTrigger>
+	);
+};
+
+export const PublicUserButton = ({
+	user,
+	name,
+	initials,
+	onClick,
+}: ChildrenProps) => {
+	return (
+		<DropdownMenuTrigger asChild>
+			<Button
+				size="md"
+				variant="outline"
+				className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border-0 shadow-none py-5 pr-4"
+				onClick={onClick}
+			>
+				<Avatar className="h-8 w-8 rounded-lg grayscale">
+					<AvatarFallback className="rounded-lg">
+						{initials}
+					</AvatarFallback>
+				</Avatar>
+				<div className="grid flex-1 text-left text-sm leading-tight">
+					{name ? (
+						<span className="truncate font-medium">{name}</span>
+					) : (
+						<span className={cn("truncate text-xs")}>
+							{user.email}
+						</span>
+					)}
+				</div>
+			</Button>
+		</DropdownMenuTrigger>
+	);
+};
+
 export const UserButton = ({
 	user,
 	signOutRedirect,
+	children,
 }: {
 	user: UserType;
 	signOutRedirect?: string;
+	children: (props: ChildrenProps) => React.ReactNode;
 }) => {
 	const { theme, setTheme } = useTheme();
 	const { isMobile } = useSidebar();
@@ -104,36 +181,13 @@ export const UserButton = ({
 	};
 
 	return (
-		<SidebarMenuItem>
+		<>
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<SidebarMenuButton
-						size="lg"
-						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-					>
-						<Avatar className="h-8 w-8 rounded-lg grayscale">
-							<AvatarFallback className="rounded-lg">
-								{initials}
-							</AvatarFallback>
-						</Avatar>
-						<div className="grid flex-1 text-left text-sm leading-tight">
-							{name && (
-								<span className="truncate font-medium">
-									{name}
-								</span>
-							)}
-							<span
-								className={cn(
-									"truncate text-xs",
-									name && "text-muted-foreground",
-								)}
-							>
-								{user.email}
-							</span>
-						</div>
-						<MoreVerticalIcon className="ml-auto size-4" />
-					</SidebarMenuButton>
-				</DropdownMenuTrigger>
+				{children({
+					name,
+					initials,
+					user,
+				})}
 				<DropdownMenuContent
 					className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
 					side={isMobile ? "bottom" : "right"}
@@ -227,6 +281,6 @@ export const UserButton = ({
 					/>
 				</DialogContent>
 			</Dialog>
-		</SidebarMenuItem>
+		</>
 	);
 };

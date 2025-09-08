@@ -11,7 +11,7 @@ import {
 } from "@/server/handlers/users.modules";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { UserButton } from "@/components/sidebars/UserButton";
+import { AdminUserButton, UserButton } from "@/components/sidebars/UserButton";
 import { getAuthFn } from "@/server/handlers/auth";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -110,7 +110,9 @@ function RouteComponent() {
 						<UserButton
 							user={auth.user!}
 							signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}
-						/>
+						>
+							{(props) => <AdminUserButton {...props} />}
+						</UserButton>
 					</div>
 				)}
 				<Badge>{t.statuses[attempt.status]}</Badge>
