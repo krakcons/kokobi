@@ -23,7 +23,7 @@ import type {
 } from "@/types/connections";
 import { TeamSwitcher } from "./TeamSwitcher";
 import type { User } from "@/types/users";
-import { UserButton } from "./UserButton";
+import { SidebarUserButton } from "./UserButton";
 import { ConnectionStatusBadge } from "../ConnectionStatusBadge";
 import { Separator } from "../ui/separator";
 
@@ -215,7 +215,7 @@ export const LearnerSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<UserButton user={user} />
+					<SidebarUserButton user={user} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

@@ -1,5 +1,4 @@
 import { LocaleToggle } from "@/components/LocaleToggle";
-import { PublicUserButton } from "@/components/sidebars/PublicUserButton";
 import { useLocale } from "@/lib/locale";
 import { getAuthFn } from "@/server/handlers/auth";
 import {
@@ -10,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { z } from "zod";
 import WebsiteLogo from "/favicon.ico";
+import { PublicUserButton } from "@/components/sidebars/UserButton";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/$locale/_public")({
 	component: RouteComponent,
@@ -25,6 +26,7 @@ function RouteComponent() {
 	const [auth] = Route.useLoaderData();
 	const locale = useLocale();
 	const location = useLocation();
+	const navigate = Route.useNavigate();
 
 	return (
 		<div className="flex flex-col">
@@ -37,10 +39,22 @@ function RouteComponent() {
 					/>
 				</Link>
 				<nav className="flex w-full max-w-screen-lg items-center justify-end"></nav>
-				<PublicUserButton
-					user={auth.user}
-					signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
-				/>
+				{auth.user ? (
+					<PublicUserButton
+						user={auth.user}
+						signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
+					/>
+				) : (
+					<Button
+						size="md"
+						className=" px-4"
+						onClick={() => navigate({ to: "/$locale/auth/login" })}
+					>
+						<div className="grid flex-1 text-left text-sm leading-tight">
+							<span className={"truncate text-sm"}>Sign In</span>
+						</div>
+					</Button>
+				)}
 				<div className="mx-1"></div>
 				<LocaleToggle />
 			</header>
