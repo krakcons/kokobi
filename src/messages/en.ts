@@ -343,6 +343,7 @@ const en = {
 	},
 	Public: {
 		createdBy: "Created By",
+		deliveredBy: "Delivered By",
 		courses: "Courses",
 	},
 	SEO: {

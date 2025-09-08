@@ -3,7 +3,7 @@ import { useLocale, useTranslations } from "@/lib/locale";
 import type { Team, TeamTranslation } from "@/types/team";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import { Avatar, AvatarFallback } from "./ui/avatar";
+import { TeamIcon } from "./TeamIcon";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 
@@ -41,18 +41,14 @@ export const PublicTeamBranding = ({
 	const t = useTranslations("Public");
 
 	return (
-		<div className="flex flex-row w-full items-center gap-2">
+		<div className="flex items-center">
+			<TeamIcon
+				src={teamImageUrl(contentTeam, "logo")}
+				className="max-h-8 mr-2"
+			/>
 			<p className="text-muted-foreground">
-				{t.createdBy} <strong>{contentTeam.name}</strong>
+				{t.deliveredBy} <strong>{contentTeam.name}</strong>
 			</p>
-			<Avatar className="h-8 w-8 rounded-full grayscale">
-				<AvatarFallback className="rounded-full">
-					<img
-						src={teamImageUrl(contentTeam, "logo")}
-						alt="Team Logo"
-					/>
-				</AvatarFallback>
-			</Avatar>
 		</div>
 	);
 };

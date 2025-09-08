@@ -352,6 +352,7 @@ const fr: Messages = {
 	},
 	Public: {
 		createdBy: "Créé par",
+		deliveredBy: "Livré par",
 		courses: "Cours",
 	},
 	SEO: {
