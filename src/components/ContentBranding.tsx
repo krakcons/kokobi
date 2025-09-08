@@ -1,6 +1,7 @@
+import { teamImageUrl } from "@/lib/file";
+import { useTranslations } from "@/lib/locale";
 import type { Team, TeamTranslation } from "@/types/team";
 import { TeamIcon } from "./TeamIcon";
-import { teamImageUrl } from "@/lib/file";
 
 export const ContentBranding = ({
 	contentTeam,
@@ -9,6 +10,8 @@ export const ContentBranding = ({
 	contentTeam: Team & TeamTranslation;
 	connectTeam: Team & TeamTranslation;
 }) => {
+	const t = useTranslations("Public");
+
 	if (connectTeam.id === contentTeam.id) {
 		return null;
 	}
@@ -19,7 +22,7 @@ export const ContentBranding = ({
 				className="max-h-8 mr-2"
 			/>
 			<p className="text-muted-foreground">
-				Created by <strong>{contentTeam.name}</strong>
+				{t.createdBy} <strong>{contentTeam.name}</strong>
 			</p>
 		</div>
 	);
