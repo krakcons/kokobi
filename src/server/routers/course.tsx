@@ -42,10 +42,7 @@ export const courseRouter = base.prefix("/courses").router({
 		.output(CourseSchema.array())
 		.handler(async ({ context }) => {
 			const courseList = await db.query.courses.findMany({
-				where: eq(
-					courses.organizationId,
-					context.session.activeOrganizationId,
-				),
+				where: eq(courses.organizationId, context.activeOrganizationId),
 				with: {
 					translations: true,
 				},
@@ -55,7 +52,7 @@ export const courseRouter = base.prefix("/courses").router({
 				where: and(
 					eq(
 						organizationsToCourses.organizationId,
-						context.session.activeOrganizationId,
+						context.activeOrganizationId,
 					),
 				),
 				with: {
@@ -87,24 +84,26 @@ export const courseRouter = base.prefix("/courses").router({
 		})
 		.input(CourseFormSchema)
 		.output(z.object({ courseId: z.string() }))
-		.handler(async ({ context: { session, locale }, input }) => {
-			const courseId = Bun.randomUUIDv7();
+		.handler(
+			async ({ context: { activeOrganizationId, locale }, input }) => {
+				const courseId = Bun.randomUUIDv7();
 
-			await db.insert(courses).values({
-				id: courseId,
-				organizationId: session.activeOrganizationId,
-				completionStatus: input.completionStatus,
-			});
+				await db.insert(courses).values({
+					id: courseId,
+					organizationId: activeOrganizationId,
+					completionStatus: input.completionStatus,
+				});
 
-			await db.insert(courseTranslations).values({
-				courseId,
-				name: input.name,
-				description: input.description,
-				locale,
-			});
+				await db.insert(courseTranslations).values({
+					courseId,
+					name: input.name,
+					description: input.description,
+					locale,
+				});
 
-			return { courseId };
-		}),
+				return { courseId };
+			},
+		),
 	id: publicProcedure
 		.route({
 			tags: ["Course"],
@@ -156,43 +155,45 @@ export const courseRouter = base.prefix("/courses").router({
 				id: z.string().min(1),
 			}),
 		)
-		.handler(async ({ context: { session, locale }, input }) => {
-			const id = input.id;
-			await hasOrganizationAccess({
-				type: "course",
-				id,
-				organizationId: session.activeOrganizationId,
-				access: "root",
-			});
-
-			await db
-				.update(courses)
-				.set({
-					completionStatus: input.completionStatus,
-				})
-				.where(eq(courses.id, id));
-
-			await db
-				.insert(courseTranslations)
-				.values({
-					courseId: id,
-					name: input.name,
-					description: input.description,
-					locale,
-				})
-				.onConflictDoUpdate({
-					set: {
-						...input,
-						updatedAt: new Date(),
-					},
-					target: [
-						courseTranslations.courseId,
-						courseTranslations.locale,
-					],
+		.handler(
+			async ({ context: { activeOrganizationId, locale }, input }) => {
+				const id = input.id;
+				await hasOrganizationAccess({
+					type: "course",
+					id,
+					organizationId: activeOrganizationId,
+					access: "root",
 				});
 
-			return input;
-		}),
+				await db
+					.update(courses)
+					.set({
+						completionStatus: input.completionStatus,
+					})
+					.where(eq(courses.id, id));
+
+				await db
+					.insert(courseTranslations)
+					.values({
+						courseId: id,
+						name: input.name,
+						description: input.description,
+						locale,
+					})
+					.onConflictDoUpdate({
+						set: {
+							...input,
+							updatedAt: new Date(),
+						},
+						target: [
+							courseTranslations.courseId,
+							courseTranslations.locale,
+						],
+					});
+
+				return input;
+			},
+		),
 	delete: organizationProcedure
 		.route({
 			tags: ["Course"],
@@ -209,7 +210,7 @@ export const courseRouter = base.prefix("/courses").router({
 			await hasOrganizationAccess({
 				type: "course",
 				id,
-				organizationId: context.session.activeOrganizationId,
+				organizationId: context.activeOrganizationId,
 				access: "root",
 			});
 
@@ -220,13 +221,13 @@ export const courseRouter = base.prefix("/courses").router({
 						eq(courses.id, id),
 						eq(
 							courses.organizationId,
-							context.session.activeOrganizationId,
+							context.activeOrganizationId,
 						),
 					),
 				);
 
 			const files = await s3.list({
-				prefix: `${context.session.activeOrganizationId}/courses/${id}/`,
+				prefix: `${context.activeOrganizationId}/courses/${id}/`,
 				maxKeys: 1000,
 			});
 			if (files.contents) {
@@ -256,7 +257,7 @@ export const courseRouter = base.prefix("/courses").router({
 			await hasOrganizationAccess({
 				type: "course",
 				id,
-				organizationId: context.session.activeOrganizationId,
+				organizationId: context.activeOrganizationId,
 			});
 
 			const attempt = await db.query.usersToModules.findFirst({
@@ -265,7 +266,7 @@ export const courseRouter = base.prefix("/courses").router({
 					eq(usersToModules.id, attemptId),
 					eq(
 						usersToModules.organizationId,
-						context.session.activeOrganizationId,
+						context.activeOrganizationId,
 					),
 				),
 				with: {
@@ -286,7 +287,9 @@ export const courseRouter = base.prefix("/courses").router({
 			});
 
 			if (!attempt) {
-				throw new Error("Attempt not found.");
+				throw new ORPCError("NOT_FOUND", {
+					message: "Attempt not found.",
+				});
 			}
 
 			const learner = ExtendLearner(attempt.module.type).parse(attempt);
@@ -298,7 +301,9 @@ export const courseRouter = base.prefix("/courses").router({
 					status: learner.status,
 				})
 			) {
-				throw new Error("Attempt not complete.");
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Attempt not complete.",
+				});
 			}
 
 			// Send communications in the locale of the module
@@ -318,7 +323,7 @@ export const courseRouter = base.prefix("/courses").router({
 			);
 
 			const href = await getConnectionLink({
-				organizationId: context.session.activeOrganizationId,
+				organizationId: context.activeOrganizationId,
 				id: course.id,
 				type: "course",
 				locale: course.locale,
@@ -370,7 +375,7 @@ export const courseRouter = base.prefix("/courses").router({
 					and(
 						eq(
 							usersToCourses.organizationId,
-							context.session.activeOrganizationId,
+							context.activeOrganizationId,
 						),
 						id ? eq(usersToCourses.courseId, id) : undefined,
 					),
@@ -381,7 +386,7 @@ export const courseRouter = base.prefix("/courses").router({
 					and(
 						eq(
 							usersToModules.organizationId,
-							context.session.activeOrganizationId,
+							context.activeOrganizationId,
 						),
 						eq(usersToModules.userId, users.id),
 						id ? eq(usersToModules.courseId, id) : undefined,
@@ -418,7 +423,7 @@ export const courseRouter = base.prefix("/courses").router({
 				where: and(
 					eq(
 						organizationsToCourses.fromOrganizationId,
-						context.session.activeOrganizationId,
+						context.activeOrganizationId,
 					),
 					id ? eq(organizationsToCourses.courseId, id) : undefined,
 				),
@@ -476,12 +481,12 @@ export const courseRouter = base.prefix("/courses").router({
 				const access = await hasOrganizationAccess({
 					type: "course",
 					id: id,
-					organizationId: context.session.activeOrganizationId,
+					organizationId: context.activeOrganizationId,
 				});
 
 				const organizationId =
 					access === "shared"
-						? context.session.activeOrganizationId
+						? context.activeOrganizationId
 						: customOrganizationId;
 
 				// First, get all user IDs connected to the course (directly or via collections)
@@ -640,7 +645,7 @@ export const courseRouter = base.prefix("/courses").router({
 				await hasOrganizationAccess({
 					id: id,
 					type: "course",
-					organizationId: context.session.activeOrganizationId,
+					organizationId: context.activeOrganizationId,
 					access: "root",
 				});
 
@@ -650,7 +655,7 @@ export const courseRouter = base.prefix("/courses").router({
 				);
 
 				const url = s3.presign(
-					`${context.session.activeOrganizationId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+					`${context.activeOrganizationId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
 					{
 						expiresIn: 3600,
 						method: "PUT",
@@ -677,7 +682,7 @@ export const courseRouter = base.prefix("/courses").router({
 				await hasOrganizationAccess({
 					id,
 					type: "course",
-					organizationId: context.session.activeOrganizationId,
+					organizationId: context.activeOrganizationId,
 					access: "root",
 				});
 
@@ -687,7 +692,7 @@ export const courseRouter = base.prefix("/courses").router({
 				);
 
 				const moduleFile = s3.file(
-					`${context.session.activeOrganizationId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+					`${context.activeOrganizationId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
 				);
 
 				const exists = await moduleFile.exists();
@@ -718,7 +723,7 @@ export const courseRouter = base.prefix("/courses").router({
 							}
 							const blob = await file.blob();
 							s3.write(
-								`${context.session.activeOrganizationId}/courses/${id}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
+								`${context.activeOrganizationId}/courses/${id}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
 								blob,
 							);
 						}),
@@ -763,7 +768,7 @@ export const courseRouter = base.prefix("/courses").router({
 				// If module is not owned by the organization
 				if (
 					moduleExists.course.organizationId !==
-					context.session.activeOrganizationId
+					context.activeOrganizationId
 				) {
 					throw new ORPCError("UNAUTHORIZED");
 				}
@@ -775,7 +780,7 @@ export const courseRouter = base.prefix("/courses").router({
 					);
 
 				const files = await s3.list({
-					prefix: `${context.session.activeOrganizationId}/courses/${id}/${moduleExists.locale}${moduleExists.versionNumber > 1 ? `_${moduleExists.versionNumber}` : ""}/`,
+					prefix: `${context.activeOrganizationId}/courses/${id}/${moduleExists.locale}${moduleExists.versionNumber > 1 ? `_${moduleExists.versionNumber}` : ""}/`,
 					maxKeys: 1000,
 				});
 				if (files.contents) {
@@ -806,7 +811,7 @@ export const courseRouter = base.prefix("/courses").router({
 			return await getConnectionLink({
 				type: "course",
 				id,
-				organizationId: context.session.activeOrganizationId,
+				organizationId: context.activeOrganizationId,
 				locale: context.locale,
 			});
 		}),

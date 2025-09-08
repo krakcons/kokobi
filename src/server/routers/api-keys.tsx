@@ -22,7 +22,7 @@ export const apiKeysRouter = {
 				console.log(key.metadata);
 				return (
 					key.metadata.organizationId ===
-					context.session.activeOrganizationId
+					context.session?.activeOrganizationId
 				);
 			});
 	}),
@@ -33,9 +33,9 @@ export const apiKeysRouter = {
 				headers: context.headers,
 				body: {
 					name: input.name,
-					userId: context.session.userId,
+					userId: context.session?.userId,
 					metadata: {
-						organizationId: context.session.activeOrganizationId,
+						organizationId: context.activeOrganizationId,
 					},
 				},
 			});

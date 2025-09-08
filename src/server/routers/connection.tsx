@@ -40,9 +40,16 @@ export const createConnection = async ({
 	id,
 	emails,
 	organizationIds,
-	session: { activeOrganizationId, activeLearnerOrganizationId },
+	activeOrganizationId: baseOrganizationId,
+	session,
 	user,
-}: CreateConnection & Session) => {
+}: CreateConnection & {
+	activeOrganizationId?: string;
+	session: Session["session"] | null;
+	user: Session["user"] | null;
+}) => {
+	const activeOrganizationId =
+		baseOrganizationId ?? session?.activeOrganizationId;
 	// GLOBAL CHECKS
 	if (recipientType === "user" && !emails) {
 		throw new ORPCError("BAD_REQUEST", {
@@ -56,7 +63,7 @@ export const createConnection = async ({
 	}
 
 	if (senderType === "user") {
-		if (!activeLearnerOrganizationId) {
+		if (!session?.activeLearnerOrganizationId || !user) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
@@ -66,10 +73,10 @@ export const createConnection = async ({
 				.insert(usersToCourses)
 				.values({
 					userId: user.id,
-					organizationId: activeLearnerOrganizationId,
+					organizationId: session.activeLearnerOrganizationId,
 					connectType: "request",
 					connectStatus:
-						activeLearnerOrganizationId !==
+						session.activeLearnerOrganizationId !==
 						env.WELCOME_ORGANIZATION_ID
 							? "pending"
 							: "accepted",
@@ -84,10 +91,10 @@ export const createConnection = async ({
 				.insert(usersToCollections)
 				.values({
 					userId: user.id,
-					organizationId: activeLearnerOrganizationId,
+					organizationId: session.activeLearnerOrganizationId,
 					connectType: "request",
 					connectStatus:
-						activeLearnerOrganizationId !==
+						session.activeLearnerOrganizationId !==
 						env.WELCOME_ORGANIZATION_ID
 							? "pending"
 							: "accepted",
@@ -235,7 +242,9 @@ export const createConnection = async ({
 		// INVITE TO ORGANIZATION
 		if (recipientType === "organization") {
 			if (organizationIds!.includes(activeOrganizationId)) {
-				throw new Error("You cannot include your own organization");
+				throw new ORPCError("BAD_REQUEST", {
+					message: "You cannot include your own organization",
+				});
 			}
 
 			await hasOrganizationAccess({

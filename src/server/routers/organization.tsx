@@ -152,28 +152,28 @@ export const organizationRouter = base.prefix("/organizations").router({
 			let logoUrl = null;
 			if (logo) {
 				const extension = logo.name.split(".").pop();
-				const path = `${context.session.activeOrganizationId}/${context.locale}/logo.${extension}`;
+				const path = `${context.activeOrganizationId}/${context.locale}/logo.${extension}`;
 				await s3.write(path, logo, {
 					type: logo.type,
 				});
 				logoUrl = path;
 			} else {
 				await s3.delete(
-					`${context.session.activeOrganizationId}/${context.locale}/logo`,
+					`${context.activeOrganizationId}/${context.locale}/logo`,
 				);
 			}
 
 			let faviconUrl = null;
 			if (favicon) {
 				const extension = favicon.name.split(".").pop();
-				const path = `${context.session.activeOrganizationId}/${context.locale}/favicon.${extension}`;
+				const path = `${context.activeOrganizationId}/${context.locale}/favicon.${extension}`;
 				await s3.write(path, favicon, {
 					type: favicon.type,
 				});
 				faviconUrl = path;
 			} else {
 				await s3.delete(
-					`${context.session.activeOrganizationId}/${context.locale}/favicon`,
+					`${context.activeOrganizationId}/${context.locale}/favicon`,
 				);
 			}
 
@@ -182,7 +182,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 				.values({
 					name,
 					locale: context.locale,
-					organizationId: context.session.activeOrganizationId,
+					organizationId: context.activeOrganizationId,
 					logo: logoUrl,
 					favicon: faviconUrl,
 				})
@@ -210,7 +210,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 		})
 		.handler(async ({ context }) => {
 			const files = await s3.list({
-				prefix: `${context.session.activeOrganizationId}/`,
+				prefix: `${context.activeOrganizationId}/`,
 				maxKeys: 1000,
 			});
 			if (files.contents) {
@@ -223,7 +223,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 			await auth.api.deleteOrganization({
 				headers: context.headers,
 				body: {
-					organizationId: context.session.activeOrganizationId,
+					organizationId: context.activeOrganizationId,
 				},
 			});
 			await db
@@ -232,7 +232,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 				.where(
 					eq(
 						sessions.activeOrganizationId,
-						context.session.activeOrganizationId,
+						context.activeOrganizationId,
 					),
 				);
 		}),
@@ -246,10 +246,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 		//.output(OrganizationSchema)
 		.handler(async ({ context }) => {
 			const organization = await db.query.organizations.findFirst({
-				where: eq(
-					organizations.id,
-					context.session.activeOrganizationId,
-				),
+				where: eq(organizations.id, context.activeOrganizationId),
 				with: {
 					translations: true,
 					domains: true,
@@ -296,7 +293,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 					.where(
 						eq(
 							usersToCourses.organizationId,
-							context.session.activeOrganizationId,
+							context.activeOrganizationId,
 						),
 					)
 			)[0].count;
@@ -321,7 +318,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 					where: and(
 						eq(
 							domains.organizationId,
-							context.session.activeOrganizationId,
+							context.activeOrganizationId,
 						),
 					),
 				});
@@ -426,12 +423,14 @@ export const organizationRouter = base.prefix("/organizations").router({
 				const existingDomain = await db.query.domains.findFirst({
 					where: eq(
 						domains.organizationId,
-						context.session.activeOrganizationId,
+						context.activeOrganizationId,
 					),
 				});
 
 				if (existingDomain) {
-					throw new Error("Domain already exists");
+					throw new ORPCError("BAD_REQUEST", {
+						message: "Domain already exists",
+					});
 				}
 
 				let hostnameId: string;
@@ -470,8 +469,9 @@ export const organizationRouter = base.prefix("/organizations").router({
 					await cf.customHostnames.delete(hostnameId, {
 						zone_id: env.CLOUDFLARE_ZONE_ID,
 					});
-					console.error(e);
-					throw new Error("Error creating SES identity");
+					throw new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: "Error creating SES identity",
+					});
 				}
 
 				try {
@@ -490,14 +490,16 @@ export const organizationRouter = base.prefix("/organizations").router({
 					});
 					await ses.send(command);
 					console.error(e);
-					throw new Error("Error creating SES identity");
+					throw new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: "Error creating SES identity",
+					});
 				}
 
 				await db.insert(domains).values({
 					id: Bun.randomUUIDv7(),
 					hostname,
 					hostnameId,
-					organizationId: context.session.activeOrganizationId,
+					organizationId: context.activeOrganizationId,
 				});
 
 				return null;
@@ -520,13 +522,15 @@ export const organizationRouter = base.prefix("/organizations").router({
 						eq(domains.id, domainId),
 						eq(
 							domains.organizationId,
-							context.session.activeOrganizationId,
+							context.activeOrganizationId,
 						),
 					),
 				});
 
 				if (!domain) {
-					throw new Error("Domain not found");
+					throw new ORPCError("NOT_FOUND", {
+						message: "Domain not found",
+					});
 				}
 
 				await cf.customHostnames.delete(domain.hostnameId, {
@@ -545,7 +549,7 @@ export const organizationRouter = base.prefix("/organizations").router({
 							eq(domains.hostnameId, domain.hostnameId),
 							eq(
 								domains.organizationId,
-								context.session.activeOrganizationId,
+								context.activeOrganizationId,
 							),
 						),
 					);

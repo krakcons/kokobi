@@ -48,6 +48,9 @@ export const auth = betterAuth({
 		admin(),
 		apiKey({
 			enableMetadata: true,
+			rateLimit: {
+				enabled: false,
+			},
 		}),
 		organization({
 			cancelPendingInvitationsOnReInvite: true,
