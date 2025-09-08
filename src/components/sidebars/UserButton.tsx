@@ -58,17 +58,17 @@ export type ChildrenProps = {
 	user: UserType;
 	onClick?: () => void;
 };
-type UserButtonProps = {
+type UserDropdownProps = {
 	user: UserType;
 	signOutRedirect?: string;
 	side?: "top" | "right" | "bottom" | "left";
 };
 
-export const AdminUserButton = (props: UserButtonProps) => {
+export const AdminUserButton = (props: UserDropdownProps) => {
 	const { isMobile } = useSidebar();
 
 	return (
-		<UserButton {...props} side={isMobile ? "bottom" : "right"}>
+		<UserDropdown {...props} side={isMobile ? "bottom" : "right"}>
 			{({ initials, name, user }) => (
 				<DropdownMenuTrigger asChild>
 					<SidebarMenuItem>
@@ -101,13 +101,13 @@ export const AdminUserButton = (props: UserButtonProps) => {
 					</SidebarMenuItem>
 				</DropdownMenuTrigger>
 			)}
-		</UserButton>
+		</UserDropdown>
 	);
 };
 
-export const PublicUserButton = (props: UserButtonProps) => {
+export const PublicUserButton = (props: UserDropdownProps) => {
 	return (
-		<UserButton {...props} side="bottom">
+		<UserDropdown {...props} side="bottom">
 			{({ initials, name, user }) => (
 				<DropdownMenuTrigger asChild>
 					<Button
@@ -134,17 +134,17 @@ export const PublicUserButton = (props: UserButtonProps) => {
 					</Button>
 				</DropdownMenuTrigger>
 			)}
-		</UserButton>
+		</UserDropdown>
 	);
 };
 
-export const UserButton = ({
+export const UserDropdown = ({
 	user,
 	signOutRedirect,
 	side,
 	children,
-}: UserButtonProps & {
-	children?: (props: ChildrenProps) => React.ReactNode;
+}: UserDropdownProps & {
+	children: (props: ChildrenProps) => React.ReactNode;
 }) => {
 	const { theme, setTheme } = useTheme();
 	const router = useRouter();
