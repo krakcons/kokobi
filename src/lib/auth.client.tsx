@@ -3,8 +3,14 @@ import {
 	emailOTPClient,
 	organizationClient,
 	adminClient,
+	apiKeyClient,
 } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
-	plugins: [emailOTPClient(), adminClient(), organizationClient()],
+	plugins: [
+		emailOTPClient(),
+		adminClient(),
+		apiKeyClient(),
+		organizationClient(),
+	],
 });

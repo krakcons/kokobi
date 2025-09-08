@@ -16,7 +16,10 @@ export const logMiddleware = base.middleware(async ({ context, next }) => {
 			if (e.code !== "UNAUTHORIZED") {
 				console.log(e.message);
 			}
+		} else {
+			console.log(e);
 		}
+
 		throw e;
 	}
 });

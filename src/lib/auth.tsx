@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { reactStartCookies } from "better-auth/react-start";
 import {
+	apiKey,
 	createAuthMiddleware,
 	emailOTP,
 	organization,
@@ -45,6 +46,9 @@ export const auth = betterAuth({
 			},
 		}),
 		admin(),
+		apiKey({
+			enableMetadata: true,
+		}),
 		organization({
 			cancelPendingInvitationsOnReInvite: true,
 		}),

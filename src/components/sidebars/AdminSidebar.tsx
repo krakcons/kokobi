@@ -629,7 +629,7 @@ export const AdminSidebar = ({
 							<SidebarMenu>
 								<SidebarMenuItem>
 									<Link
-										to="/$locale/admin/keys"
+										to="/$locale/admin/api-keys"
 										params={{
 											locale,
 										}}

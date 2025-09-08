@@ -1,11 +1,6 @@
-import z from "zod";
 import { useAppForm } from "../ui/form";
 import { useTranslations } from "@/lib/locale";
-
-export const APIKeyFormSchema = z.object({
-	name: z.string(),
-});
-export type APIKeyFormType = z.infer<typeof APIKeyFormSchema>;
+import { APIKeyFormSchema, type APIKeyFormType } from "@/types/api-keys";
 
 export const APIKeyForm = ({
 	onSubmit,
