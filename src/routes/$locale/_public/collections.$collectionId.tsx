@@ -3,21 +3,20 @@ import { Page } from "@/components/Page";
 import { PublicCourseCard, PublicPageHeader } from "@/components/PublicPage";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import z from "zod";
 
 export const Route = createFileRoute(
 	"/$locale/_public/collections/$collectionId",
 )({
 	component: RouteComponent,
-	loader: ({ params, context: { queryClient } }) => {
-		return Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "learner",
-				},
-			}),
+	validateSearch: z.object({
+		organizationId: z.string().optional(),
+	}),
+	loaderDeps: ({ search }) => ({ organizationId: search.organizationId }),
+	loader: ({ params, context: { queryClient }, deps }) => {
+		const promises: Promise<any>[] = [
 			queryClient.ensureQueryData(
 				orpc.collection.id.queryOptions({
 					input: { id: params.collectionId },
@@ -28,15 +27,33 @@ export const Route = createFileRoute(
 					input: { id: params.collectionId },
 				}),
 			),
-		]);
+		];
+
+		if (deps.organizationId) {
+			promises.push(
+				queryClient.ensureQueryData(
+					orpc.organization.id.queryOptions({
+						input: { id: deps.organizationId },
+					}),
+				),
+			);
+		}
+
+		return Promise.all(promises);
 	},
 });
 
 function RouteComponent() {
 	const params = Route.useParams();
-	const [team] = Route.useLoaderData();
+	const search = Route.useSearch();
 	const t = useTranslations("Public");
 
+	const { data: customDeliveryOrganization } = useQuery(
+		orpc.organization.id.queryOptions({
+			input: { id: search.organizationId! },
+			enabled: !!search.organizationId,
+		}),
+	);
 	const { data: collection } = useSuspenseQuery(
 		orpc.collection.id.queryOptions({
 			input: { id: params.collectionId },
@@ -48,15 +65,19 @@ function RouteComponent() {
 		}),
 	);
 
+	const deliveryOrganization =
+		customDeliveryOrganization ?? collection.organization;
+
 	return (
 		<Page>
 			<PublicPageHeader
 				title={collection.name}
 				description={collection.description}
+				organization={deliveryOrganization}
 			>
 				<ContentBranding
-					contentTeam={collection.team}
-					connectTeam={team}
+					contentOrganization={collection.organization}
+					connectOrganization={deliveryOrganization}
 				/>
 			</PublicPageHeader>
 			<div className="pl-24 flex-col">

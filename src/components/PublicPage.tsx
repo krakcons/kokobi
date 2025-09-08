@@ -1,30 +1,32 @@
-import { teamImageUrl } from "@/lib/file";
 import { useLocale } from "@/lib/locale";
-import type { Team, TeamTranslation } from "@/types/team";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import { TeamIcon } from "./TeamIcon";
 import { Card, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
+import type { Organization } from "@/types/organization";
+import { OrganizationIcon } from "./OrganizationIcon";
+import { organizationImageUrl } from "@/lib/file";
 
 export function PublicPageHeader({
 	title,
 	description,
 	UnderTitle = null,
 	children,
-	team,
+	organization,
 }: {
 	title: string;
 	description: string;
 	UnderTitle?: React.ReactNode;
 	children?: React.ReactNode;
-	team: Team & TeamTranslation;
+	organization: Organization;
 }) {
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex justify-between flex-col gap-6 px-24">
-				<PublicTeamBranding contentTeam={team} />
-
+				<OrganizationIcon
+					src={organizationImageUrl(organization, "logo")}
+					className="max-h-12 ml-2"
+				/>
 				<h2>{title}</h2>
 				<div className="flex flex-col gap-5 pl-2">
 					{UnderTitle}
@@ -36,21 +38,6 @@ export function PublicPageHeader({
 		</div>
 	);
 }
-
-export const PublicTeamBranding = ({
-	contentTeam,
-}: {
-	contentTeam: Team & TeamTranslation;
-}) => {
-	return (
-		<div className="flex items-center">
-			<TeamIcon
-				src={teamImageUrl(contentTeam, "logo")}
-				className="max-h-12 ml-2"
-			/>
-		</div>
-	);
-};
 
 export const PublicCourseCard = ({
 	name,

@@ -15,6 +15,13 @@ export const authRouter = {
 			member: context.member,
 		};
 	}),
+	optionalSession: publicProcedure.handler(async ({ context }) => {
+		return {
+			session: context.session,
+			user: context.user,
+			member: context.member,
+		};
+	}),
 	tenant: publicProcedure
 		.route({
 			tags: ["Auth"],

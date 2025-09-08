@@ -35,6 +35,7 @@ export const LearnerSidebar = ({
 	activeLearnerOrganizationId,
 	organizations,
 	courses,
+	session,
 	availableCourses,
 	collections,
 	user,
@@ -241,7 +242,7 @@ export const LearnerSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<SidebarUserButton user={user} />
+					<SidebarUserButton user={user} session={session} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

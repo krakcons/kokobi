@@ -760,7 +760,7 @@ export const AdminSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<SidebarUserButton user={user} />
+					<SidebarUserButton user={user} session={session} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

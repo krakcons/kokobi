@@ -1,6 +1,5 @@
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { useLocale } from "@/lib/locale";
-import { getAuthFn } from "@/server/handlers/auth";
 import {
 	createFileRoute,
 	Link,
@@ -11,22 +10,32 @@ import { z } from "zod";
 import WebsiteLogo from "/favicon.ico";
 import { PublicUserButton } from "@/components/sidebars/UserButton";
 import { Button } from "@/components/ui/button";
+import { orpc } from "@/server/client";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import type { SessionWithImpersonatedBy } from "better-auth/plugins";
 
 export const Route = createFileRoute("/$locale/_public")({
 	component: RouteComponent,
 	validateSearch: z.object({
 		teamId: z.string().optional(),
 	}),
-	loader: () => {
-		return Promise.all([getAuthFn()]);
+	loader: async ({ context: { queryClient } }) => {
+		return Promise.all([
+			queryClient.ensureQueryData(
+				orpc.auth.optionalSession.queryOptions(),
+			),
+		]);
 	},
 });
 
 function RouteComponent() {
-	const [auth] = Route.useLoaderData();
 	const locale = useLocale();
 	const location = useLocation();
 	const navigate = Route.useNavigate();
+
+	const { data: auth } = useSuspenseQuery(
+		orpc.auth.optionalSession.queryOptions(),
+	);
 
 	return (
 		<div className="flex flex-col">
@@ -39,9 +48,10 @@ function RouteComponent() {
 					/>
 				</Link>
 				<nav className="flex w-full max-w-screen-lg items-center justify-end"></nav>
-				{auth.user ? (
+				{auth.user && auth.session ? (
 					<PublicUserButton
 						user={auth.user}
+						session={auth.session as SessionWithImpersonatedBy}
 						signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
 					/>
 				) : (
