@@ -17,13 +17,13 @@ export const ContentBranding = ({
 	}
 	return (
 		<div className="flex items-center">
-			<TeamIcon
-				src={teamImageUrl(contentTeam, "logo")}
-				className="max-h-8 mr-2"
-			/>
-			<p className="text-muted-foreground">
+			<p className="text-muted-foreground text-sm">
 				{t.createdBy} <strong>{contentTeam.name}</strong>
 			</p>
+			<TeamIcon
+				src={teamImageUrl(contentTeam, "logo")}
+				className="max-h-8 ml-2"
+			/>
 		</div>
 	);
 };

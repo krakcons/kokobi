@@ -1,5 +1,5 @@
 import { teamImageUrl } from "@/lib/file";
-import { useLocale, useTranslations } from "@/lib/locale";
+import { useLocale } from "@/lib/locale";
 import type { Team, TeamTranslation } from "@/types/team";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
@@ -12,15 +12,19 @@ export function PublicPageHeader({
 	description,
 	UnderTitle = null,
 	children,
+	team,
 }: {
 	title: string;
 	description: string;
 	UnderTitle?: React.ReactNode;
 	children?: React.ReactNode;
+	team: Team & TeamTranslation;
 }) {
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex justify-between flex-col gap-6 px-24">
+				<PublicTeamBranding contentTeam={team} />
+
 				<h2>{title}</h2>
 				<div className="flex flex-col gap-5 pl-2">
 					{UnderTitle}
@@ -38,17 +42,12 @@ export const PublicTeamBranding = ({
 }: {
 	contentTeam: Team & TeamTranslation;
 }) => {
-	const t = useTranslations("Public");
-
 	return (
 		<div className="flex items-center">
 			<TeamIcon
 				src={teamImageUrl(contentTeam, "logo")}
-				className="max-h-8 mr-2"
+				className="max-h-12 ml-2"
 			/>
-			<p className="text-muted-foreground">
-				{t.deliveredBy} <strong>{contentTeam.name}</strong>
-			</p>
 		</div>
 	);
 };

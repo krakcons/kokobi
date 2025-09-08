@@ -1,5 +1,5 @@
 import { ContentBranding } from "@/components/ContentBranding";
-import { PublicPageHeader, PublicTeamBranding } from "@/components/PublicPage";
+import { PublicPageHeader } from "@/components/PublicPage";
 import { buttonVariants } from "@/components/ui/button";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
@@ -45,9 +45,14 @@ function RouteComponent() {
 			<PublicPageHeader
 				title={course.name}
 				description={course.description}
+				team={team}
 			>
-				<PublicTeamBranding contentTeam={course.team} />
-				<ContentBranding contentTeam={course.team} connectTeam={team} />
+				<div className="flex flex-col gap-4">
+					<ContentBranding
+						contentTeam={course.team}
+						connectTeam={team}
+					/>
+				</div>
 			</PublicPageHeader>
 			<div className="pl-24">
 				<Link
