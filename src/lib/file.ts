@@ -1,5 +1,5 @@
 import { env } from "@/env";
-import type { Team, TeamTranslation } from "@/types/team";
+import type { Organization } from "@/types/organization";
 
 export const fetchFile = async (fileUrl?: string): Promise<File | ""> => {
 	if (!fileUrl) return "";
@@ -12,13 +12,13 @@ export const fetchFile = async (fileUrl?: string): Promise<File | ""> => {
 	return new File([blob], filename!, { type: blob.type });
 };
 
-export const teamImageUrl = (
-	team: Team & TeamTranslation,
+export const organizationImageUrl = (
+	organization: Organization,
 	type: "logo" | "favicon",
 ) => {
-	// If the team has a logo or favicon, return the URL
-	if (team[type]) {
-		return `${env.VITE_SITE_URL}/cdn/${team[type]}?updatedAt=${team.updatedAt.toISOString()}`;
+	// If the organization has a logo or favicon, return the URL
+	if (organization[type]) {
+		return `${env.VITE_SITE_URL}/cdn/${organization[type]}?updatedAt=${organization.updatedAt.toISOString()}`;
 	}
 	// Otherwise, return undefined
 	return undefined;

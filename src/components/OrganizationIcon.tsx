@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export const TeamIcon = ({
+export const OrganizationIcon = ({
 	src,
 	className,
 }: {
@@ -11,7 +11,7 @@ export const TeamIcon = ({
 	return (
 		<img
 			src={src}
-			alt="Team Logo"
+			alt="Organization logo"
 			className={cn("max-h-20 w-min", className)}
 		/>
 	);

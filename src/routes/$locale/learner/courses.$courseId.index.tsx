@@ -14,12 +14,6 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
-import {
-	createUserModuleFn,
-	getUserModulesByCourseFn,
-} from "@/server/handlers/users.modules";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
-import { getAuthFn } from "@/server/handlers/auth";
 import { pdf } from "@react-pdf/renderer";
 import {
 	useMutation,
@@ -36,17 +30,17 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "learner",
-				},
-			}),
-			getUserModulesByCourseFn({
-				data: {
-					courseId: params.courseId,
-				},
-			}),
-			getAuthFn(),
+			queryClient.ensureQueryData(
+				orpc.learner.organization.current.queryOptions(),
+			),
+			queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
+			queryClient.ensureQueryData(
+				orpc.learner.course.attempt.get.queryOptions({
+					input: {
+						id: params.courseId,
+					},
+				}),
+			),
 			queryClient.ensureQueryData(
 				orpc.connection.getOne.queryOptions({
 					input: {
@@ -69,7 +63,23 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/")({
 
 function RouteComponent() {
 	const params = Route.useParams();
-	const [team, attempts, { user }] = Route.useLoaderData();
+
+	const { data: organization } = useSuspenseQuery(
+		orpc.learner.organization.current.queryOptions(),
+	);
+
+	const {
+		data: { user },
+	} = useSuspenseQuery(orpc.auth.session.queryOptions());
+
+	const { data: attempts } = useSuspenseQuery(
+		orpc.learner.course.attempt.get.queryOptions({
+			input: {
+				id: params.courseId,
+			},
+		}),
+	);
+
 	const { data: course } = useSuspenseQuery(
 		orpc.course.id.queryOptions({
 			input: {
@@ -94,20 +104,28 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const queryClient = useQueryClient();
 
-	const createAttempt = useMutation({
-		mutationFn: createUserModuleFn,
-		onSuccess: (attemptId) => {
-			navigate({
-				to: `/$locale/learner/courses/$courseId/play`,
-				params: {
-					courseId: params.courseId,
-				},
-				search: {
-					attemptId,
-				},
-			});
-		},
-	});
+	const createAttempt = useMutation(
+		orpc.learner.course.attempt.create.mutationOptions({
+			onSuccess: (attemptId) => {
+				queryClient.invalidateQueries(
+					orpc.learner.course.attempt.get.queryOptions({
+						input: {
+							id: params.courseId,
+						},
+					}),
+				);
+				navigate({
+					to: `/$locale/learner/courses/$courseId/play`,
+					params: {
+						courseId: params.courseId,
+					},
+					search: {
+						attemptId,
+					},
+				});
+			},
+		}),
+	);
 
 	const createConnection = useMutation(
 		orpc.connection.create.mutationOptions({
@@ -163,8 +181,8 @@ function RouteComponent() {
 				description={course.description}
 				UnderTitle={
 					<ContentBranding
-						contentTeam={course.team}
-						connectTeam={team}
+						contentOrganization={course.organization}
+						connectOrganization={organization}
 					/>
 				}
 			>
@@ -257,8 +275,7 @@ function RouteComponent() {
 										<TableCell className="flex justify-end items-center gap-2">
 											{isSuccess && (
 												<>
-													{user?.firstName &&
-													user?.lastName ? (
+													{user.name ? (
 														<Button
 															variant="outline"
 															onClick={async () => {
@@ -268,14 +285,11 @@ function RouteComponent() {
 																		await pdf(
 																			<Certificate
 																				certificate={{
-																					name:
-																						user?.firstName +
-																						" " +
-																						user?.lastName,
-																					connectTeam:
-																						team,
-																					contentTeam:
-																						course.team,
+																					name: user.name,
+																					connectOrganization:
+																						organization,
+																					contentOrganization:
+																						course.organization,
 																					course: course.name,
 																					completedAt:
 																						attempt.completedAt! &&
@@ -384,9 +398,7 @@ function RouteComponent() {
 					<Button
 						onClick={() =>
 							createAttempt.mutate({
-								data: {
-									courseId: course.id,
-								},
+								id: course.id,
 							})
 						}
 					>

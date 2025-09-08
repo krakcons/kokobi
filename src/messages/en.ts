@@ -11,8 +11,8 @@ const en = {
 		editing: "Editing",
 		manage: "Manage",
 		dashboard: "Dashboard",
-		team: "Team",
-		edit: "Edit Team",
+		organization: "Organization",
+		edit: "Edit Organization",
 		apiKeys: "API Keys",
 		certificate: "Certificate",
 		domains: "Domains",
@@ -41,9 +41,8 @@ const en = {
 		},
 	},
 	AuthLoginForm: {
-		email: {
-			label: "Email",
-		},
+		email: "Email",
+		rememberMe: "Remember me",
 	},
 	AuthLogin: {
 		title: "Login",
@@ -233,7 +232,7 @@ const en = {
 		title: { "1": "Modern Learning", "2": "For Less" },
 		description:
 			"Discover modern, affordable, and easy learning management for an empowering educational experience.",
-		"team-description":
+		"organization-description":
 			"Visit either the learning or admin portal to get started.",
 		"go-to-admin": "Go to Admin",
 		"go-to-learning": "Go to Learning",
@@ -266,12 +265,12 @@ const en = {
 		course: {
 			title: "No courses available",
 			description:
-				"You haven't joined any courses yet. To join a course, request access from a team or get a team to invite you.",
+				"You haven't joined any courses yet. To join a course, request access from a organization or get an organization to invite you.",
 		},
 		collection: {
 			title: "No collections available",
 			description:
-				"You haven't joined any collections yet. To join a collection, request access from a team or get a team to invite you.",
+				"You haven't joined any collections yet. To join a collection, request access from a organization or get an organization to invite you.",
 		},
 	},
 	Learner: {
@@ -305,19 +304,42 @@ const en = {
 	},
 	Members: {
 		title: "Members",
-		description:
-			"Manage the members of your team who can access your dashboard.",
+		description: "Manage members and access levels",
+		create: "Create Member",
+		edit: "Edit",
+		remove: "Remove",
+		type: {
+			member: "Active",
+			invite: "Invite",
+		},
+		status: {
+			canceled: "Canceled",
+			accepted: "Accepted",
+			pending: "Pending",
+			rejected: "Rejected",
+		},
 		table: {
+			name: "Name",
 			email: "Email",
 			status: "Status",
 			role: "Role",
+			access: "Access",
 		},
 	},
-	MembersForm: {
-		title: "Invite Members",
-		description:
-			"Enter the emails and roles of the members you want to invite.",
-		add: "Add Member",
+	MemberForm: {
+		title: "Member",
+		description: "Manage member settings.",
+		email: "Email",
+		role: "Role(s)",
+	},
+	MemberCreate: {
+		title: "Invite Member",
+		description: "Invite a new member to your organization.",
+	},
+	MemberEdit: {
+		title: "Edit Member",
+		description: "Edit this members role and access",
+		toast: "Member role updated",
 	},
 	Modules: {
 		title: "Modules",
@@ -337,9 +359,9 @@ const en = {
 	NotAMember: {
 		title: "Not an admin",
 		message:
-			"You haven't been invited to administer this team. Please contact a team administrator and request an invitation to get access to the team's administration dashboard.",
+			"You haven't been invited to administer this organization. Please contact a organization administrator and request an invitation to get access to the organization's administration dashboard.",
 		inviteMessage:
-			"You have been invited to administer this team. Accept or decline the invitation below.",
+			"You have been invited to administer this organization. Accept or decline the invitation below.",
 	},
 	Public: {
 		createdBy: "Created By",
@@ -352,8 +374,8 @@ const en = {
 		title: "Statistics",
 		description: "View your course statistics",
 		filter: {
-			title: "Filter by Team",
-			all: "All Teams",
+			title: "Filter by Organization",
+			all: "All Organizations",
 		},
 		totalAttempts: {
 			title: "Total Attempts",
@@ -399,69 +421,74 @@ const en = {
 		goToNextPage: "Go to next page",
 		goToLastPage: "Go to last page",
 	},
-	TeamSettings: {
+	OrganizationSettings: {
 		title: "Settings",
-		description: "Edit your team settings",
+		description: "Edit your organization settings",
 		domain: {
+			rootWarning:
+				"Record names are relative to your root domain (ex. 'email' corresponds to 'email.domain.com')",
 			status: "Status",
 			type: "Type",
 			name: "Name",
 			value: "Value",
 			priority: "Priority:",
+			delete: {
+				confirm: {
+					title: "Are you absolutely sure?",
+					description:
+						"This action cannot be undone. This will permanently delete your domain and break any link previously sent with this domain (ex. invitatations, share link, completion, etc).",
+				},
+			},
 		},
 		delete: {
-			title: "Delete Team",
+			title: "Delete Organization",
 			description:
-				"This will delete the team and all associated data. This action cannot be undone.",
+				"This will delete the organization and all associated data. This action cannot be undone.",
 			confirm: {
 				title: "Are you absolutely sure?",
 				description:
-					"This action cannot be undone. This will permanently delete your team and remove all your data (ex. collections, courses, learners, etc) from our servers.",
+					"This action cannot be undone. This will permanently delete your organization and remove all your data (ex. collections, courses, learners, etc) from our servers.",
 			},
 		},
 	},
-	TeamSwitcher: {
-		title: "Teams",
-		create: "Create team",
+	OrganizationSwitcher: {
+		title: "Organizations",
+		create: "Create organization",
 	},
-	TeamsForm: {
-		title: "Invite Teams",
-		description: "Enter the identifiers of the teams you want to invite.",
-		add: "Add Team",
+	OrganizationsForm: {
+		title: "Invite Organizations",
+		description:
+			"Enter the identifiers of the organizations you want to invite.",
+		add: "Add Organization",
 	},
-	TeamForm: {
+	OrganizationForm: {
 		name: "Name",
 		logo: "Logo",
 		favicon: "Favicon",
 		create: {
-			title: "Create Team",
-			description: "Enter the details of your team below.",
+			title: "Create Organization",
+			description: "Enter the details of your organization below.",
 		},
 	},
-	TeamDomainForm: {
+	OrganizationDomainForm: {
 		title: "Custom Domain",
-		description: "Set a custom domain to serve your team's content",
+		description: "Set a custom domain to serve your organization's content",
 		domain: "Domain",
 	},
-	TeamRole: {
+	Role: {
 		owner: "Owner",
 		admin: "Admin",
 		member: "Member",
 	},
 	User: {
 		email: "Email",
-		firstName: "First Name",
-		lastName: "Last Name",
+		name: "Name",
 	},
 	UserForm: {
 		title: "Account",
 		description: "Manage your account settings.",
-		firstName: {
-			label: "First Name",
-		},
-		lastName: {
-			label: "Last Name",
-		},
+		name: "Name",
+		image: "Image",
 	},
 	UserButton: {
 		theme: {

@@ -20,23 +20,24 @@ import {
 import { useLocale, useTranslations } from "@/lib/locale";
 import { LocaleToggle } from "@/components/LocaleToggle";
 import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
-import { getAuthFn } from "@/server/handlers/auth";
-import {
-	getAdminUserTeamsFn,
-	updateUserTeamFn,
-} from "@/server/handlers/users.teams";
 import { EditingLocaleSchema } from "@/types/router";
-import { getTenantFn } from "@/server/handlers/teams";
 import { orpc } from "@/server/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import type {
+	SessionWithImpersonatedBy,
+	UserWithRole,
+} from "better-auth/plugins";
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
 	validateSearch: EditingLocaleSchema,
-	beforeLoad: async ({ params, location }) => {
-		const auth = await getAuthFn();
-
-		if (!auth.user) {
+	beforeLoad: async ({ params, location, context: { queryClient } }) => {
+		let auth = undefined;
+		try {
+			auth = await queryClient.ensureQueryData(
+				orpc.auth.session.queryOptions(),
+			);
+		} catch (e) {
 			throw redirect({
 				to: "/$locale/auth/login",
 				search: (s: any) => ({
@@ -47,15 +48,14 @@ export const Route = createFileRoute("/$locale/admin")({
 			});
 		}
 
-		const tenantId = await getTenantFn();
+		const tenantId = await queryClient.ensureQueryData(
+			orpc.auth.tenant.queryOptions(),
+		);
 		if (tenantId) {
-			if (tenantId !== auth.teamId) {
+			if (tenantId !== auth.session.activeOrganizationId) {
 				try {
-					await updateUserTeamFn({
-						data: {
-							teamId: tenantId,
-							type: "admin",
-						},
+					await orpc.organization.setActive.call({
+						id: tenantId,
 					});
 					throw redirect({
 						href: location.href,
@@ -65,7 +65,7 @@ export const Route = createFileRoute("/$locale/admin")({
 					throw redirect({
 						to: "/$locale/not-admin",
 						search: {
-							teamId: tenantId,
+							organizationId: tenantId,
 						},
 						params: {
 							locale: params.locale,
@@ -74,24 +74,20 @@ export const Route = createFileRoute("/$locale/admin")({
 				}
 			}
 		} else {
-			if (!auth.teamId) {
-				const userTeams = await getAdminUserTeamsFn();
-				const validTeams = userTeams.filter(
-					({ connectStatus }) => connectStatus === "accepted",
+			if (!auth.session.activeOrganizationId) {
+				const userOrganizations = await queryClient.ensureQueryData(
+					orpc.organization.get.queryOptions(),
 				);
-				if (validTeams.length === 0) {
+				if (userOrganizations?.length === 0) {
 					throw redirect({
-						to: "/$locale/create-team",
+						to: "/$locale/auth/create-organization",
 						params: {
 							locale: params.locale,
 						},
 					});
 				} else {
-					await updateUserTeamFn({
-						data: {
-							teamId: validTeams[0].teamId,
-							type: "admin",
-						},
+					await orpc.organization.setActive.call({
+						id: userOrganizations?.[0].id!,
 					});
 					throw redirect({
 						href: location.href,
@@ -101,14 +97,18 @@ export const Route = createFileRoute("/$locale/admin")({
 			}
 		}
 	},
-	loader: ({ context: { queryClient } }) =>
+	loader: ({ context: { queryClient } }) => {
 		Promise.all([
-			getAuthFn(),
-			getAdminUserTeamsFn(),
-			getTenantFn(),
+			queryClient.ensureQueryData(orpc.organization.get.queryOptions()),
+			queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
+			queryClient.ensureQueryData(
+				orpc.auth.invitation.get.queryOptions(),
+			),
+			queryClient.ensureQueryData(orpc.auth.tenant.queryOptions()),
 			queryClient.ensureQueryData(orpc.course.get.queryOptions()),
 			queryClient.ensureQueryData(orpc.collection.get.queryOptions()),
-		]),
+		]);
+	},
 });
 
 function RouteComponent() {
@@ -118,8 +118,18 @@ function RouteComponent() {
 	const search = Route.useSearch();
 	const navigate = useNavigate();
 	const editingLocale = search.locale ?? locale;
-	const [auth, teams, tenantId] = Route.useLoaderData();
+	const queryClient = useQueryClient();
 
+	const { data: organizations } = useSuspenseQuery(
+		orpc.organization.get.queryOptions(),
+	);
+	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
+	const { data: tenantId } = useSuspenseQuery(
+		orpc.auth.tenant.queryOptions(),
+	);
+	const { data: invitations } = useSuspenseQuery(
+		orpc.auth.invitation.get.queryOptions(),
+	);
 	const { data: courses } = useSuspenseQuery(orpc.course.get.queryOptions());
 	const { data: collections } = useSuspenseQuery(
 		orpc.collection.get.queryOptions(),
@@ -128,13 +138,15 @@ function RouteComponent() {
 	return (
 		<SidebarProvider>
 			<AdminSidebar
+				session={auth.session as SessionWithImpersonatedBy}
 				tenantId={tenantId ?? undefined}
-				teamId={auth.teamId!}
-				teams={teams}
+				activeOrganizationId={auth.session.activeOrganizationId!}
+				invitations={invitations ?? []}
+				organizations={organizations}
 				courses={courses}
 				collections={collections}
-				user={auth.user!}
-				role={auth.role!}
+				user={auth.user as UserWithRole}
+				role={auth.member?.role ?? "member"}
 			/>
 			<SidebarInset className="max-w-full overflow-hidden">
 				<header className="p-4 flex flex-row w-full items-center justify-between">
@@ -149,6 +161,8 @@ function RouteComponent() {
 										...s,
 										locale: value as Locale,
 									}),
+								}).then(() => {
+									queryClient.invalidateQueries();
 								});
 							}}
 						>

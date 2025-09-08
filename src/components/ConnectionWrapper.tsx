@@ -28,7 +28,7 @@ export const ConnectionWrapper = ({
 	if ((!connection || connection.connectType === "request") && allowRequest) {
 		if (connection) {
 			if (connection.connectStatus === "rejected") {
-				return <p>{t.rejected}</p>;
+				return <p>{t.adminRejected}</p>;
 			} else {
 				return <p>{t.requested}</p>;
 			}

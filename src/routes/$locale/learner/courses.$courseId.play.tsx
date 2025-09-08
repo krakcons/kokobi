@@ -1,19 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useLMS } from "@/lib/lms";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import {
-	getUserModuleFn,
-	updateUserModuleFn,
-} from "@/server/handlers/users.modules";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { SidebarUserButton } from "@/components/sidebars/UserButton";
-import { getAuthFn } from "@/server/handlers/auth";
 import { buttonVariants } from "@/components/ui/button";
+import { orpc } from "@/server/client";
+import type { SessionWithImpersonatedBy } from "better-auth/plugins";
 
 export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 	{
@@ -23,44 +20,58 @@ export const Route = createFileRoute("/$locale/learner/courses/$courseId/play")(
 		}),
 		ssr: false,
 		loaderDeps: ({ search: { attemptId } }) => ({ attemptId }),
-		loader: ({ params, deps }) =>
+		loader: ({ params, deps, context: { queryClient } }) =>
 			Promise.all([
-				getAuthFn(),
-				getUserModuleFn({
-					data: {
-						courseId: params.courseId,
-						attemptId: deps.attemptId,
-					},
-				}),
+				queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
+				queryClient.ensureQueryData(
+					orpc.learner.course.attempt.id.queryOptions({
+						input: {
+							id: params.courseId,
+							attemptId: deps.attemptId,
+						},
+					}),
+				),
 			]),
 	},
 );
 
 function RouteComponent() {
-	const [
-		auth,
-		{
-			meta: { url, type },
-			...initialAttempt
-		},
-	] = Route.useLoaderData();
+	const params = Route.useParams();
+	const search = Route.useSearch();
 	const t = useTranslations("Learner");
 	const { isIframe } = Route.useRouteContext();
 	const locale = useLocale();
+
+	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
+
+	const {
+		data: {
+			meta: { url, type },
+			...initialAttempt
+		},
+	} = useSuspenseQuery(
+		orpc.learner.course.attempt.id.queryOptions({
+			input: {
+				id: params.courseId,
+				attemptId: search.attemptId,
+			},
+		}),
+	);
 
 	const [loading, setLoading] = useState(true);
 	const [attempt, setAttempt] = useState(initialAttempt);
 
 	// Update learner mutation
-	const { mutate } = useMutation({
-		mutationFn: updateUserModuleFn,
-		onSuccess: (newAttempt) => {
-			if (newAttempt) setAttempt(newAttempt);
-		},
-		scope: {
-			id: attempt.id,
-		},
-	});
+	const { mutate } = useMutation(
+		orpc.learner.course.attempt.update.mutationOptions({
+			onSuccess: (newAttempt) => {
+				if (newAttempt) setAttempt(newAttempt);
+			},
+			scope: {
+				id: attempt.id,
+			},
+		}),
+	);
 
 	const { isApiAvailable } = useLMS({
 		type,
@@ -68,11 +79,9 @@ function RouteComponent() {
 		onDataChange: (data) => {
 			if (attempt.completedAt === null) {
 				mutate({
-					data: {
-						courseId: attempt.courseId,
-						attemptId: attempt.id,
-						data,
-					},
+					id: attempt.courseId,
+					attemptId: attempt.id,
+					data,
 				});
 			}
 		},
@@ -108,7 +117,8 @@ function RouteComponent() {
 							<ChevronLeft aria-label="Back" className="size-6" />
 						</Link>
 						<SidebarUserButton
-							user={auth.user!}
+							user={auth.user}
+							session={auth.session as SessionWithImpersonatedBy}
 							signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}
 						/>
 					</div>

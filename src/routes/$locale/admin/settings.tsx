@@ -1,22 +1,23 @@
-import { TeamForm } from "@/components/forms/TeamForm";
+import { OrganizationForm } from "@/components/forms/OrganizationForm";
 import { Page, PageHeader, PageSubHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Trash } from "lucide-react";
-import { fetchFile, teamImageUrl } from "@/lib/file";
 import {
-	createTeamDomainFn,
-	deleteTeamDomainFn,
-	getTeamDomainFn,
-} from "@/server/handlers/teams.domains";
+	useMutation,
+	useQuery,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { Trash } from "lucide-react";
+import { fetchFile, organizationImageUrl } from "@/lib/file";
+
 import { DomainFormSchema, type DomainFormType } from "@/types/domains";
-import { deleteTeamFn, updateTeamFn } from "@/server/handlers/teams";
 import { useAppForm } from "@/components/ui/form";
 import {
 	Table,
 	TableBody,
+	TableCaption,
 	TableCell,
 	TableHead,
 	TableHeader,
@@ -26,7 +27,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import CopyButton from "@/components/CopyButton";
 import { toast } from "sonner";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -39,22 +39,26 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
 
 export const Route = createFileRoute("/$locale/admin/settings")({
 	component: RouteComponent,
 	loaderDeps: ({ search: { locale } }) => ({ locale }),
-	loader: ({ deps }) =>
+	loader: ({ deps, context: { queryClient } }) =>
 		Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "admin",
-				},
-				headers: {
-					...(deps.locale && { locale: deps.locale }),
-					fallbackLocale: "none",
-				},
-			}),
-			getTeamDomainFn(),
+			queryClient.ensureQueryData(
+				orpc.organization.current.queryOptions({
+					context: {
+						headers: {
+							locale: deps.locale,
+							fallbackLocale: "none",
+						},
+					},
+				}),
+			),
+			queryClient.ensureQueryData(
+				orpc.organization.domain.get.queryOptions(),
+			),
 		]),
 });
 
@@ -65,7 +69,7 @@ const DomainForm = ({
 	defaultValues?: DomainFormType;
 	onSubmit: (values: DomainFormType) => Promise<any>;
 }) => {
-	const t = useTranslations("TeamDomainForm");
+	const t = useTranslations("OrganizationDomainForm");
 	const form = useAppForm({
 		defaultValues: {
 			hostname: undefined,
@@ -98,52 +102,98 @@ const DomainForm = ({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const search = Route.useSearch();
-	const [team, domain] = Route.useLoaderData();
-	const router = useRouter();
-	const t = useTranslations("TeamSettings");
+	const t = useTranslations("OrganizationSettings");
 	const tActions = useTranslations("Actions");
-	const tDomain = useTranslations("TeamDomainForm");
+	const tDomain = useTranslations("OrganizationDomainForm");
+	const queryClient = useQueryClient();
 
-	const createDomain = useMutation({
-		mutationFn: createTeamDomainFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
-	const updateTeam = useMutation({
-		mutationFn: updateTeamFn,
-		onSuccess: () => {
-			toast.success("Team updated");
-			router.invalidate();
-		},
-	});
-	const deleteTeam = useMutation({
-		mutationFn: deleteTeamFn,
-		onSuccess: () => {
-			navigate({ to: "/$locale/admin" });
-		},
-	});
-	const deleteTeamDomain = useMutation({
-		mutationFn: deleteTeamDomainFn,
-		onSuccess: () => {
-			router.invalidate();
-		},
-	});
+	const { data: organization } = useSuspenseQuery(
+		orpc.organization.current.queryOptions({
+			context: {
+				headers: {
+					locale: search.locale,
+					fallbackLocale: "none",
+				},
+			},
+		}),
+	);
+
+	const { data: domain } = useSuspenseQuery(
+		orpc.organization.domain.get.queryOptions(),
+	);
+
+	const createDomain = useMutation(
+		orpc.organization.domain.create.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					orpc.organization.domain.get.queryOptions(),
+				);
+			},
+		}),
+	);
+	const updateOrganization = useMutation(
+		orpc.organization.update.mutationOptions({
+			context: {
+				headers: {
+					locale: search.locale,
+				},
+			},
+			onSuccess: () => {
+				toast.success("Organization updated");
+				queryClient.invalidateQueries(
+					orpc.organization.current.queryOptions({
+						context: {
+							headers: {
+								locale: search.locale,
+								fallbackLocale: "none",
+							},
+						},
+					}),
+				);
+				queryClient.invalidateQueries(
+					orpc.organization.get.queryOptions(),
+				);
+			},
+		}),
+	);
+
+	const deleteOrganization = useMutation(
+		orpc.organization.delete.mutationOptions({
+			onSuccess: () => {
+				navigate({ to: "/$locale/admin", reloadDocument: true });
+				queryClient.invalidateQueries();
+			},
+		}),
+	);
+
+	const deleteOrganizationDomain = useMutation(
+		orpc.organization.domain.delete.mutationOptions({
+			onSuccess: () => {
+				queryClient.invalidateQueries(
+					orpc.organization.domain.get.queryOptions(),
+				);
+			},
+		}),
+	);
 
 	const { data } = useQuery({
 		queryKey: [
-			"team-logo-favicon",
-			team.logo,
-			team.favicon,
-			team.updatedAt,
+			"organization-logo-favicon",
+			organization.logo,
+			organization.favicon,
+			organization.updatedAt,
 		],
 		queryFn: async () => {
 			return {
-				logo: team.logo
-					? await fetchFile(teamImageUrl(team, "logo"))
+				logo: organization.logo
+					? await fetchFile(
+							organizationImageUrl(organization, "logo"),
+						)
 					: null,
-				favicon: team.favicon
-					? await fetchFile(teamImageUrl(team, "favicon"))
+				favicon: organization.favicon
+					? await fetchFile(
+							organizationImageUrl(organization, "favicon"),
+						)
 					: null,
 			};
 		},
@@ -153,29 +203,18 @@ function RouteComponent() {
 		<Page>
 			<PageHeader title={t.title} description={t.description}>
 				<Badge variant="secondary">
-					<p>{team.id}</p>
-					<CopyButton text={team.id} />
+					<p>{organization.id}</p>
+					<CopyButton text={organization.id} />
 				</Badge>
 			</PageHeader>
-			<TeamForm
-				key={team.locale}
+			<OrganizationForm
+				key={organization.locale}
 				defaultValues={{
 					logo: data?.logo ?? "",
 					favicon: data?.favicon ?? "",
-					name: team.name,
+					name: organization.name,
 				}}
-				onSubmit={(values) => {
-					const formData = new FormData();
-					Object.entries(values).forEach(([key, value]) => {
-						formData.append(key, value);
-					});
-					return updateTeam.mutateAsync({
-						data: formData,
-						headers: {
-							...(search.locale && { locale: search.locale }),
-						},
-					});
-				}}
+				onSubmit={(values) => updateOrganization.mutateAsync(values)}
 			/>
 			<Separator className="my-4" />
 			<PageSubHeader
@@ -183,19 +222,41 @@ function RouteComponent() {
 				description={tDomain.description}
 			>
 				{domain && (
-					<Button
-						variant="destructive"
-						onClick={() =>
-							deleteTeamDomain.mutate({
-								data: {
-									domainId: domain.id,
-								},
-							})
-						}
-					>
-						<Trash />
-						{tActions.delete}
-					</Button>
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button
+								variant="destructive"
+								className="self-start"
+							>
+								<Trash />
+								{tActions.delete}
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>
+									{t.domain.delete.confirm.title}
+								</AlertDialogTitle>
+								<AlertDialogDescription>
+									{t.domain.delete.confirm.description}
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>
+									{tActions.cancel}
+								</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={() => {
+										deleteOrganizationDomain.mutate({
+											id: domain.id,
+										});
+									}}
+								>
+									{tActions.continue}
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				)}
 			</PageSubHeader>
 			{domain ? (
@@ -259,15 +320,16 @@ function RouteComponent() {
 									</TableRow>
 								))}
 							</TableBody>
+							<TableCaption className="text-left">
+								{t.domain.rootWarning}
+							</TableCaption>
 						</Table>
 						<ScrollBar orientation="horizontal" />
 					</ScrollArea>
 				</div>
 			) : (
 				<DomainForm
-					onSubmit={async (data) =>
-						createDomain.mutateAsync({ data })
-					}
+					onSubmit={async (data) => createDomain.mutateAsync(data)}
 				/>
 			)}
 			<Separator className="my-4" />
@@ -295,7 +357,7 @@ function RouteComponent() {
 						<AlertDialogCancel>{tActions.cancel}</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={() => {
-								deleteTeam.mutate({});
+								deleteOrganization.mutate({});
 							}}
 						>
 							{tActions.continue}

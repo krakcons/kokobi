@@ -1,16 +1,13 @@
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
-import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
-import { requestOTPFn } from "@/server/handlers/auth.otp";
-import { LoginFormSchema, type LoginFormType } from "@/types/auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import { TeamIcon } from "@/components/TeamIcon";
-import { teamImageUrl } from "@/lib/file";
-import type { Team, TeamTranslation } from "@/types/team";
-import { getAuthFn } from "@/server/handlers/auth";
+import { OrganizationIcon } from "@/components/OrganizationIcon";
+import { organizationImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
+import { authClient } from "@/lib/auth.client";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -19,26 +16,35 @@ export const RedirectSchema = z.object({
 export const Route = createFileRoute("/$locale/auth/login")({
 	component: RouteComponent,
 	validateSearch: RedirectSchema,
-	beforeLoad: async ({ params }) => {
-		const auth = await getAuthFn();
-		if (auth.session) throw redirect({ to: "/$locale/admin", params });
+	beforeLoad: async ({ params, context: { queryClient } }) => {
+		try {
+			const auth = await queryClient.ensureQueryData(
+				orpc.auth.session.queryOptions(),
+			);
+			if (auth) throw redirect({ to: "/$locale/admin", params });
+		} catch (e) {}
 	},
-	loader: async () => {
-		const tenantId = await getTenantFn();
-		let team: (Team & TeamTranslation) | undefined = undefined;
+	loader: async ({ context: { queryClient } }) => {
+		const tenantId = await queryClient.ensureQueryData(
+			orpc.auth.tenant.queryOptions(),
+		);
 		if (tenantId) {
-			const tenant = await getTeamByIdFn({
-				data: {
-					teamId: tenantId,
-				},
-			});
-			team = tenant;
+			await queryClient.ensureQueryData(
+				orpc.organization.id.queryOptions({
+					input: {
+						id: tenantId,
+					},
+				}),
+			);
 		}
-		return {
-			team,
-		};
 	},
 });
+
+export const LoginFormSchema = z.object({
+	email: z.email(),
+	rememberMe: z.boolean().optional(),
+});
+export type LoginFormType = z.infer<typeof LoginFormSchema>;
 
 const LoginForm = ({
 	onSubmit,
@@ -52,6 +58,7 @@ const LoginForm = ({
 		defaultValues: {
 			...defaultValues,
 			email: "",
+			rememberMe: false,
 		} as LoginFormType,
 		validators: {
 			onSubmit: LoginFormSchema,
@@ -70,8 +77,12 @@ const LoginForm = ({
 			>
 				<form.AppField
 					name="email"
+					children={(field) => <field.TextField label={t.email} />}
+				/>
+				<form.AppField
+					name="rememberMe"
 					children={(field) => (
-						<field.TextField label={t.email.label} />
+						<field.CheckboxField label={t.rememberMe} />
 					)}
 				/>
 				<form.SubmitButton />
@@ -82,27 +93,47 @@ const LoginForm = ({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
+
+	const { data: tenantId } = useSuspenseQuery(
+		orpc.auth.tenant.queryOptions(),
+	);
+	const { data: organization } = useQuery(
+		orpc.organization.id.queryOptions({
+			input: {
+				id: tenantId!,
+			},
+			enabled: !!tenantId,
+		}),
+	);
+
 	const requestMutation = useMutation({
-		mutationFn: requestOTPFn,
-		onSuccess: () => {
+		mutationFn: ({ email }: LoginFormType) =>
+			authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" }),
+		onSuccess: (_, { email, rememberMe }) => {
 			navigate({
 				to: "/$locale/auth/verify-email",
 				params: (p) => p,
-				search: (s) => s,
+				search: (s) => ({
+					...s,
+					email,
+					rememberMe: rememberMe ? true : undefined,
+				}),
 			});
 		},
 	});
-	const { team } = Route.useLoaderData();
 	const t = useTranslations("AuthLogin");
 
 	return (
 		<FloatingPage>
-			{team && (
-				<TeamIcon src={teamImageUrl(team, "logo")} className="my-4" />
+			{organization && (
+				<OrganizationIcon
+					src={organizationImageUrl(organization, "logo")}
+					className="my-4"
+				/>
 			)}
 			<PageHeader title={t.title} description={t.description} />
 			<LoginForm
-				onSubmit={(data) => requestMutation.mutateAsync({ data })}
+				onSubmit={(values) => requestMutation.mutateAsync(values)}
 			/>
 		</FloatingPage>
 	);

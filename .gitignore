@@ -30,6 +30,5 @@ dist
 
 seed.ts
 
-sqlite.db
-sqlite.db-shm
-sqlite.db-wal
+persist/*
+sqlite.db*

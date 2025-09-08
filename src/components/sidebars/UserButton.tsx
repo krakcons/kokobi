@@ -4,17 +4,16 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { type Theme, themes, useTheme } from "@/lib/theme";
-import { updateUserFn } from "@/server/handlers/users";
-import { deleteAuthFn } from "@/server/handlers/auth";
-import type { User as UserType } from "@/types/users";
+import type { UserFormType } from "@/types/users";
 import {
 	LogOutIcon,
 	Moon,
 	MoreVerticalIcon,
 	Sun,
 	SunMoon,
-	User,
+	UserIcon,
 	UserCircleIcon,
+	UserMinus,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -34,12 +33,16 @@ import {
 	DialogTitle,
 } from "../ui/dialog";
 import { UserForm } from "../forms/UserForm";
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/locale";
 import { Button } from "../ui/button";
 import React from "react";
+import { authClient } from "@/lib/auth.client";
+import type { User } from "better-auth";
+import { orpc } from "@/server/client";
+import type { SessionWithImpersonatedBy } from "better-auth/plugins";
 
 const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	switch (theme) {
@@ -53,29 +56,23 @@ const ThemeIcon = ({ theme }: { theme: Theme }) => {
 };
 
 type UserDropdownProps = {
-	user: UserType;
+	user: User;
 	signOutRedirect?: string;
 	side?: "top" | "right" | "bottom" | "left";
+	session: SessionWithImpersonatedBy;
 };
 
-const getName = (user: UserType) => {
-	if (user.firstName && user.lastName) {
-		return user.firstName + " " + user.lastName;
+const getInitials = (user: User) => {
+	if (user.name.length > 0) {
+		return user.name.charAt(0);
 	}
-	return null;
-};
-
-const getInitials = (user: UserType) => {
-	if (user.firstName && user.lastName) {
-		return user.firstName.charAt(0) + user.lastName.charAt(0);
-	}
-	return <User className="size-4.5" />;
+	return <UserIcon className="size-4.5" />;
 };
 
 export const SidebarUserButton = (props: UserDropdownProps) => {
 	const { isMobile } = useSidebar();
 
-	const name = getName(props.user);
+	const name = props.user.name;
 	const initials = getInitials(props.user);
 
 	return (
@@ -97,7 +94,7 @@ export const SidebarUserButton = (props: UserDropdownProps) => {
 						<span
 							className={cn(
 								"truncate text-xs",
-								name && "text-muted-foreground",
+								props.user.name && "text-muted-foreground",
 							)}
 						>
 							{props.user.email}
@@ -111,8 +108,8 @@ export const SidebarUserButton = (props: UserDropdownProps) => {
 };
 
 export const PublicUserButton = (props: UserDropdownProps) => {
-	const name = getName(props.user);
 	const initials = getInitials(props.user);
+	const name = props.user.name;
 
 	return (
 		<UserDropdown {...props} side="bottom">
@@ -145,19 +142,19 @@ export const UserDropdown = ({
 	signOutRedirect,
 	side,
 	children,
+	session,
 }: UserDropdownProps & {
 	children: React.ReactNode;
 }) => {
 	const { theme, setTheme } = useTheme();
-	const router = useRouter();
 	const { accountDialog = false } = useSearch({
 		from: "__root__",
 	});
+	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 	const t = useTranslations("UserButton");
 	const tUserForm = useTranslations("UserForm");
 
-	const name = getName(user);
 	const initials = getInitials(user);
 
 	const setAccountDialog = (open: boolean) =>
@@ -169,9 +166,9 @@ export const UserDropdown = ({
 		});
 
 	const updateUser = useMutation({
-		mutationFn: updateUserFn,
+		mutationFn: (values: UserFormType) => authClient.updateUser(values),
 		onSuccess: () => {
-			router.invalidate();
+			queryClient.invalidateQueries(orpc.auth.session.queryOptions());
 			setAccountDialog(false);
 		},
 	});
@@ -203,15 +200,15 @@ export const UserDropdown = ({
 								</AvatarFallback>
 							</Avatar>
 							<div className="grid flex-1 text-left text-sm leading-tight">
-								{name && (
+								{user.name && (
 									<span className="truncate font-medium">
-										{name}
+										{user.name}
 									</span>
 								)}
 								<span
 									className={cn(
 										"truncate text-xs",
-										name && "text-muted-foreground",
+										user.name && "text-muted-foreground",
 									)}
 								>
 									{user.email}
@@ -236,18 +233,35 @@ export const UserDropdown = ({
 							<UserCircleIcon />
 							{t.account}
 						</DropdownMenuItem>
+						{session.impersonatedBy && (
+							<DropdownMenuItem
+								onSelect={() => {
+									authClient.admin
+										.stopImpersonating()
+										.then(() =>
+											navigate({
+												href: "/admin",
+												reloadDocument: true,
+											}),
+										);
+								}}
+							>
+								<UserMinus />
+								Stop Impersonating
+							</DropdownMenuItem>
+						)}
 					</DropdownMenuGroup>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
 						onSelect={() => {
-							deleteAuthFn().then(() =>
+							authClient.signOut().then(() =>
 								signOutRedirect
 									? navigate({
 											href: signOutRedirect,
 											reloadDocument: true,
 										})
 									: navigate({
-											to: "/$locale/auth/login",
+											href: "/auth/login",
 											reloadDocument: true,
 										}),
 							);
@@ -271,14 +285,9 @@ export const UserDropdown = ({
 					</DialogHeader>
 					<UserForm
 						defaultValues={{
-							firstName: user.firstName ?? "",
-							lastName: user.lastName ?? "",
+							name: user.name,
 						}}
-						onSubmit={(data) =>
-							updateUser.mutateAsync({
-								data,
-							})
-						}
+						onSubmit={(data) => updateUser.mutateAsync(data)}
 					/>
 				</DialogContent>
 			</Dialog>

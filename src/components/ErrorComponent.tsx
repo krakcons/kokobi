@@ -1,21 +1,16 @@
-import { useLocation, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Button, buttonVariants } from "./ui/button";
 import { FloatingPage } from "./Page";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { useMemo } from "react";
 import { ErrorSchema } from "@/server/lib/error";
-import { useTranslations } from "@/lib/locale";
+import { i18nQueryOptions, useTranslations } from "@/lib/locale";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { getI18nFn } from "@/server/handlers/i18n";
 
 export const ErrorComponent = ({ error }: ErrorComponentProps) => {
 	const router = useRouter();
-	const location = useLocation();
-	const { data: i18n } = useSuspenseQuery({
-		queryKey: ["i18n", location.pathname],
-		queryFn: getI18nFn,
-	});
+	const { data: i18n } = useSuspenseQuery(i18nQueryOptions({}));
 	const t = useTranslations("Errors", i18n);
 
 	const errorContent = useMemo(() => {

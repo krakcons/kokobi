@@ -27,11 +27,8 @@ export const UserForm = ({
 		<form.AppForm>
 			<form.BlockNavigation />
 			<form onSubmit={(e) => e.preventDefault()} className="space-y-8">
-				<form.AppField name="firstName">
-					{(field) => <field.TextField label={t.firstName.label} />}
-				</form.AppField>
-				<form.AppField name="lastName">
-					{(field) => <field.TextField label={t.lastName.label} />}
+				<form.AppField name="name">
+					{(field) => <field.TextField label={t.name} />}
 				</form.AppField>
 				<form.SubmitButton />
 			</form>

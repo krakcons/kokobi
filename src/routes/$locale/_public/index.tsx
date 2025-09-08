@@ -1,27 +1,28 @@
-import { FloatingPage, PageHeader } from "@/components/Page";
-import { TeamIcon } from "@/components/TeamIcon";
 import { buttonVariants } from "@/components/ui/button";
-import { teamImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
-import { getTeamByIdFn, getTenantFn } from "@/server/handlers/teams";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { FloatingPage, PageHeader } from "@/components/Page";
 import { Blocks, Book } from "lucide-react";
+import { OrganizationIcon } from "@/components/OrganizationIcon";
+import { organizationImageUrl } from "@/lib/file";
+import { orpc } from "@/server/client";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/$locale/_public/")({
 	component: Home,
-	loader: async () => {
-		let team = undefined;
-		const tenantId = await getTenantFn();
+	loader: async ({ context: { queryClient } }) => {
+		const tenantId = await queryClient.ensureQueryData(
+			orpc.auth.tenant.queryOptions(),
+		);
 		if (tenantId) {
-			team = await getTeamByIdFn({
-				data: {
-					teamId: tenantId,
-				},
-			});
+			await queryClient.fetchQuery(
+				orpc.organization.id.queryOptions({
+					input: {
+						id: tenantId,
+					},
+				}),
+			);
 		}
-		return {
-			team,
-		};
 	},
 });
 
@@ -51,15 +52,28 @@ const CTA = () => {
 
 function Home() {
 	const t = useTranslations("Home");
-	const { team } = Route.useLoaderData();
+	const { data: tenantId } = useSuspenseQuery(
+		orpc.auth.tenant.queryOptions(),
+	);
+	const { data: organization } = useQuery(
+		orpc.organization.id.queryOptions({
+			input: {
+				id: tenantId!,
+			},
+			enabled: !!tenantId,
+		}),
+	);
 
-	if (team) {
+	if (organization) {
 		return (
 			<FloatingPage>
-				<TeamIcon src={teamImageUrl(team, "logo")} className="my-4" />
+				<OrganizationIcon
+					src={organizationImageUrl(organization, "logo")}
+					className="my-4"
+				/>
 				<PageHeader
-					title={team.name}
-					description={t["team-description"]}
+					title={organization.name}
+					description={t["organization-description"]}
 				/>
 				<CTA />
 			</FloatingPage>

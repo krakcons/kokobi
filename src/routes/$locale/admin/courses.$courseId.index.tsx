@@ -2,7 +2,6 @@ import { TableSearchSchema } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ConnectionWrapper } from "@/components/ConnectionWrapper";
-import { getUserTeamFn } from "@/server/handlers/users.teams";
 import {
 	useMutation,
 	useQueryClient,
@@ -14,12 +13,10 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 	component: RouteComponent,
 	validateSearch: TableSearchSchema,
 	loader: async ({ params, context: { queryClient } }) => {
-		const [team, course, connection] = await Promise.all([
-			getUserTeamFn({
-				data: {
-					type: "admin",
-				},
-			}),
+		const [organization, course, connection] = await Promise.all([
+			queryClient.ensureQueryData(
+				orpc.organization.current.queryOptions(),
+			),
 			queryClient.ensureQueryData(
 				orpc.course.id.queryOptions({
 					input: {
@@ -30,7 +27,7 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 			queryClient.ensureQueryData(
 				orpc.connection.getOne.queryOptions({
 					input: {
-						senderType: "team",
+						senderType: "organization",
 						recipientType: "course",
 						id: params.courseId,
 					},
@@ -38,7 +35,8 @@ export const Route = createFileRoute("/$locale/admin/courses/$courseId/")({
 			),
 		]);
 
-		const access = team.id === course.teamId ? "root" : "shared";
+		const access =
+			organization.id === course.organizationId ? "root" : "shared";
 
 		if (access === "root" || connection?.connectStatus === "accepted") {
 			throw redirect({
@@ -63,7 +61,7 @@ function RouteComponent() {
 	const { data: connection } = useSuspenseQuery(
 		orpc.connection.getOne.queryOptions({
 			input: {
-				senderType: "team",
+				senderType: "organization",
 				recipientType: "course",
 				id: params.courseId,
 			},
@@ -77,7 +75,7 @@ function RouteComponent() {
 				queryClient.invalidateQueries(
 					orpc.connection.getOne.queryOptions({
 						input: {
-							senderType: "team",
+							senderType: "organization",
 							recipientType: "course",
 							id: params.courseId,
 						},
@@ -99,7 +97,7 @@ function RouteComponent() {
 				queryClient.invalidateQueries(
 					orpc.connection.getOne.queryOptions({
 						input: {
-							senderType: "team",
+							senderType: "organization",
 							recipientType: "course",
 							id: params.courseId,
 						},
@@ -117,17 +115,19 @@ function RouteComponent() {
 				connection={connection || undefined}
 				onRequest={() =>
 					createConnection.mutate({
-						senderType: "team",
+						senderType: "organization",
 						recipientType: "course",
 						id: course.id,
 					})
 				}
 				onResponse={(response) =>
+					connection &&
+					"fromOrganizationId" in connection &&
 					updateConnection.mutate({
 						senderType: "course",
-						recipientType: "team",
+						recipientType: "organization",
+						connectToId: connection.fromOrganizationId,
 						id: course.id,
-						connectToId: connection!.fromTeamId,
 						connectStatus: response,
 					})
 				}

@@ -1,33 +1,38 @@
-import { handleLocalization } from "@/lib/locale";
 import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { db } from "@/server/db";
+import { base, organizationProcedure, publicProcedure } from "../middleware";
+import { z } from "zod";
+import { ORPCError } from "@orpc/client";
+import { CourseFormSchema, CourseSchema } from "@/types/course";
+import { OrganizationSchema } from "@/types/organization";
+import { s3 } from "../s3";
+import { hasOrganizationAccess } from "../lib/access";
 import {
 	collectionsToCourses,
 	courseTranslations,
 	courses,
 	modules,
-	teamsToCourses,
+	organizationsToCourses,
 	users,
 	usersToCollections,
 	usersToCourses,
 	usersToModules,
 } from "@/server/db/schema";
-import { CourseFormSchema, CourseSchema } from "@/types/course";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { createTranslator, handleLocalization } from "@/lib/locale";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { ModuleSchema } from "@/types/module";
-import { TeamSchema } from "@/types/team";
-import { ORPCError } from "@orpc/client";
-import { and, desc, eq, inArray } from "drizzle-orm";
-import { z } from "zod";
-import { hasTeamAccess } from "../lib/access";
 import { getConnectionLink } from "../lib/connection";
 import { getNewModuleVersionNumber } from "../lib/modules";
-import { base, publicProcedure, teamProcedure } from "../middleware";
-import { s3 } from "../s3";
 import { createConnection } from "./connection";
+import { isModuleSuccessful } from "@/lib/scorm";
+import { sendEmail, verifyEmail } from "../lib/email";
+import CourseCompletion from "@/components/emails/CourseCompletion";
+import { organizationImageUrl } from "@/lib/file";
+import { ConnectionSchema } from "@/types/connections";
 
 export const courseRouter = base.prefix("/courses").router({
-	get: teamProcedure()
+	get: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "GET",
@@ -37,14 +42,22 @@ export const courseRouter = base.prefix("/courses").router({
 		.output(CourseSchema.array())
 		.handler(async ({ context }) => {
 			const courseList = await db.query.courses.findMany({
-				where: eq(courses.teamId, context.teamId),
+				where: eq(
+					courses.organizationId,
+					context.session.activeOrganizationId,
+				),
 				with: {
 					translations: true,
 				},
 			});
 
-			const connections = await db.query.teamsToCourses.findMany({
-				where: and(eq(teamsToCourses.teamId, context.teamId)),
+			const connections = await db.query.organizationsToCourses.findMany({
+				where: and(
+					eq(
+						organizationsToCourses.organizationId,
+						context.session.activeOrganizationId,
+					),
+				),
 				with: {
 					course: {
 						with: {
@@ -65,7 +78,7 @@ export const courseRouter = base.prefix("/courses").router({
 				})),
 			].map((course) => handleLocalization(context, course));
 		}),
-	create: teamProcedure()
+	create: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "POST",
@@ -74,12 +87,12 @@ export const courseRouter = base.prefix("/courses").router({
 		})
 		.input(CourseFormSchema)
 		.output(z.object({ courseId: z.string() }))
-		.handler(async ({ context: { teamId, locale }, input }) => {
+		.handler(async ({ context: { session, locale }, input }) => {
 			const courseId = Bun.randomUUIDv7();
 
 			await db.insert(courses).values({
 				id: courseId,
-				teamId,
+				organizationId: session.activeOrganizationId,
 				completionStatus: input.completionStatus,
 			});
 
@@ -104,18 +117,17 @@ export const courseRouter = base.prefix("/courses").router({
 				id: z.string().min(1),
 			}),
 		)
-		.output(
-			CourseSchema.extend({
-				team: TeamSchema,
-			}),
-		)
+		//.output(
+		//	CourseSchema.extend({
+		//		organization: OrganizationSchema,
+		//	}),
+		//)
 		.handler(async ({ context, input: { id } }) => {
-			console.log("ID", id);
 			const course = await db.query.courses.findFirst({
 				where: and(eq(courses.id, id)),
 				with: {
 					translations: true,
-					team: {
+					organization: {
 						with: {
 							translations: true,
 						},
@@ -129,10 +141,10 @@ export const courseRouter = base.prefix("/courses").router({
 
 			return {
 				...handleLocalization(context, course),
-				team: handleLocalization(context, course.team),
+				organization: handleLocalization(context, course.organization),
 			};
 		}),
-	update: teamProcedure()
+	update: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "PUT",
@@ -144,12 +156,12 @@ export const courseRouter = base.prefix("/courses").router({
 				id: z.string().min(1),
 			}),
 		)
-		.handler(async ({ context: { teamId, locale }, input }) => {
+		.handler(async ({ context: { session, locale }, input }) => {
 			const id = input.id;
-			await hasTeamAccess({
+			await hasOrganizationAccess({
 				type: "course",
 				id,
-				teamId,
+				organizationId: session.activeOrganizationId,
 				access: "root",
 			});
 
@@ -181,7 +193,7 @@ export const courseRouter = base.prefix("/courses").router({
 
 			return input;
 		}),
-	delete: teamProcedure()
+	delete: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "DELETE",
@@ -194,21 +206,27 @@ export const courseRouter = base.prefix("/courses").router({
 			}),
 		)
 		.handler(async ({ context, input: { id } }) => {
-			await hasTeamAccess({
+			await hasOrganizationAccess({
 				type: "course",
 				id,
-				teamId: context.teamId,
+				organizationId: context.session.activeOrganizationId,
 				access: "root",
 			});
 
 			await db
 				.delete(courses)
 				.where(
-					and(eq(courses.id, id), eq(courses.teamId, context.teamId)),
+					and(
+						eq(courses.id, id),
+						eq(
+							courses.organizationId,
+							context.session.activeOrganizationId,
+						),
+					),
 				);
 
 			const files = await s3.list({
-				prefix: `${context.teamId}/courses/${id}/`,
+				prefix: `${context.session.activeOrganizationId}/courses/${id}/`,
 				maxKeys: 1000,
 			});
 			if (files.contents) {
@@ -221,7 +239,113 @@ export const courseRouter = base.prefix("/courses").router({
 
 			return null;
 		}),
-	learners: teamProcedure()
+	resendCompletionEmail: organizationProcedure
+		.route({
+			tags: ["Course"],
+			method: "POST",
+			path: "/{id}/resend-completion-email",
+			summary: "Resend Completion Email",
+		})
+		.input(
+			z.object({
+				id: z.string(),
+				attemptId: z.string(),
+			}),
+		)
+		.handler(async ({ context, input: { id, attemptId } }) => {
+			await hasOrganizationAccess({
+				type: "course",
+				id,
+				organizationId: context.session.activeOrganizationId,
+			});
+
+			const attempt = await db.query.usersToModules.findFirst({
+				where: and(
+					eq(usersToModules.courseId, id),
+					eq(usersToModules.id, attemptId),
+					eq(
+						usersToModules.organizationId,
+						context.session.activeOrganizationId,
+					),
+				),
+				with: {
+					user: true,
+					organization: {
+						with: {
+							translations: true,
+							domains: true,
+						},
+					},
+					course: {
+						with: {
+							translations: true,
+						},
+					},
+					module: true,
+				},
+			});
+
+			if (!attempt) {
+				throw new Error("Attempt not found.");
+			}
+
+			const learner = ExtendLearner(attempt.module.type).parse(attempt);
+
+			if (
+				!attempt.completedAt ||
+				!isModuleSuccessful({
+					completionStatus: attempt.course.completionStatus,
+					status: learner.status,
+				})
+			) {
+				throw new Error("Attempt not complete.");
+			}
+
+			// Send communications in the locale of the module
+			const communicationLocale = attempt.module.locale;
+
+			const organization = handleLocalization(
+				{
+					locale: communicationLocale,
+				},
+				attempt.organization,
+			);
+			const course = handleLocalization(
+				{
+					locale: communicationLocale,
+				},
+				attempt.course,
+			);
+
+			const href = await getConnectionLink({
+				organizationId: context.session.activeOrganizationId,
+				id: course.id,
+				type: "course",
+				locale: course.locale,
+			});
+
+			const t = await createTranslator({
+				locale: communicationLocale,
+			});
+
+			const emailVerified = await verifyEmail(organization.domains);
+
+			await sendEmail({
+				to: [attempt.user.email],
+				subject: t.Email.CourseCompletion.subject,
+				content: (
+					<CourseCompletion
+						name={course.name}
+						organizationName={organization.name}
+						logo={organizationImageUrl(organization, "logo")}
+						href={href}
+						t={t.Email.CourseCompletion}
+					/>
+				),
+				organization: emailVerified ? organization : undefined,
+			});
+		}),
+	learners: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "GET",
@@ -244,7 +368,10 @@ export const courseRouter = base.prefix("/courses").router({
 				.from(usersToCourses)
 				.where(
 					and(
-						eq(usersToCourses.teamId, context.teamId),
+						eq(
+							usersToCourses.organizationId,
+							context.session.activeOrganizationId,
+						),
 						id ? eq(usersToCourses.courseId, id) : undefined,
 					),
 				)
@@ -252,7 +379,10 @@ export const courseRouter = base.prefix("/courses").router({
 				.leftJoin(
 					usersToModules,
 					and(
-						eq(usersToModules.teamId, context.teamId),
+						eq(
+							usersToModules.organizationId,
+							context.session.activeOrganizationId,
+						),
 						eq(usersToModules.userId, users.id),
 						id ? eq(usersToModules.courseId, id) : undefined,
 					),
@@ -266,27 +396,34 @@ export const courseRouter = base.prefix("/courses").router({
 					: undefined,
 			}));
 		}),
-	sharedTeams: teamProcedure()
+	sharedOrganizations: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "GET",
-			path: "/{id}/shared-teams",
-			summary: "Get Shared Teams",
+			path: "/{id}/shared-organizations",
+			summary: "Get Shared Organizations",
 		})
 		.input(
 			z.object({
 				id: z.string(),
 			}),
 		)
-		.output(TeamSchema.array())
+		.output(
+			OrganizationSchema.extend({
+				connection: ConnectionSchema,
+			}).array(),
+		)
 		.handler(async ({ context, input: { id } }) => {
-			const connections = await db.query.teamsToCourses.findMany({
+			const connections = await db.query.organizationsToCourses.findMany({
 				where: and(
-					eq(teamsToCourses.fromTeamId, context.teamId),
-					id ? eq(teamsToCourses.courseId, id) : undefined,
+					eq(
+						organizationsToCourses.fromOrganizationId,
+						context.session.activeOrganizationId,
+					),
+					id ? eq(organizationsToCourses.courseId, id) : undefined,
 				),
 				with: {
-					team: {
+					organization: {
 						with: {
 							translations: true,
 						},
@@ -295,14 +432,14 @@ export const courseRouter = base.prefix("/courses").router({
 			});
 
 			return connections.map((connect) => ({
-				...handleLocalization(context, connect.team),
+				...handleLocalization(context, connect.organization),
 				connection: {
 					connectStatus: connect.connectStatus,
 					connectType: connect.connectType,
 				},
 			}));
 		}),
-	statistics: teamProcedure()
+	statistics: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "GET",
@@ -312,7 +449,7 @@ export const courseRouter = base.prefix("/courses").router({
 		.input(
 			z.object({
 				id: z.string(),
-				teamId: z.string().optional(),
+				organizationId: z.string().optional(),
 			}),
 		)
 		.output(
@@ -331,130 +468,141 @@ export const courseRouter = base.prefix("/courses").router({
 				}),
 			}),
 		)
-		.handler(async ({ context, input: { id, teamId: customTeamId } }) => {
-			const access = await hasTeamAccess({
-				type: "course",
-				id: id,
-				teamId: context.teamId,
-			});
+		.handler(
+			async ({
+				context,
+				input: { id, organizationId: customOrganizationId },
+			}) => {
+				const access = await hasOrganizationAccess({
+					type: "course",
+					id: id,
+					organizationId: context.session.activeOrganizationId,
+				});
 
-			const teamId = access === "shared" ? context.teamId : customTeamId;
+				const organizationId =
+					access === "shared"
+						? context.session.activeOrganizationId
+						: customOrganizationId;
 
-			const course = await db.query.courses.findFirst({
-				where: and(
-					eq(courses.id, id),
-					teamId ? eq(courses.teamId, teamId) : undefined,
-				),
-			});
+				// First, get all user IDs connected to the course (directly or via collections)
+				const directUserIds = await db
+					.select({ userId: usersToCourses.userId })
+					.from(usersToCourses)
+					.where(
+						and(
+							eq(usersToCourses.courseId, id),
+							eq(usersToCourses.connectStatus, "accepted"),
+							organizationId
+								? eq(
+										usersToCourses.organizationId,
+										organizationId,
+									)
+								: undefined,
+						),
+					);
+				const collectionUserIds = await db
+					.select({ userId: usersToCollections.userId })
+					.from(usersToCollections)
+					.innerJoin(
+						collectionsToCourses,
+						eq(
+							usersToCollections.collectionId,
+							collectionsToCourses.collectionId,
+						),
+					)
+					.where(
+						and(
+							eq(collectionsToCourses.courseId, id),
+							eq(usersToCollections.connectStatus, "accepted"),
+							organizationId
+								? eq(
+										usersToCollections.organizationId,
+										organizationId,
+									)
+								: undefined,
+						),
+					);
 
-			if (!course) {
-				throw new ORPCError("NOT_FOUND");
-			}
+				// Combine all user IDs and remove duplicates
+				const allUserIds = [
+					...directUserIds.map((u) => u.userId),
+					...collectionUserIds.map((u) => u.userId),
+				];
+				const uniqueUserIds = [...new Set(allUserIds)];
 
-			// First, get all user IDs connected to the course (directly or via collections)
-			const directUserIds = await db
-				.select({ userId: usersToCourses.userId })
-				.from(usersToCourses)
-				.where(
-					and(
-						eq(usersToCourses.courseId, id),
-						eq(usersToCourses.connectStatus, "accepted"),
-						teamId ? eq(usersToCourses.teamId, teamId) : undefined,
-					),
-				);
-			const collectionUserIds = await db
-				.select({ userId: usersToCollections.userId })
-				.from(usersToCollections)
-				.innerJoin(
-					collectionsToCourses,
-					eq(
-						usersToCollections.collectionId,
-						collectionsToCourses.collectionId,
-					),
-				)
-				.where(
-					and(
-						eq(collectionsToCourses.courseId, id),
-						eq(usersToCollections.connectStatus, "accepted"),
-						teamId
-							? eq(usersToCollections.teamId, teamId)
+				const attemptList = await db.query.usersToModules.findMany({
+					where: and(
+						eq(usersToModules.courseId, id),
+						inArray(usersToModules.userId, uniqueUserIds),
+						organizationId
+							? eq(usersToModules.organizationId, organizationId)
 							: undefined,
 					),
+					with: {
+						module: true,
+					},
+				});
+
+				const attempts = attemptList.map((attempt) =>
+					ExtendLearner(attempt.module.type).parse(attempt),
 				);
 
-			// Combine all user IDs and remove duplicates
-			const allUserIds = [
-				...directUserIds.map((u) => u.userId),
-				...collectionUserIds.map((u) => u.userId),
-			];
-			const uniqueUserIds = [...new Set(allUserIds)];
-
-			const attemptList = await db.query.usersToModules.findMany({
-				where: and(
-					eq(usersToModules.courseId, id),
-					inArray(usersToModules.userId, uniqueUserIds),
-					teamId ? eq(usersToModules.teamId, teamId) : undefined,
-				),
-				with: {
-					module: true,
-				},
-			});
-
-			const attempts = attemptList.map((attempt) =>
-				ExtendLearner(attempt.module.type).parse(attempt),
-			);
-
-			const total = attempts.length;
-			const completed = attempts.filter((l) => !!l.completedAt).length;
-			const totalCompletionTimeSeconds = attempts.reduce(
-				(acc, learner) => {
-					if (learner.completedAt) {
-						return (
-							acc +
-							(learner.completedAt.getTime() -
-								learner.createdAt.getTime()) /
-								1000
-						);
-					}
-					return acc;
-				},
-				0,
-			);
-
-			return {
-				total,
-				completed,
-				completedPercent:
-					completed > 0
-						? ((completed / total) * 100).toFixed(0)
-						: undefined,
-				completedTimeAverage:
-					completed > 0
-						? (totalCompletionTimeSeconds / 60 / completed).toFixed(
-								1,
-							)
-						: undefined,
-				charts: {
-					status: attempts.reduce(
-						(acc, learner) => {
-							const index = learnerStatuses.indexOf(
-								learner.status,
+				const total = attempts.length;
+				const completed = attempts.filter(
+					(l) => !!l.completedAt,
+				).length;
+				const totalCompletionTimeSeconds = attempts.reduce(
+					(acc, learner) => {
+						if (learner.completedAt) {
+							return (
+								acc +
+								(learner.completedAt.getTime() -
+									learner.createdAt.getTime()) /
+									1000
 							);
-							if (index !== -1) {
-								acc[index].value += 1;
-							}
-							return acc;
-						},
-						learnerStatuses.map((status) => ({
-							name: status,
-							value: 0,
-						})),
-					),
-				},
-			};
-		}),
+						}
+						return acc;
+					},
+					0,
+				);
+
+				return {
+					total,
+					completed,
+					completedPercent:
+						completed > 0
+							? ((completed / total) * 100).toFixed(0)
+							: undefined,
+					completedTimeAverage:
+						completed > 0
+							? (
+									totalCompletionTimeSeconds /
+									60 /
+									completed
+								).toFixed(1)
+							: undefined,
+					charts: {
+						status: attempts.reduce(
+							(acc, learner) => {
+								const index = learnerStatuses.indexOf(
+									learner.status,
+								);
+								if (index !== -1) {
+									acc[index].value += 1;
+								}
+								return acc;
+							},
+							learnerStatuses.map((status) => ({
+								name: status,
+								value: 0,
+							})),
+						),
+					},
+				};
+			},
+		),
 	modules: {
-		get: teamProcedure()
+		get: organizationProcedure
 			.route({
 				tags: ["Course Modules"],
 				method: "GET",
@@ -475,7 +623,7 @@ export const courseRouter = base.prefix("/courses").router({
 
 				return moduleList;
 			}),
-		presign: teamProcedure()
+		presign: organizationProcedure
 			.route({
 				tags: ["Course Modules"],
 				method: "POST",
@@ -489,10 +637,10 @@ export const courseRouter = base.prefix("/courses").router({
 			)
 			.output(z.string())
 			.handler(async ({ context, input: { id } }) => {
-				await hasTeamAccess({
+				await hasOrganizationAccess({
 					id: id,
 					type: "course",
-					teamId: context.teamId,
+					organizationId: context.session.activeOrganizationId,
 					access: "root",
 				});
 
@@ -502,7 +650,7 @@ export const courseRouter = base.prefix("/courses").router({
 				);
 
 				const url = s3.presign(
-					`${context.teamId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+					`${context.session.activeOrganizationId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
 					{
 						expiresIn: 3600,
 						method: "PUT",
@@ -512,7 +660,7 @@ export const courseRouter = base.prefix("/courses").router({
 
 				return url;
 			}),
-		create: teamProcedure()
+		create: organizationProcedure
 			.route({
 				tags: ["Course Modules"],
 				method: "POST",
@@ -526,10 +674,10 @@ export const courseRouter = base.prefix("/courses").router({
 			)
 			.output(z.object({ id: z.string() }))
 			.handler(async ({ context, input: { id } }) => {
-				await hasTeamAccess({
+				await hasOrganizationAccess({
 					id,
 					type: "course",
-					teamId: context.teamId,
+					organizationId: context.session.activeOrganizationId,
 					access: "root",
 				});
 
@@ -539,7 +687,7 @@ export const courseRouter = base.prefix("/courses").router({
 				);
 
 				const moduleFile = s3.file(
-					`${context.teamId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
+					`${context.session.activeOrganizationId}/courses/${id}/tmp/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}.zip`,
 				);
 
 				const exists = await moduleFile.exists();
@@ -570,7 +718,7 @@ export const courseRouter = base.prefix("/courses").router({
 							}
 							const blob = await file.blob();
 							s3.write(
-								`${context.teamId}/courses/${id}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
+								`${context.session.activeOrganizationId}/courses/${id}/${context.locale}${versionNumber > 1 ? `_${versionNumber}` : ""}/${key}`,
 								blob,
 							);
 						}),
@@ -584,7 +732,7 @@ export const courseRouter = base.prefix("/courses").router({
 					await moduleFile.delete();
 				}
 			}),
-		delete: teamProcedure()
+		delete: organizationProcedure
 			.route({
 				tags: ["Course Modules"],
 				method: "DELETE",
@@ -598,8 +746,6 @@ export const courseRouter = base.prefix("/courses").router({
 				}),
 			)
 			.handler(async ({ context, input: { id, moduleId } }) => {
-				const teamId = context.teamId;
-
 				const moduleExists = await db.query.modules.findFirst({
 					where: and(
 						eq(modules.id, moduleId),
@@ -614,8 +760,11 @@ export const courseRouter = base.prefix("/courses").router({
 					throw new ORPCError("NOT_FOUND");
 				}
 
-				// If module is not owned by the team
-				if (moduleExists.course.teamId !== teamId) {
+				// If module is not owned by the organization
+				if (
+					moduleExists.course.organizationId !==
+					context.session.activeOrganizationId
+				) {
 					throw new ORPCError("UNAUTHORIZED");
 				}
 
@@ -626,7 +775,7 @@ export const courseRouter = base.prefix("/courses").router({
 					);
 
 				const files = await s3.list({
-					prefix: `${teamId}/courses/${id}/${moduleExists.locale}${moduleExists.versionNumber > 1 ? `_${moduleExists.versionNumber}` : ""}/`,
+					prefix: `${context.session.activeOrganizationId}/courses/${id}/${moduleExists.locale}${moduleExists.versionNumber > 1 ? `_${moduleExists.versionNumber}` : ""}/`,
 					maxKeys: 1000,
 				});
 				if (files.contents) {
@@ -640,7 +789,7 @@ export const courseRouter = base.prefix("/courses").router({
 				return null;
 			}),
 	},
-	link: teamProcedure()
+	link: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "GET",
@@ -657,12 +806,12 @@ export const courseRouter = base.prefix("/courses").router({
 			return await getConnectionLink({
 				type: "course",
 				id,
-				teamId: context.teamId,
+				organizationId: context.session.activeOrganizationId,
 				locale: context.locale,
 				isPublic: true,
 			});
 		}),
-	invite: teamProcedure()
+	invite: organizationProcedure
 		.route({
 			tags: ["Course"],
 			method: "POST",

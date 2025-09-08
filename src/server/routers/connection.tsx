@@ -5,33 +5,32 @@ import {
 	collections,
 	collectionsToCourses,
 	courses,
-	teams,
-	teamsToCourses,
+	organizations,
+	organizationsToCourses,
 	usersToCollections,
 	usersToCourses,
-	usersToTeams,
 } from "../db/schema";
 import { ORPCError } from "@orpc/client";
 import { env } from "../env";
 import { and, eq, inArray } from "drizzle-orm";
-import { hasTeamAccess } from "../lib/access";
+import { hasOrganizationAccess } from "../lib/access";
 import { getConnectionLink, getUserList } from "../lib/connection";
 import type { ConnectionType } from "@/types/connections";
 import { createTranslator, handleLocalization, locales } from "@/lib/locale";
 import Invite from "@/components/emails/Invite";
 import { sendEmail, verifyEmail } from "../lib/email";
-import { teamImageUrl } from "@/lib/file";
-import type { OrpcContext } from "../context";
+import { organizationImageUrl } from "@/lib/file";
+import type { Session } from "@/lib/auth";
 
 const SelectConnectionSchema = z.object({
-	senderType: z.enum(["user", "team", "collection", "course"]),
-	recipientType: z.enum(["user", "team", "collection", "course"]),
+	senderType: z.enum(["user", "organization", "collection", "course"]),
+	recipientType: z.enum(["user", "organization", "collection", "course"]),
 	id: z.string(),
 });
 
 const CreateConnectionSchema = SelectConnectionSchema.extend({
 	emails: z.email().toLowerCase().array().optional(),
-	teamIds: z.string().array().optional(),
+	organizationIds: z.string().array().optional(),
 });
 type CreateConnection = z.infer<typeof CreateConnectionSchema>;
 
@@ -40,25 +39,24 @@ export const createConnection = async ({
 	recipientType,
 	id,
 	emails,
-	teamIds,
-	learnerTeamId,
-	teamId,
+	organizationIds,
+	session: { activeOrganizationId, activeLearnerOrganizationId },
 	user,
-}: CreateConnection & OrpcContext) => {
+}: CreateConnection & Session) => {
 	// GLOBAL CHECKS
 	if (recipientType === "user" && !emails) {
 		throw new ORPCError("BAD_REQUEST", {
 			message: "Emails are required",
 		});
 	}
-	if (recipientType === "team" && !teamIds) {
+	if (recipientType === "organization" && !organizationIds) {
 		throw new ORPCError("BAD_REQUEST", {
-			message: "Team IDs are required",
+			message: "Organization IDs are required",
 		});
 	}
 
 	if (senderType === "user") {
-		if (!learnerTeamId) {
+		if (!activeLearnerOrganizationId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
@@ -68,10 +66,11 @@ export const createConnection = async ({
 				.insert(usersToCourses)
 				.values({
 					userId: user.id,
-					teamId: learnerTeamId,
+					organizationId: activeLearnerOrganizationId,
 					connectType: "request",
 					connectStatus:
-						learnerTeamId !== env.WELCOME_TEAM_ID
+						activeLearnerOrganizationId !==
+						env.WELCOME_ORGANIZATION_ID
 							? "pending"
 							: "accepted",
 					courseId: id,
@@ -85,10 +84,11 @@ export const createConnection = async ({
 				.insert(usersToCollections)
 				.values({
 					userId: user.id,
-					teamId: learnerTeamId,
+					organizationId: activeLearnerOrganizationId,
 					connectType: "request",
 					connectStatus:
-						learnerTeamId !== env.WELCOME_TEAM_ID
+						activeLearnerOrganizationId !==
+						env.WELCOME_ORGANIZATION_ID
 							? "pending"
 							: "accepted",
 					collectionId: id,
@@ -97,12 +97,12 @@ export const createConnection = async ({
 		}
 	}
 
-	if (senderType === "team") {
-		if (!teamId) {
+	if (senderType === "organization") {
+		if (!activeOrganizationId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
-		// TEAM COURSE REQUEST
+		// ORGANIZATION COURSE REQUEST
 		if (recipientType === "course") {
 			const course = await db.query.courses.findFirst({
 				where: eq(courses.id, id),
@@ -110,9 +110,9 @@ export const createConnection = async ({
 			if (!course) {
 				throw new ORPCError("NOT_FOUND");
 			}
-			await db.insert(teamsToCourses).values({
-				fromTeamId: course.teamId,
-				teamId,
+			await db.insert(organizationsToCourses).values({
+				fromOrganizationId: course.organizationId,
+				organizationId: activeOrganizationId,
 				courseId: id,
 				connectType: "request" as const,
 				connectStatus: "pending" as const,
@@ -122,20 +122,20 @@ export const createConnection = async ({
 
 	// INVITE
 	if (senderType === "course") {
-		if (!teamId) {
+		if (!activeOrganizationId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		// INVITE TO COURSE
 		if (recipientType === "user") {
-			await hasTeamAccess({
-				teamId,
+			await hasOrganizationAccess({
+				organizationId: activeOrganizationId,
 				type: "course",
 				id,
 			});
 
-			const team = (await db.query.teams.findFirst({
-				where: eq(teams.id, teamId),
+			const organization = (await db.query.organizations.findFirst({
+				where: eq(organizations.id, activeOrganizationId),
 				with: {
 					translations: true,
 					domains: true,
@@ -160,7 +160,7 @@ export const createConnection = async ({
 				.values(
 					userList.map((u) => ({
 						userId: u.id,
-						teamId,
+						organizationId: activeOrganizationId,
 						courseId: id,
 						connectType: "invite" as ConnectionType["connectType"],
 						connectStatus:
@@ -171,7 +171,7 @@ export const createConnection = async ({
 					target: [
 						usersToCourses.userId,
 						usersToCourses.courseId,
-						usersToCourses.teamId,
+						usersToCourses.organizationId,
 					],
 					set: {
 						connectStatus: "accepted",
@@ -183,7 +183,7 @@ export const createConnection = async ({
 					),
 				});
 
-			const emailVerified = await verifyEmail(team.domains);
+			const emailVerified = await verifyEmail(organization.domains);
 
 			await Promise.all(
 				userList.map(async (user) => {
@@ -193,12 +193,12 @@ export const createConnection = async ({
 								{ locale: locale.value },
 								course,
 							);
-							const localizedTeam = handleLocalization(
+							const localizedOrganization = handleLocalization(
 								{ locale: locale.value },
-								team,
+								organization,
 							);
 							const href = await getConnectionLink({
-								teamId,
+								organizationId: activeOrganizationId,
 								type: "course",
 								id: course.id,
 								locale: locale.value,
@@ -208,8 +208,11 @@ export const createConnection = async ({
 							});
 							return {
 								name: localizedCourse.name,
-								teamName: localizedTeam.name,
-								logo: teamImageUrl(localizedTeam, "logo"),
+								organizationName: localizedOrganization.name,
+								logo: organizationImageUrl(
+									localizedOrganization,
+									"logo",
+								),
 								locale: locale.value,
 								t: t.Email.Invite,
 								href,
@@ -221,31 +224,31 @@ export const createConnection = async ({
 						to: [user.email],
 						subject: content[0].t.subject,
 						content: <Invite content={content} />,
-						team: emailVerified
-							? handleLocalization({ locale: "en" }, team)
+						organization: emailVerified
+							? handleLocalization({ locale: "en" }, organization)
 							: undefined,
 					});
 				}),
 			);
 		}
 
-		// INVITE TO TEAM
-		if (recipientType === "team") {
-			if (teamIds!.includes(teamId)) {
-				throw new Error("You cannot include your own team");
+		// INVITE TO ORGANIZATION
+		if (recipientType === "organization") {
+			if (organizationIds!.includes(activeOrganizationId)) {
+				throw new Error("You cannot include your own organization");
 			}
 
-			await hasTeamAccess({
-				teamId,
+			await hasOrganizationAccess({
+				organizationId: activeOrganizationId,
 				type: "course",
 				id,
 				access: "root",
 			});
 
-			await db.insert(teamsToCourses).values(
-				teamIds!.map((otherTeamId) => ({
-					fromTeamId: teamId,
-					teamId: otherTeamId,
+			await db.insert(organizationsToCourses).values(
+				organizationIds!.map((otherOrganizationId) => ({
+					fromOrganizationId: activeOrganizationId,
+					organizationId: otherOrganizationId,
 					courseId: id,
 					connectType: "invite" as const,
 					connectStatus: "pending" as const,
@@ -257,20 +260,20 @@ export const createConnection = async ({
 	}
 
 	if (senderType === "collection") {
-		if (!teamId) {
+		if (!activeOrganizationId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		// INVITE TO COLLECTION
 		if (recipientType === "user") {
-			await hasTeamAccess({
-				teamId,
+			await hasOrganizationAccess({
+				organizationId: activeOrganizationId,
 				type: "collection",
 				id,
 			});
 
-			const team = (await db.query.teams.findFirst({
-				where: eq(teams.id, teamId),
+			const organization = (await db.query.organizations.findFirst({
+				where: eq(organizations.id, activeOrganizationId),
 				with: {
 					translations: true,
 					domains: true,
@@ -282,7 +285,7 @@ export const createConnection = async ({
 			const collection = await db.query.collections.findFirst({
 				where: and(
 					eq(collections.id, id),
-					eq(collections.teamId, teamId),
+					eq(collections.organizationId, activeOrganizationId),
 				),
 				with: {
 					translations: true,
@@ -298,7 +301,7 @@ export const createConnection = async ({
 				.values(
 					userList.map((u) => ({
 						userId: u.id,
-						teamId,
+						organizationId: activeOrganizationId,
 						collectionId: id,
 						connectType: "invite" as ConnectionType["connectType"],
 						connectStatus:
@@ -309,7 +312,7 @@ export const createConnection = async ({
 					target: [
 						usersToCollections.userId,
 						usersToCollections.collectionId,
-						usersToCollections.teamId,
+						usersToCollections.organizationId,
 					],
 					set: {
 						connectStatus: "accepted",
@@ -321,7 +324,7 @@ export const createConnection = async ({
 					),
 				});
 
-			const emailVerified = await verifyEmail(team.domains);
+			const emailVerified = await verifyEmail(organization.domains);
 
 			await Promise.all([
 				userList.map(async (user) => {
@@ -331,12 +334,12 @@ export const createConnection = async ({
 								{ locale: locale.value },
 								collection,
 							);
-							const localizedTeam = handleLocalization(
+							const localizedOrganization = handleLocalization(
 								{ locale: locale.value },
-								team,
+								organization,
 							);
 							const href = await getConnectionLink({
-								teamId,
+								organizationId: activeOrganizationId,
 								type: "collection",
 								id: collection.id,
 								locale: locale.value,
@@ -346,8 +349,11 @@ export const createConnection = async ({
 							});
 							return {
 								name: localizedCollection.name,
-								teamName: localizedTeam.name,
-								logo: teamImageUrl(localizedTeam, "logo"),
+								organizationName: localizedOrganization.name,
+								logo: organizationImageUrl(
+									localizedOrganization,
+									"logo",
+								),
 								locale: locale.value,
 								t: t.Email.Invite,
 								href,
@@ -359,8 +365,8 @@ export const createConnection = async ({
 						to: [user.email],
 						subject: content[0].t.subject,
 						content: <Invite content={content} />,
-						team: emailVerified
-							? handleLocalization({ locale: "en" }, team)
+						organization: emailVerified
+							? handleLocalization({ locale: "en" }, organization)
 							: undefined,
 					});
 				}),
@@ -382,18 +388,24 @@ export const connectionRouter = base.prefix("/connections").router({
 		.input(SelectConnectionSchema)
 		.handler(
 			async ({
-				context: { user, learnerTeamId, teamId },
+				context: {
+					user,
+					session: {
+						activeOrganizationId,
+						activeLearnerOrganizationId,
+					},
+				},
 				input: { senderType, recipientType, id },
 			}) => {
 				if (senderType === "user") {
-					if (!learnerTeamId) {
+					if (!activeLearnerOrganizationId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
 					// USER COURSE
 					if (recipientType === "course") {
-						await hasTeamAccess({
-							teamId: learnerTeamId,
+						await hasOrganizationAccess({
+							organizationId: activeLearnerOrganizationId,
 							type: "course",
 							id,
 						});
@@ -403,7 +415,10 @@ export const connectionRouter = base.prefix("/connections").router({
 								where: and(
 									eq(usersToCourses.userId, user.id),
 									eq(usersToCourses.courseId, id),
-									eq(usersToCourses.teamId, learnerTeamId),
+									eq(
+										usersToCourses.organizationId,
+										activeLearnerOrganizationId,
+									),
 								),
 							});
 
@@ -414,8 +429,8 @@ export const connectionRouter = base.prefix("/connections").router({
 									where: and(
 										eq(usersToCollections.userId, user.id),
 										eq(
-											usersToCollections.teamId,
-											learnerTeamId,
+											usersToCollections.organizationId,
+											activeLearnerOrganizationId,
 										),
 									),
 									with: {
@@ -446,8 +461,8 @@ export const connectionRouter = base.prefix("/connections").router({
 									eq(usersToCollections.userId, user.id),
 									eq(usersToCollections.collectionId, id),
 									eq(
-										usersToCollections.teamId,
-										learnerTeamId,
+										usersToCollections.organizationId,
+										activeLearnerOrganizationId,
 									),
 								),
 							});
@@ -456,18 +471,21 @@ export const connectionRouter = base.prefix("/connections").router({
 					}
 				}
 
-				if (senderType === "team") {
-					if (!teamId) {
+				if (senderType === "organization") {
+					if (!activeOrganizationId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
-					// TEAM COURSE INVITE
+					// ORGANIZATION COURSE INVITE
 					if (recipientType === "course") {
 						const connection =
-							await db.query.teamsToCourses.findFirst({
+							await db.query.organizationsToCourses.findFirst({
 								where: and(
-									eq(teamsToCourses.teamId, teamId),
-									eq(teamsToCourses.courseId, id),
+									eq(
+										organizationsToCourses.organizationId,
+										activeOrganizationId,
+									),
+									eq(organizationsToCourses.courseId, id),
 								),
 							});
 
@@ -508,7 +526,13 @@ export const connectionRouter = base.prefix("/connections").router({
 		)
 		.handler(
 			async ({
-				context: { user, learnerTeamId, teamId },
+				context: {
+					user,
+					session: {
+						activeOrganizationId,
+						activeLearnerOrganizationId,
+					},
+				},
 				input: {
 					senderType,
 					recipientType,
@@ -519,7 +543,7 @@ export const connectionRouter = base.prefix("/connections").router({
 			}) => {
 				// USER INVITE RESPONSE
 				if (recipientType === "user") {
-					if (!learnerTeamId) {
+					if (!activeLearnerOrganizationId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
@@ -533,7 +557,10 @@ export const connectionRouter = base.prefix("/connections").router({
 							.where(
 								and(
 									eq(usersToCourses.userId, user.id),
-									eq(usersToCourses.teamId, learnerTeamId),
+									eq(
+										usersToCourses.organizationId,
+										activeLearnerOrganizationId,
+									),
 									eq(usersToCourses.courseId, id),
 									eq(usersToCourses.connectType, "invite"),
 								),
@@ -551,8 +578,8 @@ export const connectionRouter = base.prefix("/connections").router({
 								and(
 									eq(usersToCollections.userId, user.id),
 									eq(
-										usersToCollections.teamId,
-										learnerTeamId,
+										usersToCollections.organizationId,
+										activeLearnerOrganizationId,
 									),
 									eq(usersToCollections.collectionId, id),
 									eq(
@@ -562,42 +589,32 @@ export const connectionRouter = base.prefix("/connections").router({
 								),
 							);
 					}
-
-					// TEAM INVITE
-					if (senderType === "team") {
-						await db
-							.update(usersToTeams)
-							.set({
-								connectStatus,
-							})
-							.where(
-								and(
-									eq(usersToTeams.userId, user.id),
-									eq(usersToTeams.teamId, id),
-									eq(usersToTeams.connectType, "invite"),
-								),
-							);
-					}
 				}
 
-				// TEAM INVITE RESPONSE
-				if (recipientType === "team") {
-					if (!teamId || !connectToId) {
+				// ORGANIZATION INVITE RESPONSE
+				if (recipientType === "organization") {
+					if (!activeOrganizationId || !connectToId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
-					// TEAM COURSE INVITE
+					// ORGANIZATION COURSE INVITE
 					if (senderType === "course") {
 						await db
-							.update(teamsToCourses)
+							.update(organizationsToCourses)
 							.set({
 								connectStatus,
 							})
 							.where(
 								and(
-									eq(teamsToCourses.fromTeamId, connectToId),
-									eq(teamsToCourses.teamId, teamId),
-									eq(teamsToCourses.courseId, id),
+									eq(
+										organizationsToCourses.fromOrganizationId,
+										connectToId,
+									),
+									eq(
+										organizationsToCourses.organizationId,
+										activeOrganizationId,
+									),
+									eq(organizationsToCourses.courseId, id),
 								),
 							);
 					}
@@ -605,7 +622,7 @@ export const connectionRouter = base.prefix("/connections").router({
 
 				// COURSE REQUEST RESPONSE
 				if (recipientType === "course") {
-					if (!teamId || !connectToId) {
+					if (!activeOrganizationId || !connectToId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
@@ -618,25 +635,34 @@ export const connectionRouter = base.prefix("/connections").router({
 							})
 							.where(
 								and(
-									eq(usersToCourses.teamId, teamId),
+									eq(
+										usersToCourses.organizationId,
+										activeOrganizationId,
+									),
 									eq(usersToCourses.courseId, id),
 									eq(usersToCourses.userId, connectToId),
 								),
 							);
 					}
 
-					// REQUEST FROM TEAM
-					if (senderType === "team") {
+					// REQUEST FROM ORGANIZATION
+					if (senderType === "organization") {
 						await db
-							.update(teamsToCourses)
+							.update(organizationsToCourses)
 							.set({
 								connectStatus,
 							})
 							.where(
 								and(
-									eq(teamsToCourses.fromTeamId, teamId),
-									eq(teamsToCourses.teamId, connectToId),
-									eq(teamsToCourses.courseId, id),
+									eq(
+										organizationsToCourses.fromOrganizationId,
+										activeOrganizationId,
+									),
+									eq(
+										organizationsToCourses.organizationId,
+										connectToId,
+									),
+									eq(organizationsToCourses.courseId, id),
 								),
 							);
 					}
@@ -644,7 +670,7 @@ export const connectionRouter = base.prefix("/connections").router({
 
 				// COLLECTION REQUEST RESPONSE
 				if (recipientType === "collection") {
-					if (!teamId || !connectToId) {
+					if (!activeOrganizationId || !connectToId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
@@ -656,7 +682,10 @@ export const connectionRouter = base.prefix("/connections").router({
 							})
 							.where(
 								and(
-									eq(usersToCollections.teamId, teamId),
+									eq(
+										usersToCollections.organizationId,
+										activeOrganizationId,
+									),
 									eq(usersToCollections.collectionId, id),
 									eq(usersToCollections.userId, connectToId),
 								),
@@ -680,12 +709,14 @@ export const connectionRouter = base.prefix("/connections").router({
 		.output(z.null())
 		.handler(
 			async ({
-				context: { teamId },
+				context: {
+					session: { activeOrganizationId },
+				},
 				input: { senderType, recipientType, id, connectToId },
 			}) => {
 				// USER INVITE
 				if (recipientType === "user") {
-					if (!teamId || !connectToId) {
+					if (!activeOrganizationId || !connectToId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
@@ -696,7 +727,10 @@ export const connectionRouter = base.prefix("/connections").router({
 							.where(
 								and(
 									eq(usersToCourses.courseId, id),
-									eq(usersToCourses.teamId, teamId),
+									eq(
+										usersToCourses.organizationId,
+										activeOrganizationId,
+									),
 									eq(usersToCourses.userId, connectToId),
 								),
 							);
@@ -710,7 +744,10 @@ export const connectionRouter = base.prefix("/connections").router({
 							.where(
 								and(
 									eq(usersToCollections.collectionId, id),
-									eq(usersToCollections.teamId, teamId),
+									eq(
+										usersToCollections.organizationId,
+										activeOrganizationId,
+									),
 									eq(usersToCollections.userId, connectToId),
 								),
 							);
@@ -718,26 +755,35 @@ export const connectionRouter = base.prefix("/connections").router({
 					}
 				}
 
-				if (senderType === "team") {
-					if (!teamId || !connectToId) {
+				if (senderType === "organization") {
+					if (!activeOrganizationId || !connectToId) {
 						throw new ORPCError("UNAUTHORIZED");
 					}
 
-					// TEAM COURSE INVITE
+					// ORGANIZATION COURSE INVITE
 					if (recipientType === "course") {
 						await db
-							.delete(teamsToCourses)
+							.delete(organizationsToCourses)
 							.where(
 								and(
-									eq(teamsToCourses.fromTeamId, teamId),
-									eq(teamsToCourses.courseId, id),
-									eq(teamsToCourses.teamId, connectToId),
+									eq(
+										organizationsToCourses.fromOrganizationId,
+										activeOrganizationId,
+									),
+									eq(
+										organizationsToCourses.organizationId,
+										connectToId,
+									),
+									eq(organizationsToCourses.courseId, id),
 								),
 							);
 						// Remove from collections
 						const collectionList =
 							await db.query.collections.findMany({
-								where: eq(collections.teamId, connectToId),
+								where: eq(
+									collections.organizationId,
+									connectToId,
+								),
 							});
 						await db.delete(collectionsToCourses).where(
 							and(

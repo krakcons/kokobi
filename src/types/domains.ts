@@ -10,18 +10,19 @@ export const DomainFormSchema = z.object({
 		.string()
 		.regex(
 			new RegExp(
-				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
+				/^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.+[a-zA-Z]{2,}$/,
 			),
 			"Invalid domain format, use format (learn.example.com)",
 		),
 });
 export type DomainFormType = z.infer<typeof DomainFormSchema>;
 
-export type DomainRecord = {
-	required: boolean;
-	status: string;
-	type: string;
-	name: string;
-	value: string;
-	priority?: number;
-};
+export const DomainRecordSchema = z.object({
+	required: z.boolean(),
+	status: z.string(),
+	type: z.string(),
+	name: z.string(),
+	value: z.string(),
+	priority: z.number().optional(),
+});
+export type DomainRecord = z.infer<typeof DomainRecordSchema>;

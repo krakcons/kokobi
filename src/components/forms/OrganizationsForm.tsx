@@ -1,28 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { useAppForm } from "../ui/form";
-import { TeamUsersFormSchema, type TeamUsersFormType } from "@/types/team";
+import { z } from "zod";
 import { useTranslations } from "@/lib/locale";
 
-export const TeamUsersForm = ({
+export const OrganizationsFormSchema = z.object({
+	organizationIds: z.string().array(),
+});
+export type OrganizationsFormType = z.infer<typeof OrganizationsFormSchema>;
+
+export const OrganizationsForm = ({
 	onSubmit,
 }: {
-	onSubmit: (values: TeamUsersFormType) => Promise<any>;
+	onSubmit: (values: OrganizationsFormType) => Promise<any>;
 }) => {
-	const t = useTranslations("MembersForm");
-	const tRole = useTranslations("TeamRole");
+	const t = useTranslations("OrganizationsForm");
 	const form = useAppForm({
-		defaultValues: {
-			users: [
-				{
-					email: "",
-					role: "member",
-				},
-			],
-		} as TeamUsersFormType,
 		validators: {
-			onSubmit: TeamUsersFormSchema,
+			onSubmit: OrganizationsFormSchema,
 		},
+		defaultValues: {
+			organizationIds: [""],
+		} as OrganizationsFormType,
 		onSubmit: ({ value }) => onSubmit(value),
 	});
 
@@ -33,7 +32,7 @@ export const TeamUsersForm = ({
 				onSubmit={(e) => e.preventDefault()}
 				className="flex flex-col gap-2 w-full"
 			>
-				<form.Field name="users" mode="array">
+				<form.Field name="organizationIds" mode="array">
 					{(arrayField) => (
 						<>
 							{arrayField.state.value.map((_, index) => (
@@ -42,34 +41,12 @@ export const TeamUsersForm = ({
 									className="flex items-start gap-2 flex-1 w-full"
 								>
 									<form.AppField
-										name={`users[${index}].email`}
+										name={`organizationIds[${index}]`}
 									>
 										{(subField) => (
 											<div className="flex-1">
-												<subField.TextField
-													label=""
-													autoComplete="email"
-												/>
+												<subField.TextField label="" />
 											</div>
-										)}
-									</form.AppField>
-									<form.AppField
-										name={`users[${index}].role`}
-									>
-										{(subField) => (
-											<subField.SelectField
-												label=""
-												options={[
-													{
-														value: "owner",
-														label: tRole.owner,
-													},
-													{
-														value: "member",
-														label: tRole.member,
-													},
-												]}
-											/>
 										)}
 									</form.AppField>
 									<Button
@@ -88,10 +65,7 @@ export const TeamUsersForm = ({
 								<Button
 									type="button"
 									onClick={() => {
-										arrayField.pushValue({
-											email: "",
-											role: "member",
-										});
+										arrayField.pushValue("");
 									}}
 									variant="outline"
 								>

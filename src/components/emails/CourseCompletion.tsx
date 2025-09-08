@@ -5,13 +5,13 @@ import { Link } from "./Link";
 
 export const CourseCompletion = ({
 	name = "Golfing Tutorial",
-	teamName = "Krak",
+	organizationName = "Krak",
 	href = "https://google.com",
 	logo,
 	t = en.Email.CourseCompletion,
 }: {
 	name?: string;
-	teamName?: string;
+	organizationName?: string;
 	href?: string;
 	logo?: string | null;
 	t: Messages["Email"]["CourseCompletion"];
@@ -25,11 +25,11 @@ export const CourseCompletion = ({
 			{`${t.congratulations} `}
 			<strong>{name}</strong>
 			{` ${t.by} `}
-			<strong>{teamName}</strong>. {t.certificate}
+			<strong>{organizationName}</strong>. {t.certificate}
 		</p>
 		<Link href={href}>{t.get}</Link>
 		<hr style={{ marginTop: "2rem", marginBottom: "2rem" }} />
-		<p style={{ marginBottom: 0 }}>{teamName}</p>
+		<p style={{ marginBottom: 0 }}>{organizationName}</p>
 	</Container>
 );
 

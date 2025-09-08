@@ -9,7 +9,7 @@ import { z } from "zod";
 export const ConnectionLinkSchema = z.object({
 	type: z.enum(["course", "collection"]),
 	id: z.string(),
-	teamId: z.string(),
+	organizationId: z.string(),
 	locale: LocaleSchema.optional(),
 	isPublic: z.boolean().default(false).optional(),
 });
@@ -18,12 +18,12 @@ export type ConnectionLink = z.infer<typeof ConnectionLinkSchema>;
 export const getConnectionLink = async ({
 	type,
 	id,
-	teamId,
+	organizationId,
 	locale,
 	isPublic,
 }: ConnectionLink) => {
 	const domain = await db.query.domains.findFirst({
-		where: and(eq(domains.teamId, teamId)),
+		where: and(eq(domains.organizationId, organizationId)),
 	});
 	let isCustomDomain = false;
 	let base = env.VITE_SITE_URL;
@@ -42,8 +42,8 @@ export const getConnectionLink = async ({
 
 	url.pathname = `${locale ? `/${locale}` : ""}${isPublic ? "/" : /learner/}${type}s/${id}`;
 
-	if (teamId && !isCustomDomain) {
-		url.searchParams.set("teamId", teamId);
+	if (organizationId && !isCustomDomain) {
+		url.searchParams.set("organizationId", organizationId);
 	}
 	return url.toString();
 };
@@ -54,6 +54,7 @@ export const getUserList = async ({ emails }: { emails: string[] }) => {
 		.values(
 			emails.map((email) => ({
 				email,
+				name: "",
 				id: Bun.randomUUIDv7(),
 			})),
 		)

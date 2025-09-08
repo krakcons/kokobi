@@ -1,5 +1,6 @@
 import { CoursesFormSchema } from "@/components/forms/CoursesForm";
 import { handleLocalization } from "@/lib/locale";
+import { base, publicProcedure, organizationProcedure } from "../middleware";
 import { db } from "@/server/db";
 import {
 	collectionTranslations,
@@ -9,16 +10,14 @@ import {
 } from "@/server/db/schema";
 import { CollectionFormSchema, CollectionSchema } from "@/types/collections";
 import { CourseSchema } from "@/types/course";
-import { TeamSchema } from "@/types/team";
-import { ORPCError } from "@orpc/client";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
+import { ORPCError } from "@orpc/client";
 import { getConnectionLink } from "../lib/connection";
-import { base, publicProcedure, teamProcedure } from "../middleware";
 import { createConnection } from "./connection";
 
 export const collectionRouter = base.prefix("/collections").router({
-	get: teamProcedure()
+	get: organizationProcedure
 		.route({
 			tags: ["Collection"],
 			method: "GET",
@@ -27,10 +26,11 @@ export const collectionRouter = base.prefix("/collections").router({
 		})
 		.output(CollectionSchema.array())
 		.handler(async ({ context }) => {
-			const teamId = context.teamId;
-
 			const collectionList = await db.query.collections.findMany({
-				where: eq(collections.teamId, teamId),
+				where: eq(
+					collections.organizationId,
+					context.session.activeOrganizationId,
+				),
 				with: {
 					translations: true,
 				},
@@ -52,13 +52,13 @@ export const collectionRouter = base.prefix("/collections").router({
 				id: z.string(),
 			}),
 		)
-		.output(CollectionSchema.extend({ team: TeamSchema }))
+		//.output(CollectionSchema.extend({ organization: OrganizationSchema }))
 		.handler(async ({ context, input: { id } }) => {
 			const collection = await db.query.collections.findFirst({
 				where: and(eq(collections.id, id)),
 				with: {
 					translations: true,
-					team: {
+					organization: {
 						with: {
 							translations: true,
 						},
@@ -72,11 +72,14 @@ export const collectionRouter = base.prefix("/collections").router({
 
 			return {
 				...handleLocalization(context, collection),
-				team: handleLocalization(context, collection.team),
+				organization: handleLocalization(
+					context,
+					collection.organization,
+				),
 			};
 		}),
 
-	create: teamProcedure()
+	create: organizationProcedure
 		.route({
 			tags: ["Collection"],
 			method: "POST",
@@ -85,13 +88,13 @@ export const collectionRouter = base.prefix("/collections").router({
 		})
 		.input(CollectionFormSchema)
 		.output(z.object({ collectionId: z.string() }))
-		.handler(async ({ context: { locale, teamId }, input }) => {
+		.handler(async ({ context: { locale, session }, input }) => {
 			const collectionId = Bun.randomUUIDv7();
 
 			await db.insert(collections).values({
 				id: collectionId,
 				...input,
-				teamId,
+				organizationId: session.activeOrganizationId,
 			});
 			await db.insert(collectionTranslations).values({
 				...input,
@@ -101,7 +104,7 @@ export const collectionRouter = base.prefix("/collections").router({
 
 			return { collectionId };
 		}),
-	update: teamProcedure()
+	update: organizationProcedure
 		.route({
 			tags: ["Collection"],
 			method: "PUT",
@@ -113,13 +116,16 @@ export const collectionRouter = base.prefix("/collections").router({
 				id: z.string(),
 			}),
 		)
-		.handler(async ({ context: { teamId, locale }, input }) => {
+		.handler(async ({ context: { session, locale }, input }) => {
 			const id = input.id;
 
 			const collection = await db.query.collections.findFirst({
 				where: and(
 					eq(collections.id, id),
-					eq(collections.teamId, teamId),
+					eq(
+						collections.organizationId,
+						session.activeOrganizationId,
+					),
 				),
 			});
 
@@ -154,7 +160,7 @@ export const collectionRouter = base.prefix("/collections").router({
 
 			return input;
 		}),
-	delete: teamProcedure()
+	delete: organizationProcedure
 		.route({
 			tags: ["Collection"],
 			method: "DELETE",
@@ -167,17 +173,21 @@ export const collectionRouter = base.prefix("/collections").router({
 			}),
 		)
 		.handler(async ({ context, input: { id } }) => {
-			const { teamId } = context;
-
 			await db
 				.delete(collections)
 				.where(
-					and(eq(collections.id, id), eq(collections.teamId, teamId)),
+					and(
+						eq(collections.id, id),
+						eq(
+							collections.organizationId,
+							context.session.activeOrganizationId,
+						),
+					),
 				);
 
 			return null;
 		}),
-	learners: teamProcedure()
+	learners: organizationProcedure
 		.route({
 			tags: ["Collection"],
 			method: "GET",
@@ -192,7 +202,10 @@ export const collectionRouter = base.prefix("/collections").router({
 		.handler(async ({ context, input: { id } }) => {
 			const connections = await db.query.usersToCollections.findMany({
 				where: and(
-					eq(usersToCollections.teamId, context.teamId),
+					eq(
+						usersToCollections.organizationId,
+						context.session.activeOrganizationId,
+					),
 					id ? eq(usersToCollections.collectionId, id) : undefined,
 				),
 				with: {
@@ -243,7 +256,7 @@ export const collectionRouter = base.prefix("/collections").router({
 
 				return courses;
 			}),
-		create: teamProcedure()
+		create: organizationProcedure
 			.route({
 				tags: ["Collection Courses"],
 				method: "POST",
@@ -268,7 +281,7 @@ export const collectionRouter = base.prefix("/collections").router({
 
 				return null;
 			}),
-		delete: teamProcedure()
+		delete: organizationProcedure
 			.route({
 				tags: ["Collection Courses"],
 				method: "POST",
@@ -281,33 +294,34 @@ export const collectionRouter = base.prefix("/collections").router({
 					courseId: z.string(),
 				}),
 			)
-			.handler(
-				async ({ context: { teamId }, input: { id, courseId } }) => {
-					const collection = await db.query.collections.findFirst({
-						where: and(
-							eq(collections.id, id),
-							eq(collections.teamId, teamId),
+			.handler(async ({ context, input: { id, courseId } }) => {
+				const collection = await db.query.collections.findFirst({
+					where: and(
+						eq(collections.id, id),
+						eq(
+							collections.organizationId,
+							context.session.activeOrganizationId,
 						),
-					});
+					),
+				});
 
-					if (!collection) {
-						throw new ORPCError("NOT_FOUND");
-					}
+				if (!collection) {
+					throw new ORPCError("NOT_FOUND");
+				}
 
-					await db
-						.delete(collectionsToCourses)
-						.where(
-							and(
-								eq(collectionsToCourses.collectionId, id),
-								eq(collectionsToCourses.courseId, courseId),
-							),
-						);
+				await db
+					.delete(collectionsToCourses)
+					.where(
+						and(
+							eq(collectionsToCourses.collectionId, id),
+							eq(collectionsToCourses.courseId, courseId),
+						),
+					);
 
-					return null;
-				},
-			),
+				return null;
+			}),
 	},
-	link: teamProcedure()
+	link: organizationProcedure
 		.route({
 			tags: ["Collection"],
 			method: "GET",
@@ -324,12 +338,12 @@ export const collectionRouter = base.prefix("/collections").router({
 			return await getConnectionLink({
 				type: "collection",
 				id,
-				teamId: context.teamId,
+				organizationId: context.session.activeOrganizationId,
 				locale: context.locale,
 				isPublic: true,
 			});
 		}),
-	invite: teamProcedure()
+	invite: organizationProcedure
 		.route({
 			tags: ["Collection"],
 			method: "POST",

@@ -25,16 +25,15 @@ import { EmailsForm } from "@/components/forms/EmailsForm";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
-import type { User } from "@/types/users";
 import type { UserToCourseType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import type { Module } from "@/types/module";
 import type { Learner } from "@/types/learner";
 import { dateSortingFn, formatDate } from "@/lib/date";
 import { useLocale, useTranslations } from "@/lib/locale";
-import { resendCompletionEmailFn } from "@/server/handlers/users.modules";
 import { isModuleSuccessful } from "@/lib/scorm";
 import { orpc } from "@/server/client";
+import type { User } from "better-auth";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/learners",
@@ -152,9 +151,9 @@ function RouteComponent() {
 			},
 		}),
 	);
-	const resendCompletionEmail = useMutation({
-		mutationFn: resendCompletionEmailFn,
-	});
+	const resendCompletionEmail = useMutation(
+		orpc.course.resendCompletionEmail.mutationOptions(),
+	);
 
 	const columns: ColumnDef<LearnerTableType>[] = [
 		{
@@ -176,22 +175,11 @@ function RouteComponent() {
 			},
 		},
 		{
-			accessorKey: "user.firstName",
+			accessorKey: "user.name",
 			header: ({ column }) => (
-				<DataTableColumnHeader
-					title={tUser.firstName}
-					column={column}
-				/>
+				<DataTableColumnHeader title={tUser.name} column={column} />
 			),
-			accessorFn: ({ user }) => user.firstName ?? undefined,
-			sortUndefined: "last",
-		},
-		{
-			accessorKey: "user.lastName",
-			header: ({ column }) => (
-				<DataTableColumnHeader title={tUser.lastName} column={column} />
-			),
-			accessorFn: ({ user }) => user.lastName ?? undefined,
+			accessorFn: ({ user }) => user.name ?? undefined,
 			sortUndefined: "last",
 		},
 		{
@@ -348,10 +336,8 @@ function RouteComponent() {
 				name: tLearner.recertify,
 				onClick: ({ attempt }) =>
 					resendCompletionEmail.mutate({
-						data: {
-							attemptId: attempt!.id,
-							courseId: params.courseId,
-						},
+						attemptId: attempt!.id,
+						id: params.courseId,
 					}),
 				visible: ({ attempt }) =>
 					!!attempt &&
