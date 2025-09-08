@@ -326,6 +326,7 @@ export const collectionRouter = base.prefix("/collections").router({
 				id,
 				teamId: context.teamId,
 				locale: context.locale,
+				isPublic: true,
 			});
 		}),
 	invite: teamProcedure()

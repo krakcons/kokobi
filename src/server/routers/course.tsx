@@ -1,11 +1,6 @@
+import { handleLocalization } from "@/lib/locale";
+import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { db } from "@/server/db";
-import { base, publicProcedure, teamProcedure } from "../middleware";
-import { z } from "zod";
-import { ORPCError } from "@orpc/client";
-import { CourseFormSchema, CourseSchema } from "@/types/course";
-import { TeamSchema } from "@/types/team";
-import { s3 } from "../s3";
-import { hasTeamAccess } from "../lib/access";
 import {
 	collectionsToCourses,
 	courseTranslations,
@@ -17,14 +12,18 @@ import {
 	usersToCourses,
 	usersToModules,
 } from "@/server/db/schema";
-import { and, desc, eq, inArray } from "drizzle-orm";
-import { handleLocalization } from "@/lib/locale";
+import { CourseFormSchema, CourseSchema } from "@/types/course";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
-import { env } from "../env";
 import { ModuleSchema } from "@/types/module";
-import { shouldIgnoreFile, validateModule } from "@/lib/module";
-import { getNewModuleVersionNumber } from "../lib/modules";
+import { TeamSchema } from "@/types/team";
+import { ORPCError } from "@orpc/client";
+import { and, desc, eq, inArray } from "drizzle-orm";
+import { z } from "zod";
+import { hasTeamAccess } from "../lib/access";
 import { getConnectionLink } from "../lib/connection";
+import { getNewModuleVersionNumber } from "../lib/modules";
+import { base, publicProcedure, teamProcedure } from "../middleware";
+import { s3 } from "../s3";
 import { createConnection } from "./connection";
 
 export const courseRouter = base.prefix("/courses").router({
@@ -660,6 +659,7 @@ export const courseRouter = base.prefix("/courses").router({
 				id,
 				teamId: context.teamId,
 				locale: context.locale,
+				isPublic: true,
 			});
 		}),
 	invite: teamProcedure()
