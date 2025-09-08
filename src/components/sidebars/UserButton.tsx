@@ -52,88 +52,90 @@ const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	}
 };
 
-export type ChildrenProps = {
-	name: string | null;
-	initials: string | React.ReactNode;
-	user: UserType;
-	onClick?: () => void;
-};
 type UserDropdownProps = {
 	user: UserType;
 	signOutRedirect?: string;
 	side?: "top" | "right" | "bottom" | "left";
 };
 
+const getName = (user: UserType) => {
+	if (user.firstName && user.lastName) {
+		return user.firstName + " " + user.lastName;
+	}
+	return null;
+};
+
+const getInitials = (user: UserType) => {
+	if (user.firstName && user.lastName) {
+		return user.firstName.charAt(0) + user.lastName.charAt(0);
+	}
+	return <User className="size-4.5" />;
+};
+
 export const AdminUserButton = (props: UserDropdownProps) => {
 	const { isMobile } = useSidebar();
 
+	const name = getName(props.user);
+	const initials = getInitials(props.user);
+
 	return (
 		<UserDropdown {...props} side={isMobile ? "bottom" : "right"}>
-			{({ initials, name, user }) => (
-				<DropdownMenuTrigger asChild>
-					<SidebarMenuItem>
-						<SidebarMenuButton
-							size="lg"
-							className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+			<SidebarMenuItem>
+				<SidebarMenuButton
+					size="lg"
+					className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+				>
+					<Avatar className="h-8 w-8 rounded-lg grayscale">
+						<AvatarFallback className="rounded-lg">
+							{initials}
+						</AvatarFallback>
+					</Avatar>
+					<div className="grid flex-1 text-left text-sm leading-tight">
+						{name && (
+							<span className="truncate font-medium">{name}</span>
+						)}
+						<span
+							className={cn(
+								"truncate text-xs",
+								name && "text-muted-foreground",
+							)}
 						>
-							<Avatar className="h-8 w-8 rounded-lg grayscale">
-								<AvatarFallback className="rounded-lg">
-									{initials}
-								</AvatarFallback>
-							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								{name && (
-									<span className="truncate font-medium">
-										{name}
-									</span>
-								)}
-								<span
-									className={cn(
-										"truncate text-xs",
-										name && "text-muted-foreground",
-									)}
-								>
-									{user.email}
-								</span>
-							</div>
-							<MoreVerticalIcon className="ml-auto size-4" />
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-				</DropdownMenuTrigger>
-			)}
+							{props.user.email}
+						</span>
+					</div>
+					<MoreVerticalIcon className="ml-auto size-4" />
+				</SidebarMenuButton>
+			</SidebarMenuItem>
 		</UserDropdown>
 	);
 };
 
 export const PublicUserButton = (props: UserDropdownProps) => {
+	const name = getName(props.user);
+	const initials = getInitials(props.user);
+
 	return (
 		<UserDropdown {...props} side="bottom">
-			{({ initials, name, user }) => (
-				<DropdownMenuTrigger asChild>
-					<Button
-						size="md"
-						variant="outline"
-						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border-0 shadow-none py-5 pr-4"
-					>
-						<Avatar className="h-8 w-8 rounded-lg grayscale">
-							<AvatarFallback className="rounded-lg">
-								{initials}
-							</AvatarFallback>
-						</Avatar>
-						<div className="grid flex-1 text-left text-sm leading-tight">
-							{name ? (
-								<span className="truncate font-medium">
-									{name}
-								</span>
-							) : (
-								<span className={cn("truncate text-xs")}>
-									{user.email}
-								</span>
-							)}
-						</div>
-					</Button>
-				</DropdownMenuTrigger>
-			)}
+			<Button
+				size="md"
+				variant="outline"
+				className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border-0 shadow-none py-5 pr-4"
+			>
+				<Avatar className="h-8 w-8 rounded-lg grayscale">
+					<AvatarFallback className="rounded-lg">
+						{initials}
+					</AvatarFallback>
+				</Avatar>
+				<div className="grid flex-1 text-left text-sm leading-tight">
+					{name ? (
+						<span className="truncate font-medium">{name}</span>
+					) : (
+						<span className={cn("truncate text-xs")}>
+							{props.user.email}
+						</span>
+					)}
+				</div>
+			</Button>
 		</UserDropdown>
 	);
 };
@@ -144,7 +146,7 @@ export const UserDropdown = ({
 	side,
 	children,
 }: UserDropdownProps & {
-	children: (props: ChildrenProps) => React.ReactNode;
+	children: React.ReactNode;
 }) => {
 	const { theme, setTheme } = useTheme();
 	const router = useRouter();
@@ -194,11 +196,7 @@ export const UserDropdown = ({
 	return (
 		<>
 			<DropdownMenu>
-				{children({
-					name,
-					initials,
-					user,
-				})}
+				<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 				<DropdownMenuContent
 					className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
 					side={side}
