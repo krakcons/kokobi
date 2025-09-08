@@ -1,11 +1,9 @@
+import { ContentBranding } from "@/components/ContentBranding";
 import { Page } from "@/components/Page";
-import {
-	PublicCourseCard,
-	PublicPageHeader,
-	PublicTeamBranding,
-} from "@/components/PublicPage";
+import { PublicCourseCard, PublicPageHeader } from "@/components/PublicPage";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -15,6 +13,11 @@ export const Route = createFileRoute(
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
+			getUserTeamFn({
+				data: {
+					type: "learner",
+				},
+			}),
 			queryClient.ensureQueryData(
 				orpc.collection.id.queryOptions({
 					input: { id: params.collectionId },
@@ -31,6 +34,7 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
 	const params = Route.useParams();
+	const [team] = Route.useLoaderData();
 	const t = useTranslations("Public");
 
 	const { data: collection } = useSuspenseQuery(
@@ -50,7 +54,10 @@ function RouteComponent() {
 				title={collection.name}
 				description={collection.description}
 			>
-				<PublicTeamBranding contentTeam={collection.team} />
+				<ContentBranding
+					contentTeam={collection.team}
+					connectTeam={team}
+				/>
 			</PublicPageHeader>
 			<div className="pl-24 flex-col">
 				<h3 className="pb-4">{t.courses}</h3>

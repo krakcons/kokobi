@@ -1,7 +1,9 @@
+import { ContentBranding } from "@/components/ContentBranding";
 import { PublicPageHeader, PublicTeamBranding } from "@/components/PublicPage";
 import { buttonVariants } from "@/components/ui/button";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
+import { getUserTeamFn } from "@/server/handlers/users.teams";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
@@ -9,6 +11,11 @@ export const Route = createFileRoute("/$locale/_public/courses/$courseId/")({
 	component: RouteComponent,
 	loader: ({ params, context: { queryClient } }) => {
 		return Promise.all([
+			getUserTeamFn({
+				data: {
+					type: "learner",
+				},
+			}),
 			queryClient.ensureQueryData(
 				orpc.course.id.queryOptions({
 					input: {
@@ -22,6 +29,8 @@ export const Route = createFileRoute("/$locale/_public/courses/$courseId/")({
 
 function RouteComponent() {
 	const params = Route.useParams();
+	const [team] = Route.useLoaderData();
+
 	const { data: course } = useSuspenseQuery(
 		orpc.course.id.queryOptions({
 			input: {
@@ -38,11 +47,13 @@ function RouteComponent() {
 				description={course.description}
 			>
 				<PublicTeamBranding contentTeam={course.team} />
+				<ContentBranding contentTeam={course.team} connectTeam={team} />
 			</PublicPageHeader>
 			<div className="pl-24">
 				<Link
 					id={course.id}
 					to="/$locale/learner/courses/$courseId"
+					search={{ teamId: team.teamId }}
 					from={Route.fullPath}
 					className={buttonVariants()}
 				>
