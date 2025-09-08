@@ -1,9 +1,9 @@
-import { env } from "@/server/env";
 import { LocaleSchema } from "@/lib/locale";
-import { and, eq } from "drizzle-orm";
-import { domains, users } from "@/server/db/schema";
-import { db } from "@/server/db";
 import { cf } from "@/server/cloudflare";
+import { db } from "@/server/db";
+import { domains, users } from "@/server/db/schema";
+import { env } from "@/server/env";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const ConnectionLinkSchema = z.object({
@@ -11,6 +11,7 @@ export const ConnectionLinkSchema = z.object({
 	id: z.string(),
 	teamId: z.string(),
 	locale: LocaleSchema.optional(),
+	isPublic: z.boolean().default(false).optional(),
 });
 export type ConnectionLink = z.infer<typeof ConnectionLinkSchema>;
 
@@ -19,22 +20,29 @@ export const getConnectionLink = async ({
 	id,
 	teamId,
 	locale,
+	isPublic,
 }: ConnectionLink) => {
 	const domain = await db.query.domains.findFirst({
 		where: and(eq(domains.teamId, teamId)),
 	});
-	let verified = false;
+	let isCustomDomain = false;
+	let base = env.VITE_SITE_URL;
+
 	if (domain) {
 		const cloudflare = await cf.customHostnames.get(domain.hostnameId, {
 			zone_id: env.CLOUDFLARE_ZONE_ID,
 		});
-		verified = cloudflare.status === "active";
+		if (cloudflare.status === "active") {
+			base = `https://${domain.hostname}`;
+			isCustomDomain = true;
+		}
 	}
-	const base =
-		domain && verified ? `https://${domain.hostname}` : env.VITE_SITE_URL;
+
 	const url = new URL(base);
-	url.pathname = `${locale ? `/${locale}` : ""}/learner/${type}s/${id}`;
-	if (teamId && !domain) {
+
+	url.pathname = `${locale ? `/${locale}` : ""}${isPublic ? "/" : /learner/}${type}s/${id}`;
+
+	if (teamId && !isCustomDomain) {
 		url.searchParams.set("teamId", teamId);
 	}
 	return url.toString();
