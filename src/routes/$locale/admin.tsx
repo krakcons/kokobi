@@ -75,11 +75,9 @@ export const Route = createFileRoute("/$locale/admin")({
 			}
 		} else {
 			if (!auth.session.activeOrganizationId) {
-				console.log("NO ACTIVE ORGANIZATION");
 				const userOrganizations = await queryClient.ensureQueryData(
 					orpc.organization.get.queryOptions(),
 				);
-				console.log("USER ORGANIZATIONS", userOrganizations);
 				if (userOrganizations?.length === 0) {
 					throw redirect({
 						to: "/$locale/auth/create-organization",
@@ -136,8 +134,6 @@ function RouteComponent() {
 	const { data: collections } = useSuspenseQuery(
 		orpc.collection.get.queryOptions(),
 	);
-
-	console.log(invitations);
 
 	return (
 		<SidebarProvider>

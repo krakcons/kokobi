@@ -78,7 +78,6 @@ export const organizationRouter = base.prefix("/organizations").router({
 		})
 		.input(z.object({ id: z.string() }))
 		.handler(async ({ context, input: { id } }) => {
-			console.log("SETTING ACTIVE ORGANIZATION", id);
 			await auth.api.setActiveOrganization({
 				headers: context.headers,
 				body: {

@@ -12,7 +12,11 @@ export const logMiddleware = base.middleware(async ({ context, next }) => {
 			context,
 		});
 	} catch (e) {
-		console.log(e);
+		if (e instanceof ORPCError) {
+			if (e.code !== "UNAUTHORIZED") {
+				console.log(e.message);
+			}
+		}
 		throw e;
 	}
 });

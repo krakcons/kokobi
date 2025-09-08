@@ -38,20 +38,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 		pendingComponent: PendingComponent,
 		component: RootComponent,
 		loader: async ({ context: { queryClient } }) => {
-			console.log("LOADING ROOT");
 			const i18n = await queryClient.ensureQueryData(
 				i18nQueryOptions({}),
 			);
-			console.log("GETTING TENANT 0");
 			const tenantId = await queryClient.ensureQueryData(
 				orpc.auth.tenant.queryOptions(),
 			);
 			let favicon = "/favicon.ico";
 			let title = "Kokobi | Learn, Teach, Connect, and Grow";
-			console.log("GETTING TENANT");
 
 			if (tenantId) {
-				console.log("GETTING TENANT");
 				const tenant = await queryClient.ensureQueryData(
 					orpc.organization.id.queryOptions({
 						input: {

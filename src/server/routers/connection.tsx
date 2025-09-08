@@ -43,7 +43,6 @@ export const createConnection = async ({
 	session: { activeOrganizationId, activeLearnerOrganizationId },
 	user,
 }: CreateConnection & Session) => {
-	console.log("CREATE CONNECTION");
 	// GLOBAL CHECKS
 	if (recipientType === "user" && !emails) {
 		throw new ORPCError("BAD_REQUEST", {
@@ -129,13 +128,11 @@ export const createConnection = async ({
 
 		// INVITE TO COURSE
 		if (recipientType === "user") {
-			console.log("ACCESS");
 			await hasOrganizationAccess({
 				organizationId: activeOrganizationId,
 				type: "course",
 				id,
 			});
-			console.log("ACCESSED");
 
 			const organization = (await db.query.organizations.findFirst({
 				where: eq(organizations.id, activeOrganizationId),

@@ -123,7 +123,6 @@ export const courseRouter = base.prefix("/courses").router({
 		//	}),
 		//)
 		.handler(async ({ context, input: { id } }) => {
-			console.log("ID", id);
 			const course = await db.query.courses.findFirst({
 				where: and(eq(courses.id, id)),
 				with: {

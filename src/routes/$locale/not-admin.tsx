@@ -66,8 +66,6 @@ function RouteComponent() {
 			}
 		: undefined;
 
-	console.log(invitations);
-
 	const { data: organization } = useSuspenseQuery(
 		orpc.organization.id.queryOptions({
 			input: {
@@ -75,8 +73,6 @@ function RouteComponent() {
 			},
 		}),
 	);
-
-	console.log(connection);
 
 	return (
 		<FloatingPage>
