@@ -157,16 +157,8 @@ export const UserDropdown = ({
 	const t = useTranslations("UserButton");
 	const tUserForm = useTranslations("UserForm");
 
-	const name =
-		user.firstName && user.lastName
-			? user.firstName + " " + user.lastName
-			: null;
-	const initials =
-		user.firstName && user.lastName ? (
-			user.firstName.charAt(0) + user.lastName.charAt(0)
-		) : (
-			<User className="size-4.5" />
-		);
+	const name = getName(user);
+	const initials = getInitials(user);
 
 	const setAccountDialog = (open: boolean) =>
 		navigate({
