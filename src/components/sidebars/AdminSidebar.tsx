@@ -43,7 +43,7 @@ import type { UserToTeamType } from "@/types/connections";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { TeamSwitcher } from "./TeamSwitcher";
 import type { User } from "@/types/users";
-import { AdminUserButton, UserButton } from "./UserButton";
+import { AdminUserButton } from "./UserButton";
 import type { Role } from "@/types/team";
 import { Separator } from "../ui/separator";
 
@@ -702,9 +702,7 @@ export const AdminSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<UserButton user={user}>
-						{(props) => <AdminUserButton {...props} />}
-					</UserButton>
+					<AdminUserButton user={user} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

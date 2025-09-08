@@ -4,7 +4,7 @@ import { getAuthFn } from "@/server/handlers/auth";
 import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { z } from "zod";
 import WebsiteLogo from "/favicon.ico";
-import { PublicUserButton, UserButton } from "@/components/sidebars/UserButton";
+import { PublicUserButton } from "@/components/sidebars/UserButton";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/$locale/_public")({
@@ -35,12 +35,10 @@ function RouteComponent() {
 				</a>
 				<nav className="flex w-full max-w-screen-lg items-center justify-end"></nav>
 				{auth.user ? (
-					<UserButton
+					<PublicUserButton
 						user={auth.user}
 						signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
-					>
-						{(props) => <PublicUserButton {...props} />}
-					</UserButton>
+					/>
 				) : (
 					<Button
 						size="md"

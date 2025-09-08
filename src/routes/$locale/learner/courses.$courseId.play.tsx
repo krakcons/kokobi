@@ -11,7 +11,7 @@ import {
 } from "@/server/handlers/users.modules";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { AdminUserButton, UserButton } from "@/components/sidebars/UserButton";
+import { AdminUserButton } from "@/components/sidebars/UserButton";
 import { getAuthFn } from "@/server/handlers/auth";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -107,12 +107,10 @@ function RouteComponent() {
 						>
 							<ChevronLeft aria-label="Back" className="size-6" />
 						</Link>
-						<UserButton
+						<AdminUserButton
 							user={auth.user!}
 							signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}
-						>
-							{(props) => <AdminUserButton {...props} />}
-						</UserButton>
+						/>
 					</div>
 				)}
 				<Badge>{t.statuses[attempt.status]}</Badge>
