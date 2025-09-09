@@ -5,6 +5,7 @@ import {
 	usersToCollections,
 	usersToCourses,
 } from "@/server/db/schema";
+import { ORPCError } from "@orpc/client";
 import { and, eq } from "drizzle-orm";
 
 export const hasUserAccess = async ({
@@ -60,7 +61,7 @@ export const hasUserAccess = async ({
 		}
 	}
 
-	throw new Error("No access to course");
+	throw new ORPCError("FORBIDDEN");
 };
 
 export const hasOrganizationAccess = async ({
@@ -84,7 +85,7 @@ export const hasOrganizationAccess = async ({
 		});
 
 		if (!course && access === "root") {
-			throw new Error("Course not found");
+			throw new ORPCError("NOT_FOUND");
 		}
 
 		if (course && access !== "shared") {
@@ -118,7 +119,7 @@ export const hasOrganizationAccess = async ({
 		});
 
 		if (!collection && access === "root") {
-			throw new Error("Collection not found");
+			throw new ORPCError("NOT_FOUND");
 		}
 
 		if (collection && access !== "shared") {
@@ -126,5 +127,5 @@ export const hasOrganizationAccess = async ({
 		}
 	}
 
-	throw new Error("Access denied");
+	throw new ORPCError("FORBIDDEN");
 };

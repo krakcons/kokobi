@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { reactStartCookies } from "better-auth/react-start";
 import {
+	apiKey,
 	createAuthMiddleware,
 	emailOTP,
 	organization,
@@ -46,6 +47,14 @@ export const auth = betterAuth({
 			},
 		}),
 		admin(),
+		apiKey({
+			enableMetadata: true,
+			// 60 requests per minute
+			rateLimit: {
+				timeWindow: 1000 * 60, // 1 minute
+				maxRequests: 60,
+			},
+		}),
 		organization({
 			cancelPendingInvitationsOnReInvite: true,
 		}),

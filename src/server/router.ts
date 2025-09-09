@@ -1,3 +1,4 @@
+import { apiKeysRouter } from "./routers/api-keys";
 import { authRouter } from "./routers/auth";
 import { collectionRouter } from "./routers/collection";
 import { connectionRouter } from "./routers/connection";
@@ -12,4 +13,5 @@ export const router = {
 	connection: connectionRouter,
 	organization: organizationRouter,
 	auth: authRouter,
+	apiKeys: apiKeysRouter,
 };

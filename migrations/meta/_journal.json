@@ -15,6 +15,13 @@
       "when": 1757083689479,
       "tag": "0001_conscious_redwing",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1757346348248,
+      "tag": "0002_majestic_maelstrom",
+      "breakpoints": true
     }
   ]
 }

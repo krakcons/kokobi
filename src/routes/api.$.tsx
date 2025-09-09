@@ -8,7 +8,7 @@ import { createOrpcContext } from "@/server/context";
 const handler = new OpenAPIHandler(router, {
 	plugins: [
 		new OpenAPIReferencePlugin({
-			docsProvider: "scalar", // default: 'scalar'
+			docsProvider: "scalar",
 			schemaConverters: [new ZodToJsonSchemaConverter()],
 			specGenerateOptions: {
 				info: {
@@ -17,6 +17,20 @@ const handler = new OpenAPIHandler(router, {
 						"Documentation for the Kokobi API endpoints. Built with oRPC. The oRPC endpoint can be found at /api/rpc.",
 					version: "0.0.1",
 				},
+				components: {
+					securitySchemes: {
+						APIKey: {
+							type: "apiKey",
+							in: "header",
+							name: "x-api-key",
+						},
+					},
+				},
+				security: [
+					{
+						APIKey: [],
+					},
+				],
 			},
 		}),
 	],

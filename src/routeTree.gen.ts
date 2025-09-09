@@ -23,8 +23,8 @@ import { Route as LocaleAuthVerifyEmailRouteImport } from './routes/$locale/auth
 import { Route as LocaleAuthLoginRouteImport } from './routes/$locale/auth/login'
 import { Route as LocaleAuthCreateOrganizationRouteImport } from './routes/$locale/auth/create-organization'
 import { Route as LocaleAdminSettingsRouteImport } from './routes/$locale/admin/settings'
-import { Route as LocaleAdminKeysRouteImport } from './routes/$locale/admin/keys'
 import { Route as LocaleAdminCertificateRouteImport } from './routes/$locale/admin/certificate'
+import { Route as LocaleAdminApiKeysRouteImport } from './routes/$locale/admin/api-keys'
 import { Route as LocaleAdminMembersIndexRouteImport } from './routes/$locale/admin/members.index'
 import { Route as LocaleLearnerCollectionsCollectionIdRouteImport } from './routes/$locale/learner/collections.$collectionId'
 import { Route as LocaleAdminSuperUsersRouteImport } from './routes/$locale/admin/super.users'
@@ -118,14 +118,14 @@ const LocaleAdminSettingsRoute = LocaleAdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LocaleAdminRoute,
 } as any)
-const LocaleAdminKeysRoute = LocaleAdminKeysRouteImport.update({
-  id: '/keys',
-  path: '/keys',
-  getParentRoute: () => LocaleAdminRoute,
-} as any)
 const LocaleAdminCertificateRoute = LocaleAdminCertificateRouteImport.update({
   id: '/certificate',
   path: '/certificate',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+const LocaleAdminApiKeysRoute = LocaleAdminApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
   getParentRoute: () => LocaleAdminRoute,
 } as any)
 const LocaleAdminMembersIndexRoute = LocaleAdminMembersIndexRouteImport.update({
@@ -305,8 +305,8 @@ export interface FileRoutesByFullPath {
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale': typeof LocaleIndexRoute
+  '/$locale/admin/api-keys': typeof LocaleAdminApiKeysRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
-  '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
@@ -344,8 +344,8 @@ export interface FileRoutesByTo {
   '/$locale/iframe-test': typeof LocaleIframeTestRoute
   '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale': typeof LocaleIndexRoute
+  '/$locale/admin/api-keys': typeof LocaleAdminApiKeysRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
-  '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
@@ -386,8 +386,8 @@ export interface FileRoutesById {
   '/$locale/learner': typeof LocaleLearnerRouteWithChildren
   '/$locale/not-admin': typeof LocaleNotAdminRoute
   '/$locale/': typeof LocaleIndexRoute
+  '/$locale/admin/api-keys': typeof LocaleAdminApiKeysRoute
   '/$locale/admin/certificate': typeof LocaleAdminCertificateRoute
-  '/$locale/admin/keys': typeof LocaleAdminKeysRoute
   '/$locale/admin/settings': typeof LocaleAdminSettingsRoute
   '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
@@ -429,8 +429,8 @@ export interface FileRouteTypes {
     | '/$locale/learner'
     | '/$locale/not-admin'
     | '/$locale'
+    | '/$locale/admin/api-keys'
     | '/$locale/admin/certificate'
-    | '/$locale/admin/keys'
     | '/$locale/admin/settings'
     | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
@@ -468,8 +468,8 @@ export interface FileRouteTypes {
     | '/$locale/iframe-test'
     | '/$locale/not-admin'
     | '/$locale'
+    | '/$locale/admin/api-keys'
     | '/$locale/admin/certificate'
-    | '/$locale/admin/keys'
     | '/$locale/admin/settings'
     | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
@@ -509,8 +509,8 @@ export interface FileRouteTypes {
     | '/$locale/learner'
     | '/$locale/not-admin'
     | '/$locale/'
+    | '/$locale/admin/api-keys'
     | '/$locale/admin/certificate'
-    | '/$locale/admin/keys'
     | '/$locale/admin/settings'
     | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
@@ -678,18 +678,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminSettingsRouteImport
       parentRoute: typeof LocaleAdminRoute
     }
-    '/$locale/admin/keys': {
-      id: '/$locale/admin/keys'
-      path: '/keys'
-      fullPath: '/$locale/admin/keys'
-      preLoaderRoute: typeof LocaleAdminKeysRouteImport
-      parentRoute: typeof LocaleAdminRoute
-    }
     '/$locale/admin/certificate': {
       id: '/$locale/admin/certificate'
       path: '/certificate'
       fullPath: '/$locale/admin/certificate'
       preLoaderRoute: typeof LocaleAdminCertificateRouteImport
+      parentRoute: typeof LocaleAdminRoute
+    }
+    '/$locale/admin/api-keys': {
+      id: '/$locale/admin/api-keys'
+      path: '/api-keys'
+      fullPath: '/$locale/admin/api-keys'
+      preLoaderRoute: typeof LocaleAdminApiKeysRouteImport
       parentRoute: typeof LocaleAdminRoute
     }
     '/$locale/admin/members/': {
@@ -903,8 +903,8 @@ declare module '@tanstack/react-start/server' {
 }
 
 interface LocaleAdminRouteChildren {
+  LocaleAdminApiKeysRoute: typeof LocaleAdminApiKeysRoute
   LocaleAdminCertificateRoute: typeof LocaleAdminCertificateRoute
-  LocaleAdminKeysRoute: typeof LocaleAdminKeysRoute
   LocaleAdminSettingsRoute: typeof LocaleAdminSettingsRoute
   LocaleAdminIndexRoute: typeof LocaleAdminIndexRoute
   LocaleAdminCollectionsCreateRoute: typeof LocaleAdminCollectionsCreateRoute
@@ -926,8 +926,8 @@ interface LocaleAdminRouteChildren {
 }
 
 const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
+  LocaleAdminApiKeysRoute: LocaleAdminApiKeysRoute,
   LocaleAdminCertificateRoute: LocaleAdminCertificateRoute,
-  LocaleAdminKeysRoute: LocaleAdminKeysRoute,
   LocaleAdminSettingsRoute: LocaleAdminSettingsRoute,
   LocaleAdminIndexRoute: LocaleAdminIndexRoute,
   LocaleAdminCollectionsCreateRoute: LocaleAdminCollectionsCreateRoute,

@@ -6,7 +6,7 @@ import {
 	text,
 } from "drizzle-orm/sqlite-core";
 export * from "./auth";
-import { users, sessions, organizations } from "./auth";
+import { users, sessions, organizations, apikeys } from "./auth";
 
 // Enums
 
@@ -303,6 +303,13 @@ export const domainsRelations = relations(domains, ({ one }) => ({
 	organization: one(organizations, {
 		fields: [domains.organizationId],
 		references: [organizations.id],
+	}),
+}));
+
+export const apikeysRelations = relations(apikeys, ({ one }) => ({
+	user: one(users, {
+		fields: [apikeys.userId],
+		references: [users.id],
 	}),
 }));
 

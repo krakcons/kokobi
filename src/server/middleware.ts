@@ -2,7 +2,7 @@ import { ORPCError, os } from "@orpc/server";
 import type { OrpcContext } from "./context";
 import { LocalizedInputSchema } from "@/lib/locale";
 import { getCookie } from "@orpc/server/helpers";
-import { auth, type Session } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 export const base = os.$context<OrpcContext>();
 
@@ -16,14 +16,21 @@ export const logMiddleware = base.middleware(async ({ context, next }) => {
 			if (e.code !== "UNAUTHORIZED") {
 				console.log(e.message);
 			}
+		} else {
+			console.log(e);
 		}
+
 		throw e;
 	}
 });
 
 const getAuth = async (headers: Headers) => {
-	const authResult = await auth.api.getSession({
-		headers,
+	// Prevent use the api key for user sessions
+	const authHeaders = new Headers(headers);
+	authHeaders.delete("x-api-key");
+
+	let authResult = await auth.api.getSession({
+		headers: authHeaders,
 	});
 
 	return {
@@ -65,81 +72,72 @@ const authMiddleware = base.middleware(async ({ context, next }) => {
 	});
 });
 
-export const protectedMiddleware = base.middleware(
+export const protectedMiddleware = authMiddleware.concat(
 	async ({ context, next }) => {
-		const authResult = await getAuth(context.headers);
-
-		if (!authResult.user || !authResult.session) {
+		if (!context.user || !context.session) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		return next({
 			context: {
 				...context,
-				...authResult,
-				user: authResult.user,
-				session: authResult.session,
+				user: context.user,
+				session: context.session,
 			},
 		});
 	},
 );
 
-export const superAdminMiddleware = base.middleware(
+export const superAdminMiddleware = protectedMiddleware.concat(
 	async ({ context, next }) => {
-		const authResult = await getAuth(context.headers);
-
-		if (!authResult.user || !authResult.session) {
-			throw new ORPCError("UNAUTHORIZED");
-		}
-
-		if (authResult.user.role !== "admin") {
+		if (context.user?.role !== "admin") {
 			throw new ORPCError("UNAUTHORIZED");
 		}
 
 		return next({
 			context: {
 				...context,
-				...authResult,
-			},
-		});
-	},
-);
-
-export const publicProcedure = base
-	.use(logMiddleware)
-	.use(localeMiddleware)
-	.use(authMiddleware);
-
-export const protectedProcedure = base
-	.use(logMiddleware)
-	.use(localeMiddleware)
-	.use(protectedMiddleware);
-
-export const superAdminProcedure = base
-	.use(logMiddleware)
-	.use(localeMiddleware)
-	.use(superAdminMiddleware);
-
-export const organizationProcedure = protectedProcedure.use(
-	base.$context<Session>().middleware(async ({ context, next }) => {
-		if (!context.session.activeOrganizationId) {
-			throw new ORPCError("UNAUTHORIZED");
-		}
-
-		return next({
-			context: {
-				...context,
-				session: {
-					...context.session,
-					activeOrganizationId: context.session.activeOrganizationId,
+				user: {
+					...context.user,
+					role: context.user.role,
 				},
 			},
 		});
-	}),
+	},
 );
 
-export const learnerProcedure = protectedProcedure.use(
-	base.$context<Session>().middleware(async ({ context, next }) => {
+export const organizationMiddleware = authMiddleware.concat(
+	async ({ context, next }) => {
+		const key = context.headers.get("x-api-key");
+
+		let organizationId: string | null | undefined = null;
+		if (key) {
+			const apiKey = await auth.api.verifyApiKey({
+				body: {
+					key,
+				},
+			});
+
+			organizationId = apiKey.key?.metadata?.organizationId;
+		} else {
+			organizationId = context.session?.activeOrganizationId;
+		}
+
+		if (!organizationId) {
+			throw new ORPCError("UNAUTHORIZED");
+		}
+
+		return next({
+			context: {
+				...context,
+				activeOrganizationId: organizationId,
+			},
+		});
+	},
+);
+
+export const learnerMiddleware = protectedMiddleware.concat(
+	async ({ context, next }) => {
 		if (!context.session.activeLearnerOrganizationId) {
 			throw new ORPCError("UNAUTHORIZED");
 		}
@@ -154,5 +152,12 @@ export const learnerProcedure = protectedProcedure.use(
 				},
 			},
 		});
-	}),
+	},
 );
+
+export const baseProcedure = base.use(logMiddleware).use(localeMiddleware);
+export const publicProcedure = baseProcedure.use(authMiddleware);
+export const protectedProcedure = baseProcedure.use(protectedMiddleware);
+export const superAdminProcedure = baseProcedure.use(superAdminMiddleware);
+export const organizationProcedure = baseProcedure.use(organizationMiddleware);
+export const learnerProcedure = baseProcedure.use(learnerMiddleware);
