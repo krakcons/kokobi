@@ -1,8 +1,8 @@
 import { ORPCError, os } from "@orpc/server";
 import type { OrpcContext } from "./context";
-import { LocalizedInputSchema } from "@/lib/locale";
-import { getCookie } from "@orpc/server/helpers";
 import { auth } from "@/lib/auth";
+import { getCookie } from "@orpc/server/helpers";
+import { LocalizedInputSchema, parseAcceptLanguage } from "@/lib/locale";
 
 export const base = os.$context<OrpcContext>();
 
@@ -44,19 +44,24 @@ const getAuth = async (headers: Headers) => {
 	};
 };
 
-const localeMiddleware = base.middleware(async ({ context, next }) => {
+export const getLocaleContext = (headers: Headers) => {
 	const locale =
-		context.headers.get("locale") ?? getCookie(context.headers, "locale");
-	const fallbackLocale = context.headers.get("fallbackLocale");
+		headers.get("locale") ??
+		getCookie(headers, "locale") ??
+		parseAcceptLanguage(headers.get("accept-language"));
+	const fallbackLocale = headers.get("fallbackLocale") ?? "en";
 
+	return LocalizedInputSchema.parse({
+		locale,
+		fallbackLocale,
+	});
+};
+
+const localeMiddleware = base.middleware(async ({ context, next }) => {
 	return next({
 		context: {
 			...context,
-			...LocalizedInputSchema.parse({
-				locale: locale === "undefined" ? undefined : locale,
-				fallbackLocale:
-					fallbackLocale === "undefined" ? undefined : fallbackLocale,
-			}),
+			...getLocaleContext(context.headers),
 		},
 	});
 });

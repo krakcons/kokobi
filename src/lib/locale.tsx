@@ -119,13 +119,45 @@ export const rootLocaleMiddleware = async ({
 		queryClient.invalidateQueries();
 	}
 };
+
+export const parseAcceptLanguage = (
+	input?: string | null,
+): "en" | "fr" | undefined => {
+	if (!input) return undefined;
+
+	// Parse Accept-Language header format: "fr-CA,fr;q=0.9,en;q=0.8"
+	const languages = input
+		.toLowerCase()
+		.split(",")
+		.map((lang) => {
+			// Remove quality values (;q=0.9) and whitespace
+			const [code] = lang.split(";")[0].trim().split("-");
+			return code;
+		})
+		.filter(Boolean); // Remove empty strings
+
+	// Find first supported language in order of preference
+	for (const lang of languages) {
+		if (lang === "fr") return "fr";
+		if (lang === "en") return "en";
+	}
+
+	return undefined;
+};
+
 export const localeMiddleware = createMiddleware({
 	type: "function",
 }).server(async ({ next }) => {
+	const locale =
+		getHeader("locale") ??
+		getCookie("locale") ??
+		parseAcceptLanguage(getHeader("accept-language"));
+	const fallbackLocale = getHeader("fallbackLocale") ?? "en";
+
 	return next({
 		context: LocalizedInputSchema.parse({
-			locale: getHeader("locale") ?? getCookie("locale") ?? "en",
-			fallbackLocale: getHeader("fallbackLocale"),
+			locale,
+			fallbackLocale,
 		}),
 	});
 });
