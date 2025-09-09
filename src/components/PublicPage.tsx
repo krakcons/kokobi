@@ -22,7 +22,7 @@ export function PublicPageHeader({
 }) {
 	return (
 		<div className="flex flex-col gap-2 mt-4">
-			<div className="flex justify-between flex-col px-24">
+			<div className="flex justify-between flex-col">
 				<OrganizationIcon
 					src={organizationImageUrl(organization, "logo")}
 					className="max-h-12"
@@ -65,7 +65,7 @@ export const PublicCourseCard = ({
 				courseId: id,
 			}}
 		>
-			<Card className="flex flex-row justify-between items-center mr-24">
+			<Card className="flex flex-row justify-between items-center">
 				<CardHeader className="flex-1">
 					<CardTitle>{name}</CardTitle>
 					{description && (

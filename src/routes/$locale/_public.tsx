@@ -40,41 +40,48 @@ function RouteComponent() {
 
 	return (
 		<div className="flex flex-col">
-			<header className="border-b-elevation-4 flex h-16 w-full items-center justify-between border-b lg:px-28 px-6 shadow-md dark:shadow-white/7">
-				<Link to="/$locale" from={Route.fullPath}>
-					<img
-						src={WebsiteLogo}
-						alt="Website Logo"
-						className="h-10 w-10 rounded-full hover:grayscale-50"
-					/>
-				</Link>
-				<div className="flex flex-row">
-					{auth.user && auth.session ? (
-						<PublicUserButton
-							user={auth.user}
-							session={auth.session as SessionWithImpersonatedBy}
-							signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
+			<header className="border-b-elevation-4 flex h-16 w-full items-center justify-between border-b shadow-md dark:shadow-white/7">
+				<div className="flex flex-row mx-auto w-full px-6 xl:px-0 xl:max-w-screen-xl items-center justify-between">
+					<Link to="/$locale" from={Route.fullPath}>
+						<img
+							src={WebsiteLogo}
+							alt="Website Logo"
+							className="h-10 w-10 rounded-full hover:grayscale-50"
 						/>
-					) : (
-						<Button
-							size="md"
-							className=" px-4"
-							onClick={() =>
-								navigate({ to: "/$locale/auth/login" })
-							}
-						>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className={"truncate text-sm"}>
-									{t.signin}
-								</span>
-							</div>
-						</Button>
-					)}
-					<div className="mx-1"></div>
-					<LocaleToggle />
+					</Link>
+					{/* <main className="flex flex-row mx-auto w-full max-w-screen-xl"> */}
+					<div className="flex flex-row">
+						{auth.user && auth.session ? (
+							<PublicUserButton
+								user={auth.user}
+								session={
+									auth.session as SessionWithImpersonatedBy
+								}
+								signOutRedirect={`/${locale}/auth/login?redirect=${location.pathname}`}
+							/>
+						) : (
+							<Button
+								size="md"
+								className=" px-4"
+								onClick={() =>
+									navigate({ to: "/$locale/auth/login" })
+								}
+							>
+								<div className="grid flex-1 text-left text-sm leading-tight">
+									<span className={"truncate text-sm"}>
+										{t.signin}
+									</span>
+								</div>
+							</Button>
+						)}
+						<div className="mx-1"></div>
+						<LocaleToggle />
+					</div>
 				</div>
 			</header>
-			<Outlet />
+			<main className="flex flex-row mx-auto w-full max-w-screen-xl">
+				<Outlet />
+			</main>
 		</div>
 	);
 }

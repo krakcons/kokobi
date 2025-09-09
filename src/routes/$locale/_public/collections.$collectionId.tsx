@@ -83,7 +83,7 @@ function RouteComponent() {
 				/>
 			</PublicPageHeader>
 
-			<div className="pl-24 flex-col">
+			<div className="flex-col">
 				<Link
 					id={collection.id}
 					to="/$locale/learner/collections/$collectionId"

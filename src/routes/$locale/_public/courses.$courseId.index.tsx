@@ -74,17 +74,16 @@ function RouteComponent() {
 					/>
 				</div>
 			</PublicPageHeader>
-			<div className="pl-24">
-				<Link
-					id={course.id}
-					to="/$locale/learner/courses/$courseId"
-					search={{ organizationId: deliveryOrganization.id }}
-					from={Route.fullPath}
-					className={buttonVariants()}
-				>
-					{t.view}
-				</Link>
-			</div>
+
+			<Link
+				id={course.id}
+				to="/$locale/learner/courses/$courseId"
+				search={{ organizationId: deliveryOrganization.id }}
+				from={Route.fullPath}
+				className={buttonVariants()}
+			>
+				{t.view}
+			</Link>
 		</div>
 	);
 }
