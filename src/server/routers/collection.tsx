@@ -22,7 +22,7 @@ export const collectionRouter = base.prefix("/collections").router({
 		.route({
 			tags: ["Collection"],
 			method: "GET",
-			path: "/collections",
+			path: "/",
 			summary: "Get Collections",
 		})
 		.output(CollectionSchema.array())
@@ -270,6 +270,7 @@ export const collectionRouter = base.prefix("/collections").router({
 					id: z.string(),
 				}),
 			)
+			.output(z.null())
 			.handler(async ({ input: { id, courseIds } }) => {
 				await db
 					.insert(collectionsToCourses)
@@ -286,7 +287,7 @@ export const collectionRouter = base.prefix("/collections").router({
 		delete: organizationProcedure
 			.route({
 				tags: ["Collection Courses"],
-				method: "POST",
+				method: "DELETE",
 				path: "/{id}/courses",
 				summary: "Delete Course",
 			})
@@ -327,7 +328,7 @@ export const collectionRouter = base.prefix("/collections").router({
 		.route({
 			tags: ["Collection"],
 			method: "GET",
-			path: "/link",
+			path: "/{id}/link",
 			summary: "Get Share Link",
 		})
 		.input(
@@ -348,7 +349,7 @@ export const collectionRouter = base.prefix("/collections").router({
 		.route({
 			tags: ["Collection"],
 			method: "POST",
-			path: "/invite",
+			path: "/{id}/invite",
 			summary: "Invite Learners",
 		})
 		.input(

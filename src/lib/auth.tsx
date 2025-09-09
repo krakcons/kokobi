@@ -49,8 +49,10 @@ export const auth = betterAuth({
 		admin(),
 		apiKey({
 			enableMetadata: true,
+			// 60 requests per minute
 			rateLimit: {
-				enabled: false,
+				timeWindow: 1000 * 60, // 1 minute
+				maxRequests: 60,
 			},
 		}),
 		organization({

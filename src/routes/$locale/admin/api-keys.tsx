@@ -6,7 +6,6 @@ import {
 } from "@/components/DataTable";
 import { Page, PageHeader } from "@/components/Page";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
 	useMutation,
 	useQueryClient,
@@ -14,7 +13,7 @@ import {
 } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, EyeOff, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import {
 	Dialog,
@@ -173,11 +172,7 @@ function RouteComponent() {
 				</Dialog>
 			</PageHeader>
 			<DataTable
-				data={keys.map((key) => ({
-					...key,
-					createdAt: new Date(key.createdAt),
-					updatedAt: new Date(key.updatedAt),
-				}))}
+				data={keys}
 				columns={columns}
 				search={search}
 				onSearchChange={(search) => {

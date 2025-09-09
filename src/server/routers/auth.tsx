@@ -1,20 +1,28 @@
 import z from "zod";
 import { getTenant } from "../lib/tenant";
 import {
+	base,
 	protectedProcedure,
 	publicProcedure,
 	superAdminProcedure,
 } from "../middleware";
 import { auth } from "@/lib/auth";
 
-export const authRouter = {
-	session: protectedProcedure.handler(async ({ context }) => {
-		return {
-			session: context.session,
-			user: context.user,
-			member: context.member,
-		};
-	}),
+export const authRouter = base.prefix("/auth").router({
+	session: protectedProcedure
+		.route({
+			tags: ["Auth"],
+			method: "GET",
+			path: "/session",
+			summary: "Get Session",
+		})
+		.handler(async ({ context }) => {
+			return {
+				session: context.session,
+				user: context.user,
+				member: context.member,
+			};
+		}),
 	tenant: publicProcedure
 		.route({
 			tags: ["Auth"],
@@ -57,15 +65,28 @@ export const authRouter = {
 	},
 	super: {
 		user: {
-			get: superAdminProcedure.handler(async ({ context }) => {
-				return await auth.api.listUsers({
-					headers: context.headers,
-					query: {
-						limit: 1000,
-					},
-				});
-			}),
+			get: superAdminProcedure
+				.route({
+					tags: ["Auth"],
+					method: "GET",
+					path: "/user",
+					summary: "Get Users",
+				})
+				.handler(async ({ context }) => {
+					return await auth.api.listUsers({
+						headers: context.headers,
+						query: {
+							limit: 1000,
+						},
+					});
+				}),
 			impersonate: superAdminProcedure
+				.route({
+					tags: ["Auth"],
+					method: "POST",
+					path: "/user/impersonate",
+					summary: "Impersonate User",
+				})
 				.input(
 					z.object({
 						id: z.string(),
@@ -81,4 +102,4 @@ export const authRouter = {
 				}),
 		},
 	},
-};
+});

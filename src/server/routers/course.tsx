@@ -798,7 +798,7 @@ export const courseRouter = base.prefix("/courses").router({
 		.route({
 			tags: ["Course"],
 			method: "GET",
-			path: "/link",
+			path: "/{id}/link",
 			summary: "Get Share Link",
 		})
 		.input(
@@ -819,7 +819,7 @@ export const courseRouter = base.prefix("/courses").router({
 		.route({
 			tags: ["Course"],
 			method: "POST",
-			path: "/invite",
+			path: "/{id}/invite",
 			summary: "Invite Learners",
 		})
 		.input(

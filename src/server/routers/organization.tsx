@@ -260,6 +260,12 @@ export const organizationRouter = base.prefix("/organizations").router({
 			return handleLocalization(context, organization);
 		}),
 	id: publicProcedure
+		.route({
+			tags: ["Organization"],
+			method: "GET",
+			path: "/{id}",
+			summary: "Get Organization",
+		})
 		.input(z.object({ id: z.string() }))
 		.output(OrganizationSchema)
 		.handler(async ({ context, input: { id } }) => {

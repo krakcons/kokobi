@@ -69,6 +69,9 @@ const fr: Messages = {
 		table: {
 			name: "Nom",
 			key: "Clé",
+			createdAt: "Créé à",
+			createdBy: "Créé par",
+			lastRequest: "Dernière requête",
 		},
 	},
 	APIKeyForm: {

@@ -25,8 +25,8 @@ export const logMiddleware = base.middleware(async ({ context, next }) => {
 });
 
 const getAuth = async (headers: Headers) => {
-	// Dont use the api key for auth sessions (prevents using as user not organization)
-	const authHeaders = headers;
+	// Prevent use the api key for user sessions
+	const authHeaders = new Headers(headers);
 	authHeaders.delete("x-api-key");
 
 	let authResult = await auth.api.getSession({
@@ -110,7 +110,7 @@ export const organizationMiddleware = authMiddleware.concat(
 	async ({ context, next }) => {
 		const key = context.headers.get("x-api-key");
 
-		let organizationId: string | null | undefined;
+		let organizationId: string | null | undefined = null;
 		if (key) {
 			const apiKey = await auth.api.verifyApiKey({
 				body: {
