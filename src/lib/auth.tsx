@@ -26,6 +26,7 @@ export const auth = betterAuth({
 			},
 		},
 	},
+	trustedOrigins: ["*"],
 	plugins: [
 		emailOTP({
 			async sendVerificationOTP({ email, otp }) {
