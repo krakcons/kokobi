@@ -1,10 +1,11 @@
 import { ContentBranding } from "@/components/ContentBranding";
 import { Page } from "@/components/Page";
 import { PublicCourseCard, PublicPageHeader } from "@/components/PublicPage";
+import { buttonVariants } from "@/components/ui/button";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import z from "zod";
 
 export const Route = createFileRoute(
@@ -47,6 +48,7 @@ function RouteComponent() {
 	const params = Route.useParams();
 	const search = Route.useSearch();
 	const t = useTranslations("Public");
+	const s = useTranslations("Collection");
 
 	const { data: customDeliveryOrganization } = useQuery(
 		orpc.organization.id.queryOptions({
@@ -80,8 +82,19 @@ function RouteComponent() {
 					connectOrganization={deliveryOrganization}
 				/>
 			</PublicPageHeader>
+
 			<div className="pl-24 flex-col">
-				<h3 className="pb-4">{t.courses}</h3>
+				<Link
+					id={collection.id}
+					to="/$locale/learner/collections/$collectionId"
+					search={{ organizationId: deliveryOrganization.id }}
+					from={Route.fullPath}
+					className={buttonVariants()}
+				>
+					{s.view}
+				</Link>
+
+				<h3 className="pb-4 py-6">{t.courses}</h3>
 				{courses.map((course) => (
 					<PublicCourseCard
 						key={course.id}

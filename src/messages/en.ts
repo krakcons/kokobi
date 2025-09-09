@@ -152,6 +152,9 @@ const en = {
 		empty: "No courses available. Create a course first here.",
 		create: "Create Course",
 	},
+	Collection: {
+		view: "View Collection",
+	},
 	CollectionForm: {
 		name: "Name",
 		description: "Description",
@@ -499,6 +502,7 @@ const en = {
 		},
 		account: "Account",
 		signout: "Sign out",
+		signin: "Sign In",
 	},
 };
 

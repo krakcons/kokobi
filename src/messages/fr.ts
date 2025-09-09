@@ -159,6 +159,9 @@ const fr: Messages = {
 		empty: "Aucun cours disponible. Créez d'abord un cours ici.",
 		create: "Créer un cours",
 	},
+	Collection: {
+		view: "Voir la collection",
+	},
 	CollectionForm: {
 		name: "Nom",
 		description: "Description",
@@ -510,6 +513,7 @@ const fr: Messages = {
 		},
 		account: "Compte",
 		signout: "Se déconnecter",
+		signin: "Se connecter",
 	},
 };
 
