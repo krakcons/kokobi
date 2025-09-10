@@ -42,7 +42,7 @@ import { useEffect, useState } from "react";
 import type { Collection, CollectionTranslation } from "@/types/collections";
 import type { Organization } from "@/types/organization";
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
-import { UserButton } from "./UserButton";
+import { SidebarUserButton } from "./UserButton";
 import { Separator } from "../ui/separator";
 import { OrganizationSwitcher } from "./OrganizationSwitcher";
 import type {
@@ -760,7 +760,7 @@ export const AdminSidebar = ({
 						</Link>
 					</SidebarMenuItem>
 					<Separator className="my-2" />
-					<UserButton user={user} session={session} />
+					<SidebarUserButton user={user} session={session} />
 				</SidebarMenu>
 			</SidebarFooter>
 		</Sidebar>

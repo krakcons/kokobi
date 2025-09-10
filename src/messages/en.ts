@@ -133,7 +133,9 @@ const en = {
 		start: "Start",
 		continue: "Continue",
 		review: "Review",
+		view: "View Course",
 	},
+
 	CourseForm: {
 		name: "Name",
 		description: "Description",
@@ -152,6 +154,9 @@ const en = {
 		description: "Select all the courses you want below.",
 		empty: "No courses available. Create a course first here.",
 		create: "Create Course",
+	},
+	Collection: {
+		view: "View Collection",
 	},
 	CollectionForm: {
 		name: "Name",
@@ -364,6 +369,10 @@ const en = {
 		inviteMessage:
 			"You have been invited to administer this organization. Accept or decline the invitation below.",
 	},
+	Public: {
+		createdBy: "Created By",
+		courses: "Courses",
+	},
 	SEO: {
 		title: "Kokobi | Learn, Teach, Connect and Grow",
 	},
@@ -494,8 +503,10 @@ const en = {
 			dark: "Dark",
 			system: "System",
 		},
+		home: "Home",
 		account: "Account",
 		signout: "Sign out",
+		signin: "Sign In",
 	},
 };
 

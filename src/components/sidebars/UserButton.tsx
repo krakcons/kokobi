@@ -37,6 +37,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/locale";
+import { Button } from "../ui/button";
+import React from "react";
 import { authClient } from "@/lib/auth.client";
 import type { User } from "better-auth";
 import { orpc } from "@/server/client";
@@ -53,17 +55,98 @@ const ThemeIcon = ({ theme }: { theme: Theme }) => {
 	}
 };
 
-export const UserButton = ({
-	user,
-	session,
-	signOutRedirect,
-}: {
+type UserDropdownProps = {
 	user: User;
-	session: SessionWithImpersonatedBy;
 	signOutRedirect?: string;
+	side?: "top" | "right" | "bottom" | "left";
+	session: SessionWithImpersonatedBy;
+};
+
+const getInitials = (user: User) => {
+	if (user.name.length > 0) {
+		return user.name.charAt(0);
+	}
+	return <UserIcon className="size-4.5" />;
+};
+
+export const SidebarUserButton = (props: UserDropdownProps) => {
+	const { isMobile } = useSidebar();
+
+	const name = props.user.name;
+	const initials = getInitials(props.user);
+
+	return (
+		<UserDropdown {...props} side={isMobile ? "bottom" : "right"}>
+			<SidebarMenuItem>
+				<SidebarMenuButton
+					size="lg"
+					className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+				>
+					<Avatar className="h-8 w-8 rounded-lg grayscale">
+						<AvatarFallback className="rounded-lg">
+							{initials}
+						</AvatarFallback>
+					</Avatar>
+					<div className="grid flex-1 text-left text-sm leading-tight">
+						{name && (
+							<span className="truncate font-medium">{name}</span>
+						)}
+						<span
+							className={cn(
+								"truncate text-xs",
+								props.user.name && "text-muted-foreground",
+							)}
+						>
+							{props.user.email}
+						</span>
+					</div>
+					<MoreVerticalIcon className="ml-auto size-4" />
+				</SidebarMenuButton>
+			</SidebarMenuItem>
+		</UserDropdown>
+	);
+};
+
+export const PublicUserButton = (props: UserDropdownProps) => {
+	const initials = getInitials(props.user);
+	const name = props.user.name;
+
+	return (
+		<UserDropdown {...props} side="bottom">
+			<Button
+				size="md"
+				variant="outline"
+				className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border-0 shadow-none py-5 pr-4"
+			>
+				<Avatar className="h-8 w-8 rounded-lg grayscale">
+					<AvatarFallback className="rounded-lg">
+						{initials}
+					</AvatarFallback>
+				</Avatar>
+				<div className="grid flex-1 text-left text-sm leading-tight">
+					{name ? (
+						<span className="truncate font-medium">{name}</span>
+					) : (
+						<span className={cn("truncate text-xs")}>
+							{props.user.email}
+						</span>
+					)}
+				</div>
+			</Button>
+		</UserDropdown>
+	);
+};
+
+export const UserDropdown = ({
+	user,
+	signOutRedirect,
+	side,
+	children,
+	session,
+}: UserDropdownProps & {
+	children: React.ReactNode;
 }) => {
 	const { theme, setTheme } = useTheme();
-	const { isMobile } = useSidebar();
 	const { accountDialog = false } = useSearch({
 		from: "__root__",
 	});
@@ -72,11 +155,7 @@ export const UserButton = ({
 	const t = useTranslations("UserButton");
 	const tUserForm = useTranslations("UserForm");
 
-	const initials = user.name ? (
-		user.name.charAt(0)
-	) : (
-		<UserIcon className="size-4.5" />
-	);
+	const initials = getInitials(user);
 
 	const setAccountDialog = (open: boolean) =>
 		navigate({
@@ -104,39 +183,12 @@ export const UserButton = ({
 	};
 
 	return (
-		<SidebarMenuItem>
+		<>
 			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<SidebarMenuButton
-						size="lg"
-						className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-					>
-						<Avatar className="h-8 w-8 rounded-lg grayscale">
-							<AvatarFallback className="rounded-lg">
-								{initials}
-							</AvatarFallback>
-						</Avatar>
-						<div className="grid flex-1 text-left text-sm leading-tight">
-							{user.name && (
-								<span className="truncate font-medium">
-									{user.name}
-								</span>
-							)}
-							<span
-								className={cn(
-									"truncate text-xs",
-									user.name && "text-muted-foreground",
-								)}
-							>
-								{user.email}
-							</span>
-						</div>
-						<MoreVerticalIcon className="ml-auto size-4" />
-					</SidebarMenuButton>
-				</DropdownMenuTrigger>
+				<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 				<DropdownMenuContent
 					className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-					side={isMobile ? "bottom" : "right"}
+					side={side}
 					align="end"
 					sideOffset={4}
 				>
@@ -239,6 +291,6 @@ export const UserButton = ({
 					/>
 				</DialogContent>
 			</Dialog>
-		</SidebarMenuItem>
+		</>
 	);
 };

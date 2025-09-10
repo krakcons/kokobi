@@ -7,6 +7,12 @@ import {
 	superAdminProcedure,
 } from "../middleware";
 import { auth } from "@/lib/auth";
+import { db } from "../db";
+import { OrganizationSchema } from "@/types/organization";
+import { ORPCError } from "@orpc/client";
+import { handleLocalization } from "@/lib/locale";
+import { organizations } from "../db/auth";
+import { eq } from "drizzle-orm";
 
 export const authRouter = base.prefix("/auth").router({
 	session: protectedProcedure
@@ -23,6 +29,13 @@ export const authRouter = base.prefix("/auth").router({
 				member: context.member,
 			};
 		}),
+	optionalSession: publicProcedure.handler(async ({ context }) => {
+		return {
+			session: context.session,
+			user: context.user,
+			member: context.member,
+		};
+	}),
 	tenant: publicProcedure
 		.route({
 			tags: ["Auth"],
@@ -30,8 +43,24 @@ export const authRouter = base.prefix("/auth").router({
 			path: "/tenant",
 			summary: "Get Tenant",
 		})
-		.handler(async () => {
-			return await getTenant();
+		.output(OrganizationSchema.nullable())
+		.handler(async ({ context }) => {
+			let organizationId = await getTenant();
+			if (!organizationId) {
+				return null;
+			}
+			const organization = await db.query.organizations.findFirst({
+				where: eq(organizations.id, organizationId),
+				with: {
+					translations: true,
+				},
+			});
+			if (!organization) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Tenant organization not found",
+				});
+			}
+			return handleLocalization(context, organization);
 		}),
 	invitation: {
 		get: protectedProcedure

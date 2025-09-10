@@ -1,5 +1,6 @@
-import { CollectionSchema } from "@/types/collections";
-import { base, organizationProcedure } from "../middleware";
+import { CoursesFormSchema } from "@/components/forms/CoursesForm";
+import { handleLocalization } from "@/lib/locale";
+import { base, publicProcedure, organizationProcedure } from "../middleware";
 import { db } from "@/server/db";
 import {
 	collectionTranslations,
@@ -7,12 +8,10 @@ import {
 	collectionsToCourses,
 	usersToCollections,
 } from "@/server/db/schema";
+import { CollectionFormSchema, CollectionSchema } from "@/types/collections";
+import { CourseSchema } from "@/types/course";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { CollectionFormSchema } from "@/types/collections";
-import { handleLocalization } from "@/lib/locale";
-import { CoursesFormSchema } from "@/components/forms/CoursesForm";
-import { CourseSchema } from "@/types/course";
 import { ORPCError } from "@orpc/client";
 import { getConnectionLink } from "../lib/connection";
 import { createConnection } from "./connection";
@@ -41,7 +40,7 @@ export const collectionRouter = base.prefix("/collections").router({
 				handleLocalization(context, collection),
 			);
 		}),
-	id: organizationProcedure
+	id: publicProcedure
 		.route({
 			tags: ["Collection"],
 			method: "GET",
@@ -218,7 +217,7 @@ export const collectionRouter = base.prefix("/collections").router({
 			return connections;
 		}),
 	courses: {
-		get: organizationProcedure
+		get: publicProcedure
 			.route({
 				tags: ["Collection Courses"],
 				method: "GET",
@@ -343,6 +342,7 @@ export const collectionRouter = base.prefix("/collections").router({
 				id,
 				organizationId: context.activeOrganizationId,
 				locale: context.locale,
+				isPublic: true,
 			});
 		}),
 	invite: organizationProcedure

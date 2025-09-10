@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from "@/lib/locale";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { UserButton } from "@/components/sidebars/UserButton";
+import { SidebarUserButton } from "@/components/sidebars/UserButton";
 import { buttonVariants } from "@/components/ui/button";
 import { orpc } from "@/server/client";
 import type { SessionWithImpersonatedBy } from "better-auth/plugins";
@@ -116,7 +116,7 @@ function RouteComponent() {
 						>
 							<ChevronLeft aria-label="Back" className="size-6" />
 						</Link>
-						<UserButton
+						<SidebarUserButton
 							user={auth.user}
 							session={auth.session as SessionWithImpersonatedBy}
 							signOutRedirect={`/${locale}/auth/login?redirect=/learner/courses/${attempt.courseId}`}

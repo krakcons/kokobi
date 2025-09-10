@@ -38,6 +38,7 @@ import {
 import { APIError } from "cloudflare";
 import { auth } from "@/lib/auth";
 import { s3 } from "../s3";
+import { hasOrganizationAccess, OrganizationAccessSchema } from "../lib/access";
 
 export const organizationRouter = base.prefix("/organizations").router({
 	get: protectedProcedure
@@ -84,6 +85,17 @@ export const organizationRouter = base.prefix("/organizations").router({
 					organizationId: id,
 				},
 			});
+		}),
+	access: publicProcedure
+		.route({
+			tags: ["Organization"],
+			method: "GET",
+			path: "/access",
+			summary: "Get Organization Access (Course/Collection)",
+		})
+		.input(OrganizationAccessSchema)
+		.handler(async ({ input }) => {
+			return await hasOrganizationAccess(input);
 		}),
 	create: protectedProcedure
 		.route({

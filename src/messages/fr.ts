@@ -140,6 +140,7 @@ const fr: Messages = {
 		start: "Commencer",
 		continue: "Continuer",
 		review: "Revoir",
+		view: "Voir le Cours",
 	},
 	CourseForm: {
 		name: "Nom",
@@ -160,6 +161,9 @@ const fr: Messages = {
 			"Sélectionnez tous les cours que vous souhaitez ci-dessous.",
 		empty: "Aucun cours disponible. Créez d'abord un cours ici.",
 		create: "Créer un cours",
+	},
+	Collection: {
+		view: "Voir la collection",
 	},
 	CollectionForm: {
 		name: "Nom",
@@ -374,6 +378,10 @@ const fr: Messages = {
 		inviteMessage:
 			"Vous avez été invité à administrer cette organisation. Veuillez accepter ou refuser l'invitation ci-dessous.",
 	},
+	Public: {
+		createdBy: "Créé par",
+		courses: "Cours",
+	},
 	SEO: {
 		title: "Kokobi | Apprendre, Enseigner, Se Connecter et Grandir",
 	},
@@ -506,8 +514,10 @@ const fr: Messages = {
 			dark: "Sombre",
 			system: "Système",
 		},
+		home: "Accueil",
 		account: "Compte",
 		signout: "Se déconnecter",
+		signin: "Se connecter",
 	},
 };
 

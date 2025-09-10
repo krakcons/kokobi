@@ -1,3 +1,4 @@
+import { shouldIgnoreFile, validateModule } from "@/lib/module";
 import { db } from "@/server/db";
 import { base, organizationProcedure, publicProcedure } from "../middleware";
 import { z } from "zod";
@@ -21,9 +22,8 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { createTranslator, handleLocalization } from "@/lib/locale";
 import { ExtendLearner, learnerStatuses } from "@/types/learner";
 import { ModuleSchema } from "@/types/module";
-import { shouldIgnoreFile, validateModule } from "@/lib/module";
-import { getNewModuleVersionNumber } from "../lib/modules";
 import { getConnectionLink } from "../lib/connection";
+import { getNewModuleVersionNumber } from "../lib/modules";
 import { createConnection } from "./connection";
 import { isModuleSuccessful } from "@/lib/scorm";
 import { sendEmail, verifyEmail } from "../lib/email";
@@ -813,6 +813,7 @@ export const courseRouter = base.prefix("/courses").router({
 				id,
 				organizationId: context.activeOrganizationId,
 				locale: context.locale,
+				isPublic: true,
 			});
 		}),
 	invite: organizationProcedure
