@@ -1,5 +1,5 @@
 import { ContentBranding } from "@/components/ContentBranding";
-import { PublicPageHeader } from "@/components/PublicPage";
+import { PublicPage, PublicPageHeader } from "@/components/PublicPage";
 import { buttonVariants } from "@/components/ui/button";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
@@ -61,29 +61,28 @@ function RouteComponent() {
 		customDeliveryOrganization ?? course.organization;
 
 	return (
-		<div className="mt-4">
+		<PublicPage>
 			<PublicPageHeader
 				title={course.name}
 				description={course.description}
 				organization={deliveryOrganization}
 			>
-				<div className="flex flex-col gap-4">
-					<ContentBranding
-						contentOrganization={course.organization}
-						connectOrganization={deliveryOrganization}
-					/>
-				</div>
+				<ContentBranding
+					contentOrganization={course.organization}
+					connectOrganization={deliveryOrganization}
+				/>
 			</PublicPageHeader>
-
-			<Link
-				id={course.id}
-				to="/$locale/learner/courses/$courseId"
-				search={{ organizationId: deliveryOrganization.id }}
-				from={Route.fullPath}
-				className={buttonVariants()}
-			>
-				{t.view}
-			</Link>
-		</div>
+			<div>
+				<Link
+					id={course.id}
+					to="/$locale/learner/courses/$courseId"
+					search={{ organizationId: deliveryOrganization.id }}
+					from={Route.fullPath}
+					className={buttonVariants()}
+				>
+					{t.view}
+				</Link>
+			</div>
+		</PublicPage>
 	);
 }

@@ -78,7 +78,7 @@ function RouteComponent() {
 					</div>
 				</div>
 			</header>
-			<main className="flex flex-row mx-auto w-full xl:max-w-screen-xl px-10 xl:px-0">
+			<main className="flex flex-row mx-auto w-full xl:max-w-screen-xl p-6">
 				<Outlet />
 			</main>
 		</div>

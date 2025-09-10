@@ -1,7 +1,7 @@
+import { organizationImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
 import type { Organization } from "@/types/organization";
 import { OrganizationIcon } from "./OrganizationIcon";
-import { organizationImageUrl } from "@/lib/file";
 
 export const ContentBranding = ({
 	contentOrganization,
@@ -22,7 +22,7 @@ export const ContentBranding = ({
 			</p>
 			<OrganizationIcon
 				src={organizationImageUrl(contentOrganization, "logo")}
-				className="max-h-8 mr-2"
+				className="max-h-8 ml-2"
 			/>
 		</div>
 	);

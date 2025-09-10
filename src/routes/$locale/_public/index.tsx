@@ -80,7 +80,7 @@ function Home() {
 		);
 	} else {
 		return (
-			<div className="flex w-full flex-col items-start gap-8 justify-center p-10 sm:p-20">
+			<div className="flex w-full flex-col items-start gap-8 justify-center p-10">
 				<h1 className="flex flex-col gap-3 text-5xl sm:text-7xl font-extrabold">
 					{t.title["1"]}
 					<span className="whitespace-nowrap text-green-400">
