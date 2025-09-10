@@ -9,35 +9,43 @@ import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import z from "zod";
 
 export const Route = createFileRoute(
 	"/$locale/_public/collections/$collectionId",
 )({
 	component: RouteComponent,
-	validateSearch: z.object({
-		organizationId: z.string().optional(),
-	}),
-	loaderDeps: ({ search }) => ({ organizationId: search.organizationId }),
-	loader: ({ params, context: { queryClient }, deps }) => {
+	loader: async ({
+		params,
+		context: { queryClient, publicOrganizationId },
+	}) => {
 		const promises: Promise<any>[] = [
 			queryClient.ensureQueryData(
 				orpc.collection.id.queryOptions({
-					input: { id: params.collectionId },
-				}),
-			),
-			queryClient.ensureQueryData(
-				orpc.collection.courses.get.queryOptions({
-					input: { id: params.collectionId },
+					input: {
+						id: params.collectionId,
+					},
 				}),
 			),
 		];
 
-		if (deps.organizationId) {
+		if (publicOrganizationId) {
+			// Check for delivering organization access
+			promises.push(
+				queryClient.ensureQueryData(
+					orpc.organization.access.queryOptions({
+						input: {
+							organizationId: publicOrganizationId,
+							type: "collection",
+							id: params.collectionId,
+						},
+					}),
+				),
+			);
+			// Preload delivering organization
 			promises.push(
 				queryClient.ensureQueryData(
 					orpc.organization.id.queryOptions({
-						input: { id: deps.organizationId },
+						input: { id: publicOrganizationId },
 					}),
 				),
 			);
@@ -49,14 +57,14 @@ export const Route = createFileRoute(
 
 function RouteComponent() {
 	const params = Route.useParams();
-	const search = Route.useSearch();
 	const t = useTranslations("Public");
 	const s = useTranslations("Collection");
+	const { publicOrganizationId } = Route.useRouteContext();
 
 	const { data: customDeliveryOrganization } = useQuery(
 		orpc.organization.id.queryOptions({
-			input: { id: search.organizationId! },
-			enabled: !!search.organizationId,
+			input: { id: publicOrganizationId! },
+			enabled: !!publicOrganizationId,
 		}),
 	);
 	const { data: collection } = useSuspenseQuery(

@@ -5,7 +5,9 @@ import {
 	usersToCollections,
 	usersToCourses,
 } from "@/server/db/schema";
+import { ORPCError } from "@orpc/client";
 import { and, eq } from "drizzle-orm";
+import z from "zod";
 
 export const hasUserAccess = async ({
 	id,
@@ -60,20 +62,23 @@ export const hasUserAccess = async ({
 		}
 	}
 
-	throw new Error("No access to course");
+	throw new ORPCError("FORBIDDEN");
 };
+
+export const OrganizationAccessSchema = z.object({
+	organizationId: z.string(),
+	type: z.enum(["course", "collection"]),
+	id: z.string(),
+	access: z.enum(["root", "shared"]).optional(),
+});
+export type OrganizationAccess = z.infer<typeof OrganizationAccessSchema>;
 
 export const hasOrganizationAccess = async ({
 	organizationId,
 	type,
 	id,
 	access,
-}: {
-	organizationId: string;
-	type: "course" | "collection";
-	id: string;
-	access?: "root" | "shared";
-}) => {
+}: OrganizationAccess): Promise<"root" | "shared"> => {
 	if (type === "course") {
 		// 1: Own the course
 		const course = await db.query.courses.findFirst({
@@ -84,7 +89,7 @@ export const hasOrganizationAccess = async ({
 		});
 
 		if (!course && access === "root") {
-			throw new Error("Course not found");
+			throw new ORPCError("NOT_FOUND");
 		}
 
 		if (course && access !== "shared") {
@@ -118,7 +123,7 @@ export const hasOrganizationAccess = async ({
 		});
 
 		if (!collection && access === "root") {
-			throw new Error("Collection not found");
+			throw new ORPCError("NOT_FOUND");
 		}
 
 		if (collection && access !== "shared") {
@@ -126,5 +131,7 @@ export const hasOrganizationAccess = async ({
 		}
 	}
 
-	throw new Error("Access denied");
+	throw new ORPCError("FORBIDDEN", {
+		message: "Organization does not have access to the resource",
+	});
 };

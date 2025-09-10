@@ -11,7 +11,6 @@ export const OTP = ({
 	<div
 		style={{
 			color: "#000",
-			fontSize: "1rem",
 			fontFamily: "Arial, sans-serif",
 		}}
 	>

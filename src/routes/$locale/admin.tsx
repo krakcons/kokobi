@@ -48,14 +48,14 @@ export const Route = createFileRoute("/$locale/admin")({
 			});
 		}
 
-		const tenantId = await queryClient.ensureQueryData(
+		const tenant = await queryClient.ensureQueryData(
 			orpc.auth.tenant.queryOptions(),
 		);
-		if (tenantId) {
-			if (tenantId !== auth.session.activeOrganizationId) {
+		if (tenant) {
+			if (tenant.id !== auth.session.activeOrganizationId) {
 				try {
 					await orpc.organization.setActive.call({
-						id: tenantId,
+						id: tenant.id,
 					});
 					throw redirect({
 						href: location.href,
@@ -65,7 +65,7 @@ export const Route = createFileRoute("/$locale/admin")({
 					throw redirect({
 						to: "/$locale/not-admin",
 						search: {
-							organizationId: tenantId,
+							organizationId: tenant.id,
 						},
 						params: {
 							locale: params.locale,
@@ -124,9 +124,7 @@ function RouteComponent() {
 		orpc.organization.get.queryOptions(),
 	);
 	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
-	const { data: tenantId } = useSuspenseQuery(
-		orpc.auth.tenant.queryOptions(),
-	);
+	const { data: tenant } = useSuspenseQuery(orpc.auth.tenant.queryOptions());
 	const { data: invitations } = useSuspenseQuery(
 		orpc.auth.invitation.get.queryOptions(),
 	);
@@ -139,7 +137,7 @@ function RouteComponent() {
 		<SidebarProvider>
 			<AdminSidebar
 				session={auth.session as SessionWithImpersonatedBy}
-				tenantId={tenantId ?? undefined}
+				tenantId={tenant?.id}
 				activeOrganizationId={auth.session.activeOrganizationId!}
 				invitations={invitations ?? []}
 				organizations={organizations}

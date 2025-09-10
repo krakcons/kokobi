@@ -7,6 +7,13 @@ import type { ReactElement } from "react";
 import { ses } from "../ses";
 import { renderToString } from "react-dom/server";
 import type { Organization } from "@/types/organization";
+import { createTranslator, handleLocalization } from "@/lib/locale";
+import { getTenant } from "./tenant";
+import { organizations } from "../db/auth";
+import { eq } from "drizzle-orm";
+import { db } from "../db";
+import OTP from "@/components/emails/OTP";
+import { getLocaleContext } from "../middleware";
 
 export const verifyEmail = async (domains: Domain[]) => {
 	if (domains.length === 0) return false;
@@ -63,3 +70,43 @@ export async function sendEmail({
 	});
 	await ses.send(command);
 }
+
+export const sendVerificationOTP = async (
+	{
+		email,
+		otp,
+	}: {
+		email: string;
+		otp: string;
+	},
+	request?: Request,
+) => {
+	const context = getLocaleContext(new Headers(request?.headers));
+
+	let organization = undefined;
+	const tenantId = await getTenant();
+	if (tenantId) {
+		const organizationBase = await db.query.organizations.findFirst({
+			where: eq(organizations.id, tenantId),
+			with: {
+				translations: true,
+				domains: true,
+			},
+		});
+		if (organizationBase) {
+			organization = handleLocalization(context, organizationBase);
+		}
+	}
+
+	const emailVerified =
+		organization && (await verifyEmail(organization.domains));
+
+	const t = await createTranslator(context);
+
+	await sendEmail({
+		to: [email],
+		subject: t.Email.OTP.subject,
+		organization: emailVerified ? organization : undefined,
+		content: <OTP code={otp} t={t.Email.OTP} />,
+	});
+};

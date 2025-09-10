@@ -1,29 +1,19 @@
 import { OrganizationIcon } from "@/components/OrganizationIcon";
-import { FloatingPage, PageHeader } from "@/components/Page";
+import { PageHeader } from "@/components/Page";
 import { buttonVariants } from "@/components/ui/button";
 import { organizationImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Blocks, Book } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/_public/")({
 	component: Home,
-	loader: async ({ context: { queryClient } }) => {
-		const tenantId = await queryClient.ensureQueryData(
-			orpc.auth.tenant.queryOptions(),
-		);
-		if (tenantId) {
-			await queryClient.fetchQuery(
-				orpc.organization.id.queryOptions({
-					input: {
-						id: tenantId,
-					},
-				}),
-			);
-		}
-	},
+	loader: async ({ context: { queryClient } }) =>
+		Promise.all([
+			queryClient.ensureQueryData(orpc.auth.tenant.queryOptions()),
+		]),
 });
 
 const CTA = () => {
@@ -52,35 +42,25 @@ const CTA = () => {
 
 function Home() {
 	const t = useTranslations("Home");
-	const { data: tenantId } = useSuspenseQuery(
-		orpc.auth.tenant.queryOptions(),
-	);
-	const { data: organization } = useQuery(
-		orpc.organization.id.queryOptions({
-			input: {
-				id: tenantId!,
-			},
-			enabled: !!tenantId,
-		}),
-	);
+	const { data: tenant } = useSuspenseQuery(orpc.auth.tenant.queryOptions());
 
-	if (organization) {
+	if (tenant) {
 		return (
-			<FloatingPage>
+			<div>
 				<OrganizationIcon
-					src={organizationImageUrl(organization, "logo")}
+					src={organizationImageUrl(tenant, "logo")}
 					className="my-4"
 				/>
 				<PageHeader
-					title={organization.name}
+					title={tenant.name}
 					description={t["organization-description"]}
 				/>
 				<CTA />
-			</FloatingPage>
+			</div>
 		);
 	} else {
 		return (
-			<div className="flex w-full flex-col items-start gap-8 justify-center p-10">
+			<div className="flex w-full flex-col items-start gap-8 justify-center py-10">
 				<h1 className="flex flex-col gap-3 text-5xl sm:text-7xl font-extrabold">
 					{t.title["1"]}
 					<span className="whitespace-nowrap text-green-400">

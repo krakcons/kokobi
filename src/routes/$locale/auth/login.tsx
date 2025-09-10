@@ -25,14 +25,14 @@ export const Route = createFileRoute("/$locale/auth/login")({
 		} catch (e) {}
 	},
 	loader: async ({ context: { queryClient } }) => {
-		const tenantId = await queryClient.ensureQueryData(
+		const tenant = await queryClient.ensureQueryData(
 			orpc.auth.tenant.queryOptions(),
 		);
-		if (tenantId) {
+		if (tenant) {
 			await queryClient.ensureQueryData(
 				orpc.organization.id.queryOptions({
 					input: {
-						id: tenantId,
+						id: tenant.id,
 					},
 				}),
 			);
@@ -94,15 +94,13 @@ const LoginForm = ({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 
-	const { data: tenantId } = useSuspenseQuery(
-		orpc.auth.tenant.queryOptions(),
-	);
+	const { data: tenant } = useSuspenseQuery(orpc.auth.tenant.queryOptions());
 	const { data: organization } = useQuery(
 		orpc.organization.id.queryOptions({
 			input: {
-				id: tenantId!,
+				id: tenant?.id!,
 			},
-			enabled: !!tenantId,
+			enabled: !!tenant?.id,
 		}),
 	);
 

@@ -21,94 +21,85 @@ import { useTheme } from "@/lib/theme";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { orpc } from "@/server/client";
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
-	{
-		validateSearch: z.object({
-			accountDialog: z.boolean().optional(),
-		}),
-		beforeLoad: async ({ location, context: { queryClient } }) => {
-			await rootLocaleMiddleware({
-				location,
-				ignorePaths: ["api", "cdn", "assets"],
-				queryClient,
-			});
-		},
-		errorComponent: ErrorComponent,
-		notFoundComponent: NotFound,
-		pendingComponent: PendingComponent,
-		component: RootComponent,
-		loader: async ({ context: { queryClient } }) => {
-			const i18n = await queryClient.ensureQueryData(
-				i18nQueryOptions({}),
-			);
-			const tenantId = await queryClient.ensureQueryData(
-				orpc.auth.tenant.queryOptions(),
-			);
-			let favicon = "/favicon.ico";
-			let title = "Kokobi | Learn, Teach, Connect, and Grow ";
-
-			if (tenantId) {
-				const tenant = await queryClient.ensureQueryData(
-					orpc.organization.id.queryOptions({
-						input: {
-							id: tenantId,
-						},
-					}),
-				);
-				if (tenant.favicon)
-					favicon =
-						organizationImageUrl(tenant, "favicon") || favicon;
-				title = `${tenant.name}`;
-			} else {
-				title = i18n.messages.SEO.title;
-			}
-
-			return {
-				i18n,
-				meta: {
-					favicon,
-					title,
-				},
-			};
-		},
-		head: ({ loaderData }) => ({
-			meta: [
-				{
-					charSet: "utf-8",
-				},
-				{
-					name: "viewport",
-					content: "width=device-width, initial-scale=1",
-				},
-				{
-					title: loaderData?.meta.title,
-				},
-			],
-			links: [
-				{
-					rel: "stylesheet",
-					href: appCss,
-				},
-				{
-					rel: "icon",
-					href: loaderData?.meta.favicon,
-				},
-				{
-					rel: "preconnect",
-					href: "https://fonts.googleapis.com",
-				},
-				{
-					rel: "preconnect",
-					href: "https://fonts.gstatic.com",
-				},
-				{
-					rel: "stylesheet",
-					href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-				},
-			],
-		}),
+export const Route = createRootRouteWithContext<{
+	queryClient: QueryClient;
+	publicOrganizationId?: string;
+}>()({
+	validateSearch: z.object({
+		accountDialog: z.boolean().optional(),
+	}),
+	beforeLoad: async ({ location, context: { queryClient } }) => {
+		await rootLocaleMiddleware({
+			location,
+			ignorePaths: ["api", "cdn", "assets"],
+			queryClient,
+		});
 	},
-);
+	errorComponent: ErrorComponent,
+	notFoundComponent: NotFound,
+	pendingComponent: PendingComponent,
+	component: RootComponent,
+	loader: async ({ context: { queryClient } }) => {
+		const i18n = await queryClient.ensureQueryData(i18nQueryOptions({}));
+		const tenant = await queryClient.ensureQueryData(
+			orpc.auth.tenant.queryOptions(),
+		);
+		let favicon = "/favicon.ico";
+		let title = "Kokobi | Learn, Teach, Connect, and Grow ";
+
+		if (tenant) {
+			if (tenant.favicon)
+				favicon = organizationImageUrl(tenant, "favicon") || favicon;
+			title = `${tenant.name}`;
+		} else {
+			title = i18n.messages.SEO.title;
+		}
+
+		return {
+			i18n,
+			meta: {
+				favicon,
+				title,
+			},
+		};
+	},
+	head: ({ loaderData }) => ({
+		meta: [
+			{
+				charSet: "utf-8",
+			},
+			{
+				name: "viewport",
+				content: "width=device-width, initial-scale=1",
+			},
+			{
+				title: loaderData?.meta.title,
+			},
+		],
+		links: [
+			{
+				rel: "stylesheet",
+				href: appCss,
+			},
+			{
+				rel: "icon",
+				href: loaderData?.meta.favicon,
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.googleapis.com",
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.gstatic.com",
+			},
+			{
+				rel: "stylesheet",
+				href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+			},
+		],
+	}),
+});
 
 function RootComponent() {
 	const { theme, systemTheme } = useTheme();

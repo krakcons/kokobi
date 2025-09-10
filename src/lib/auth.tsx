@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { reactStartCookies } from "better-auth/react-start";
 import {
+	apiKey,
 	createAuthMiddleware,
 	emailOTP,
 	organization,
@@ -8,10 +9,10 @@ import {
 import { setSessionCookie } from "better-auth/cookies";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/server/db";
-import { sendEmail } from "@/server/lib/email";
 import { members } from "@/server/db/auth";
 import { admin } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
+import { sendVerificationOTP } from "@/server/lib/email";
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -26,25 +27,20 @@ export const auth = betterAuth({
 			},
 		},
 	},
+	trustedOrigins: ["*"],
 	plugins: [
 		emailOTP({
-			async sendVerificationOTP({ email, otp }) {
-				await sendEmail({
-					to: [email],
-					subject: "One-time password for Kokobi",
-					content: (
-						<div>
-							<p>
-								Here is your one-time password to verify your
-								email address.
-							</p>
-							<strong>{otp}</strong>
-						</div>
-					),
-				});
-			},
+			sendVerificationOTP,
 		}),
 		admin(),
+		apiKey({
+			enableMetadata: true,
+			// 60 requests per minute
+			rateLimit: {
+				timeWindow: 1000 * 60, // 1 minute
+				maxRequests: 60,
+			},
+		}),
 		organization({
 			cancelPendingInvitationsOnReInvite: true,
 		}),

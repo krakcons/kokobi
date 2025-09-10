@@ -69,6 +69,9 @@ const fr: Messages = {
 		table: {
 			name: "Nom",
 			key: "Clé",
+			createdAt: "Créé à",
+			createdBy: "Créé par",
+			lastRequest: "Dernière requête",
 		},
 	},
 	APIKeyForm: {
@@ -511,6 +514,7 @@ const fr: Messages = {
 			dark: "Sombre",
 			system: "Système",
 		},
+		home: "Accueil",
 		account: "Compte",
 		signout: "Se déconnecter",
 		signin: "Se connecter",

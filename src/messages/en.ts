@@ -63,7 +63,10 @@ const en = {
 			"API keys allow you to access your Kokobi instance from external applications using a REST API.",
 		table: {
 			name: "Name",
-			key: "Key",
+			key: "Secret Key",
+			createdAt: "Created At",
+			lastRequest: "Last Used",
+			createdBy: "Created By",
 		},
 	},
 	APIKeyForm: {
@@ -500,6 +503,7 @@ const en = {
 			dark: "Dark",
 			system: "System",
 		},
+		home: "Home",
 		account: "Account",
 		signout: "Sign out",
 		signin: "Sign In",

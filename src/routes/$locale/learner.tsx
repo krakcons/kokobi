@@ -57,14 +57,14 @@ export const Route = createFileRoute("/$locale/learner")({
 			});
 		}
 
-		const tenantId = await queryClient.ensureQueryData(
+		const tenant = await queryClient.ensureQueryData(
 			orpc.auth.tenant.queryOptions(),
 		);
 		let redirectHref = undefined;
-		if (tenantId) {
-			if (tenantId !== auth.session.activeLearnerOrganizationId) {
+		if (tenant) {
+			if (tenant.id !== auth.session.activeLearnerOrganizationId) {
 				await orpc.learner.organization.setActive.call({
-					id: tenantId,
+					id: tenant.id,
 				});
 			}
 		} else {
@@ -127,9 +127,7 @@ function RouteComponent() {
 	const { data: organizations } = useSuspenseQuery(
 		orpc.learner.organization.get.queryOptions(),
 	);
-	const { data: tenantId } = useSuspenseQuery(
-		orpc.auth.tenant.queryOptions(),
-	);
+	const { data: tenant } = useSuspenseQuery(orpc.auth.tenant.queryOptions());
 	const { data: courses } = useSuspenseQuery(
 		orpc.learner.course.get.queryOptions(),
 	);
@@ -150,7 +148,7 @@ function RouteComponent() {
 			{!isIframe && (
 				<LearnerSidebar
 					session={auth.session as SessionWithImpersonatedBy}
-					tenantId={tenantId ?? undefined}
+					tenantId={tenant?.id}
 					activeLearnerOrganizationId={
 						auth.session.activeLearnerOrganizationId
 					}

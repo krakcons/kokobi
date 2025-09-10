@@ -11,19 +11,36 @@ import {
 	useLocation,
 } from "@tanstack/react-router";
 import type { SessionWithImpersonatedBy } from "better-auth/plugins";
-import { z } from "zod";
 import WebsiteLogo from "/favicon.ico";
+import { organizationImageUrl } from "@/lib/file";
+import { OrganizationIcon } from "@/components/OrganizationIcon";
+import { HomeIcon } from "lucide-react";
+import z from "zod";
 
 export const Route = createFileRoute("/$locale/_public")({
 	component: RouteComponent,
 	validateSearch: z.object({
-		teamId: z.string().optional(),
+		organizationId: z.string().optional(),
+		teamId: z.string().optional(), // Deprecated
 	}),
+	beforeLoad: async ({ context: { queryClient }, search }) => {
+		const tenant = await queryClient.ensureQueryData(
+			orpc.auth.tenant.queryOptions(),
+		);
+
+		return {
+			publicOrganizationId: tenant
+				? tenant.id
+				: (search.organizationId ?? search.teamId),
+		};
+	},
 	loader: async ({ context: { queryClient } }) => {
+		console.log("LOADER");
 		return Promise.all([
 			queryClient.ensureQueryData(
 				orpc.auth.optionalSession.queryOptions(),
 			),
+			queryClient.ensureQueryData(orpc.auth.tenant.queryOptions()),
 		]);
 	},
 });
@@ -34,6 +51,8 @@ function RouteComponent() {
 	const navigate = Route.useNavigate();
 	const t = useTranslations("UserButton");
 
+	const { data: tenant } = useSuspenseQuery(orpc.auth.tenant.queryOptions());
+
 	const { data: auth } = useSuspenseQuery(
 		orpc.auth.optionalSession.queryOptions(),
 	);
@@ -41,13 +60,39 @@ function RouteComponent() {
 	return (
 		<div className="flex flex-col">
 			<header className="border-b-elevation-4 flex h-16 min-w-screen items-center justify-between border-b shadow-md dark:shadow-white/7">
-				<div className="flex flex-row mx-auto w-full px-10 xl:px-0 xl:max-w-screen-xl items-center justify-between">
+				<div className="flex flex-row mx-auto w-full px-6 xl:px-0 xl:max-w-screen-xl items-center justify-between">
 					<Link to="/$locale" from={Route.fullPath}>
-						<img
-							src={WebsiteLogo}
-							alt="Website Logo"
-							className="min-h-10 min-w-10 max-w-10 max-h-10 rounded-full hover:grayscale-50"
-						/>
+						{tenant ? (
+							<>
+								{tenant.logo ? (
+									<OrganizationIcon
+										src={organizationImageUrl(
+											tenant,
+											"logo",
+										)}
+										className="max-h-10"
+									/>
+								) : (
+									<Button
+										className=" px-4"
+										onClick={() =>
+											navigate({
+												to: "/$locale/auth/login",
+											})
+										}
+									>
+										<HomeIcon />
+										{t.home}
+									</Button>
+								)}
+							</>
+						) : (
+							<img
+								src={WebsiteLogo}
+								alt="Website Logo"
+								className="min-h-10 min-w-10 max-w-10 max-h-10 rounded-full hover:grayscale-50"
+							/>
+						)}
 					</Link>
 					<div className="flex flex-row">
 						{auth.user && auth.session ? (

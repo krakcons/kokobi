@@ -32,7 +32,12 @@ export function PublicPageHeader({
 					src={organizationImageUrl(organization, "logo")}
 					className="max-h-14"
 				/>
-				<p className="text-muted-foreground text-sm ml-2 font-bold">
+				<p
+					className={cn(
+						"text-muted-foreground text-sm font-bold",
+						organization.logo && "pl-2",
+					)}
+				>
 					{organization.name}
 				</p>
 			</div>
