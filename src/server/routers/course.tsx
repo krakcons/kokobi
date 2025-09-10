@@ -326,7 +326,6 @@ export const courseRouter = base.prefix("/courses").router({
 				organizationId: context.activeOrganizationId,
 				id: course.id,
 				type: "course",
-				locale: course.locale,
 			});
 
 			const t = await createTranslator({
@@ -812,7 +811,6 @@ export const courseRouter = base.prefix("/courses").router({
 				type: "course",
 				id,
 				organizationId: context.activeOrganizationId,
-				locale: context.locale,
 				isPublic: true,
 			});
 		}),

@@ -208,7 +208,6 @@ export const createConnection = async ({
 								organizationId: activeOrganizationId,
 								type: "course",
 								id: course.id,
-								locale: locale.value,
 							});
 							const t = await createTranslator({
 								locale: locale.value,
@@ -351,7 +350,6 @@ export const createConnection = async ({
 								organizationId: activeOrganizationId,
 								type: "collection",
 								id: collection.id,
-								locale: locale.value,
 							});
 							const t = await createTranslator({
 								locale: locale.value,

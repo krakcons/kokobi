@@ -1,4 +1,3 @@
-import { LocaleSchema } from "@/lib/locale";
 import { cf } from "@/server/cloudflare";
 import { db } from "@/server/db";
 import { domains, users } from "@/server/db/schema";
@@ -10,7 +9,6 @@ export const ConnectionLinkSchema = z.object({
 	type: z.enum(["course", "collection"]),
 	id: z.string(),
 	organizationId: z.string(),
-	locale: LocaleSchema.optional(),
 	isPublic: z.boolean().default(false).optional(),
 });
 export type ConnectionLink = z.infer<typeof ConnectionLinkSchema>;
@@ -19,7 +17,6 @@ export const getConnectionLink = async ({
 	type,
 	id,
 	organizationId,
-	locale,
 	isPublic,
 }: ConnectionLink) => {
 	const domain = await db.query.domains.findFirst({
@@ -40,7 +37,7 @@ export const getConnectionLink = async ({
 
 	const url = new URL(base);
 
-	url.pathname = `${locale ? `/${locale}` : ""}${isPublic ? "/" : /learner/}${type}s/${id}`;
+	url.pathname = `${isPublic ? "/" : /learner/}${type}s/${id}`;
 
 	if (organizationId && !isCustomDomain) {
 		url.searchParams.set("organizationId", organizationId);

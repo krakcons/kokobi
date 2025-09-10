@@ -341,7 +341,6 @@ export const collectionRouter = base.prefix("/collections").router({
 				type: "collection",
 				id,
 				organizationId: context.activeOrganizationId,
-				locale: context.locale,
 				isPublic: true,
 			});
 		}),

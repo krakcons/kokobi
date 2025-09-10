@@ -479,7 +479,6 @@ export const learnerRouter = base.prefix("/learner").router({
 									const href = await getConnectionLink({
 										id: course.id,
 										type: "course",
-										locale: course.locale,
 										organizationId:
 											context.session
 												.activeLearnerOrganizationId,
