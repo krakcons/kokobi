@@ -1,12 +1,12 @@
-import { buttonVariants } from "@/components/ui/button";
-import { useTranslations } from "@/lib/locale";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { FloatingPage, PageHeader } from "@/components/Page";
-import { Blocks, Book } from "lucide-react";
 import { OrganizationIcon } from "@/components/OrganizationIcon";
+import { FloatingPage, PageHeader } from "@/components/Page";
+import { buttonVariants } from "@/components/ui/button";
 import { organizationImageUrl } from "@/lib/file";
+import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Blocks, Book } from "lucide-react";
 
 export const Route = createFileRoute("/$locale/_public/")({
 	component: Home,
@@ -80,22 +80,18 @@ function Home() {
 		);
 	} else {
 		return (
-			<>
-				<div className="mx-auto w-full max-w-screen-xl">
-					<div className="flex w-full flex-col items-start gap-8 justify-center p-10 sm:p-20">
-						<h1 className="flex flex-col gap-3 text-5xl sm:text-7xl font-extrabold">
-							{t.title["1"]}
-							<span className="whitespace-nowrap text-green-400">
-								{t.title["2"]}
-							</span>
-						</h1>
-						<div className="flex">
-							<p>{t.description}</p>
-						</div>
-						<CTA />
-					</div>
+			<div className="flex w-full flex-col items-start gap-8 justify-center p-10 sm:p-20">
+				<h1 className="flex flex-col gap-3 text-5xl sm:text-7xl font-extrabold">
+					{t.title["1"]}
+					<span className="whitespace-nowrap text-green-400">
+						{t.title["2"]}
+					</span>
+				</h1>
+				<div className="flex">
+					<p>{t.description}</p>
 				</div>
-			</>
+				<CTA />
+			</div>
 		);
 	}
 }

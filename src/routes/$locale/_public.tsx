@@ -40,16 +40,15 @@ function RouteComponent() {
 
 	return (
 		<div className="flex flex-col">
-			<header className="border-b-elevation-4 flex h-16 w-full items-center justify-between border-b shadow-md dark:shadow-white/7">
-				<div className="flex flex-row mx-auto w-full px-6 xl:px-0 xl:max-w-screen-xl items-center justify-between">
+			<header className="border-b-elevation-4 flex h-16 min-w-screen items-center justify-between border-b shadow-md dark:shadow-white/7">
+				<div className="flex flex-row mx-auto w-full px-10 xl:px-0 xl:max-w-screen-xl items-center justify-between">
 					<Link to="/$locale" from={Route.fullPath}>
 						<img
 							src={WebsiteLogo}
 							alt="Website Logo"
-							className="h-10 w-10 rounded-full hover:grayscale-50"
+							className="min-h-10 min-w-10 max-w-10 max-h-10 rounded-full hover:grayscale-50"
 						/>
 					</Link>
-					{/* <main className="flex flex-row mx-auto w-full max-w-screen-xl"> */}
 					<div className="flex flex-row">
 						{auth.user && auth.session ? (
 							<PublicUserButton
@@ -79,7 +78,7 @@ function RouteComponent() {
 					</div>
 				</div>
 			</header>
-			<main className="flex flex-row mx-auto w-full max-w-screen-xl">
+			<main className="flex flex-row mx-auto w-full xl:max-w-screen-xl px-10 xl:px-0">
 				<Outlet />
 			</main>
 		</div>

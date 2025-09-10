@@ -21,20 +21,18 @@ export function PublicPageHeader({
 	organization: Organization;
 }) {
 	return (
-		<div className="flex flex-col gap-2 mt-4">
-			<div className="flex justify-between flex-col">
-				<OrganizationIcon
-					src={organizationImageUrl(organization, "logo")}
-					className="max-h-12"
-				/>
-				<h2 className="my-3">{title}</h2>
-				<div className="flex flex-col gap-5 pl-2">
-					{UnderTitle}
-					{description && <p>{description}</p>}
-					{children}
-				</div>
-				<Separator className="mt-2 mb-4" />
+		<div className="flex flex-col justify-between w-full mt-4">
+			<OrganizationIcon
+				src={organizationImageUrl(organization, "logo")}
+				className="max-h-12"
+			/>
+			<h2 className="my-3">{title}</h2>
+			<div className="flex flex-col gap-5 pl-2">
+				{UnderTitle}
+				{description && <p>{description}</p>}
+				{children}
 			</div>
+			<Separator className="mt-2 mb-4" />
 		</div>
 	);
 }
