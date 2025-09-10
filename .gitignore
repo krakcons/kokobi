@@ -28,7 +28,7 @@ dist
 .output
 .nitro
 
-seed.ts
+seed*.ts
 
 persist/*
 sqlite.db*
