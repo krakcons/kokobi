@@ -30,7 +30,7 @@ export function PublicPageHeader({
 			<div className="flex flex-row items-center">
 				<OrganizationIcon
 					src={organizationImageUrl(organization, "logo")}
-					className="max-h-14"
+					className="h-14"
 				/>
 				<p
 					className={cn(
