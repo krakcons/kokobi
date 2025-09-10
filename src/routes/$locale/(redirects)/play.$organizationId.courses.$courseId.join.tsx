@@ -6,7 +6,7 @@ export const Route = createFileRoute(
 	component: () => <></>,
 	loader: ({ params }) => {
 		return redirect({
-			to: "/$locale/learner/courses/$courseId",
+			to: "/$locale/courses/$courseId",
 			params: {
 				courseId: params.courseId,
 				locale: params.locale,

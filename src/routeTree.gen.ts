@@ -35,7 +35,6 @@ import { Route as LocaleAdminMembersIdRouteImport } from './routes/$locale/admin
 import { Route as LocaleAdminCoursesCreateRouteImport } from './routes/$locale/admin/courses.create'
 import { Route as LocaleAdminCollectionsCreateRouteImport } from './routes/$locale/admin/collections.create'
 import { Route as LocalePublicCollectionsCollectionIdRouteImport } from './routes/$locale/_public/collections.$collectionId'
-import { Route as LocaleredirectsCoursesCourseIdRouteImport } from './routes/$locale/(redirects)/courses.$courseId'
 import { Route as LocaleLearnerCoursesCourseIdIndexRouteImport } from './routes/$locale/learner/courses.$courseId.index'
 import { Route as LocaleAdminCoursesCourseIdIndexRouteImport } from './routes/$locale/admin/courses.$courseId.index'
 import { Route as LocalePublicCoursesCourseIdIndexRouteImport } from './routes/$locale/_public/courses.$courseId.index'
@@ -187,12 +186,6 @@ const LocalePublicCollectionsCollectionIdRoute =
     path: '/collections/$collectionId',
     getParentRoute: () => LocalePublicRoute,
   } as any)
-const LocaleredirectsCoursesCourseIdRoute =
-  LocaleredirectsCoursesCourseIdRouteImport.update({
-    id: '/(redirects)/courses/$courseId',
-    path: '/courses/$courseId',
-    getParentRoute: () => LocaleRoute,
-  } as any)
 const LocaleLearnerCoursesCourseIdIndexRoute =
   LocaleLearnerCoursesCourseIdIndexRouteImport.update({
     id: '/courses/$courseId/',
@@ -273,15 +266,15 @@ const LocaleAdminCollectionsCollectionIdCoursesRoute =
   } as any)
 const LocaleredirectsCoursesCourseIdJoinRoute =
   LocaleredirectsCoursesCourseIdJoinRouteImport.update({
-    id: '/join',
-    path: '/join',
-    getParentRoute: () => LocaleredirectsCoursesCourseIdRoute,
+    id: '/(redirects)/courses/$courseId/join',
+    path: '/courses/$courseId/join',
+    getParentRoute: () => LocaleRoute,
   } as any)
 const LocaleredirectsCoursesCourseIdCertificateRoute =
   LocaleredirectsCoursesCourseIdCertificateRouteImport.update({
-    id: '/certificate',
-    path: '/certificate',
-    getParentRoute: () => LocaleredirectsCoursesCourseIdRoute,
+    id: '/(redirects)/courses/$courseId/certificate',
+    path: '/courses/$courseId/certificate',
+    getParentRoute: () => LocaleRoute,
   } as any)
 const LocaleredirectsPlayOrganizationIdCoursesCourseIdRoute =
   LocaleredirectsPlayOrganizationIdCoursesCourseIdRouteImport.update({
@@ -341,7 +334,6 @@ export interface FileRoutesByFullPath {
   '/$locale/': typeof LocalePublicIndexRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/$locale/learner/': typeof LocaleLearnerIndexRoute
-  '/$locale/courses/$courseId': typeof LocalePublicCoursesCourseIdIndexRoute
   '/$locale/collections/$collectionId': typeof LocalePublicCollectionsCollectionIdRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
@@ -362,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/courses/$courseId/statistics': typeof LocaleAdminCoursesCourseIdStatisticsRoute
   '/$locale/admin/courses/$courseId/webhooks': typeof LocaleAdminCoursesCourseIdWebhooksRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
+  '/$locale/courses/$courseId': typeof LocalePublicCoursesCourseIdIndexRoute
   '/$locale/admin/courses/$courseId': typeof LocaleAdminCoursesCourseIdIndexRoute
   '/$locale/learner/courses/$courseId': typeof LocaleLearnerCoursesCourseIdIndexRoute
   '/$locale/play/$organizationId/courses/$courseId': typeof LocaleredirectsPlayOrganizationIdCoursesCourseIdRouteWithChildren
@@ -381,7 +374,6 @@ export interface FileRoutesByTo {
   '/$locale/docs/emails': typeof LocaleDocsEmailsRoute
   '/$locale/admin': typeof LocaleAdminIndexRoute
   '/$locale/learner': typeof LocaleLearnerIndexRoute
-  '/$locale/courses/$courseId': typeof LocalePublicCoursesCourseIdIndexRoute
   '/$locale/collections/$collectionId': typeof LocalePublicCollectionsCollectionIdRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
@@ -402,6 +394,7 @@ export interface FileRoutesByTo {
   '/$locale/admin/courses/$courseId/statistics': typeof LocaleAdminCoursesCourseIdStatisticsRoute
   '/$locale/admin/courses/$courseId/webhooks': typeof LocaleAdminCoursesCourseIdWebhooksRoute
   '/$locale/learner/courses/$courseId/play': typeof LocaleLearnerCoursesCourseIdPlayRoute
+  '/$locale/courses/$courseId': typeof LocalePublicCoursesCourseIdIndexRoute
   '/$locale/admin/courses/$courseId': typeof LocaleAdminCoursesCourseIdIndexRoute
   '/$locale/learner/courses/$courseId': typeof LocaleLearnerCoursesCourseIdIndexRoute
   '/$locale/play/$organizationId/courses/$courseId': typeof LocaleredirectsPlayOrganizationIdCoursesCourseIdRouteWithChildren
@@ -426,7 +419,6 @@ export interface FileRoutesById {
   '/$locale/_public/': typeof LocalePublicIndexRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/$locale/learner/': typeof LocaleLearnerIndexRoute
-  '/$locale/(redirects)/courses/$courseId': typeof LocaleredirectsCoursesCourseIdRouteWithChildren
   '/$locale/_public/collections/$collectionId': typeof LocalePublicCollectionsCollectionIdRoute
   '/$locale/admin/collections/create': typeof LocaleAdminCollectionsCreateRoute
   '/$locale/admin/courses/create': typeof LocaleAdminCoursesCreateRoute
@@ -472,7 +464,6 @@ export interface FileRouteTypes {
     | '/$locale/'
     | '/$locale/admin/'
     | '/$locale/learner/'
-    | '/$locale/courses/$courseId'
     | '/$locale/collections/$collectionId'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
@@ -493,6 +484,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$courseId/statistics'
     | '/$locale/admin/courses/$courseId/webhooks'
     | '/$locale/learner/courses/$courseId/play'
+    | '/$locale/courses/$courseId'
     | '/$locale/admin/courses/$courseId'
     | '/$locale/learner/courses/$courseId'
     | '/$locale/play/$organizationId/courses/$courseId'
@@ -512,7 +504,6 @@ export interface FileRouteTypes {
     | '/$locale/docs/emails'
     | '/$locale/admin'
     | '/$locale/learner'
-    | '/$locale/courses/$courseId'
     | '/$locale/collections/$collectionId'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
@@ -533,6 +524,7 @@ export interface FileRouteTypes {
     | '/$locale/admin/courses/$courseId/statistics'
     | '/$locale/admin/courses/$courseId/webhooks'
     | '/$locale/learner/courses/$courseId/play'
+    | '/$locale/courses/$courseId'
     | '/$locale/admin/courses/$courseId'
     | '/$locale/learner/courses/$courseId'
     | '/$locale/play/$organizationId/courses/$courseId'
@@ -556,7 +548,6 @@ export interface FileRouteTypes {
     | '/$locale/_public/'
     | '/$locale/admin/'
     | '/$locale/learner/'
-    | '/$locale/(redirects)/courses/$courseId'
     | '/$locale/_public/collections/$collectionId'
     | '/$locale/admin/collections/create'
     | '/$locale/admin/courses/create'
@@ -792,13 +783,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocalePublicCollectionsCollectionIdRouteImport
       parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/(redirects)/courses/$courseId': {
-      id: '/$locale/(redirects)/courses/$courseId'
-      path: '/courses/$courseId'
-      fullPath: '/$locale/courses/$courseId'
-      preLoaderRoute: typeof LocaleredirectsCoursesCourseIdRouteImport
-      parentRoute: typeof LocaleRoute
-    }
     '/$locale/learner/courses/$courseId/': {
       id: '/$locale/learner/courses/$courseId/'
       path: '/courses/$courseId'
@@ -892,17 +876,17 @@ declare module '@tanstack/react-router' {
     }
     '/$locale/(redirects)/courses/$courseId/join': {
       id: '/$locale/(redirects)/courses/$courseId/join'
-      path: '/join'
+      path: '/courses/$courseId/join'
       fullPath: '/$locale/courses/$courseId/join'
       preLoaderRoute: typeof LocaleredirectsCoursesCourseIdJoinRouteImport
-      parentRoute: typeof LocaleredirectsCoursesCourseIdRoute
+      parentRoute: typeof LocaleRoute
     }
     '/$locale/(redirects)/courses/$courseId/certificate': {
       id: '/$locale/(redirects)/courses/$courseId/certificate'
-      path: '/certificate'
+      path: '/courses/$courseId/certificate'
       fullPath: '/$locale/courses/$courseId/certificate'
       preLoaderRoute: typeof LocaleredirectsCoursesCourseIdCertificateRouteImport
-      parentRoute: typeof LocaleredirectsCoursesCourseIdRoute
+      parentRoute: typeof LocaleRoute
     }
     '/$locale/(redirects)/play/$organizationId/courses/$courseId': {
       id: '/$locale/(redirects)/play/$organizationId/courses/$courseId'
@@ -1056,24 +1040,6 @@ const LocaleLearnerRouteWithChildren = LocaleLearnerRoute._addFileChildren(
   LocaleLearnerRouteChildren,
 )
 
-interface LocaleredirectsCoursesCourseIdRouteChildren {
-  LocaleredirectsCoursesCourseIdCertificateRoute: typeof LocaleredirectsCoursesCourseIdCertificateRoute
-  LocaleredirectsCoursesCourseIdJoinRoute: typeof LocaleredirectsCoursesCourseIdJoinRoute
-}
-
-const LocaleredirectsCoursesCourseIdRouteChildren: LocaleredirectsCoursesCourseIdRouteChildren =
-  {
-    LocaleredirectsCoursesCourseIdCertificateRoute:
-      LocaleredirectsCoursesCourseIdCertificateRoute,
-    LocaleredirectsCoursesCourseIdJoinRoute:
-      LocaleredirectsCoursesCourseIdJoinRoute,
-  }
-
-const LocaleredirectsCoursesCourseIdRouteWithChildren =
-  LocaleredirectsCoursesCourseIdRoute._addFileChildren(
-    LocaleredirectsCoursesCourseIdRouteChildren,
-  )
-
 interface LocaleredirectsPlayOrganizationIdCoursesCourseIdRouteChildren {
   LocaleredirectsPlayOrganizationIdCoursesCourseIdCertificateRoute: typeof LocaleredirectsPlayOrganizationIdCoursesCourseIdCertificateRoute
   LocaleredirectsPlayOrganizationIdCoursesCourseIdJoinRoute: typeof LocaleredirectsPlayOrganizationIdCoursesCourseIdJoinRoute
@@ -1102,7 +1068,8 @@ interface LocaleRouteChildren {
   LocaleAuthLoginRoute: typeof LocaleAuthLoginRoute
   LocaleAuthVerifyEmailRoute: typeof LocaleAuthVerifyEmailRoute
   LocaleDocsEmailsRoute: typeof LocaleDocsEmailsRoute
-  LocaleredirectsCoursesCourseIdRoute: typeof LocaleredirectsCoursesCourseIdRouteWithChildren
+  LocaleredirectsCoursesCourseIdCertificateRoute: typeof LocaleredirectsCoursesCourseIdCertificateRoute
+  LocaleredirectsCoursesCourseIdJoinRoute: typeof LocaleredirectsCoursesCourseIdJoinRoute
   LocaleredirectsPlayOrganizationIdCoursesCourseIdRoute: typeof LocaleredirectsPlayOrganizationIdCoursesCourseIdRouteWithChildren
 }
 
@@ -1116,8 +1083,10 @@ const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleAuthLoginRoute: LocaleAuthLoginRoute,
   LocaleAuthVerifyEmailRoute: LocaleAuthVerifyEmailRoute,
   LocaleDocsEmailsRoute: LocaleDocsEmailsRoute,
-  LocaleredirectsCoursesCourseIdRoute:
-    LocaleredirectsCoursesCourseIdRouteWithChildren,
+  LocaleredirectsCoursesCourseIdCertificateRoute:
+    LocaleredirectsCoursesCourseIdCertificateRoute,
+  LocaleredirectsCoursesCourseIdJoinRoute:
+    LocaleredirectsCoursesCourseIdJoinRoute,
   LocaleredirectsPlayOrganizationIdCoursesCourseIdRoute:
     LocaleredirectsPlayOrganizationIdCoursesCourseIdRouteWithChildren,
 }
