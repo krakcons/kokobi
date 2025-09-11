@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { Separator } from "./ui/separator";
 import { LocaleToggle } from "./LocaleToggle";
+import { Separator } from "./ui/separator";
 
 export const Page = ({ children }: { children: React.ReactNode }) => {
 	return (
@@ -21,7 +21,7 @@ export const PageHeader = ({
 }) => (
 	<div className="flex flex-col gap-2">
 		<div className="flex items-end justify-between flex-wrap gap-2">
-			<div className="flex flex-col gap-2">
+			<div className="flex flex-col gap-6">
 				<h1>{title}</h1>
 				{UnderTitle}
 				{description && <p>{description}</p>}
@@ -77,7 +77,7 @@ export const FloatingPage = ({
 		>
 			<div
 				className={cn(
-					"flex flex-col gap-4 max-w-md w-full",
+					"flex flex-col gap-4 max-w-lg h-full w-full",
 					contentClassname,
 				)}
 			>

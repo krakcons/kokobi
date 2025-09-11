@@ -70,22 +70,26 @@ const LoginForm = ({
 	return (
 		<form.AppForm>
 			<form
-				className="flex flex-col gap-4"
+				className="flex flex-col gap-10"
 				onSubmit={(e) => {
 					e.preventDefault();
 					form.handleSubmit();
 				}}
 			>
-				<form.AppField
-					name="email"
-					children={(field) => <field.TextField label={t.email} />}
-				/>
-				<form.AppField
-					name="rememberMe"
-					children={(field) => (
-						<field.CheckboxField label={t.rememberMe} />
-					)}
-				/>
+				<div className="flex flex-col gap-4">
+					<form.AppField
+						name="email"
+						children={(field) => (
+							<field.TextField label={t.email} />
+						)}
+					/>
+					<form.AppField
+						name="rememberMe"
+						children={(field) => (
+							<field.CheckboxField label={t.rememberMe} />
+						)}
+					/>
+				</div>
 				<form.SubmitButton />
 			</form>
 		</form.AppForm>
@@ -124,15 +128,18 @@ function RouteComponent() {
 
 	return (
 		<>
-			<KokobiLogo />
-			<FloatingPage contentClassname="border-e-4 border-primary/20 border rounded-lg p-10 shadow-lg bg-popover">
-				{organization && (
+			<div className="pt-6 pl-6">
+				{organization ? (
 					<OrganizationIcon
 						src={organizationImageUrl(organization, "logo")}
-						className="my-4"
+						className="bg-popover"
 					/>
+				) : (
+					<KokobiLogo />
 				)}
+			</div>
 
+			<FloatingPage contentClassname="border-e-4 border-primary/20 border rounded-lg p-10 shadow-lg bg-popover">
 				<PageHeader title={t.title} description={t.description}>
 					<p className="text-sm text-muted-foreground">
 						{t.newUserNote}
