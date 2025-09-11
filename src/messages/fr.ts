@@ -304,7 +304,7 @@ const fr: Messages = {
 		resend: "Renvoyer l'invitation",
 		recertify: "Renvoyer l'achèvement",
 		connectedAt: "Invité/Demandé à",
-		moduleLocale: "Lieu",
+		moduleLocale: "Langue",
 		moduleVersion: "Version",
 	},
 	LearnersForm: {
@@ -362,7 +362,7 @@ const fr: Messages = {
 			"Gérer les modules de ce cours. Les modules correspondent au contenu réel du cours selon les normes Scorm 1.2 et 2004.",
 		table: {
 			version: "Version",
-			locale: "Lieu",
+			locale: "Langue",
 			type: "Taper",
 		},
 	},

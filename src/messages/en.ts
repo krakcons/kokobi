@@ -293,7 +293,7 @@ const en = {
 		completedAt: "Completed At",
 		resend: "Resend Invite",
 		recertify: "Resend Completion",
-		moduleLocale: "Locale",
+		moduleLocale: "Language",
 		moduleVersion: "Version",
 		connectedAt: "Invited/Requested At",
 		connectStatus: "Connection Status",
@@ -353,7 +353,7 @@ const en = {
 			"Manage the modules for this course. Modules are the actual content of the course in the Scorm 1.2 and 2004 standards.",
 		table: {
 			version: "Version",
-			locale: "Locale",
+			locale: "Language",
 			type: "Type",
 		},
 	},
