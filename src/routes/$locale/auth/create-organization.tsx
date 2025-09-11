@@ -1,5 +1,5 @@
 import { OrganizationForm } from "@/components/forms/OrganizationForm";
-import { FloatingPage, PageHeader } from "@/components/Page";
+import { PageHeader } from "@/components/Page";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useMutation } from "@tanstack/react-query";
@@ -31,7 +31,7 @@ function RouteComponent() {
 	);
 
 	return (
-		<FloatingPage>
+		<>
 			<PageHeader
 				title={t.create.title}
 				description={t.create.description}
@@ -42,6 +42,6 @@ function RouteComponent() {
 					return createOrganization.mutateAsync(values);
 				}}
 			/>
-		</FloatingPage>
+		</>
 	);
 }

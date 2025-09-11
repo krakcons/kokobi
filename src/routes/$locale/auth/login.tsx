@@ -1,43 +1,15 @@
-import { FloatingPage, PageHeader } from "@/components/Page";
+import { PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
-import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { z } from "zod";
-import { OrganizationIcon } from "@/components/OrganizationIcon";
-import { organizationImageUrl } from "@/lib/file";
-import { useTranslations } from "@/lib/locale";
-import { orpc } from "@/server/client";
 import { authClient } from "@/lib/auth.client";
-
-export const RedirectSchema = z.object({
-	redirect: z.string().optional(),
-});
+import { useTranslations } from "@/lib/locale";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { RedirectSchema } from "../auth";
 
 export const Route = createFileRoute("/$locale/auth/login")({
 	component: RouteComponent,
 	validateSearch: RedirectSchema,
-	beforeLoad: async ({ params, context: { queryClient } }) => {
-		try {
-			const auth = await queryClient.ensureQueryData(
-				orpc.auth.session.queryOptions(),
-			);
-			if (auth) throw redirect({ to: "/$locale/admin", params });
-		} catch (e) {}
-	},
-	loader: async ({ context: { queryClient } }) => {
-		const tenant = await queryClient.ensureQueryData(
-			orpc.auth.tenant.queryOptions(),
-		);
-		if (tenant) {
-			await queryClient.ensureQueryData(
-				orpc.organization.id.queryOptions({
-					input: {
-						id: tenant.id,
-					},
-				}),
-			);
-		}
-	},
 });
 
 export const LoginFormSchema = z.object({
@@ -69,22 +41,26 @@ const LoginForm = ({
 	return (
 		<form.AppForm>
 			<form
-				className="flex flex-col gap-4"
+				className="flex flex-col gap-10"
 				onSubmit={(e) => {
 					e.preventDefault();
 					form.handleSubmit();
 				}}
 			>
-				<form.AppField
-					name="email"
-					children={(field) => <field.TextField label={t.email} />}
-				/>
-				<form.AppField
-					name="rememberMe"
-					children={(field) => (
-						<field.CheckboxField label={t.rememberMe} />
-					)}
-				/>
+				<div className="flex flex-col gap-4">
+					<form.AppField
+						name="email"
+						children={(field) => (
+							<field.TextField label={t.email} />
+						)}
+					/>
+					<form.AppField
+						name="rememberMe"
+						children={(field) => (
+							<field.CheckboxField label={t.rememberMe} />
+						)}
+					/>
+				</div>
 				<form.SubmitButton />
 			</form>
 		</form.AppForm>
@@ -93,16 +69,6 @@ const LoginForm = ({
 
 function RouteComponent() {
 	const navigate = Route.useNavigate();
-
-	const { data: tenant } = useSuspenseQuery(orpc.auth.tenant.queryOptions());
-	const { data: organization } = useQuery(
-		orpc.organization.id.queryOptions({
-			input: {
-				id: tenant?.id!,
-			},
-			enabled: !!tenant?.id,
-		}),
-	);
 
 	const requestMutation = useMutation({
 		mutationFn: ({ email }: LoginFormType) =>
@@ -122,17 +88,13 @@ function RouteComponent() {
 	const t = useTranslations("AuthLogin");
 
 	return (
-		<FloatingPage>
-			{organization && (
-				<OrganizationIcon
-					src={organizationImageUrl(organization, "logo")}
-					className="my-4"
-				/>
-			)}
-			<PageHeader title={t.title} description={t.description} />
+		<>
+			<PageHeader title={t.title} description={t.description}>
+				<p className="text-sm text-muted-foreground">{t.newUserNote}</p>
+			</PageHeader>
 			<LoginForm
 				onSubmit={(values) => requestMutation.mutateAsync(values)}
 			/>
-		</FloatingPage>
+		</>
 	);
 }

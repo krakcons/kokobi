@@ -1,12 +1,11 @@
-import { FloatingPage, PageHeader } from "@/components/Page";
+import { PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
-import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { RedirectSchema } from "./login";
-import { useTranslations } from "@/lib/locale";
 import { authClient } from "@/lib/auth.client";
+import { useTranslations } from "@/lib/locale";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import z from "zod";
-import { orpc } from "@/server/client";
+import { RedirectSchema } from "../auth";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({
 	component: RouteComponent,
@@ -14,14 +13,6 @@ export const Route = createFileRoute("/$locale/auth/verify-email")({
 		email: z.email(),
 		rememberMe: z.boolean().optional(),
 	}),
-	beforeLoad: async ({ params, context: { queryClient } }) => {
-		try {
-			const auth = await queryClient.ensureQueryData(
-				orpc.auth.session.queryOptions(),
-			);
-			if (auth) throw redirect({ to: "/$locale/admin", params });
-		} catch (e) {}
-	},
 });
 
 export const OTPFormSchema = z.object({
@@ -106,7 +97,7 @@ function RouteComponent() {
 	});
 
 	return (
-		<FloatingPage>
+		<>
 			<PageHeader title={t.title} description={t.description} />
 			<OTPForm
 				onSubmit={(values) =>
@@ -116,6 +107,6 @@ function RouteComponent() {
 					})
 				}
 			/>
-		</FloatingPage>
+		</>
 	);
 }

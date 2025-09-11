@@ -51,6 +51,8 @@ const fr: Messages = {
 		title: "Se connecter",
 		description:
 			"Entrez votre email ci-dessous et soumettez pour vous connecter",
+		newUserNote:
+			"Première visite? Votre compte sera créé lors de la connexion.",
 	},
 	AuthVerifyEmail: {
 		title: "Vérification de l'email",

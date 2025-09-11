@@ -1,17 +1,17 @@
 import { Button } from "@/components/ui/button";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "../ui/collapsible";
-import { useState } from "react";
-import { ChevronRight } from "lucide-react";
-import { useAppForm } from "../ui/form";
 import { useTranslations } from "@/lib/locale";
 import {
 	OrganizationFormSchema,
 	type OrganizationFormType,
 } from "@/types/organization";
+import { ChevronRight } from "lucide-react";
+import { useState } from "react";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "../ui/collapsible";
+import { useAppForm } from "../ui/form";
 
 const CollapsibleWrapper = ({ children }: { children: React.ReactNode }) => {
 	const t = useTranslations("Form");
@@ -68,7 +68,7 @@ export const OrganizationForm = ({
 		<form.AppForm>
 			<form
 				onSubmit={(e) => e.preventDefault()}
-				className="flex flex-col gap-8 items-start"
+				className="flex flex-col gap-4 items-start"
 			>
 				{!collapsible && <form.BlockNavigation />}
 				<form.AppField name="name">
