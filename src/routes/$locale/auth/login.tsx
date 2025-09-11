@@ -1,44 +1,15 @@
-import { KokobiLogo } from "@/components/KokobiLogo";
-import { OrganizationIcon } from "@/components/OrganizationIcon";
-import { FloatingPage, PageHeader } from "@/components/Page";
+import { PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
 import { authClient } from "@/lib/auth.client";
-import { organizationImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
-import { orpc } from "@/server/client";
-import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-
-export const RedirectSchema = z.object({
-	redirect: z.string().optional(),
-});
+import { RedirectSchema } from "../auth";
 
 export const Route = createFileRoute("/$locale/auth/login")({
 	component: RouteComponent,
 	validateSearch: RedirectSchema,
-	beforeLoad: async ({ params, context: { queryClient } }) => {
-		try {
-			const auth = await queryClient.ensureQueryData(
-				orpc.auth.session.queryOptions(),
-			);
-			if (auth) throw redirect({ to: "/$locale/admin", params });
-		} catch (e) {}
-	},
-	loader: async ({ context: { queryClient } }) => {
-		const tenant = await queryClient.ensureQueryData(
-			orpc.auth.tenant.queryOptions(),
-		);
-		if (tenant) {
-			await queryClient.ensureQueryData(
-				orpc.organization.id.queryOptions({
-					input: {
-						id: tenant.id,
-					},
-				}),
-			);
-		}
-	},
 });
 
 export const LoginFormSchema = z.object({
@@ -99,16 +70,6 @@ const LoginForm = ({
 function RouteComponent() {
 	const navigate = Route.useNavigate();
 
-	const { data: tenant } = useSuspenseQuery(orpc.auth.tenant.queryOptions());
-	const { data: organization } = useQuery(
-		orpc.organization.id.queryOptions({
-			input: {
-				id: tenant?.id!,
-			},
-			enabled: !!tenant?.id,
-		}),
-	);
-
 	const requestMutation = useMutation({
 		mutationFn: ({ email }: LoginFormType) =>
 			authClient.emailOtp.sendVerificationOtp({ email, type: "sign-in" }),
@@ -128,27 +89,12 @@ function RouteComponent() {
 
 	return (
 		<>
-			<div className="pt-6 pl-6">
-				{organization ? (
-					<OrganizationIcon
-						src={organizationImageUrl(organization, "logo")}
-						className="bg-popover"
-					/>
-				) : (
-					<KokobiLogo />
-				)}
-			</div>
-
-			<FloatingPage contentClassname="border-e-4 border-primary/20 border rounded-lg p-10 shadow-lg bg-popover">
-				<PageHeader title={t.title} description={t.description}>
-					<p className="text-sm text-muted-foreground">
-						{t.newUserNote}
-					</p>
-				</PageHeader>
-				<LoginForm
-					onSubmit={(values) => requestMutation.mutateAsync(values)}
-				/>
-			</FloatingPage>
+			<PageHeader title={t.title} description={t.description}>
+				<p className="text-sm text-muted-foreground">{t.newUserNote}</p>
+			</PageHeader>
+			<LoginForm
+				onSubmit={(values) => requestMutation.mutateAsync(values)}
+			/>
 		</>
 	);
 }

@@ -1,6 +1,8 @@
 import { LocaleToggle } from "@/components/LocaleToggle";
+import { OrganizationIcon } from "@/components/OrganizationIcon";
 import { PublicUserButton } from "@/components/sidebars/UserButton";
 import { Button } from "@/components/ui/button";
+import { organizationImageUrl } from "@/lib/file";
 import { useLocale, useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -11,11 +13,9 @@ import {
 	useLocation,
 } from "@tanstack/react-router";
 import type { SessionWithImpersonatedBy } from "better-auth/plugins";
-import WebsiteLogo from "/favicon.ico";
-import { organizationImageUrl } from "@/lib/file";
-import { OrganizationIcon } from "@/components/OrganizationIcon";
 import { HomeIcon } from "lucide-react";
 import z from "zod";
+import WebsiteLogo from "/favicon.ico";
 
 export const Route = createFileRoute("/$locale/_public")({
 	component: RouteComponent,
@@ -35,7 +35,6 @@ export const Route = createFileRoute("/$locale/_public")({
 		};
 	},
 	loader: async ({ context: { queryClient } }) => {
-		console.log("LOADER");
 		return Promise.all([
 			queryClient.ensureQueryData(
 				orpc.auth.optionalSession.queryOptions(),

@@ -71,13 +71,13 @@ export const FloatingPage = ({
 	return (
 		<div
 			className={cn(
-				"h-full min-h-[calc(100vh-80px)] max-w-screen w-full flex flex-col items-center justify-center p-4 sm:p-8 gap-4",
+				"h-full min-h-[calc(90vh-80px)] max-w-screen w-full flex flex-col items-center justify-center",
 				className,
 			)}
 		>
 			<div
 				className={cn(
-					"flex flex-col gap-4 max-w-lg h-full w-full",
+					"flex flex-col gap-4 max-w-lg w-full",
 					contentClassname,
 				)}
 			>
