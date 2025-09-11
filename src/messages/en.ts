@@ -47,6 +47,8 @@ const en = {
 	AuthLogin: {
 		title: "Login",
 		description: "Enter your email below and submit to login",
+		newUserNote:
+			"First time here? Your account will be created upon login.",
 	},
 	AuthVerifyEmail: {
 		title: "Verify Email",

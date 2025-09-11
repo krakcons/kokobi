@@ -1,12 +1,13 @@
+import { KokobiLogo } from "@/components/KokobiLogo";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
+import { authClient } from "@/lib/auth.client";
+import { useTranslations } from "@/lib/locale";
+import { orpc } from "@/server/client";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { RedirectSchema } from "./login";
-import { useTranslations } from "@/lib/locale";
-import { authClient } from "@/lib/auth.client";
 import z from "zod";
-import { orpc } from "@/server/client";
+import { RedirectSchema } from "./login";
 
 export const Route = createFileRoute("/$locale/auth/verify-email")({
 	component: RouteComponent,
@@ -106,16 +107,19 @@ function RouteComponent() {
 	});
 
 	return (
-		<FloatingPage>
-			<PageHeader title={t.title} description={t.description} />
-			<OTPForm
-				onSubmit={(values) =>
-					verifyMutation.mutateAsync({
-						...values,
-						rememberMe,
-					})
-				}
-			/>
-		</FloatingPage>
+		<>
+			<KokobiLogo />
+			<FloatingPage contentClassname="border-e-4 border-primary/20 border rounded-lg p-10 shadow-lg bg-popover">
+				<PageHeader title={t.title} description={t.description} />
+				<OTPForm
+					onSubmit={(values) =>
+						verifyMutation.mutateAsync({
+							...values,
+							rememberMe,
+						})
+					}
+				/>
+			</FloatingPage>
+		</>
 	);
 }

@@ -1,13 +1,14 @@
+import { KokobiLogo } from "@/components/KokobiLogo";
+import { OrganizationIcon } from "@/components/OrganizationIcon";
 import { FloatingPage, PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
-import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { z } from "zod";
-import { OrganizationIcon } from "@/components/OrganizationIcon";
+import { authClient } from "@/lib/auth.client";
 import { organizationImageUrl } from "@/lib/file";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
-import { authClient } from "@/lib/auth.client";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { z } from "zod";
 
 export const RedirectSchema = z.object({
 	redirect: z.string().optional(),
@@ -122,17 +123,25 @@ function RouteComponent() {
 	const t = useTranslations("AuthLogin");
 
 	return (
-		<FloatingPage>
-			{organization && (
-				<OrganizationIcon
-					src={organizationImageUrl(organization, "logo")}
-					className="my-4"
+		<>
+			<KokobiLogo />
+			<FloatingPage contentClassname="border-e-4 border-primary/20 border rounded-lg p-10 shadow-lg bg-popover">
+				{organization && (
+					<OrganizationIcon
+						src={organizationImageUrl(organization, "logo")}
+						className="my-4"
+					/>
+				)}
+
+				<PageHeader title={t.title} description={t.description}>
+					<p className="text-sm text-muted-foreground">
+						{t.newUserNote}
+					</p>
+				</PageHeader>
+				<LoginForm
+					onSubmit={(values) => requestMutation.mutateAsync(values)}
 				/>
-			)}
-			<PageHeader title={t.title} description={t.description} />
-			<LoginForm
-				onSubmit={(values) => requestMutation.mutateAsync(values)}
-			/>
-		</FloatingPage>
+			</FloatingPage>
+		</>
 	);
 }
