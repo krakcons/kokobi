@@ -27,7 +27,7 @@ import { getNewModuleVersionNumber } from "../lib/modules";
 import { createConnection } from "./connection";
 import { isModuleSuccessful } from "@/lib/scorm";
 import { sendEmail, verifyEmail } from "../lib/email";
-import CourseCompletion from "@/components/emails/CourseCompletion";
+import CourseCompletion from "@/emails/CourseCompletion";
 import { organizationImageUrl } from "@/lib/file";
 import { ConnectionSchema } from "@/types/connections";
 

@@ -17,7 +17,7 @@ import { hasOrganizationAccess } from "../lib/access";
 import { getConnectionLink, getUserList } from "../lib/connection";
 import type { ConnectionType } from "@/types/connections";
 import { createTranslator, handleLocalization, locales } from "@/lib/locale";
-import Invite from "@/components/emails/Invite";
+import Invite from "@/emails/Invite";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { organizationImageUrl } from "@/lib/file";
 import type { Session } from "@/lib/auth";

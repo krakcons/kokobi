@@ -5,15 +5,15 @@ import {
 } from "@aws-sdk/client-sesv2";
 import type { ReactElement } from "react";
 import { ses } from "../ses";
-import { renderToString } from "react-dom/server";
 import type { Organization } from "@/types/organization";
 import { createTranslator, handleLocalization } from "@/lib/locale";
 import { getTenant } from "./tenant";
 import { organizations } from "../db/auth";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
-import OTP from "@/components/emails/OTP";
 import { getLocaleContext } from "../middleware";
+import { render } from "@react-email/components";
+import { OTP } from "@/emails/OTP";
 
 export const verifyEmail = async (domains: Domain[]) => {
 	if (domains.length === 0) return false;
@@ -53,7 +53,7 @@ export async function sendEmail({
 		const domain = organization.domains[0];
 		fromAddress = `${organization.name} <noreply@${domain.hostname}>`;
 	}
-	const html = renderToString(content);
+	const html = await render(content);
 	const command = new SendEmailCommand({
 		FromEmailAddress: fromAddress,
 		Destination: {

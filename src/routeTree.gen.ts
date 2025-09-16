@@ -20,7 +20,6 @@ import { Route as LocalePublicRouteImport } from './routes/$locale/_public'
 import { Route as LocaleLearnerIndexRouteImport } from './routes/$locale/learner/index'
 import { Route as LocaleAdminIndexRouteImport } from './routes/$locale/admin/index'
 import { Route as LocalePublicIndexRouteImport } from './routes/$locale/_public/index'
-import { Route as LocaleDocsEmailsRouteImport } from './routes/$locale/docs/emails'
 import { Route as LocaleAuthVerifyEmailRouteImport } from './routes/$locale/auth/verify-email'
 import { Route as LocaleAuthLoginRouteImport } from './routes/$locale/auth/login'
 import { Route as LocaleAuthCreateOrganizationRouteImport } from './routes/$locale/auth/create-organization'
@@ -104,11 +103,6 @@ const LocalePublicIndexRoute = LocalePublicIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LocalePublicRoute,
-} as any)
-const LocaleDocsEmailsRoute = LocaleDocsEmailsRouteImport.update({
-  id: '/docs/emails',
-  path: '/docs/emails',
-  getParentRoute: () => LocaleRoute,
 } as any)
 const LocaleAuthVerifyEmailRoute = LocaleAuthVerifyEmailRouteImport.update({
   id: '/auth/verify-email',
@@ -330,7 +324,6 @@ export interface FileRoutesByFullPath {
   '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
-  '/$locale/docs/emails': typeof LocaleDocsEmailsRoute
   '/$locale/': typeof LocalePublicIndexRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/$locale/learner/': typeof LocaleLearnerIndexRoute
@@ -371,7 +364,6 @@ export interface FileRoutesByTo {
   '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
-  '/$locale/docs/emails': typeof LocaleDocsEmailsRoute
   '/$locale/admin': typeof LocaleAdminIndexRoute
   '/$locale/learner': typeof LocaleLearnerIndexRoute
   '/$locale/collections/$collectionId': typeof LocalePublicCollectionsCollectionIdRoute
@@ -415,7 +407,6 @@ export interface FileRoutesById {
   '/$locale/auth/create-organization': typeof LocaleAuthCreateOrganizationRoute
   '/$locale/auth/login': typeof LocaleAuthLoginRoute
   '/$locale/auth/verify-email': typeof LocaleAuthVerifyEmailRoute
-  '/$locale/docs/emails': typeof LocaleDocsEmailsRoute
   '/$locale/_public/': typeof LocalePublicIndexRoute
   '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/$locale/learner/': typeof LocaleLearnerIndexRoute
@@ -460,7 +451,6 @@ export interface FileRouteTypes {
     | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
-    | '/$locale/docs/emails'
     | '/$locale/'
     | '/$locale/admin/'
     | '/$locale/learner/'
@@ -501,7 +491,6 @@ export interface FileRouteTypes {
     | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
-    | '/$locale/docs/emails'
     | '/$locale/admin'
     | '/$locale/learner'
     | '/$locale/collections/$collectionId'
@@ -544,7 +533,6 @@ export interface FileRouteTypes {
     | '/$locale/auth/create-organization'
     | '/$locale/auth/login'
     | '/$locale/auth/verify-email'
-    | '/$locale/docs/emails'
     | '/$locale/_public/'
     | '/$locale/admin/'
     | '/$locale/learner/'
@@ -677,13 +665,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/'
       preLoaderRoute: typeof LocalePublicIndexRouteImport
       parentRoute: typeof LocalePublicRoute
-    }
-    '/$locale/docs/emails': {
-      id: '/$locale/docs/emails'
-      path: '/docs/emails'
-      fullPath: '/$locale/docs/emails'
-      preLoaderRoute: typeof LocaleDocsEmailsRouteImport
-      parentRoute: typeof LocaleRoute
     }
     '/$locale/auth/verify-email': {
       id: '/$locale/auth/verify-email'
@@ -1067,7 +1048,6 @@ interface LocaleRouteChildren {
   LocaleAuthCreateOrganizationRoute: typeof LocaleAuthCreateOrganizationRoute
   LocaleAuthLoginRoute: typeof LocaleAuthLoginRoute
   LocaleAuthVerifyEmailRoute: typeof LocaleAuthVerifyEmailRoute
-  LocaleDocsEmailsRoute: typeof LocaleDocsEmailsRoute
   LocaleredirectsCoursesCourseIdCertificateRoute: typeof LocaleredirectsCoursesCourseIdCertificateRoute
   LocaleredirectsCoursesCourseIdJoinRoute: typeof LocaleredirectsCoursesCourseIdJoinRoute
   LocaleredirectsPlayOrganizationIdCoursesCourseIdRoute: typeof LocaleredirectsPlayOrganizationIdCoursesCourseIdRouteWithChildren
@@ -1082,7 +1062,6 @@ const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleAuthCreateOrganizationRoute: LocaleAuthCreateOrganizationRoute,
   LocaleAuthLoginRoute: LocaleAuthLoginRoute,
   LocaleAuthVerifyEmailRoute: LocaleAuthVerifyEmailRoute,
-  LocaleDocsEmailsRoute: LocaleDocsEmailsRoute,
   LocaleredirectsCoursesCourseIdCertificateRoute:
     LocaleredirectsCoursesCourseIdCertificateRoute,
   LocaleredirectsCoursesCourseIdJoinRoute:

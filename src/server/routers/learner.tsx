@@ -24,7 +24,7 @@ import { parseIMSManifest } from "../lib/modules";
 import { hasUserAccess } from "../lib/access";
 import { getInitialScormData, isModuleSuccessful } from "@/lib/scorm";
 import { getConnectionLink } from "../lib/connection";
-import CourseCompletion from "@/components/emails/CourseCompletion";
+import CourseCompletion from "@/emails/CourseCompletion";
 import { sendEmail, verifyEmail } from "../lib/email";
 import { organizationImageUrl } from "@/lib/file";
 import { ORPCError } from "@orpc/client";
