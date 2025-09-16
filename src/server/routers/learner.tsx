@@ -380,172 +380,161 @@ export const learnerRouter = base.prefix("/learner").router({
 				.output(LearnerSchema)
 				.handler(
 					async ({ context, input: { attemptId, id, data } }) => {
-						try {
-							await hasUserAccess({
-								type: "course",
-								id,
-								userId: context.user.id,
-								organizationId:
-									context.session.activeLearnerOrganizationId,
-							});
+						await hasUserAccess({
+							type: "course",
+							id,
+							userId: context.user.id,
+							organizationId:
+								context.session.activeLearnerOrganizationId,
+						});
 
-							const attempt =
-								await db.query.usersToModules.findFirst({
-									where: and(
-										eq(usersToModules.courseId, id),
-										eq(usersToModules.id, attemptId),
-										eq(
-											usersToModules.userId,
-											context.user.id,
-										),
-										eq(
-											usersToModules.organizationId,
-											context.session
-												.activeLearnerOrganizationId,
-										),
+						const attempt = await db.query.usersToModules.findFirst(
+							{
+								where: and(
+									eq(usersToModules.courseId, id),
+									eq(usersToModules.id, attemptId),
+									eq(usersToModules.userId, context.user.id),
+									eq(
+										usersToModules.organizationId,
+										context.session
+											.activeLearnerOrganizationId,
 									),
-									with: {
-										module: true,
-										course: {
-											with: {
-												translations: true,
-											},
+								),
+								with: {
+									module: true,
+									course: {
+										with: {
+											translations: true,
 										},
 									},
-								});
+								},
+							},
+						);
 
-							if (!attempt) {
-								throw new ORPCError("NOT_FOUND", {
-									message: "Attempt not found.",
-								});
-							}
-							if (attempt.completedAt) {
-								return LearnerSchema.parse(attempt);
-							}
-
-							// UPDATE LEARNER
-							let completedAt = undefined;
-							if (data) {
-								// Send communications in the locale of the module
-								const communicationLocale =
-									attempt.module.locale;
-								const newLearner = ExtendLearner(
-									attempt.module.type,
-								).parse({
-									...attempt,
-									data,
-								});
-
-								const isComplete = [
-									"failed",
-									"completed",
-									"passed",
-								].includes(newLearner.status);
-								const isSuccess = isModuleSuccessful({
-									completionStatus:
-										attempt.course.completionStatus,
-									status: newLearner.status,
-								});
-								const justCompleted =
-									!attempt.completedAt && isComplete;
-
-								completedAt =
-									attempt.module && justCompleted
-										? new Date()
-										: attempt.completedAt;
-
-								if (justCompleted && isSuccess) {
-									const organizationBase =
-										await db.query.organizations.findFirst({
-											where: eq(
-												organizations.id,
-												context.session
-													.activeLearnerOrganizationId,
-											),
-											with: {
-												translations: true,
-												domains: true,
-											},
-										});
-									const organization = handleLocalization(
-										{ locale: communicationLocale },
-										organizationBase!,
-									);
-									const course = handleLocalization(
-										{ locale: communicationLocale },
-										attempt.course,
-									);
-
-									const href = await getConnectionLink({
-										id: course.id,
-										type: "course",
-										organizationId:
-											context.session
-												.activeLearnerOrganizationId,
-									});
-
-									const t = await createTranslator({
-										locale: communicationLocale,
-									});
-
-									const emailVerified = await verifyEmail(
-										organization.domains,
-									);
-
-									await sendEmail({
-										to: [context.user.email],
-										subject:
-											t.Email.CourseCompletion.subject,
-										content: (
-											<CourseCompletion
-												name={course.name}
-												organizationName={
-													organization.name
-												}
-												logo={organizationImageUrl(
-													organization,
-													"logo",
-												)}
-												href={href}
-												t={t.Email.CourseCompletion}
-											/>
-										),
-										organization: emailVerified
-											? organization
-											: undefined,
-									});
-								}
-							}
-
-							const newAttempt = await db
-								.update(usersToModules)
-								.set({
-									...(data ? { data } : {}),
-									...(completedAt ? { completedAt } : {}),
-								})
-								.where(
-									and(
-										eq(usersToModules.courseId, id),
-										eq(usersToModules.id, attemptId),
-										eq(
-											usersToModules.userId,
-											context.user.id,
-										),
-										eq(
-											usersToModules.organizationId,
-											context.session
-												.activeLearnerOrganizationId,
-										),
-									),
-								)
-								.returning();
-
-							return ExtendLearner(attempt.module.type).parse(
-								newAttempt[0],
-							);
-						} catch (error) {
-							throw error;
+						if (!attempt) {
+							throw new ORPCError("NOT_FOUND", {
+								message: "Attempt not found.",
+							});
 						}
+						if (attempt.completedAt) {
+							return ExtendLearner(attempt.module.type).parse(
+								attempt,
+							);
+						}
+
+						// UPDATE LEARNER
+						let completedAt = undefined;
+						if (data) {
+							// Send communications in the locale of the module
+							const communicationLocale = attempt.module.locale;
+							const newLearner = ExtendLearner(
+								attempt.module.type,
+							).parse({
+								...attempt,
+								data,
+							});
+
+							const isComplete = [
+								"failed",
+								"completed",
+								"passed",
+							].includes(newLearner.status);
+							const isSuccess = isModuleSuccessful({
+								completionStatus:
+									attempt.course.completionStatus,
+								status: newLearner.status,
+							});
+							const justCompleted =
+								!attempt.completedAt && isComplete;
+
+							completedAt =
+								attempt.module && justCompleted
+									? new Date()
+									: attempt.completedAt;
+
+							if (justCompleted && isSuccess) {
+								const organizationBase =
+									await db.query.organizations.findFirst({
+										where: eq(
+											organizations.id,
+											context.session
+												.activeLearnerOrganizationId,
+										),
+										with: {
+											translations: true,
+											domains: true,
+										},
+									});
+								const organization = handleLocalization(
+									{ locale: communicationLocale },
+									organizationBase!,
+								);
+								const course = handleLocalization(
+									{ locale: communicationLocale },
+									attempt.course,
+								);
+
+								const href = await getConnectionLink({
+									id: course.id,
+									type: "course",
+									organizationId:
+										context.session
+											.activeLearnerOrganizationId,
+								});
+
+								const t = await createTranslator({
+									locale: communicationLocale,
+								});
+
+								const emailVerified = await verifyEmail(
+									organization.domains,
+								);
+
+								await sendEmail({
+									to: [context.user.email],
+									subject: t.Email.CourseCompletion.subject,
+									content: (
+										<CourseCompletion
+											name={course.name}
+											organizationName={organization.name}
+											logo={organizationImageUrl(
+												organization,
+												"logo",
+											)}
+											href={href}
+											t={t.Email.CourseCompletion}
+										/>
+									),
+									organization: emailVerified
+										? organization
+										: undefined,
+								});
+							}
+						}
+
+						const newAttempt = await db
+							.update(usersToModules)
+							.set({
+								...(data ? { data } : {}),
+								...(completedAt ? { completedAt } : {}),
+							})
+							.where(
+								and(
+									eq(usersToModules.courseId, id),
+									eq(usersToModules.id, attemptId),
+									eq(usersToModules.userId, context.user.id),
+									eq(
+										usersToModules.organizationId,
+										context.session
+											.activeLearnerOrganizationId,
+									),
+								),
+							)
+							.returning();
+
+						return ExtendLearner(attempt.module.type).parse(
+							newAttempt[0],
+						);
 					},
 				),
 		},
