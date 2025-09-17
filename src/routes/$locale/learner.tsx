@@ -1,8 +1,16 @@
+import { LocaleToggle } from "@/components/LocaleToggle";
+import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
+import { SidebarUserButton } from "@/components/sidebars/UserButton";
 import {
 	SidebarInset,
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { env } from "@/env";
+import { useLocale } from "@/lib/locale";
+import { orpc } from "@/server/client";
+import { type SearchParams } from "@/types/router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Outlet,
@@ -10,17 +18,10 @@ import {
 	useLocation,
 	useMatch,
 } from "@tanstack/react-router";
-import { LocaleToggle } from "@/components/LocaleToggle";
-import { LearnerSidebar } from "@/components/sidebars/LearnerSidebar";
-import { z } from "zod";
-import { env } from "@/env";
-import { SidebarUserButton } from "@/components/sidebars/UserButton";
 import { createServerFn } from "@tanstack/react-start";
 import { getHeader } from "@tanstack/react-start/server";
-import { useLocale } from "@/lib/locale";
-import { orpc } from "@/server/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import type { SessionWithImpersonatedBy } from "better-auth/plugins";
+import { z } from "zod";
 
 const getIsIframeFn = createServerFn().handler(() => {
 	const secFestDest = getHeader("sec-fetch-dest");
@@ -41,17 +42,45 @@ export const Route = createFileRoute("/$locale/learner")({
 		context: { queryClient },
 	}) => {
 		const organizationId = search.organizationId ?? search.teamId;
-		let auth = undefined;
+		let auth;
 		try {
 			auth = await queryClient.ensureQueryData(
 				orpc.auth.session.queryOptions(),
 			);
 		} catch (e) {
+			const collectionId =
+				location.pathname.match(/collections\/([^/]+)/);
+			const courseId = location.pathname.match(/courses\/([^/]+)/);
+			let redirectContext = "Learner Panel";
+			let redirectType: SearchParams["redirectType"] = "learner_panel";
+
+			if (collectionId && collectionId[1]) {
+				redirectContext = (
+					await queryClient.ensureQueryData(
+						orpc.collection.id.queryOptions({
+							input: { id: collectionId[1] },
+						}),
+					)
+				).name;
+				redirectType = "collection";
+			} else if (courseId && courseId[1]) {
+				redirectContext = (
+					await queryClient.ensureQueryData(
+						orpc.course.id.queryOptions({
+							input: { id: courseId[1] },
+						}),
+					)
+				).name;
+				redirectType = "course";
+			}
+
 			throw redirect({
 				to: "/$locale/auth/login",
-				search: (s: any) => ({
+				search: (s: any): SearchParams => ({
 					...s,
 					redirect: location.pathname,
+					redirectContext,
+					redirectType,
 				}),
 				params,
 			});

@@ -49,6 +49,12 @@ const en = {
 		description: "Enter your email below and submit to login",
 		newUserNote:
 			"First time here? Your account will be created upon login.",
+		redirectToCourse: `Login to view the`,
+		redirectToCollection: `Login to view the`,
+		redirectToLearnerPanel: "Login to access the Learner Panel",
+		redirectToAdminPanel: "Login to access the Admin Panel",
+		redirectCourse: "Course",
+		redirectCollection: "Collection",
 	},
 	AuthVerifyEmail: {
 		title: "Verify Email",

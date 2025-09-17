@@ -13,7 +13,6 @@ export const RedirectSchema = z.object({
 
 export const Route = createFileRoute("/$locale/auth")({
 	component: RouteComponent,
-	validateSearch: RedirectSchema,
 	beforeLoad: async ({ params, context: { queryClient } }) => {
 		try {
 			const auth = await queryClient.ensureQueryData(

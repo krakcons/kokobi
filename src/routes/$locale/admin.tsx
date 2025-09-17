@@ -1,3 +1,5 @@
+import { LocaleToggle } from "@/components/LocaleToggle";
+import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
 import {
 	Select,
 	SelectContent,
@@ -10,19 +12,16 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { type Locale, locales } from "@/lib/locale";
+import { locales, useLocale, useTranslations, type Locale } from "@/lib/locale";
+import { orpc } from "@/server/client";
+import { SearchSchema, type SearchParams } from "@/types/router";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	Outlet,
 	redirect,
 	useNavigate,
 } from "@tanstack/react-router";
-import { useLocale, useTranslations } from "@/lib/locale";
-import { LocaleToggle } from "@/components/LocaleToggle";
-import { AdminSidebar } from "@/components/sidebars/AdminSidebar";
-import { EditingLocaleSchema } from "@/types/router";
-import { orpc } from "@/server/client";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type {
 	SessionWithImpersonatedBy,
 	UserWithRole,
@@ -30,7 +29,7 @@ import type {
 
 export const Route = createFileRoute("/$locale/admin")({
 	component: RouteComponent,
-	validateSearch: EditingLocaleSchema,
+	validateSearch: SearchSchema, //revert back to previous params
 	beforeLoad: async ({ params, location, context: { queryClient } }) => {
 		let auth = undefined;
 		try {
@@ -40,9 +39,10 @@ export const Route = createFileRoute("/$locale/admin")({
 		} catch (e) {
 			throw redirect({
 				to: "/$locale/auth/login",
-				search: (s: any) => ({
+				search: (s: any): SearchParams => ({
 					...s,
 					redirect: location.pathname,
+					redirectType: "admin_panel",
 				}),
 				params,
 			});

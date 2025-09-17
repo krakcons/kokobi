@@ -53,6 +53,13 @@ const fr: Messages = {
 			"Entrez votre email ci-dessous et soumettez pour vous connecter",
 		newUserNote:
 			"Première visite? Votre compte sera créé lors de la connexion.",
+		redirectToCourse: "Connectez-vous pour voir le",
+		redirectToCollection: "Connectez-vous pour voir la",
+		redirectToLearnerPanel:
+			"Connectez-vous pour accéder au panneau Apprenant",
+		redirectToAdminPanel: "Connectez-vous pour accéder au panneau Admin",
+		redirectCourse: "Cours",
+		redirectCollection: "Collection",
 	},
 	AuthVerifyEmail: {
 		title: "Vérification de l'email",

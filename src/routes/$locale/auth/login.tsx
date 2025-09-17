@@ -2,14 +2,14 @@ import { PageHeader } from "@/components/Page";
 import { useAppForm } from "@/components/ui/form";
 import { authClient } from "@/lib/auth.client";
 import { useTranslations } from "@/lib/locale";
+import { SearchSchema } from "@/types/router";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { RedirectSchema } from "../auth";
 
 export const Route = createFileRoute("/$locale/auth/login")({
 	component: RouteComponent,
-	validateSearch: RedirectSchema,
+	validateSearch: SearchSchema,
 });
 
 export const LoginFormSchema = z.object({
@@ -68,6 +68,7 @@ const LoginForm = ({
 };
 
 function RouteComponent() {
+	const { redirect, redirectContext, redirectType } = Route.useSearch();
 	const navigate = Route.useNavigate();
 
 	const requestMutation = useMutation({
@@ -87,9 +88,21 @@ function RouteComponent() {
 	});
 	const t = useTranslations("AuthLogin");
 
+	let titleMap = {
+		course: `${t.redirectToCourse} ${redirectContext} ${t.redirectCourse}`,
+		collection: `${t.redirectToCollection} ${redirectContext} ${t.redirectCollection}`,
+		learner_panel: t.redirectToLearnerPanel,
+		admin_panel: t.redirectToAdminPanel,
+	};
+	let title = redirectType ? titleMap[redirectType] : t.title;
+
 	return (
 		<>
-			<PageHeader title={t.title} description={t.description}>
+			<PageHeader
+				title={title}
+				titlesize="md"
+				description={t.description}
+			>
 				<p className="text-sm text-muted-foreground">{t.newUserNote}</p>
 			</PageHeader>
 			<LoginForm

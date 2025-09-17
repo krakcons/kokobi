@@ -10,27 +10,37 @@ export const Page = ({ children }: { children: React.ReactNode }) => {
 
 export const PageHeader = ({
 	title,
+	titlesize = "lg",
 	description,
 	UnderTitle = null,
 	children,
 }: {
 	title: string;
+	titlesize?: "lg" | "md" | "sm";
 	description: string;
 	UnderTitle?: React.ReactNode;
 	children?: React.ReactNode;
-}) => (
-	<div className="flex flex-col gap-2">
-		<div className="flex items-end justify-between flex-wrap gap-2">
-			<div className="flex flex-col gap-6">
-				<h1>{title}</h1>
-				{UnderTitle}
-				{description && <p>{description}</p>}
+}) => {
+	const titleSizeClass = {
+		lg: "text-5xl font-bold",
+		md: "text-2xl font-semibold",
+		sm: "text-xl font-medium",
+	}[titlesize];
+
+	return (
+		<div className="flex flex-col gap-2">
+			<div className="flex items-end justify-between flex-wrap gap-2">
+				<div className="flex flex-col gap-6">
+					<p className={cn(titleSizeClass)}>{title}</p>
+					{UnderTitle}
+					{description && <p>{description}</p>}
+				</div>
+				{children}
 			</div>
-			{children}
+			<Separator className="mt-2 mb-4" />
 		</div>
-		<Separator className="mt-2 mb-4" />
-	</div>
-);
+	);
+};
 
 export const PageSubHeader = ({
 	title,
