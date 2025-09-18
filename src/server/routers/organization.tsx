@@ -16,6 +16,7 @@ import {
 	organizationTranslations,
 	sessions,
 	usersToCourses,
+	webhooks,
 } from "../db/schema";
 import { and, count, eq, inArray } from "drizzle-orm";
 import { ORPCError } from "@orpc/client";
@@ -39,6 +40,8 @@ import { APIError } from "cloudflare";
 import { auth } from "@/lib/auth";
 import { s3 } from "../s3";
 import { hasOrganizationAccess, OrganizationAccessSchema } from "../lib/access";
+import { WebhookFormSchema, WebhookSchema } from "@/types/webhooks";
+import { generateRandomString } from "../lib/random";
 
 export const organizationRouter = base.prefix("/organizations").router({
 	get: protectedProcedure
@@ -567,6 +570,126 @@ export const organizationRouter = base.prefix("/organizations").router({
 							eq(domains.hostnameId, domain.hostnameId),
 							eq(
 								domains.organizationId,
+								context.activeOrganizationId,
+							),
+						),
+					);
+
+				return null;
+			}),
+	},
+	webhook: {
+		get: organizationProcedure
+			.route({
+				tags: ["Organization"],
+				method: "GET",
+				path: "/webhook",
+				summary: "Get Webhooks",
+			})
+			.handler(async ({ context }) => {
+				return await db.query.webhooks.findMany({
+					where: eq(
+						webhooks.organizationId,
+						context.activeOrganizationId,
+					),
+				});
+			}),
+		id: organizationProcedure
+			.route({
+				tags: ["Organization"],
+				method: "GET",
+				path: "/webhook/{id}",
+				summary: "Get Webhook",
+			})
+			.input(
+				z.object({
+					id: z.string(),
+				}),
+			)
+			.output(WebhookSchema)
+			.handler(async ({ context, input: { id } }) => {
+				const webhook = await db.query.webhooks.findFirst({
+					where: and(
+						eq(webhooks.id, id),
+						eq(
+							webhooks.organizationId,
+							context.activeOrganizationId,
+						),
+					),
+				});
+
+				if (!webhook) {
+					throw new ORPCError("NOT_FOUND");
+				}
+
+				return webhook;
+			}),
+		create: organizationProcedure
+			.route({
+				tags: ["Organization"],
+				method: "POST",
+				path: "/webhook",
+				summary: "Create Webhook",
+			})
+			.input(WebhookFormSchema)
+			.output(z.object({ id: z.string() }))
+			.handler(async ({ context, input }) => {
+				const id = Bun.randomUUIDv7();
+				await db.insert(webhooks).values({
+					id,
+					organizationId: context.activeOrganizationId,
+					...input,
+					secret: generateRandomString(32),
+				});
+
+				return { id };
+			}),
+		update: organizationProcedure
+			.route({
+				tags: ["Organization"],
+				method: "PUT",
+				path: "/webhook/{id}",
+				summary: "Update Webhook",
+			})
+			.input(WebhookFormSchema.extend({ id: z.string() }))
+			.output(z.null())
+			.handler(async ({ context, input }) => {
+				await db
+					.update(webhooks)
+					.set(input)
+					.where(
+						and(
+							eq(webhooks.id, input.id),
+							eq(
+								webhooks.organizationId,
+								context.activeOrganizationId,
+							),
+						),
+					);
+
+				return null;
+			}),
+		delete: organizationProcedure
+			.route({
+				tags: ["Organization"],
+				method: "DELETE",
+				path: "/webhook/{id}",
+				summary: "Delete Webhook",
+			})
+			.input(
+				z.object({
+					id: z.string(),
+				}),
+			)
+			.output(z.null())
+			.handler(async ({ context, input: { id } }) => {
+				await db
+					.delete(webhooks)
+					.where(
+						and(
+							eq(webhooks.id, id),
+							eq(
+								webhooks.organizationId,
 								context.activeOrganizationId,
 							),
 						),

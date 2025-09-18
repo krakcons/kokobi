@@ -7,6 +7,7 @@ const fr: Messages = {
 		create: "Créer",
 		cancel: "Annuler",
 		continue: "Continuer",
+		edit: "Modifier",
 	},
 	AdminSidebar: {
 		switchToLearner: "Passer en Apprenant",
@@ -23,6 +24,7 @@ const fr: Messages = {
 		createCourse: "Créer un cours",
 		collections: "Collections",
 		createCollection: "Créer une collection",
+		webhooks: "Webhooks",
 		settings: "Paramètres",
 		learners: "Apprenants",
 		statistics: "Statistiques",

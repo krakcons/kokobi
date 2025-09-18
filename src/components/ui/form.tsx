@@ -28,8 +28,11 @@ import {
 } from "@/components/ui/select";
 import type { InputHTMLAttributes } from "react";
 import { Checkbox } from "./checkbox";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Trash } from "lucide-react";
 import { useTranslations } from "@/lib/locale";
+import { MultiSelect, type MultiSelectProps } from "./multi-select";
+import { cn } from "@/lib/utils";
+
 const { fieldContext, useFieldContext, formContext, useFormContext } =
 	createFormHookContexts();
 
@@ -93,8 +96,18 @@ export const Error = ({ errors = [] }: { errors?: any[] }) => {
 	));
 };
 
-export const Field = ({ children }: { children: React.ReactNode }) => {
-	return <div className="flex flex-col gap-2 items-start">{children}</div>;
+export const Field = ({
+	children,
+	className,
+}: {
+	children: React.ReactNode;
+	className?: string;
+}) => {
+	return (
+		<div className={cn("flex flex-col gap-2 items-start", className)}>
+			{children}
+		</div>
+	);
 };
 
 const TextField = (props: React.ComponentProps<"input"> & DefaultOptions) => {
@@ -186,6 +199,129 @@ const SelectField = ({
 					</SelectGroup>
 				</SelectContent>
 			</Select>
+			<Description {...props} />
+			<Error errors={field.getMeta().errors} />
+		</Field>
+	);
+};
+
+const KeyValueField = (props: DefaultOptions) => {
+	const t = useTranslations("KeyValueField");
+	const field = useFieldContext<Record<string, string>>();
+
+	const keyValues = Object.entries(field.state.value ?? {});
+
+	const updateKeyValue = (key: string, value: string, index: number) => {
+		return Object.fromEntries(
+			Object.entries(field.state.value).map(([k, v], i) => {
+				if (index === i) {
+					return [key, value];
+				}
+				return [k, v];
+			}),
+		);
+	};
+
+	const deleteKeyValue = (index: number) => {
+		return Object.fromEntries(
+			Object.entries(field.state.value).filter((_, i) => {
+				if (index === i) {
+					return false;
+				}
+				return true;
+			}),
+		);
+	};
+
+	return (
+		<Field>
+			<Title {...props} htmlFor={field.name} />
+			{keyValues.map(([key, value], index) => (
+				<div
+					key={index}
+					className="flex flex-row items-center gap-2 w-full"
+				>
+					<Input
+						id={field.name}
+						placeholder={t.key}
+						name={field.name}
+						type="text"
+						className="w-auto"
+						value={key}
+						onChange={(e) => {
+							field.handleChange(
+								updateKeyValue(e.target.value, value, index),
+							);
+						}}
+					/>
+					<Input
+						id={field.name}
+						name={field.name}
+						type="text"
+						className="flex-1 w-auto"
+						placeholder={t.value}
+						value={value}
+						onChange={(e) => {
+							field.handleChange(
+								updateKeyValue(key, e.target.value, index),
+							);
+						}}
+					/>
+					<Button
+						type="button"
+						variant="secondary"
+						onClick={(e) => {
+							e.preventDefault();
+							field.handleChange(deleteKeyValue(index));
+						}}
+					>
+						<Trash />
+						{t.delete}
+					</Button>
+				</div>
+			))}
+			<Button
+				size="sm"
+				className="mt-2"
+				onClick={() =>
+					field.setValue({
+						...field.state.value,
+						"": "",
+					})
+				}
+			>
+				<Plus />
+				{t.add}
+			</Button>
+			<Description {...props} />
+			<Error errors={field.getMeta().errors} />
+		</Field>
+	);
+};
+
+const MultiSelectField = ({
+	options,
+	...props
+}: React.ComponentProps<React.FC<MultiSelectProps>> &
+	DefaultOptions & {
+		options: {
+			label: string;
+			value: string;
+		}[];
+	}) => {
+	const field = useFieldContext<string[]>();
+
+	return (
+		<Field>
+			<Title {...props} htmlFor={field.name} />
+			<MultiSelect
+				{...props}
+				defaultValue={field.state.value}
+				options={options}
+				onValueChange={(value) => {
+					field.setValue(value);
+				}}
+			/>
 			<Description {...props} />
 			<Error errors={field.getMeta().errors} />
 		</Field>
@@ -374,8 +510,10 @@ const { useAppForm } = createFormHook({
 		TextField,
 		TextAreaField,
 		SelectField,
+		MultiSelectField,
 		CheckboxField,
 		FileField,
+		KeyValueField,
 		ImageField,
 	},
 	formComponents: {

@@ -26,8 +26,11 @@ import { Route as LocaleAuthCreateOrganizationRouteImport } from './routes/$loca
 import { Route as LocaleAdminSettingsRouteImport } from './routes/$locale/admin/settings'
 import { Route as LocaleAdminCertificateRouteImport } from './routes/$locale/admin/certificate'
 import { Route as LocaleAdminApiKeysRouteImport } from './routes/$locale/admin/api-keys'
+import { Route as LocaleAdminWebhooksIndexRouteImport } from './routes/$locale/admin/webhooks.index'
 import { Route as LocaleAdminMembersIndexRouteImport } from './routes/$locale/admin/members.index'
 import { Route as LocaleLearnerCollectionsCollectionIdRouteImport } from './routes/$locale/learner/collections.$collectionId'
+import { Route as LocaleAdminWebhooksCreateRouteImport } from './routes/$locale/admin/webhooks.create'
+import { Route as LocaleAdminWebhooksWebhookIdRouteImport } from './routes/$locale/admin/webhooks.$webhookId'
 import { Route as LocaleAdminSuperUsersRouteImport } from './routes/$locale/admin/super.users'
 import { Route as LocaleAdminMembersCreateRouteImport } from './routes/$locale/admin/members.create'
 import { Route as LocaleAdminMembersIdRouteImport } from './routes/$locale/admin/members.$id'
@@ -135,6 +138,12 @@ const LocaleAdminApiKeysRoute = LocaleAdminApiKeysRouteImport.update({
   path: '/api-keys',
   getParentRoute: () => LocaleAdminRoute,
 } as any)
+const LocaleAdminWebhooksIndexRoute =
+  LocaleAdminWebhooksIndexRouteImport.update({
+    id: '/webhooks/',
+    path: '/webhooks/',
+    getParentRoute: () => LocaleAdminRoute,
+  } as any)
 const LocaleAdminMembersIndexRoute = LocaleAdminMembersIndexRouteImport.update({
   id: '/members/',
   path: '/members/',
@@ -145,6 +154,18 @@ const LocaleLearnerCollectionsCollectionIdRoute =
     id: '/collections/$collectionId',
     path: '/collections/$collectionId',
     getParentRoute: () => LocaleLearnerRoute,
+  } as any)
+const LocaleAdminWebhooksCreateRoute =
+  LocaleAdminWebhooksCreateRouteImport.update({
+    id: '/webhooks/create',
+    path: '/webhooks/create',
+    getParentRoute: () => LocaleAdminRoute,
+  } as any)
+const LocaleAdminWebhooksWebhookIdRoute =
+  LocaleAdminWebhooksWebhookIdRouteImport.update({
+    id: '/webhooks/$webhookId',
+    path: '/webhooks/$webhookId',
+    getParentRoute: () => LocaleAdminRoute,
   } as any)
 const LocaleAdminSuperUsersRoute = LocaleAdminSuperUsersRouteImport.update({
   id: '/super/users',
@@ -333,8 +354,11 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/members/$id': typeof LocaleAdminMembersIdRoute
   '/$locale/admin/members/create': typeof LocaleAdminMembersCreateRoute
   '/$locale/admin/super/users': typeof LocaleAdminSuperUsersRoute
+  '/$locale/admin/webhooks/$webhookId': typeof LocaleAdminWebhooksWebhookIdRoute
+  '/$locale/admin/webhooks/create': typeof LocaleAdminWebhooksCreateRoute
   '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdRoute
   '/$locale/admin/members': typeof LocaleAdminMembersIndexRoute
+  '/$locale/admin/webhooks': typeof LocaleAdminWebhooksIndexRoute
   '/$locale/courses/$courseId/certificate': typeof LocaleredirectsCoursesCourseIdCertificateRoute
   '/$locale/courses/$courseId/join': typeof LocaleredirectsCoursesCourseIdJoinRoute
   '/$locale/admin/collections/$collectionId/courses': typeof LocaleAdminCollectionsCollectionIdCoursesRoute
@@ -372,8 +396,11 @@ export interface FileRoutesByTo {
   '/$locale/admin/members/$id': typeof LocaleAdminMembersIdRoute
   '/$locale/admin/members/create': typeof LocaleAdminMembersCreateRoute
   '/$locale/admin/super/users': typeof LocaleAdminSuperUsersRoute
+  '/$locale/admin/webhooks/$webhookId': typeof LocaleAdminWebhooksWebhookIdRoute
+  '/$locale/admin/webhooks/create': typeof LocaleAdminWebhooksCreateRoute
   '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdRoute
   '/$locale/admin/members': typeof LocaleAdminMembersIndexRoute
+  '/$locale/admin/webhooks': typeof LocaleAdminWebhooksIndexRoute
   '/$locale/courses/$courseId/certificate': typeof LocaleredirectsCoursesCourseIdCertificateRoute
   '/$locale/courses/$courseId/join': typeof LocaleredirectsCoursesCourseIdJoinRoute
   '/$locale/admin/collections/$collectionId/courses': typeof LocaleAdminCollectionsCollectionIdCoursesRoute
@@ -416,8 +443,11 @@ export interface FileRoutesById {
   '/$locale/admin/members/$id': typeof LocaleAdminMembersIdRoute
   '/$locale/admin/members/create': typeof LocaleAdminMembersCreateRoute
   '/$locale/admin/super/users': typeof LocaleAdminSuperUsersRoute
+  '/$locale/admin/webhooks/$webhookId': typeof LocaleAdminWebhooksWebhookIdRoute
+  '/$locale/admin/webhooks/create': typeof LocaleAdminWebhooksCreateRoute
   '/$locale/learner/collections/$collectionId': typeof LocaleLearnerCollectionsCollectionIdRoute
   '/$locale/admin/members/': typeof LocaleAdminMembersIndexRoute
+  '/$locale/admin/webhooks/': typeof LocaleAdminWebhooksIndexRoute
   '/$locale/(redirects)/courses/$courseId/certificate': typeof LocaleredirectsCoursesCourseIdCertificateRoute
   '/$locale/(redirects)/courses/$courseId/join': typeof LocaleredirectsCoursesCourseIdJoinRoute
   '/$locale/admin/collections/$collectionId/courses': typeof LocaleAdminCollectionsCollectionIdCoursesRoute
@@ -460,8 +490,11 @@ export interface FileRouteTypes {
     | '/$locale/admin/members/$id'
     | '/$locale/admin/members/create'
     | '/$locale/admin/super/users'
+    | '/$locale/admin/webhooks/$webhookId'
+    | '/$locale/admin/webhooks/create'
     | '/$locale/learner/collections/$collectionId'
     | '/$locale/admin/members'
+    | '/$locale/admin/webhooks'
     | '/$locale/courses/$courseId/certificate'
     | '/$locale/courses/$courseId/join'
     | '/$locale/admin/collections/$collectionId/courses'
@@ -499,8 +532,11 @@ export interface FileRouteTypes {
     | '/$locale/admin/members/$id'
     | '/$locale/admin/members/create'
     | '/$locale/admin/super/users'
+    | '/$locale/admin/webhooks/$webhookId'
+    | '/$locale/admin/webhooks/create'
     | '/$locale/learner/collections/$collectionId'
     | '/$locale/admin/members'
+    | '/$locale/admin/webhooks'
     | '/$locale/courses/$courseId/certificate'
     | '/$locale/courses/$courseId/join'
     | '/$locale/admin/collections/$collectionId/courses'
@@ -542,8 +578,11 @@ export interface FileRouteTypes {
     | '/$locale/admin/members/$id'
     | '/$locale/admin/members/create'
     | '/$locale/admin/super/users'
+    | '/$locale/admin/webhooks/$webhookId'
+    | '/$locale/admin/webhooks/create'
     | '/$locale/learner/collections/$collectionId'
     | '/$locale/admin/members/'
+    | '/$locale/admin/webhooks/'
     | '/$locale/(redirects)/courses/$courseId/certificate'
     | '/$locale/(redirects)/courses/$courseId/join'
     | '/$locale/admin/collections/$collectionId/courses'
@@ -708,6 +747,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAdminApiKeysRouteImport
       parentRoute: typeof LocaleAdminRoute
     }
+    '/$locale/admin/webhooks/': {
+      id: '/$locale/admin/webhooks/'
+      path: '/webhooks'
+      fullPath: '/$locale/admin/webhooks'
+      preLoaderRoute: typeof LocaleAdminWebhooksIndexRouteImport
+      parentRoute: typeof LocaleAdminRoute
+    }
     '/$locale/admin/members/': {
       id: '/$locale/admin/members/'
       path: '/members'
@@ -721,6 +767,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/learner/collections/$collectionId'
       preLoaderRoute: typeof LocaleLearnerCollectionsCollectionIdRouteImport
       parentRoute: typeof LocaleLearnerRoute
+    }
+    '/$locale/admin/webhooks/create': {
+      id: '/$locale/admin/webhooks/create'
+      path: '/webhooks/create'
+      fullPath: '/$locale/admin/webhooks/create'
+      preLoaderRoute: typeof LocaleAdminWebhooksCreateRouteImport
+      parentRoute: typeof LocaleAdminRoute
+    }
+    '/$locale/admin/webhooks/$webhookId': {
+      id: '/$locale/admin/webhooks/$webhookId'
+      path: '/webhooks/$webhookId'
+      fullPath: '/$locale/admin/webhooks/$webhookId'
+      preLoaderRoute: typeof LocaleAdminWebhooksWebhookIdRouteImport
+      parentRoute: typeof LocaleAdminRoute
     }
     '/$locale/admin/super/users': {
       id: '/$locale/admin/super/users'
@@ -952,7 +1012,10 @@ interface LocaleAdminRouteChildren {
   LocaleAdminMembersIdRoute: typeof LocaleAdminMembersIdRoute
   LocaleAdminMembersCreateRoute: typeof LocaleAdminMembersCreateRoute
   LocaleAdminSuperUsersRoute: typeof LocaleAdminSuperUsersRoute
+  LocaleAdminWebhooksWebhookIdRoute: typeof LocaleAdminWebhooksWebhookIdRoute
+  LocaleAdminWebhooksCreateRoute: typeof LocaleAdminWebhooksCreateRoute
   LocaleAdminMembersIndexRoute: typeof LocaleAdminMembersIndexRoute
+  LocaleAdminWebhooksIndexRoute: typeof LocaleAdminWebhooksIndexRoute
   LocaleAdminCollectionsCollectionIdCoursesRoute: typeof LocaleAdminCollectionsCollectionIdCoursesRoute
   LocaleAdminCollectionsCollectionIdLearnersRoute: typeof LocaleAdminCollectionsCollectionIdLearnersRoute
   LocaleAdminCollectionsCollectionIdSettingsRoute: typeof LocaleAdminCollectionsCollectionIdSettingsRoute
@@ -975,7 +1038,10 @@ const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
   LocaleAdminMembersIdRoute: LocaleAdminMembersIdRoute,
   LocaleAdminMembersCreateRoute: LocaleAdminMembersCreateRoute,
   LocaleAdminSuperUsersRoute: LocaleAdminSuperUsersRoute,
+  LocaleAdminWebhooksWebhookIdRoute: LocaleAdminWebhooksWebhookIdRoute,
+  LocaleAdminWebhooksCreateRoute: LocaleAdminWebhooksCreateRoute,
   LocaleAdminMembersIndexRoute: LocaleAdminMembersIndexRoute,
+  LocaleAdminWebhooksIndexRoute: LocaleAdminWebhooksIndexRoute,
   LocaleAdminCollectionsCollectionIdCoursesRoute:
     LocaleAdminCollectionsCollectionIdCoursesRoute,
   LocaleAdminCollectionsCollectionIdLearnersRoute:

@@ -65,6 +65,32 @@ export const domains = sqliteTable("domains", {
 	hostnameId: text("hostname_id").notNull(),
 	...dates,
 });
+export const webhooks = sqliteTable("webhooks", {
+	id: text().primaryKey(),
+	organizationId: text("organization_id")
+		.notNull()
+		.references(() => organizations.id, {
+			onDelete: "cascade",
+		}),
+	url: text().notNull(),
+	description: text(),
+	headers: text({
+		mode: "json",
+	}).$type<Record<string, string>>(),
+	events: text({
+		mode: "json",
+	}).$type<
+		(
+			| "learner.complete"
+			| "learner.created"
+			| "learner.started"
+			| "learner.updated"
+		)[]
+	>(),
+	secret: text().notNull(),
+	enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+	...dates,
+});
 
 // COURSES //
 

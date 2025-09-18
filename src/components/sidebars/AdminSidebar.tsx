@@ -36,6 +36,7 @@ import {
 	SquareLibrary,
 	FileBadge2,
 	ShieldUser,
+	WebhookIcon,
 } from "lucide-react";
 import type { Course } from "@/types/course";
 import { useEffect, useState } from "react";
@@ -686,6 +687,27 @@ export const AdminSidebar = ({
 											>
 												<Users />
 												{t.members}
+											</SidebarMenuButton>
+										)}
+									</Link>
+								</SidebarMenuItem>
+								<SidebarMenuItem>
+									<Link
+										to="/$locale/admin/webhooks"
+										params={{
+											locale,
+										}}
+										search={(p) => p}
+										onClick={() => {
+											setOpenMobile(false);
+										}}
+									>
+										{({ isActive }) => (
+											<SidebarMenuButton
+												isActive={isActive}
+											>
+												<WebhookIcon />
+												{t.webhooks}
 											</SidebarMenuButton>
 										)}
 									</Link>
