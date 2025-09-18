@@ -19,7 +19,7 @@ export const getInitialScormData = (
 ): Record<string, string> => {
 	if (version === "1.2") {
 		return {
-			"cmi.core.lesson_status": "not attempted",
+			"cmi.core.lesson_status": "browsed",
 			"cmi.core.lesson_location": "0",
 			"cmi.core.lesson_mode": "browse",
 			"cmi.launch_data": "",
@@ -27,7 +27,7 @@ export const getInitialScormData = (
 		};
 	} else {
 		return {
-			"cmi.completion_status": "not attempted",
+			"cmi.completion_status": "incomplete",
 			"cmi.success_status": "unknown",
 			"cmi.location": "0",
 			"cmi.mode": "browse",

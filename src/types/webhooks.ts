@@ -17,8 +17,8 @@ export const WebhookFormSchema = createInsertSchema(webhooks, {
 export type WebhookFormType = z.infer<typeof WebhookFormSchema>;
 
 export const eventTypes = [
-	"learner.complete",
-	"learner.created",
+	"learner.completed",
 	"learner.started",
 	"learner.updated",
 ] as const;
+export type WebhookEventType = (typeof eventTypes)[number];

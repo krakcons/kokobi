@@ -79,14 +79,7 @@ export const webhooks = sqliteTable("webhooks", {
 	}).$type<Record<string, string>>(),
 	events: text({
 		mode: "json",
-	}).$type<
-		(
-			| "learner.complete"
-			| "learner.created"
-			| "learner.started"
-			| "learner.updated"
-		)[]
-	>(),
+	}).$type<("learner.completed" | "learner.started" | "learner.updated")[]>(),
 	secret: text().notNull(),
 	enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
 	...dates,

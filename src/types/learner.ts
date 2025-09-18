@@ -16,7 +16,7 @@ export const learnerStatuses = [
 	"passed",
 	"failed",
 	"in-progress",
-	"not-started",
+	"not-started", // Not started doesn't exist anymore?
 ] as const;
 export const LearnerSchema = BaseLearnerSchema.extend({
 	status: z.enum([

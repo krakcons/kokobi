@@ -30,6 +30,7 @@ import { organizationImageUrl } from "@/lib/file";
 import { ORPCError } from "@orpc/client";
 import { s3 } from "../s3";
 import type { Organization } from "@/types/organization";
+import { triggerWebhook } from "@/lib/webhooks";
 
 export const learnerRouter = base.prefix("/learner").router({
 	organization: {
@@ -352,14 +353,24 @@ export const learnerRouter = base.prefix("/learner").router({
 						moduleList[0];
 
 					const attemptId = Bun.randomUUIDv7();
-					await db.insert(usersToModules).values({
-						id: attemptId,
-						userId: context.user.id,
+					const [attempt] = await db
+						.insert(usersToModules)
+						.values({
+							id: attemptId,
+							userId: context.user.id,
+							organizationId:
+								context.session.activeLearnerOrganizationId,
+							moduleId: module.id,
+							courseId: id,
+							data: getInitialScormData(module.type),
+						})
+						.returning();
+
+					triggerWebhook({
+						event: "learner.started",
 						organizationId:
 							context.session.activeLearnerOrganizationId,
-						moduleId: module.id,
-						courseId: id,
-						data: getInitialScormData(module.type),
+						data: ExtendLearner(module.type).parse(attempt),
 					});
 
 					return attemptId;
@@ -424,6 +435,7 @@ export const learnerRouter = base.prefix("/learner").router({
 
 						// UPDATE LEARNER
 						let completedAt = undefined;
+						let justCompleted = false;
 						if (data) {
 							// Send communications in the locale of the module
 							const communicationLocale = attempt.module.locale;
@@ -444,8 +456,7 @@ export const learnerRouter = base.prefix("/learner").router({
 									attempt.course.completionStatus,
 								status: newLearner.status,
 							});
-							const justCompleted =
-								!attempt.completedAt && isComplete;
+							justCompleted = !attempt.completedAt && isComplete;
 
 							completedAt =
 								attempt.module && justCompleted
@@ -512,7 +523,7 @@ export const learnerRouter = base.prefix("/learner").router({
 							}
 						}
 
-						const newAttempt = await db
+						const [newAttempt] = await db
 							.update(usersToModules)
 							.set({
 								...(data ? { data } : {}),
@@ -532,9 +543,27 @@ export const learnerRouter = base.prefix("/learner").router({
 							)
 							.returning();
 
-						return ExtendLearner(attempt.module.type).parse(
-							newAttempt[0],
-						);
+						const newLearner = ExtendLearner(
+							attempt.module.type,
+						).parse(newAttempt);
+
+						if (justCompleted) {
+							triggerWebhook({
+								event: "learner.completed",
+								organizationId:
+									context.session.activeLearnerOrganizationId,
+								data: newLearner,
+							});
+						} else {
+							triggerWebhook({
+								event: "learner.updated",
+								organizationId:
+									context.session.activeLearnerOrganizationId,
+								data: newLearner,
+							});
+						}
+
+						return newLearner;
 					},
 				),
 		},
