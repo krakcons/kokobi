@@ -123,7 +123,7 @@ function RouteComponent() {
 					</div>
 				</div>
 			</header>
-			<main className="flex flex-row mx-auto w-full xl:max-w-screen-xl p-6">
+			<main className="flex flex-row mx-auto w-full xl:max-w-screen-xl px-6 py-12 sm:py-20">
 				<Outlet />
 			</main>
 		</div>

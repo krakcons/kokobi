@@ -111,6 +111,7 @@ export const Route = createFileRoute("/$locale/learner")({
 	loader: ({ context: { queryClient } }) => {
 		return Promise.all([
 			queryClient.ensureQueryData(orpc.auth.session.queryOptions()),
+			queryClient.ensureQueryData(orpc.organization.get.queryOptions()),
 			queryClient.ensureQueryData(
 				orpc.learner.organization.get.queryOptions(),
 			),
@@ -133,6 +134,9 @@ function RouteComponent() {
 	const { isIframe } = Route.useRouteContext();
 
 	const { data: auth } = useSuspenseQuery(orpc.auth.session.queryOptions());
+	const { data: adminOrganizations } = useSuspenseQuery(
+		orpc.organization.get.queryOptions(),
+	);
 	const { data: organizations } = useSuspenseQuery(
 		orpc.learner.organization.get.queryOptions(),
 	);
@@ -164,6 +168,7 @@ function RouteComponent() {
 				<LearnerSidebar
 					session={auth.session as SessionWithImpersonatedBy}
 					tenantId={tenant?.id}
+					adminOrganizations={adminOrganizations}
 					activeLearnerOrganizationId={
 						auth.session.activeLearnerOrganizationId
 					}

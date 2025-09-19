@@ -46,7 +46,7 @@ function Home() {
 
 	if (tenant) {
 		return (
-			<div>
+			<div className="w-full">
 				<OrganizationIcon
 					src={organizationImageUrl(tenant, "logo")}
 					className="my-4"

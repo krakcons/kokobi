@@ -33,6 +33,7 @@ import { SidebarUserButton } from "./UserButton";
 export const LearnerSidebar = ({
 	tenantId,
 	activeLearnerOrganizationId,
+	adminOrganizations,
 	organizations,
 	courses,
 	session,
@@ -42,6 +43,7 @@ export const LearnerSidebar = ({
 }: {
 	tenantId?: string;
 	activeLearnerOrganizationId: string;
+	adminOrganizations: Organization[];
 	organizations: Organization[];
 	courses: (UserToCourseType & { course: Course })[];
 	availableCourses: Course[];
@@ -230,17 +232,21 @@ export const LearnerSidebar = ({
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
-					<SidebarMenuItem>
-						<Link to={"/$locale/admin"} params={{ locale }}>
-							<SidebarMenuButton
-								variant="outline"
-								className="justify-center"
-							>
-								<LayoutDashboard />
-								{t.switchToAdmin}
-							</SidebarMenuButton>
-						</Link>
-					</SidebarMenuItem>
+					{adminOrganizations.some(
+						(o) => o.id === activeLearnerOrganizationId,
+					) && (
+						<SidebarMenuItem>
+							<Link to={"/$locale/admin"} params={{ locale }}>
+								<SidebarMenuButton
+									variant="outline"
+									className="justify-center"
+								>
+									<LayoutDashboard />
+									{t.switchToAdmin}
+								</SidebarMenuButton>
+							</Link>
+						</SidebarMenuItem>
+					)}
 					<Separator className="my-2" />
 					<SidebarUserButton user={user} session={session} />
 				</SidebarMenu>
