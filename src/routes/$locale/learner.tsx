@@ -66,12 +66,18 @@ export const Route = createFileRoute("/$locale/learner")({
 				await orpc.learner.organization.setActive.call({
 					id: tenant.id,
 				});
+				await queryClient.refetchQueries(
+					orpc.auth.session.queryOptions(),
+				);
 			}
 		} else {
 			if (organizationId) {
 				await orpc.learner.organization.setActive.call({
 					id: organizationId,
 				});
+				await queryClient.refetchQueries(
+					orpc.auth.session.queryOptions(),
+				);
 				const newUrl = new URL(env.VITE_SITE_URL + location.href);
 				newUrl.searchParams.delete("organizationId");
 				newUrl.searchParams.delete("teamId");
@@ -84,6 +90,9 @@ export const Route = createFileRoute("/$locale/learner")({
 				await orpc.learner.organization.setActive.call({
 					id: organizations[0].id,
 				});
+				await queryClient.refetchQueries(
+					orpc.auth.session.queryOptions(),
+				);
 				redirectHref = location.href;
 			}
 		}
@@ -142,6 +151,12 @@ function RouteComponent() {
 		from: "/$locale/learner/courses/$courseId/play",
 		shouldThrow: false,
 	});
+
+	console.log(
+		auth.session.activeLearnerOrganizationId,
+		tenant?.id,
+		organizations,
+	);
 
 	return (
 		<SidebarProvider>

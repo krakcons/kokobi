@@ -57,10 +57,9 @@ export const Route = createFileRoute("/$locale/admin")({
 					await orpc.organization.setActive.call({
 						id: tenant.id,
 					});
-					throw redirect({
-						href: location.href,
-						reloadDocument: true,
-					});
+					await queryClient.refetchQueries(
+						orpc.auth.session.queryOptions(),
+					);
 				} catch (e) {
 					throw redirect({
 						to: "/$locale/not-admin",
@@ -89,10 +88,9 @@ export const Route = createFileRoute("/$locale/admin")({
 					await orpc.organization.setActive.call({
 						id: userOrganizations?.[0].id!,
 					});
-					throw redirect({
-						href: location.href,
-						reloadDocument: true,
-					});
+					await queryClient.refetchQueries(
+						orpc.auth.session.queryOptions(),
+					);
 				}
 			}
 		}
