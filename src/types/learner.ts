@@ -78,3 +78,12 @@ export const LearnerUpdateSchema = z.object({
 	data: z.record(z.string(), z.string()),
 });
 export type LearnerUpdateType = z.infer<typeof LearnerUpdateSchema>;
+
+export const EmailsInputSchema = z
+	.union([z.email().toLowerCase().array(), z.email().toLowerCase()])
+	.transform((emails) => {
+		if (Array.isArray(emails)) {
+			return emails;
+		}
+		return [emails];
+	});

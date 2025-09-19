@@ -15,6 +15,7 @@ import { z } from "zod";
 import { ORPCError } from "@orpc/client";
 import { getConnectionLink } from "../lib/connection";
 import { createConnection } from "./connection";
+import { EmailsInputSchema } from "@/types/learner";
 
 export const collectionRouter = base.prefix("/collections").router({
 	get: organizationProcedure
@@ -354,7 +355,7 @@ export const collectionRouter = base.prefix("/collections").router({
 		.input(
 			z.object({
 				id: z.string(),
-				emails: z.email().toLowerCase().array().optional(),
+				emails: EmailsInputSchema,
 			}),
 		)
 		.output(z.null())

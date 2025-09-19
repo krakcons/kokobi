@@ -20,7 +20,11 @@ import {
 } from "@/server/db/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { createTranslator, handleLocalization } from "@/lib/locale";
-import { ExtendLearner, learnerStatuses } from "@/types/learner";
+import {
+	EmailsInputSchema,
+	ExtendLearner,
+	learnerStatuses,
+} from "@/types/learner";
 import { ModuleSchema } from "@/types/module";
 import { getConnectionLink } from "../lib/connection";
 import { getNewModuleVersionNumber } from "../lib/modules";
@@ -824,7 +828,7 @@ export const courseRouter = base.prefix("/courses").router({
 		.input(
 			z.object({
 				id: z.string(),
-				emails: z.email().toLowerCase().array().optional(),
+				emails: EmailsInputSchema,
 			}),
 		)
 		.output(z.null())
