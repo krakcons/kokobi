@@ -67,7 +67,7 @@ export const LearnerSidebar = ({
 					to: "/$locale/learner",
 					params: { locale },
 				}).then(() => {
-					queryClient.invalidateQueries();
+					queryClient.refetchQueries();
 				}),
 		}),
 	);

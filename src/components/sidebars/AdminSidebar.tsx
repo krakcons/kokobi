@@ -519,7 +519,7 @@ export const AdminSidebar = ({
 										to: "/$locale/admin",
 										params: { locale },
 									}).then(() => {
-										queryClient.invalidateQueries();
+										queryClient.refetchQueries();
 									});
 								},
 							},
