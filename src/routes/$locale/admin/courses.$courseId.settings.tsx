@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
+import { Badge } from "@/components/ui/badge";
+import CopyButton from "@/components/CopyButton";
 
 export const Route = createFileRoute(
 	"/$locale/admin/courses/$courseId/settings",
@@ -106,7 +108,12 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title={t.title} description={t.description} />
+			<PageHeader title={t.title} description={t.description}>
+				<Badge variant="secondary">
+					<p>{course.id}</p>
+					<CopyButton text={course.id} />
+				</Badge>
+			</PageHeader>
 			<CourseForm
 				key={course.locale}
 				defaultValues={course}

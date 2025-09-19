@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
+import CopyButton from "@/components/CopyButton";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute(
 	"/$locale/admin/collections/$collectionId/settings",
@@ -91,7 +93,12 @@ function RouteComponent() {
 
 	return (
 		<Page>
-			<PageHeader title={t.title} description={t.description} />
+			<PageHeader title={t.title} description={t.description}>
+				<Badge variant="secondary">
+					<p>{collection.id}</p>
+					<CopyButton text={collection.id} />
+				</Badge>
+			</PageHeader>
 			<CollectionForm
 				key={collection.locale}
 				onSubmit={(value) =>
