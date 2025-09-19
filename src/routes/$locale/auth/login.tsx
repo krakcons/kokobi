@@ -5,12 +5,22 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { OrganizationIcon } from "@/components/OrganizationIcon";
 import { organizationImageUrl } from "@/lib/file";
-import { useTranslations } from "@/lib/locale";
+import { locales, useTranslations } from "@/lib/locale";
 import { orpc } from "@/server/client";
 import { authClient } from "@/lib/auth.client";
 
 export const RedirectSchema = z.object({
-	redirect: z.string().optional(),
+	redirect: z
+		.string()
+		.optional()
+		.transform((v) => {
+			if (!v) return v;
+			for (const locale of locales) {
+				if (v.startsWith(`/${locale.value}`))
+					return v.slice(1 + locale.value.length);
+			}
+			return v;
+		}),
 });
 
 export const Route = createFileRoute("/$locale/auth/login")({
